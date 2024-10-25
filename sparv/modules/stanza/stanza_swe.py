@@ -1,6 +1,9 @@
 """POS tagging, lemmatisation and dependency parsing with Stanza."""
 
+import warnings
+
 from sparv.api import Annotation, Config, Model, Output, annotator, get_logger, util
+from sparv.core.misc import SparvErrorMessage
 
 from . import stanza_utils
 
@@ -139,13 +142,13 @@ def annotate_swe(
             )
             nlp_args["processors"] = "tokenize,pos,lemma,depparse"  # Comma-separated list of processors to use
             nlp_args["use_gpu"] = use_gpu and not fallback
-            nlp = stanza.Pipeline(**nlp_args)
+            nlp = _create_pipeline(stanza, nlp_args, resources_file)
 
         else:
             logger.debug("Running POS-taggning on %d sentences.", len(sentences))
             nlp_args["processors"] = "tokenize,pos"  # Comma-separated list of processors to use
             nlp_args["use_gpu"] = use_gpu
-            nlp = stanza.Pipeline(**nlp_args)
+            nlp = _create_pipeline(stanza, nlp_args, resources_file)
 
         # Format document for stanza: list of lists of string
         document = [[word_list[i] for i in s] for s in sentences]
@@ -205,7 +208,7 @@ def msdtag(out_msd: Output = Output("<token>:stanza.msd", cls="token:msd",
     document = [[word_list[i] for i in s] for s in sentences]
 
     # Init Stanza Pipeline
-    nlp = stanza.Pipeline({
+    nlp = _create_pipeline(stanza, {
         "lang": "sv",
         "processors": "tokenize,pos",
         "dir": str(resources_file.path.parent),
@@ -215,7 +218,7 @@ def msdtag(out_msd: Output = Output("<token>:stanza.msd", cls="token:msd",
         "pos_batch_size": batch_size,
         "use_gpu": use_gpu,
         "verbose": False
-    })
+    }, resources_file)
 
     doc = stanza_utils.run_stanza(nlp, document, batch_size)
     stanza_utils.check_sentence_respect(len([s for s in sentences if s]), len(doc.sentences))
@@ -313,7 +316,7 @@ def dep_parse(out_dephead: Output = Output("<token>:stanza.dephead", cls="token:
                               ref_vals)
 
         # Init Stanza Pipeline
-        nlp = stanza.Pipeline({
+        nlp = _create_pipeline(stanza, {
             "lang": "sv",
             "dir": str(resources_file.path.parent),
             "processors": "depparse",
@@ -323,7 +326,7 @@ def dep_parse(out_dephead: Output = Output("<token>:stanza.dephead", cls="token:
             "depparse_batch_size": batch_size,
             "use_gpu": use_gpu and not fallback,
             "verbose": False
-        })
+        }, resources_file)
 
         doc = stanza_utils.run_stanza(nlp, Document(document), batch_size, max_sentence_length)
         for sent, tagged_sent in zip(sentences, doc.sentences):
@@ -387,3 +390,22 @@ def _build_doc(sentences, word, baseform, msd, feats, ref):
         if in_sent:
             document.append(in_sent)
     return document
+
+def _create_pipeline(stanza, nlp_args: dict, resources_file: str):
+    """Create and return Stanza pipeline."""
+
+    # Silence warning about Stanza using torch.load with weights_only=False
+    # https://github.com/stanfordnlp/stanza/issues/1429
+    warnings.simplefilter(action="ignore", category=FutureWarning)
+
+    try:
+        nlp = stanza.Pipeline(**nlp_args)
+    except KeyError as e:
+        if e.args[0] == "packages":
+            raise SparvErrorMessage(
+                "Stanza has been updated and the resources file for the Swedish model needs to be recreated. "
+                f"Delete the file {resources_file.name!r} and rerun Sparv.")
+        else:
+            raise e
+
+    return nlp

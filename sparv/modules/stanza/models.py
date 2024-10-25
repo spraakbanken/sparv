@@ -23,7 +23,13 @@ def stanza_resources_file(resources_file: ModelOutput = ModelOutput("stanza/swe/
                 "tokenize": "orchid"
             },
             "default_dependencies": {},
-        }})
+            "packages": {
+                "default": {
+                    "tokenize": "orchid"
+                }
+            },
+        }
+    })
     resources_file.write(res)
 
 
