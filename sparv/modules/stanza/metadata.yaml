@@ -1,4 +1,33 @@
+id: stanza-parent
+abstract: true
+language_codes:
+  - swe
+standard_reference: 'https://aclanthology.org/2021.nodalida-main.20/'
+tool: "Stanza"
+trained_on: "[SUC3](https://spraakbanken.gu.se/resurser/suc3), [TalbankenSBX](https://spraakbanken.gu.se/resurser/talbanken), [SIC2](https://spraakbanken.gu.se/resurser/sic2)"
+other_references:
+  - "Stanza: Peng Qi, Yuhao Zhang, Yuhui Zhang, Jason Bolton and Christopher D. Manning. 2020"
+  - "Stanza: A Python Natural Language Processing Toolkit for Many Human Languages. In Association for Computational Linguistics (ACL) System Demonstrations. 2020"
+  - "SUC3: https://spraakbanken.gu.se/en/resources/suc3"
+  - "TalbankenSBX: https://spraakbanken.gu.se/en/blog/20200609-the-five-lives-of-talbanken"
+  - "SIC2: https://spraakbanken.gu.se/en/resources/sic2"
+tagset: "[SUC3](https://spraakbanken.gu.se/korp/markup/msdtags.html)"
+evaluation_results: |-
+  For a model trained on SUC3 and validated on a part of TalbankenSBX_dev the results are as follows:  
+  tested on Talbanken SBX_test: exact match = 0.97; POS = 0.98; msd = 0.99  
+  tested on SIC2: exact match = 0.92; POS = 0.93; msd = 0.96  
+  More info: https://spraakbanken.gu.se/en/resources/flair/evaluating-pos-tagging
+caveats:
+  swe: ''
+  eng: ''
+intended_uses:
+  swe: ''
+  eng: ''
+created: 2020-12-07
+updated: 2022-08-10
+---
 id: swe-pos-stanza-stanzamorph
+parent: stanza-parent
 name:
   swe: SUC-ordklasstaggning med Stanza
   eng: SUC part-of-speech tagging with Stanza
@@ -6,14 +35,12 @@ short_description:
   swe: Annotering av SUC-ordklasser med Stanza för svenska
   eng: Swedish part-of-speech annotation with SUC tags by Stanza
 task: part-of-speech tagging
-in_collections:
-  - pos
 keywords:
   - pos-tagging
   - stanza
 annotations:
   - <token>:stanza.pos
-exmaple-output: |-
+example_output: |-
   ```xml
   <token pos="PN">Det</token>
   <token pos="AB">här</token>
@@ -22,33 +49,151 @@ exmaple-output: |-
   <token pos="NN">korpus</token>
   <token pos="MAD">.</token>
   ```
-caveats:
-  swe: ''
-  eng: ''
-standard_reference: 'https://aclanthology.org/2021.nodalida-main.20/'
-other_references:
-  - "Stanza: Peng Qi, Yuhao Zhang, Yuhui Zhang, Jason Bolton and Christopher D. Manning. 2020"
-  - "Stanza: A Python Natural Language Processing Toolkit for Many Human Languages. In Association for Computational Linguistics (ACL) System Demonstrations. 2020"
-  - "SUC3: https://spraakbanken.gu.se/en/resources/suc3"
-  - "TalbankenSBX: https://spraakbanken.gu.se/en/blog/20200609-the-five-lives-of-talbanken"
-  - "SIC2: https://spraakbanken.gu.se/en/resources/sic2"
-tool: "Stanza"
-model: "[Stanzamorph](https://spraakbanken.gu.se/resurser/stanzamorph)"
-trained_on: "[SUC3](https://spraakbanken.gu.se/resurser/suc3), [TalbankenSBX](https://spraakbanken.gu.se/resurser/talbanken), [SIC2](https://spraakbanken.gu.se/resurser/sic2)"
-tagset: "[SUC3](https://spraakbanken.gu.se/korp/markup/msdtags.html)"
-evaluation_results: |-
-  For a model trained on SUC3 and validated on a part of TalbankenSBX_dev the results are as follows:  
-  tested on Talbanken SBX_test: exact match = 0.97; POS = 0.98; msd = 0.99  
-  tested on SIC2: exact match = 0.92; POS = 0.93; msd = 0.96  
-  More info: https://spraakbanken.gu.se/en/resources/flair/evaluating-pos-tagging
-intended_uses:
-  swe: ''
-  eng: ''
 description:
   eng: |-
     In 2020, the Stanza tool was trained and tested on a set of gold-standard
     Swedish corpora (following SUC3-style annotation) in order to create a high-quality analysis.
     Currently (in 2024), this is the default analysis for Swedish in Språkbanken's analysis platform
     [Sparv](https://spraakbanken.gu.se/sparv).
-created: 2020-12-07
-updated: 2022-08-10
+---
+id: swe-msd-stanza-stanzamorph-suc3
+name:
+  swe: Morfosyntaktisk SUC-taggning med Stanza
+  eng: Tagging of morphological features (SUC) by Stanza
+short_description:
+  swe: Annotering av morfosyntaktiska deskriptorer (SUC) med Stanza för svenska
+  eng: Annotation of morphological features (SUC) by Stanza for Swedish
+task: morphosyntactic tagging
+keywords:
+  - msd
+  - stanza
+annotations:
+  - <token>:stanza.msd
+example_output: |-
+  ```xml
+  <token msd="PN.NEU.SIN.DEF.SUB+OBJ">Det</token>
+  <token msd="AB">här</token>
+  <token msd="VB.PRS.AKT">är</token>
+  <token msd="DT.UTR.SIN.IND">en</token>
+  <token msd="NN.UTR.SIN.IND.NOM">korpus</token>
+  <token msd="MAD">.</token>
+  ```
+model: "[Stanzamorph](https://spraakbanken.gu.se/resurser/stanzamorph)"
+description:
+  eng: |-
+    This annotation contains morphosyntactic features in addition to part-of-speech tags.
+ 
+    In 2020, the Stanza tool was trained and tested on a set of gold-standard
+    Swedish corpora (following SUC3-style annotation) in order to create a high-quality analysis.
+    Currently (in 2024), this is the default analysis for Swedish in Språkbanken's analysis platform
+    [Sparv](https://spraakbanken.gu.se/sparv).
+---
+id: swe-msd-stanza-stanzamorph-ufeats
+parent: stanza-parent
+name:
+  swe: Morfologisk analys för svenska baserad på Stanza
+  eng: Stanza-based morphological analysis for Swedish
+short_description:
+  swe: Morfologisk analys för svenska med universal features (UD) baserad på Stanza
+  eng: Stanza-based morphological analysis for Swedish, using universal features (UD)
+task: morphosyntactic tagging
+keywords:
+  - msd
+  - stanza
+annotations:
+  - <token>:stanza.ufeats
+example_output: |-
+  ```xml
+  <token ufeats="|Case=Acc,Nom|Definite=Def|Gender=Neut|Number=Sing|">Det</token>
+  <token ufeats="|">här</token>
+  <token ufeats="|Mood=Ind|Tense=Pres|VerbForm=Fin|Voice=Act|">är</token>
+  <token ufeats="|Definite=Ind|Gender=Com|Number=Sing|">en</token>
+  <token ufeats="|Case=Nom|Definite=Ind|Gender=Com|Number=Sing|">korpus</token>
+  <token ufeats="|">.</token>
+  ```
+other_references:
+  - "Stanza: Peng Qi, Yuhao Zhang, Yuhui Zhang, Jason Bolton and Christopher D. Manning. 2020"
+  - "Stanza: A Python Natural Language Processing Toolkit for Many Human Languages. In Association for Computational Linguistics (ACL) System Demonstrations. 2020"
+  - "TalbankenSBX: https://spraakbanken.gu.se/en/blog/20200609-the-five-lives-of-talbanken"
+  - "SIC2: https://spraakbanken.gu.se/en/resources/sic2"
+model: "[Stanzamorph](https://spraakbanken.gu.se/resurser/stanzamorph)"
+tagset: "[UD](https://universaldependencies.org/u/feat/index.html)"
+evaluation_results: ''
+description:
+  swe: |-
+    Denna analys använder universal features som ingår i standarden Universal Dependencies.
+  eng: |-
+    This analysis uses universal features, defined as part of the Universal Dependencies standard.
+---
+id: swe-lemmatization-stanza-stanzalem
+parent: stanza-parent
+name:
+  swe: SUC3-grundformanalys med Stanza
+  eng: SUC3-citation form analysis with Stanza
+short_description:
+  swe: Annotering av grundformer (lemman) med Stanza för svenska tränat på SUC3
+  eng: Swedish citation form analysis (base forms, lemmas) by Stanza, trained on SUC3
+task: lemmatization
+keywords:
+  - lemmatization
+  - stanza
+annotations:
+  - <token>:stanza.baseform
+example_output: |-
+  ```xml
+  <token baseform="det">Det</token>
+  <token baseform="här">här</token>
+  <token baseform="vara">är</token>
+  <token baseform="en">en</token>
+  <token baseform="korpus">korpus</token>
+  <token baseform=".">.</token>
+  ```
+other_references:
+  - "Stanza: Peng Qi, Yuhao Zhang, Yuhui Zhang, Jason Bolton and Christopher D. Manning. 2020"
+  - "Stanza: A Python Natural Language Processing Toolkit for Many Human Languages. In Association for Computational Linguistics (ACL) System Demonstrations. 2020"
+  - "SUC3: https://spraakbanken.gu.se/en/resources/suc3"
+model: "[Stanzalem](https://spraakbanken.gu.se/resurser/stanzalem)"
+trained_on: "[SUC3](https://spraakbanken.gu.se/resurser/suc3)"
+evaluation_results: Accuracy = 0.99
+description:
+  eng: |-  
+    In 2020, the Stanza tool was trained and tested the SUC3 corpus in order to create a high-quality analysis.
+    Currently (in 2024), this analysis is available in Sparv, but it is not provided by default, since it is not fully
+    compatible with SALDO-style lemmas. This model's advantage is that it can be used to lemmatize any token, including
+    out-of-vocabulary tokens.
+---
+id: swe-dependency-stanza-stanzasynt
+parent: stanza-parent
+name:
+  swe: Dependensanalys med Stanza
+  eng: Dependency analysis with Stanza
+short_description:
+  swe: Annotering av SUC-ordklasser med Stanza för svenska
+  eng: Swedish part-of-speech annotation with SUC tags by Stanza
+task: part-of-speech tagging
+keywords:
+  - dependency-parsing
+  - stanza
+annotations:
+  - <token>:stanza.dephead_ref
+  - <token>:stanza.deprel
+  - <token>:stanza.ref
+example_output: |-
+  ```xml
+  <token dephead_ref="3" deprel="SS" ref="1">Det</token>
+  <token dephead_ref="1" deprel="HD" ref="2">här</token>
+  <token deprel="ROOT" ref="3">är</token>
+  <token dephead_ref="5" deprel="DT" ref="4">en</token>
+  <token dephead_ref="3" deprel="SP" ref="5">korpus</token>
+  <token dephead_ref="3" deprel="IP" ref="6">.</token>
+  ```
+model: "[Stanzasynt](https://spraakbanken.gu.se/resurser/stanzasynt)"
+trained_on: "[TalbankenSBX](https://spraakbanken.gu.se/resurser/talbanken)"
+tagset: "[MambaDep](https://svn.spraakdata.gu.se/sb-arkiv/pub/mamba.html)"
+evaluation_results: |-
+    A model trained on TalbankenSBX_train and validated on TalbankenSBX_dev yields Labelled Attachment Score of 84.48 on
+    TalbankenSBX_test.
+description:
+  eng: |-
+    In 2020, the Stanza tool was trained and tested on TalbankenSBX (following MambaDep-style annotation) in order to
+    create a high-quality analysis. Currently (in 2024), this is the default analysis for Swedish in Sparv
