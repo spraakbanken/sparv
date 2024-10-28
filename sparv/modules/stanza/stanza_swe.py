@@ -198,7 +198,8 @@ def msdtag(out_msd: Output = Output("<token>:stanza.msd", cls="token:msd",
     import stanza  # noqa: PLC0415
 
     sentences, orphans = sentence.get_children(token)
-    sentences.append(orphans)
+    if orphans:
+        sentences.append(orphans)
     word_list = list(word.read())
     msd = word.create_empty_attribute()
     pos = word.create_empty_attribute()
@@ -319,7 +320,8 @@ def dep_parse(out_dephead: Output = Output("<token>:stanza.dephead", cls="token:
         nlp = _create_pipeline(stanza, {
             "lang": "sv",
             "dir": str(resources_file.path.parent),
-            "processors": "depparse",
+            "processors": "tokenize,pos,lemma,depparse",
+            "tokenize_pretokenized": True,
             "depparse_pretrain_path": str(pretrain_model.path),
             "depparse_model_path": str(model.path),
             "depparse_max_sentence_size": 200,  # Create new batch when encountering sentences larger than this
