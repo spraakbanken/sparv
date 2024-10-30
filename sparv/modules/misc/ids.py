@@ -22,7 +22,8 @@ _ID_LENGTH = 10
 
 
 @annotator("Give every source file a unique ID")
-def file_id(out: OutputDataAllSourceFiles = OutputDataAllSourceFiles("misc.fileid", cls="fileid"),
+def file_id(out: OutputDataAllSourceFiles = OutputDataAllSourceFiles("misc.fileid", cls="fileid",
+                                                                     description="Unique IDs for every source file"),
             source_files: Optional[AllSourceFilenames] = AllSourceFilenames(),
             source_files_list: Optional[str] = None,
             prefix: str = "",

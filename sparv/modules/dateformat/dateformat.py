@@ -117,7 +117,7 @@ def timeformat(in_from: Annotation = Annotation("[dateformat.datetime_from]"),
 
 
 @annotator("Get datetime resolutions from informat")
-def resolution(out_resolution: OutputCommonData = OutputCommonData("dateformat.resolution"),
+def resolution(out_resolution: OutputCommonData = OutputCommonData("dateformat.resolution", description="Datetime resolution"),
                informat: Optional[str] = Config("dateformat.datetime_informat")):
     """Get the datetime resolution from the informat defined in the corpus config.
 

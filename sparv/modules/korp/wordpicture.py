@@ -90,7 +90,7 @@ def uninstall_wordpicture(
 
 @annotator("Find dependencies for Korp's Word Picture", language=["swe"])
 def wordpicture(
-    out: OutputData = OutputData("korp.wordpicture"),
+    out: OutputData = OutputData("korp.wordpicture", description="Wordpicture data"),
     word: Annotation = Annotation("<token:word>"),
     pos: Annotation = Annotation("<token:pos>"),
     lemgram: Annotation = Annotation("<token>:saldo.lemgram"),

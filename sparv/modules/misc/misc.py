@@ -8,13 +8,13 @@ from sparv.api import Annotation, Config, Output, SourceFilename, SparvErrorMess
 from sparv.api.util.tagsets import pos_to_upos, suc_to_feats, tagmappings
 
 
-@annotator("Text value of a span (usually a token)", config=[
+@annotator("Text content of tokens", config=[
     Config("misc.keep_formatting_chars", default=False,
            description="Set to True if you don't want formatting characters (e.g. soft hyphens) to be removed from "
                        "tokens in the output.")])
 def text_spans(text: Text = Text(),
                chunk: Annotation = Annotation("<token>"),
-               out: Output = Output("<token>:misc.word", cls="token:word"),
+               out: Output = Output("<token>:misc.word", cls="token:word", description="Text content of every token"),
                keep_formatting_chars: Optional[bool] = Config("misc.keep_formatting_chars")):
     """Add the text content for each edge as a new annotation."""
     corpus_text = text.read()
@@ -36,13 +36,17 @@ def text_spans(text: Text = Text(),
     return None
 
 
-@annotator("Head and tail whitespace characters for tokens", config=[
+@annotator(
+    "Head and tail whitespace characters for tokens\n\n"
+    "The whitespace doesn't overlap, meaning that whitespace covered by one token's 'tail' will not be included in the "
+    "following token's 'head'.",
+    config=[
     Config("misc.head_tail_max_length",
            description="If set to an int misc.head and misc.tail will be truncated to that many characters.")])
 def text_headtail(text: Text = Text(),
                   chunk: Annotation = Annotation("<token>"),
-                  out_head: Output = Output("<token>:misc.head"),
-                  out_tail: Output = Output("<token>:misc.tail"),
+                  out_head: Output = Output("<token>:misc.head", description="Whitespace characters preceding every token"),
+                  out_tail: Output = Output("<token>:misc.tail", description="Whitespace characters following every token"),
                   truncate_after: Optional[int] = Config("misc.head_tail_max_length")):
     """Extract "head" and "tail" whitespace characters for tokens."""
     def escape(t):
@@ -132,7 +136,8 @@ def ufeatstag(out: Output = Output("<token>:misc.ufeats", cls="token:ufeats",
 ])
 def struct_to_token(attr: Annotation = Annotation("{struct}:{attr}"),
                     token: Annotation = Annotation("<token>"),
-                    out: Output = Output("<token>:misc.from_struct_{struct}_{attr}")):
+                    out: Output = Output("<token>:misc.from_struct_{struct}_{attr}",
+                                         description="Token attribute based on {struct}:{attr}")):
     """Convert an attribute on a structural annotation into a token attribute."""
     token_parents = token.get_parents(attr)
     attr_values = list(attr.read())
@@ -147,7 +152,8 @@ def struct_to_token(attr: Annotation = Annotation("{struct}:{attr}"),
 ])
 def inherit(parent: Annotation = Annotation("{parent}:{attr}"),
             child: Annotation = Annotation("{child}"),
-            out: Output = Output("{child}:misc.inherit_{parent}_{attr}")):
+            out: Output = Output("{child}:misc.inherit_{parent}_{attr}",
+                                 description="Attribute on {child} inherited from {parent}:{attr}")):
     """Inherit attribute from a structural parent annotation to a child."""
     child_parents = child.get_parents(parent)
     attr_values = list(parent.read())
@@ -374,7 +380,7 @@ def merge_to_set(out: Output,
 
 
 @annotator("Source filename as attribute on text annotation")
-def source(out: Output = Output("<text>:misc.source"),
+def source(out: Output = Output("<text>:misc.source", description="Source filename"),
            name: SourceFilename = SourceFilename(),
            text: Annotation = Annotation("<text>")):
     """Create a text attribute based on the filename of the source file."""

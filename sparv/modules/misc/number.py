@@ -22,7 +22,8 @@ logger = get_logger(__name__)
 
 
 @annotator("Number {annotation} by position", wildcards=[Wildcard("annotation", Wildcard.ANNOTATION)])
-def number_by_position(out: Output = Output("{annotation}:misc.number_position"),
+def number_by_position(out: Output = Output("{annotation}:misc.number_position",
+                                            description="Position of {annotation} within file"),
                        chunk: Annotation = Annotation("{annotation}"),
                        prefix: str = "",
                        zfill: bool = False,
@@ -37,7 +38,7 @@ def number_by_position(out: Output = Output("{annotation}:misc.number_position")
 
 
 @annotator("Number {annotation} randomly", wildcards=[Wildcard("annotation", Wildcard.ANNOTATION)])
-def number_random(out: Output = Output("{annotation}:misc.number_random"),
+def number_random(out: Output = Output("{annotation}:misc.number_random", description="Random number, unique within file"),
                   chunk: Annotation = Annotation("{annotation}"),
                   prefix: str = "",
                   zfill: bool = False,
@@ -57,7 +58,8 @@ def number_random(out: Output = Output("{annotation}:misc.number_random"),
     Wildcard("annotation", Wildcard.ANNOTATION),
     Wildcard("attribute", Wildcard.ATTRIBUTE)
 ])
-def number_by_attribute(out: Output = Output("{annotation}:misc.number_by_{attribute}"),
+def number_by_attribute(out: Output = Output("{annotation}:misc.number_by_{attribute}",
+                                             description="Number determined by {attribute}"),
                         chunk: Annotation = Annotation("{annotation}:{attribute}"),
                         prefix: str = "",
                         zfill: bool = False,
@@ -73,7 +75,8 @@ def number_by_attribute(out: Output = Output("{annotation}:misc.number_by_{attri
     Wildcard("annotation", Wildcard.ANNOTATION),
     Wildcard("attribute", Wildcard.ATTRIBUTE)
 ])
-def renumber_by_shuffle(out: Output = Output("{annotation}:misc.renumber_by_shuffle_{attribute}"),
+def renumber_by_shuffle(out: Output = Output("{annotation}:misc.renumber_by_shuffle_{attribute}",
+                                             description="New random order"),
                         chunk: Annotation = Annotation("{annotation}:{attribute}"),
                         prefix: str = "",
                         zfill: bool = False,
@@ -94,7 +97,8 @@ def renumber_by_shuffle(out: Output = Output("{annotation}:misc.renumber_by_shuf
     Wildcard("parent_annotation", Wildcard.ANNOTATION),
     Wildcard("parent_attribute", Wildcard.ATTRIBUTE)
 ])
-def number_by_parent(out: Output = Output("{annotation}:misc.number_by_parent_{parent_annotation}__{parent_attribute}"),
+def number_by_parent(out: Output = Output("{annotation}:misc.number_by_parent_{parent_annotation}__{parent_attribute}",
+                                          description="Order based on parent order"),
                      chunk: Annotation = Annotation("{annotation}"),
                      parent_order: Annotation = Annotation("{parent_annotation}:{parent_attribute}"),
                      prefix: str = "",
@@ -117,7 +121,8 @@ def number_by_parent(out: Output = Output("{annotation}:misc.number_by_parent_{p
     Wildcard("annotation", Wildcard.ANNOTATION),
     Wildcard("parent", Wildcard.ANNOTATION)
 ])
-def number_relative(out: Output = Output("{annotation}:misc.number_rel_{parent}"),
+def number_relative(out: Output = Output("{annotation}:misc.number_rel_{parent}",
+                                         description="Relative position of {annotation} within {parent}"),
                     parent: Annotation = Annotation("{parent}"),
                     child: Annotation = Annotation("{annotation}"),
                     prefix: str = "",
@@ -147,7 +152,8 @@ def make_ref(out: Output = Output("<token>:misc.ref", cls="token:ref",
 
 @annotator("Chunk count file with number of {annotation} chunks in corpus", order=1, wildcards=[
            Wildcard("annotation", Wildcard.ANNOTATION)])
-def count_chunks(out: OutputCommonData = OutputCommonData("misc.{annotation}_count"),
+def count_chunks(out: OutputCommonData = OutputCommonData("misc.{annotation}_count",
+                                                          description="Number of {annotation} chunks in corpus"),
                  chunk: AnnotationAllSourceFiles = AnnotationAllSourceFiles("{annotation}"),
                  files: AllSourceFilenames = AllSourceFilenames()):
     """Count the number of occurrences of 'chunk' in the corpus."""
@@ -168,7 +174,8 @@ def count_chunks(out: OutputCommonData = OutputCommonData("misc.{annotation}_cou
 
 @annotator("Create chunk count file for non-existent {annotation} chunks", order=2, wildcards=[
            Wildcard("annotation", Wildcard.ANNOTATION)])
-def count_zero_chunks(out: OutputCommonData = OutputCommonData("misc.{annotation}_count"),
+def count_zero_chunks(out: OutputCommonData = OutputCommonData("misc.{annotation}_count",
+                                                               description="The value 0 for corpora without {annotation}"),
                       _files: AllSourceFilenames = AllSourceFilenames()):
     """Create chunk count file for non-existent 'annotation' chunks."""
     logger.info("No %s chunks found in corpus", out.name[5:-6])

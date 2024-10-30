@@ -1,3 +1,4 @@
+"""Settings related to export."""
 from typing import Optional
 
 from sparv.api import Config, SourceStructureParser, wizard

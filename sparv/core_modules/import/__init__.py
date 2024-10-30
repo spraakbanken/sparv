@@ -1,4 +1,5 @@
 # ruff: noqa: N999
+"""Settings related to import."""
 import os
 
 from sparv.api import Config, wizard

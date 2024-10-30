@@ -69,8 +69,8 @@ def create_info_file(sentences: AnnotationCommonData, firstdate: AnnotationCommo
 
 @annotator("datefirst and datelast files for .info", order=1)
 def info_date(source_files: AllSourceFilenames = AllSourceFilenames(),
-              out_datefirst: OutputCommonData = OutputCommonData("cwb.datefirst"),
-              out_datelast: OutputCommonData = OutputCommonData("cwb.datelast"),
+              out_datefirst: OutputCommonData = OutputCommonData("cwb.datefirst", description="The earliest date in the corpus"),
+              out_datelast: OutputCommonData = OutputCommonData("cwb.datelast", description="The latest date in the corpus"),
               datefrom: AnnotationAllSourceFiles = AnnotationAllSourceFiles("[dateformat.out_annotation]:dateformat.datefrom"),
               dateto: AnnotationAllSourceFiles = AnnotationAllSourceFiles("[dateformat.out_annotation]:dateformat.dateto"),
               timefrom: AnnotationAllSourceFiles = AnnotationAllSourceFiles("[dateformat.out_annotation]:dateformat.timefrom"),
@@ -101,8 +101,8 @@ def info_date(source_files: AllSourceFilenames = AllSourceFilenames(),
 
 
 @annotator("Empty datefirst and datelast files for .info", order=2)
-def info_date_unknown(out_datefirst: OutputCommonData = OutputCommonData("cwb.datefirst"),
-                      out_datelast: OutputCommonData = OutputCommonData("cwb.datelast")):
+def info_date_unknown(out_datefirst: OutputCommonData = OutputCommonData("cwb.datefirst", description="Empty string"),
+                      out_datelast: OutputCommonData = OutputCommonData("cwb.datelast", description="Empty string")):
     """Create empty datefirst and datelast file (needed for .info file) if corpus has no date information."""
     logger.info("No date information found in corpus")
 
