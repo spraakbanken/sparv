@@ -55,7 +55,10 @@ def print_modules_summary(snake_storage: snake_utils.SnakeStorage, json_output: 
         for module_type in modules_data:
             table.add_row(f"[b]{module_type.upper()}[/b]")
             for module, module_data in modules_data[module_type].items():
-                table.add_row("  " + module, module_data["description"])
+                table.add_row(
+                    "  " + module,
+                    module_data["description"].split("\n")[0]
+                )
             table.add_row()
         console.print(table)
         console.print(

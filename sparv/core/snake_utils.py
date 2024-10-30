@@ -312,6 +312,11 @@ def rule_helper(rule: RuleStorage, config: dict, storage: SnakeStorage, config_m
             skip = False
             outputs_list = []
             for output in param_value:
+                if rule.annotator and not output.description:
+                    console.print(
+                        "[red]WARNING:[/] "
+                        f"Annotation '{output.name}' created by task '{rule.full_name}' is missing a description."
+                    )
                 if not isinstance(output, BaseOutput):
                     if not output:
                         return False

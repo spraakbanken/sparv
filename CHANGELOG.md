@@ -21,6 +21,7 @@
 - `xml_export:compressed` and `xml_export:compressed_scrambled` no longer need to first create uncompressed combined
   files.
 - Removed the `indent_xml` utility function, as ElementTree now supports XML indentation natively since Python 3.9.
+- Sparv now prints a warning message if a module, annotator, or output annotation is missing a description.
 
 ### Fixed
 

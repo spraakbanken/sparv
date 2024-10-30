@@ -212,8 +212,15 @@ def add_module_to_registry(module: ModuleType, module_name: str, skip_language_c
     modules[module_name].description = getattr(module, "__description__", module.__doc__)
     modules[module_name].language = getattr(module, "__language__", None)
 
+    if not modules[module_name].description:
+        console.print(f"[red]WARNING:[/] Module '{module_name}' is missing a description.")
+
     # Register annotators with Sparv
     for a in _potential_annotators[module_name]:
+        if not a["description"]:
+            console.print(
+                f"[red]WARNING:[/] {a["type"].name.capitalize()} '{module_name}:{a["name"] or a["function"].__name__}' has no description."
+            )
         # Set annotator language to same as module, unless overridden
         if hasattr(module, "__language__") and not a["language"]:
             a["language"] = module.__language__

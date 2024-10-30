@@ -64,17 +64,21 @@ For more information about `pyproject.toml` check the [Python Packaging User Gui
 
 
 ## Init File
-Each Sparv module must contain a [Python init file](https://docs.python.org/3/reference/import.html#regular-packages)
-(`__init__.py`). Without the init file Sparv will not be able to register the module. The Python scripts containing
-decorated Sparv functions should be imported here. Module-specific configuration parameters may also be declared in this
-file. Furthermore, you should provide a short description (one sentence) for your module which will be displayed to the
-user when running the `sparv modules` command. The description is provided either as an argument to `__description__` or
-as a docstring. In the example below we use both, but only one of them is necessary. If both exist, the value of
-`__description__` is displayed in the `sparv modules` command.
+Each Sparv module requires a [Python init file](https://docs.python.org/3/reference/import.html#regular-packages)
+(`__init__.py`). This file is essential for Sparv to register the module. It should import the Python scripts containing
+decorated Sparv functions. Additionally, any module-specific configuration parameters can be set here.
+
+The `__init__.py` file must include a short description (one sentence) of the module, that will appear when running the
+`sparv modules` command. This description can be provided via the `__description__` variable or as a docstring. In the
+example below, both methods are used, though only one is required. If both are present, the `__description__` value
+takes precedence.
+
+A longer description can be included by adding additional lines. Only the first line will be shown in space-limited
+contexts, such as `sparv modules`. The full description appears when running `sparv modules modulename`.
 
 Example of an `__init__.py` file:
 ```python
-"""Example for a Sparv annotator that converts tokens to uppercase."""
+"""Example of a Sparv annotator that converts tokens to uppercase."""
 
 # from sparv.api import Config
 
@@ -84,7 +88,7 @@ from . import uppercase
 #     Config("uppercase.some_setting", "some_default_value", description="Description for this setting")
 # ]
 
-__description__ = "Example for a Sparv annotator that converts tokens to uppercase."
+__description__ = "Example of a Sparv annotator that converts tokens to uppercase."
 ```
 
 
