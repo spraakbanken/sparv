@@ -1,4 +1,4 @@
-id: stanza-parent
+id: stanza-parent-swe
 abstract: true
 language_codes:
   - swe
@@ -27,7 +27,7 @@ created: 2020-12-07
 updated: 2022-08-10
 ---
 id: swe-pos-stanza-stanzamorph
-parent: stanza-parent
+parent: stanza-parent-swe
 name:
   swe: SUC-ordklasstaggning med Stanza
   eng: SUC part-of-speech tagging with Stanza
@@ -89,7 +89,7 @@ description:
     [Sparv](https://spraakbanken.gu.se/sparv).
 ---
 id: swe-msd-stanza-stanzamorph-ufeats
-parent: stanza-parent
+parent: stanza-parent-swe
 name:
   swe: Morfologisk analys för svenska baserad på Stanza
   eng: Stanza-based morphological analysis for Swedish
@@ -126,7 +126,7 @@ description:
     This analysis uses universal features, defined as part of the Universal Dependencies standard.
 ---
 id: swe-lemmatization-stanza-stanzalem
-parent: stanza-parent
+parent: stanza-parent-swe
 name:
   swe: SUC3-grundformanalys med Stanza
   eng: SUC3-citation form analysis with Stanza
@@ -163,7 +163,7 @@ description:
     out-of-vocabulary tokens.
 ---
 id: swe-dependency-stanza-stanzasynt
-parent: stanza-parent
+parent: stanza-parent-swe
 name:
   swe: Dependensanalys med Stanza
   eng: Dependency analysis with Stanza
@@ -197,3 +197,256 @@ description:
   eng: |-
     In 2020, the Stanza tool was trained and tested on TalbankenSBX (following MambaDep-style annotation) in order to
     create a high-quality analysis. Currently (in 2024), this is the default analysis for Swedish in Sparv
+---
+id: stanza-parent-eng
+abstract: true
+language_codes:
+  - eng
+standard_reference: ''
+tool: "Stanza"
+trained_on: ''
+other_references:
+  - "Stanza: Peng Qi, Yuhao Zhang, Yuhui Zhang, Jason Bolton and Christopher D. Manning. 2020"
+  - "Stanza: A Python Natural Language Processing Toolkit for Many Human Languages. In Association for Computational Linguistics (ACL) System Demonstrations. 2020"
+evaluation_results: ''
+model: Stanza standard model for English (https://stanfordnlp.github.io/stanza/models.html)
+created: 2022-08-10
+updated: 2022-08-10
+---
+id: eng-pos-stanza
+parent: stanza-parent-eng
+name:
+  swe: Ordklasstaggning med Stanza för engelska
+  eng: Part-of-speech tagging with Stanza for English
+short_description:
+  swe: Annotering av ordklasser (Penn Treebank-taggar) med Stanzas standardmodell för engelska
+  eng: Part-of-speech annotation with Penn Treebank tags with Stanza's standard model for English
+task: part-of-speech tagging
+keywords:
+  - pos-tagging
+  - stanza
+tagset: "[Penn Treebank tagset](https://www.ling.upenn.edu/courses/Fall_2003/ling001/penn_treebank_pos.html)"
+annotations:
+  - <token>:stanza.pos
+example_output: |-
+  ```xml
+  <token pos="DT">This</token>
+  <token pos="VBZ">is</token>
+  <token pos="DT">a</token>
+  <token pos="NN">corpus</token>
+  <token pos=".">.</token>
+  ```
+---
+id: eng-sentece-stanza
+parent: stanza-parent-eng
+name:
+  swe: Meningssegmentering för engelska med Stanza
+  eng: Sentence segmentation for English with Stanza
+short_description:
+  swe: Meningssegmentering med Stanzas standardmodell för engelska
+  eng: Sentence segmentation with Stanza's standard model for English
+task: sentence segmentation
+keywords:
+  - sentence segmentation
+  - stanza
+annotations:
+  - stanza.sentence
+example_output: |-
+  ```xml
+  <sentence>
+    <token>This</token>
+    <token>is</token>
+    <token>a</token>
+    <token>corpus</token>
+    <token>.</token>
+  </sentence>
+  <sentence>
+    <token>It</token>
+    <token>contains</token>
+    <token>multiple</token>
+    <token>sentences</token>
+    <token>.</token>
+  </sentence>
+  <sentence>
+    <token>Here</token>
+    <token>comes</token>
+    <token>another</token>
+    <token>sentence</token>
+    <token>.</token>
+  </sentence>
+  ```
+---
+id: eng-tokenization-stanza
+parent: stanza-parent-eng
+name:
+  swe: Tokenisering för engelska med Stanza
+  eng: Tokenization for English with Stanza
+short_description:
+  swe: Tokenisering med Stanzas standardmodell för engelska
+  eng: Tokenization with Stanza's standard model for English
+task: tokenization
+keywords:
+  - tokenization
+  - stanza
+annotations:
+  - stanza.token
+example_output: |-
+  ```xml
+  <token>This</token>
+  <token>is</token>
+  <token>a</token>
+  <token>corpus</token>
+  <token>.</token>
+  ```
+---
+id: eng-lemmatization-stanza
+parent: stanza-parent-eng
+name:
+  swe: Lemmatisering för engelska med Stanza
+  eng: Lemmatization for English with Stanza
+short_description:
+  swe: Lemmatisering med Stanzas standardmodell för engelska
+  eng: Lemmatization with Stanza's standard model for English
+task: lemmatization
+keywords:
+  - lemmatization
+  - stanza
+annotations:
+  - <token>:stanza.baseform
+example_output: |-
+  ```xml
+  <token baseform="this">This</token>
+  <token baseform="be">is</token>
+  <token baseform="a">a</token>
+  <token baseform="corpus">corpus</token>
+  <token baseform="contain">containing</token>
+  <token baseform="some">some</token>
+  <token baseform="word">words</token>
+  <token baseform=".">.</token>
+  ```
+---
+id: eng-dependency-stanza
+parent: stanza-parent-eng
+name:
+  swe: Dependensparsning för engelska med Stanza
+  eng: Dependency parsing for English with Stanza
+short_description:
+  swe: Dependensparsning med Stanzas standardmodell för engelska
+  eng: Dependency parsing with Stanza's standard model for English
+task: dependency parsing
+keywords:
+  - dependency parsing
+  - stanza
+tagset: "[UD](https://universaldependencies.org/en/dep/)"
+annotations:
+  - <token>:stanza.ref
+  - <token>:stanza.dephead_ref
+  - <token>:stanza.deprel
+example_output: |-
+  ```xml
+  <token dephead_ref="4" deprel="nsubj" ref="1">This</token>
+  <token dephead_ref="4" deprel="cop" ref="2">is</token>
+  <token dephead_ref="4" deprel="det" ref="3">a</token>
+  <token deprel="root" ref="4">corpus</token>
+  <token dephead_ref="4" deprel="acl" ref="5">containing</token>
+  <token dephead_ref="7" deprel="det" ref="6">some</token>
+  <token dephead_ref="5" deprel="obj" ref="7">words</token>
+  <token dephead_ref="4" deprel="punct" ref="8">.</token>
+  ```
+---
+id: eng-namedentity-stanza
+parent: stanza-parent-eng
+name:
+  swe: Namnigenkänning för engelska med Stanza
+  eng: Named entity recognition for English with Stanza
+short_description:
+  swe: Namnigenkänning (NER) med Stanzas standardmodell för engelska
+  eng: Named entity recognition with Stanza's standard model for English
+task: named entity recognition
+keywords:
+  - ner
+  - stanza
+annotations:
+  - stanza.ne
+  - stanza.ne:stanza.ne_type
+example_output: |-
+  ```xml
+  <token>The</token>
+  <ne ne_type="NORP">
+    <token>Swedish</token>
+  </ne>
+  <token>chemist</token>
+  <ne ne_type="PERSON">
+    <token>Alfred</token>
+    <token>Bernhard</token>
+    <token>Nobel</token>
+  </ne>
+  <token>was</token>
+  <token>born</token>
+  <token>on</token>
+  <ne ne_type="DATE">
+    <token>21</token>
+    <token>October</token>
+    <token>1833</token>
+  </ne>
+  <token>in</token>
+  <ne ne_type="GPE">
+    <token>Stockholm</token>
+  </ne>
+  <token>.</token>
+  ```
+description:
+  swe: |-
+    Namnigenkänning (NER) gör det möjligt att märka upp namnentiteter (som t.ex. personnamn, organisationer, ortnamn) i
+    texten.
+  eng: |-
+    Named entity recognition (NER) enables the detection of named entities (e.g. personal names, organizations,
+    geographical locations) in the text.
+---
+id: eng-pos-stanza-upos
+parent: stanza-parent-eng
+name:
+  swe: UD-Ordklasstaggning med Stanza för engelska
+  eng: UD part-of-speech tagging with Stanza for English
+short_description:
+  swe: Annotering av UD-ordklasser (universal dependencies) med Stanzas standardmodell för engelska
+  eng: Part-of-speech annotation with UD (universal dependency) tags with Stanza's standard model for English
+task: part-of-speech tagging
+keywords:
+  - pos-tagging
+  - stanza
+tagset: "[UD](https://universaldependencies.org/u/pos/)"
+annotations:
+  - <token>:stanza.upos
+example_output: |-
+  ```xml
+  <token upos="PRON">This</token>
+  <token upos="AUX">is</token>
+  <token upos="DET">a</token>
+  <token upos="NOUN">corpus</token>
+  <token upos="PUNCT">.</token>
+  ```
+---
+id: eng-msd-stanza-ufeats
+parent: stanza-parent-eng
+name:
+  swe: Morfologisk analys för engelska baserad på Stanza
+  eng: Stanza-based morphological analysis for English
+short_description:
+  swe: Morfologisk analys för engelska med universal features (UD) baserad på Stanza
+  eng: Stanza-based morphological analysis for English, using universal features (UD)
+task: morphosyntactic tagging
+keywords:
+  - msd
+  - stanza
+tagset: "[UD](https://universaldependencies.org/u/feat/index.html)"
+annotations:
+  - <token>:stanza.ufeats
+example_output: |-
+  ```xml
+  <token ufeats="Number=Sing|PronType=Dem">This</token>
+  <token ufeats="Mood=Ind|Number=Sing|Person=3|Tense=Pres|VerbForm=Fin">is</token>
+  <token ufeats="Definite=Ind|PronType=Art">a</token>
+  <token ufeats="Number=Sing">corpus</token>
+  <token>.</token>
+  ```
