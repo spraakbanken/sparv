@@ -219,7 +219,7 @@ def add_module_to_registry(module: ModuleType, module_name: str, skip_language_c
     for a in _potential_annotators[module_name]:
         if not a["description"]:
             console.print(
-                f"[red]WARNING:[/] {a["type"].name.capitalize()} '{module_name}:{a["name"] or a["function"].__name__}' has no description."
+                f"[red]WARNING:[/] {a['type'].name.capitalize()} '{module_name}:{a['name'] or a['function'].__name__}' has no description."
             )
         # Set annotator language to same as module, unless overridden
         if hasattr(module, "__language__") and not a["language"]:
