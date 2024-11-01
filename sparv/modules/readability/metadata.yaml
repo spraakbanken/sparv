@@ -24,7 +24,7 @@ short_description:
   eng: Annotation of Swedish texts with LIX values which indicate the difficulty of the texts 
 standard_reference: "[Björnsson (1968)](https://libris.kb.se/bib/8079176)"
 annotations:
-  <text>:readability.lix
+  - <text>:readability.lix
 example_output: |-
   ```xml
   <text lix="6.00">
@@ -86,7 +86,7 @@ short_description:
   swe: Annotering av svenska texter med NK-värden som indikerar hur lätt eller svår en text är att läsa
   eng: Annotation of Swedish texts with nominal ratios which indicate the difficulty of the texts
 annotations:
-  <text>:readability.nk
+  - <text>:readability.nk
 example_output: |-
   ```xml
   <text nk="0.33">
@@ -147,7 +147,7 @@ short_description:
   swe: Annotering av svenska texter med OVIX-värden som indikerar hur lätt eller svår en text är att läsa
   eng: Annotation of Swedish texts with OVIX values which indicate the difficulty of the texts
 annotations:
-  <text>:readability.ovix
+  - <text>:readability.ovix
 example_output: |-
   ```xml
   <text ovix="inf">
