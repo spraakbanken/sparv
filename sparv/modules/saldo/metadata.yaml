@@ -1,0 +1,227 @@
+id: saldo-parent
+language_codes:
+  - swe
+standard_reference: "[Borin/Forsberg/Lönngren 2013: SALDO: a touch of yin to WordNet's yang](http://dx.doi.org/10.1007/s10579-013-9233-4)"
+other_references: []
+tool: "Sparv"
+model: "[SALDO's morphology](https://spraakbanken.gu.se/resurser/saldom)"
+trained_on: ''
+tagset: ''
+evaluation_results: ''
+---
+id: swe-lemmatization-sparv-saldo
+parent: saldo-parent
+name:
+  swe: Annotering av SALDO-grundformer
+  eng: Annotation of SALDO citation forms (base forms, lemmas)
+short_description:
+  swe: Fullformsuppslagning som ger SALDO-grundformer
+  eng: Full-form lookup for SALDO citation forms (lemmas)
+task: lemmatization
+keywords:
+  - lemmatization
+  - saldo
+annotations:
+  - <token>:saldo.baseform
+example_output: |-
+  ```xml
+  <token baseform="|vi|">Vi</token>
+  <token baseform="|skola|">ska</token>
+  <token baseform="|köra|">köra</token>
+  <token baseform="|den|en|den här|">den</token>
+  <token baseform="|här|den här:4|">här</token>
+  <token baseform="|">clownbilen</token>
+  <token baseform="|till|">till</token>
+  <token baseform="|cirkus|">cirkusen</token>
+  <token baseform="|">.</token>
+  ```
+description:
+  swe: |-
+    SALDO-fullformslexikonet används för att finna grundformer och ordbetydelser för textord, med flertydigheter bevarade.
+  eng: |-
+    The SALDO morphology full-form lexicon is used to find possible citation forms (lemmas)  and word senses for text
+    word tokens, preserving ambiguity.
+created: 2010-12-15
+updated: 2018-03-28
+---
+id: swe-lemgram-sparv-saldo
+parent: saldo-parent
+name:
+  swe: Annotering av SALDO-lemgram
+  eng: Annotation of SALDO lemgrams
+short_description:
+  swe: Uppslagning som ger SALDO-lemgram
+  eng: Lookup for SALDO lemgrams
+task: lexical analysis
+keywords:
+  - lexical analysis
+  - saldo
+annotations:
+  - <token>:saldo.lemgram
+example_output: |-
+  ```xml
+  <token lemgram="|den..pn.1|den_här..pnm.1|">Det</token>
+  <token lemgram="|här..ab.1|den_här..pnm.1:1|">här</token>
+  <token lemgram="|vara..vb.1|">är</token>
+  <token lemgram="|en..al.1|">en</token>
+  <token lemgram="|korpus..nn.1|">korpus</token>
+  <token lemgram="|">.</token>
+  ```
+description:
+  swe: |-
+    Ett lemgram är ett ords eller ett flerordsuttrycks samtliga böjningsformer. Ett lemgram betecknas med tre delar: en
+    grundform, en ordklasstagg och ett urskiljande löpnummer. Mer detaljerad information finns i [Språkbanken Text
+    FAQ](https://spraakbanken.gu.se/faq/vad-ar-ett-lemgram).
+  eng: |-
+    A lemgram in SALDO is a combination of a base form and an inflectional pattern. More information (in Swedish) is
+    found in the [Språkbanken Text FAQ](https://spraakbanken.gu.se/faq/vad-ar-ett-lemgram).
+created: 2010-12-15
+updated: 2018-03-28
+---
+id: swe-sense-sparv-saldo
+parent: saldo-parent
+name:
+  swe: Annotering av SALDO-identifierare
+  eng: Annotation of SALDO identifiers
+short_description:
+  swe: Uppslagning som ger SALDO-identifierare
+  eng: Lookup for SALDO identifiers
+task: lexical analysis
+keywords:
+  - lexical analysis
+  - saldo
+annotations:
+  - <token>:saldo.sense
+example_output: |-
+  ```xml
+  <token sense="|den..2|den_här..1|">Det</token>
+  <token sense="|här..1|den_här..1:1|">här</token>
+  <token sense="|vara..1|">är</token>
+  <token sense="|den..1|en..2|">en</token>
+  <token sense="|korpus..1|korpus..2|korpus..3|korpus..4|korpus..5|">korpus</token>
+  <token sense="|">.</token>
+  ```
+description:
+  swe: |-
+    En SALDO-identifierare refererar till ett ords betydelse i [SALDO-lexikonet](https://spraakbanken.gu.se/resurser/saldo).
+  eng: |-
+    A SALDO identifier refers to a sense of a word in the [SALDO lexicon](https://spraakbanken.gu.se/resurser/saldo).
+created: 2010-12-15
+updated: 2018-03-28
+---
+id: swe-compound-sparv-saldolemgram
+parent: saldo-parent
+name:
+  swe: Sammansättningsanalys med hjälp av SALDO-lemgram
+  eng: Compound analysis using SALDO lemgrams
+short_description:
+  swe: Analys av sammansatta SALDO-lemgram inklusive sannolikhetsrankning
+  eng: Analysis of SALDO lemgram compounds including a probability ranking
+task: compound analysis
+keywords:
+  - compound analysis
+  - saldo
+annotations:
+  - <token>:saldo.complemgram
+example_output: |-
+  ```xml
+  <token complemgram="|">Språkbanken</token>
+  <token complemgram="|">Text</token>
+  <token complemgram="|">är</token>
+  <token complemgram="|">en</token>
+  <token complemgram="|forskning..nn.1+infrastruktur..nn.1:8.476e-13|">forskningsinfrastruktur</token>
+  <token complemgram="|">för</token>
+  <token complemgram="|">språkliga</token>
+  <token complemgram="|">data</token>
+  <token complemgram="|">och</token>
+  <token complemgram="|">en</token>
+  <token complemgram="|språk..nn.1+teknologisk..av.1:6.726e-13|språka..vb.1+teknologisk..av.1:4.035e-23|">språkteknologisk</token>
+  <token complemgram="|forskning..nn.1+enhet..nn.1:9.033e-13|">forskningsenhet</token>
+  <token complemgram="|">.</token>
+  ```
+description:
+  swe: |-
+    Token och deras ordklasser slås upp i SALDO-lexikonet för att berikas med sammansättningsinformation. Mer
+    detaljerad information finns i [Språkbanken Text
+    FAQ](https://spraakbanken.gu.se/faq/hur-fungerar-sparvs-sammansattningsanalys).
+  eng: |-
+    Tokens and their POS tags are looked up in the SALDO lexicon in order to enrich them with compound information. More
+    information (in Swedish) is found in the [Språkbanken Text
+    FAQ](https://spraakbanken.gu.se/faq/hur-fungerar-sparvs-sammansattningsanalys).
+created: 2018-03-28
+updated: 2020-07-09
+---
+id: swe-compound-sparv-saldowords
+parent: saldo-parent
+name:
+  swe: Sammansättningsanalys med hjälp av SALDO-ordformer
+  eng: Compound analysis using SALDO wordforms
+short_description:
+  swe: Analys av sammansatta SALDO-ordformer
+  eng: Analysis of SALDO wordform compounds
+task: compound analysis
+keywords:
+  - compound analysis
+  - saldo
+annotations:
+  - <token>:saldo.compwf
+example_output: |-
+  ```xml
+  <token compwf="|">Språkbanken</token>
+  <token compwf="|">Text</token>
+  <token compwf="|">är</token>
+  <token compwf="|">en</token>
+  <token compwf="|forsknings+infrastruktur|">forskningsinfrastruktur</token>
+  <token compwf="|">för</token>
+  <token compwf="|">språkliga</token>
+  <token compwf="|">data</token>
+  <token compwf="|">och</token>
+  <token compwf="|">en</token>
+  <token compwf="|språk+teknologisk|">språkteknologisk</token>
+  <token compwf="|forsknings+enhet|">forskningsenhet</token>
+  <token compwf="|">.</token>
+  ```
+description:
+  swe: |-
+    Token och deras ordklasser slås upp i SALDO-lexikonet för att berikas med sammansättningsinformation. Mer
+    detaljerad information finns i [Språkbanken Text
+    FAQ](https://spraakbanken.gu.se/faq/hur-fungerar-sparvs-sammansattningsanalys).
+  eng: |-
+    Tokens and their POS tags are looked up in the SALDO lexicon in order to enrich them with compound information. More
+    information (in Swedish) is found in the [Språkbanken Text
+    FAQ](https://spraakbanken.gu.se/faq/hur-fungerar-sparvs-sammansattningsanalys).
+created: 2018-03-28
+updated: 2020-07-09
+---
+id: swe-lemmatization-sparv-saldo2
+parent: saldo-parent
+name:
+  swe: Annotering av SALDO-grundformer (utökade)
+  eng: Annotation of SALDO citation forms (base forms, lemmas) (extended)
+short_description:
+  swe: SALDO-grundformer plus analys av sammansättningar bestående av SALDO-ingångar
+  eng: Full-form lookup for SALDO citation forms (lemmas) plus analysis of compounds made up of SALDO entries
+task: lemmatization
+keywords:
+  - lemmatization
+  - saldo
+annotations:
+  - <token>:saldo.baseform2
+example_output: |-
+  ```xml
+  <token baseform="|den|den här|">Det</token>
+  <token baseform="|här|den här:1|">här</token>
+  <token baseform="|vara|">är</token>
+  <token baseform="|en|">en</token>
+  <token baseform="|korpus|">korpus</token>
+  <token baseform="|">.</token>
+  ```
+description:
+  swe: |-
+    SALDO-fullformslexikonet används för att finna grundformer och ordbetydelser för textord, med flertydigheter
+    bevarade. Dessutom görs en sammansättningsanalys med hjälp av SALDOs sammansättningsinformation.
+  eng: |-
+    The SALDO morphology full-form lexicon is used to find possible citation forms (lemmas)  and word senses for text
+    word tokens, preserving ambiguity. Additionally, the compounding information in SALDO is used for compound analysis.
+created: 2018-03-28
+updated: 2020-01-15
