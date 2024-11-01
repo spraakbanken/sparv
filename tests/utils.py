@@ -15,6 +15,7 @@ from sparv.core import paths
 from sparv.core.console import console
 
 GOLD_PREFIX = "gold_"
+MAX_DIFF_LINES = 25
 
 
 def run_sparv(gold_corpus_dir: pathlib.Path,
@@ -129,15 +130,27 @@ def _filediff(a: pathlib.Path, b: pathlib.Path):
     """Print a unified diff of files a and b."""
     try:
         # Try opening as pickle files first
-        a_contents = "\n".join(map(str, pickle.load(a.open("rb"))))
-        b_contents = "\n".join(map(str, pickle.load(b.open("rb"))))
+        a_contents = pickle.load(a.open("rb"))
+        if isinstance(a_contents, str):
+            a_contents = a_contents.splitlines()
+        else:
+            a_contents = map(str, a_contents)
+
+        b_contents = pickle.load(b.open("rb"))
+        if isinstance(b_contents, str):
+            b_contents = b_contents.splitlines()
+        else:
+            b_contents = map(str, b_contents)
     except pickle.UnpicklingError:
         # Compare as text files
         a_contents = a.read_text(encoding="utf-8").splitlines()
         b_contents = b.read_text(encoding="utf-8").splitlines()
 
     diff = difflib.unified_diff(a_contents, b_contents, fromfile=str(a), tofile=str(b))
-    for line in diff:
+    for i, line in enumerate(diff):
+        if i > MAX_DIFF_LINES - 1:
+            print("...")
+            break
         print(line.strip())
 
 
