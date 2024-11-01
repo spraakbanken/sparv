@@ -312,15 +312,15 @@ def rule_helper(rule: RuleStorage, config: dict, storage: SnakeStorage, config_m
             skip = False
             outputs_list = []
             for output in param_value:
-                if rule.annotator and not output.description:
-                    console.print(
-                        "[red]WARNING:[/] "
-                        f"Annotation '{output.name}' created by task '{rule.full_name}' is missing a description."
-                    )
                 if not isinstance(output, BaseOutput):
                     if not output:
                         return False
                     output = param_type(output)
+                elif rule.annotator and not output.description and not rule.module_name.startswith(f"{registry.custom_name}."):
+                    console.print(
+                        "[red]WARNING:[/] "
+                        f"Annotation '{output.name}' created by {rule.type} '{rule.full_name}' is missing a description."
+                    )
                 if custom_suffix:
                     # Add suffix to output annotation name
                     output.name += custom_suffix
