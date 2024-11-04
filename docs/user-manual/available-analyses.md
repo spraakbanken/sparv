@@ -151,7 +151,7 @@ preset](corpus-configuration.md#annotation-presets) called `SWE_DEFAULT`.
 |**Model**        | included in the tool
 |**referenser**  | - [HFST-SweNER – A New NER Resource for Swedish](http://www.lrec-conf.org/proceedings/lrec2014/pdf/391_Paper.pdf) <br />- [Reducing the effect of name explosion](http://demo.spraakdata.gu.se/svedk/pbl/kokkinakisBNER.pdf)
 |**Tagset**       | [HFST-SweNER tags](https://svn.spraakdata.gu.se/sb-arkiv/pub/swener-tags.html)
-|**Annotations**  | - `swener.ne` (named entity segment) <br />- `swener.ne:swener.name` (text in the entire named entity segment) <br />- `swener.ne:swener.ex` (named entity; name expression, numerical expression or time expression) <br />- `swener.ne:swener.type` (named entity type) <br />- `swener.ne:swener.subtype` (named entity subtype
+|**Annotations**  | - `swener.ne` (named entity segment) <br />- `swener.ne:swener.name` (text in the entire named entity segment) <br />- `swener.ne:swener.ex` (named entity; name expression, numerical expression or time expression) <br />- `swener.ne:swener.type` (named entity type) <br />- `swener.ne:swener.subtype` (named entity subtype)
 |**Annotators**   | `swener:annotate`
 
 ### Readability metrics
@@ -159,7 +159,7 @@ preset](corpus-configuration.md#annotation-presets) called `SWE_DEFAULT`.
 |:---|:-----------|
 |**Description**  | Documents are analysed in order to enrich them with readability metrics.
 |**Model**        | Method has no model.
-|**Annotations**  | - `<text>:readability.lix` (the Swedish readability metric LIX, läsbarhetsindex) <br />- `<text>:readability.ovix` (the Swedish readability metric OVIX, ordvariationsindex) <br />- `<text>:readability.nk` (the Swedish readability metric nominalkvot (noun ratio)
+|**Annotations**  | - `<text>:readability.lix` (the Swedish readability metric LIX, läsbarhetsindex) <br />- `<text>:readability.ovix` (the Swedish readability metric OVIX, ordvariationsindex) <br />- `<text>:readability.nk` (the Swedish readability metric nominalkvot (noun ratio))
 |**Annotators**   | - `readability:lix` <br />- `readability:ovix` <br />- `readability:nominal_ratio`
 
 ### Lexical classes
@@ -167,7 +167,7 @@ preset](corpus-configuration.md#annotation-presets) called `SWE_DEFAULT`.
 |:---|:-----------|
 |**Description**  | Tokens are looked up in Blingbring and SweFN in order to enrich them with information about their lexical classes. Documents are then enriched with information about lexical classes based on which classes are common for the tokens within them.
 |**Model**        | - [Blingbring](https://spraakbanken.gu.se/resurser/blingbring) <br />- [Swedish FrameNet (SweFN)](https://spraakbanken.gu.se/resurser/swefn)
-|**Annotations**  | - `<token>:lexical_classes.blingbring` (lexical class from the Blingbring resource per token <br />- `<token>:lexical_classes.swefn` (frames from swedish FrameNet (SweFN) per token <br />- `<text>:lexical_classes.blingbring` (lexical class from the Blingbring resource per dokument) <br />- `<text>:lexical_classes.swefn` (frames from swedish FrameNet (SweFN) per dokument
+|**Annotations**  | - `<token>:lexical_classes.blingbring` (lexical class from the Blingbring resource per token <br />- `<token>:lexical_classes.swefn` (frames from Swedish FrameNet (SweFN) per token <br />- `<text>:lexical_classes.blingbring` (lexical class from the Blingbring resource per dokument) <br />- `<text>:lexical_classes.swefn` (frames from Swedish FrameNet (SweFN) per dokument)
 |**Annotators**   | `lexical_classes:blingbring_words` `lexical_classes:swefn_words` `lexical_classes:blingbring_text` `lexical_classes:swefn_text`
 
 ### Geotagging
@@ -191,7 +191,7 @@ for Swedish from the 1800's:
 |**Tool**         | [Hunpos](https://code.google.com/archive/p/hunpos/)
 |**Model**        | - [suc3_suc-tags_default-setting_utf8.model](https://github.com/spraakbanken/sparv-models/blob/master/hunpos/suc3_suc-tags_default-setting_utf8.model?raw=true) trained on [SUC 3.0](https://spraakbanken.gu.se/resurser/suc3) <br />- a word list along with the words' morphosyntactic information generated from the [Dalin morphology](https://spraakbanken.gu.se/resurser/dalinm) and the [Swedberg morphology](https://spraakbanken.gu.se/resurser/swedbergm)
 |**Tagset**       | [SUC MSD tags](https://spraakbanken.gu.se/korp/markup/msdtags.html)
-|**Annotations**  | - `<token>:hunpos.msd` (morphosyntactic tag) <br />- `<token>:hunpos.pos` (part-of-speech tag
+|**Annotations**  | - `<token>:hunpos.msd` (morphosyntactic tag) <br />- `<token>:hunpos.pos` (part-of-speech tag)
 |**Annotators**   | - `hunpos:msdtag_hist` <br />- `hunpos:postag`
 
 ### Lexicon-based analyses
@@ -200,7 +200,7 @@ for Swedish from the 1800's:
 |**Description**  | Tokens and their POS tags are looked up in different lexicons in order to enrich them with more information.
 |**Model**        | - [SALDO morphology](https://spraakbanken.gu.se/resurser/saldo) <br />- [Dalin morphology](https://spraakbanken.gu.se/resurser/dalinm) <br />- [Swedberg morphology](https://spraakbanken.gu.se/resurser/swedbergm) <br />- [Diachronic pivot](https://spraakbanken.gu.se/resurser/diapivot)
 |**Tagset**       | [SALDO tags](https://spraakbanken.gu.se/resurser/saldo/taggmangd) (for lemgrams)
-|**Annotations**  | - `<token>:hist.baseform` (lemma) <br />- `<token>:hist.sense` (identifies senses in SALDO) <br />- `<token>:hist.lemgram` (lemgrams, identifying the inflectional table) <br />- `<token>:hist.diapivot` (SALDO lemgrams from the diapivot model) <br />- `<token>:hist.combined_lemgrams` (SALDO lemgram, combined from SALDO, Dalin, Swedberg and the diapivot model
+|**Annotations**  | - `<token>:hist.baseform` (lemma) <br />- `<token>:hist.sense` (identifies senses in SALDO) <br />- `<token>:hist.lemgram` (lemgrams, identifying the inflectional table) <br />- `<token>:hist.diapivot` (SALDO lemgrams from the diapivot model) <br />- `<token>:hist.combined_lemgrams` (SALDO lemgram, combined from SALDO, Dalin, Swedberg and the diapivot model)
 |**Annotators**   | - `hist:annotate_saldo` <br />- `hist:diapivot_annotate` <br />- `hist:combine_lemgrams`
 
 ## Analyses for Old Swedish
@@ -220,7 +220,7 @@ following analyses for texts written in Old Swedish:
 |:---|:-----------|
 |**Description**  | Tokens are looked up in a model to get common spelling variations.
 |**Model**        | [model for Old Swedish spelling variations](https://media.githubusercontent.com/media/spraakbanken/sparv-models/master/hist/fsv-spelling-variants.txt)
-|**Annotations**  | `<token>:hist.spelling_variants` (possible spelling variations for the token
+|**Annotations**  | `<token>:hist.spelling_variants` (possible spelling variations for the token)
 |**Annotators**   | `hist:spelling_variants`
 
 ### Lexicon-based analyses
@@ -229,7 +229,7 @@ following analyses for texts written in Old Swedish:
 |**Description**  | Tokens and their POS tags are looked up in different lexicons in order to enrich them with more information.
 |**Model**        | - [Fornsvensk morphology from Söderwall and Schlyter](https://spraakbanken.gu.se/resurser/fsvm) <br />- [SALDO morphology](https://spraakbanken.gu.se/resurser/saldo) <br />- [Diachronic pivot](https://spraakbanken.gu.se/resurser/diapivot)
 |**Tagset**       | [SALDO tags](https://spraakbanken.gu.se/resurser/saldo/taggmangd) for lemgrams
-|**Annotations**  | - `<token>:hist.baseform` (lemma) <br />- `<token>:hist.lemgram` (lemgrams, identifying the inflectional table) <br />- `<token>:hist.diapivot` (SALDO lemgrams from the diapivot model) <br />- `<token>:hist.combined_lemgrams` (SALDO lemgram, combined from SALDO, Dalin, Swedberg and the diapivot model
+|**Annotations**  | - `<token>:hist.baseform` (lemma) <br />- `<token>:hist.lemgram` (lemgrams, identifying the inflectional table) <br />- `<token>:hist.diapivot` (SALDO lemgrams from the diapivot model) <br />- `<token>:hist.combined_lemgrams` (SALDO lemgram, combined from SALDO, Dalin, Swedberg and the diapivot model)
 |**Annotators**   | - `hist:annotate_saldo_fsv` <br />- `hist:diapivot_annotate` <br />- `hist:combine_lemgrams`
 
 ### Homograph sets
@@ -238,7 +238,7 @@ following analyses for texts written in Old Swedish:
 |**Description**  | A set of possible POS tags is extracted from the lemgram annotation.
 |**Model**        | Method has no model.
 |**Tagset**       | [POS tags from the SUC MSD tag set](https://spraakbanken.gu.se/korp/markup/msdtags.html)
-|**Annotations**  | `<token>:hist.homograph_set` (possible part-of-speech tags for the token
+|**Annotations**  | `<token>:hist.homograph_set` (possible part-of-speech tags for the token)
 |**Annotators**   | `hist:extract_pos`
 
 
@@ -255,7 +255,7 @@ We recommend using the [annotation preset](corpus-configuration.md#annotation-pr
 |**Tool**         | [TreeTagger](https://www.cis.uni-muenchen.de/~schmid/tools/TreeTagger/)
 |**Model**        | Different language-dependent parameter files are used. Please check the [TreeTagger web site](https://www.cis.uni-muenchen.de/~schmid/tools/TreeTagger/) for more information.
 |**Tagset**       | - Different language-dependent POS tag sets are used. Please check the [TreeTagger web page](https://www.cis.uni-muenchen.de/~schmid/tools/TreeTagger/) for more information. <br />- [Universal POS tags](https://universaldependencies.org/u/pos/index.html)
-|**Annotations**  | - `<token>:treetagger.baseform` (lemma) <br />- `<token>:treetagger.pos` (part-of-speech tag, may include morphosyntactic information) <br />- `<token>:treetagger.upos` (universal part-of-speech tags, translated from `<token>:treetagger.pos)`
+|**Annotations**  | - `<token>:treetagger.baseform` (lemma) <br />- `<token>:treetagger.pos` (part-of-speech tag, may include morphosyntactic information) <br />- `<token>:treetagger.upos` (universal part-of-speech tags, translated from `<token>:treetagger.pos`)
 |**Annotators**   | `treetagger:annotate`
 
 ### Analyses from FreeLing
@@ -268,7 +268,7 @@ or `SBX_FREELING_FULL` (for languages supporting named entity recognition).
 |**Tool**         | [FreeLing](https://github.com/TALP-UPC/FreeLing)
 |**Model**        | Models for different languages are included in the tool.
 |**Tagset**       | - Different language-dependent POS tagsets (often [EAGLES](http://www.ilc.cnr.it/EAGLES96/annotate/node9.html)). Please check the [FreeLing documentation](https://freeling-user-manual.readthedocs.io/en/v4.2/tagsets/) for more information. <br />- [Universal POS tags](https://universaldependencies.org/u/pos/index.html)
-|**Annotations**  | - `freeling.sentence` (sentence segments from FreeLing <br />- `freeling.token` (token segments from FreeLing <br />- `freeling.token:freeling.baseform` (lemma) <br />- `freeling.token:freeling.pos` (part-of-speech tag, often including some morphosyntactic information) <br />- `freeling.token:freeling.upos` (universal part-of-speech tags) <br />- `freeling.token:freeling.ne_type` (named entity type (only available for some languages)
+|**Annotations**  | - `freeling.sentence` (sentence segments from FreeLing) <br />- `freeling.token` (token segments from FreeLing) <br />- `freeling.token:freeling.baseform` (lemma) <br />- `freeling.token:freeling.pos` (part-of-speech tag, often including some morphosyntactic information) <br />- `freeling.token:freeling.upos` (universal part-of-speech tags) <br />- `freeling.token:freeling.ne_type` (named entity type (only available for some languages)
 |**Annotators**   | `freeling:annotate` or `freeling:annotate_full` (depending on the language)
 
 ### Analyses from Stanza (for English)
