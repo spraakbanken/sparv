@@ -1,0 +1,83 @@
+id: swe-namedentity-swener
+name:
+  swe: Namnigenkänning med HFST-SweNER
+  eng: Named entity recognition with HFST-SweNER
+short_description:
+  swe: Namnigenkänning känner igen och förser namn och namnliknande uttryck (s.k. entiteter) i löpande text med fördefinierade etiketter, som organisation, person eller plats.
+  eng: Named entity recognition (NER) recognises named entities such as locations, persons and time expressions in text.
+task: named entity recognition
+language_codes:
+  - swe
+keywords:
+  - ner
+annotations:
+  - swener.ne
+  - swener.ne:swener.name
+  - swener.ne:swener.ex
+  - swener.ne:swener.type
+  - swener.ne:swener.subtype
+example_output: |-
+  ```xml
+  <ne ex="ENAMEX" name="Alfred Bernhard Nobel" subtype="HUM" type="PRS">
+    <token>Alfred</token>
+    <token>Bernhard</token>
+    <token>Nobel</token>
+  </ne>
+  <token>,</token>
+  <token>född</token>
+  <ne ex="TIMEX" name="21 oktober 1833" subtype="DAT" type="TME">
+    <token>21</token>
+    <token>oktober</token>
+    <token>1833</token>
+  </ne>
+  <token>i</token>
+  <ne ex="ENAMEX" name="Stockholm" subtype="PPL" type="LOC">
+    <token>Stockholm</token>
+  </ne>
+  <token>,</token>
+  <ne ex="ENAMEX" name="Italien" subtype="PPL" type="LOC">
+    <token>Italien</token>
+  </ne>
+  <token>,</token>
+  <token>var</token>
+  <token>en</token>
+  <token>svensk</token>
+  <token>kemist</token>
+  <token>och</token>
+  <token>stiftare</token>
+  <token>av</token>
+  <ne ex="ENAMEX" name="Nobelpriset" subtype="PRZ" type="OBJ">
+    <token>Nobelpriset</token>
+  </ne>
+  ```
+standard_reference: |-
+    [Dimitrios Kokkinakis, Jyrki Niemi, Sam Hardwick, Krister Lindén, and Lars Borin. 2014. HFST-SweNER — A New NER
+    Resource for Swedish. In Proceedings of the Ninth International Conference on Language Resources and Evaluation
+    (LREC'14), pages 2537-2543, Reykjavik, Iceland. European Language Resources Association
+    (ELRA).](http://www.lrec-conf.org/proceedings/lrec2014/pdf/391_Paper.pdf)
+other_references:
+  - "[Dimitrios Kokkinakis. 2004. Reducing the effect of name explosion](https://demo.spraakbanken.gu.se/svedk/pbl/kokkinakisBNER.pdf)"
+  - "Download HFST-SweNER: https://www.kielipankki.fi/download/HFST-SweNER/"
+tool: "HFST-SweNER"
+model: "Included in the tool"
+trained_on: ''
+tagset: "[Named entity tags from hfst-SweNER](https://svn.spraakdata.gu.se/sb-arkiv/pub/swener-tags.html)"
+evaluation_results: "f-score between 91.33% to 27.48%, depending on the named entity category"
+description:
+  swe: |-
+    Namnigenkänning är en språkteknologisk tekniks som automatiskt känner igen och förser namn och namnliknande uttryck
+    (s.k. entiteter) i löpande text med fördefinierade etiketter, som t. ex. person eller organisationer, men, beroende
+    på tillämpningsområdet, även numeriska uttryck och tidsuttryck. HFST-SweNER bygger på konvertering, modellering och
+    anpassning av en tidigare svenskt NER-system till Helsinki Finite-State Transducer Technology (HFST)-plattformen.
+    HFST-SweNER är en fullfjädrad implementering med öppen källkod som stöder en mängd olika generiska namngivna
+    entitetstyper och består av flera lexikala resurslager såsom olika n-gram-baserade namngivna namnlistor (s.k.
+    gazetteers).
+  eng: |-
+    Named entity recognition (NER) recognises textual mentions of named entities that belong to a predefined set of
+    categories, such as locations, and time expressions. HFST-SweNER is based on the conversion, modelling and
+    adaptation of a Swedish NER system from a hybrid environment to the Helsinki Finite-State Transducer Technology
+    (HFST) platform. HFST-SweNER is a full-fledged open source implementation that supports a variety of generic named
+    entity types and consists of multiple, reusable resource layers such as various n-gram-based named entity lists
+    (gazetteers).
+created: 2014-07-04
+updated: 2020-05-13

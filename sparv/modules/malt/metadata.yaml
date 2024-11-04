@@ -1,0 +1,50 @@
+id: swe-dependency-malt-treebank
+name:
+  swe: Dependensparsning med MaltParser
+  eng: Dependency parsing with MaltParser
+short_description:
+  swe: Svensk dependensparsning tränad på Svensk trädbank baserad på MaltParser
+  eng: Swedish dependency parsing from MaltParser trained on Sweedish treebank
+task: dependency parsing
+language_codes:
+  - swe
+keywords:
+  - dependency parsing
+annotations:
+  - <token>:malt.ref
+  - <token>:malt.dephead_ref
+  - <token>:malt.deprel
+example_output: |-
+  ```xml
+  <token dephead_ref="4" deprel="SS" ref="1">Alfred</token>
+  <token dephead_ref="1" deprel="HD" ref="2">Bernhard</token>
+  <token dephead_ref="1" deprel="HD" ref="3">Nobel</token>
+  <token deprel="ROOT" ref="4">var</token>
+  <token dephead_ref="8" deprel="DT" ref="5">en</token>
+  <token dephead_ref="8" deprel="AT" ref="6">svensk</token>
+  <token dephead_ref="8" deprel="CJ" ref="7">kemist</token>
+  <token dephead_ref="9" deprel="DT" ref="8">och</token>
+  <token dephead_ref="4" deprel="SP" ref="9">stiftare</token>
+  <token dephead_ref="9" deprel="ET" ref="10">av</token>
+  <token dephead_ref="10" deprel="PA" ref="11">Nobelpriset</token>
+  <token dephead_ref="4" deprel="IP" ref="12">.</token>
+  ```
+standard_reference: |-
+    Joakim Nivre, Johan Hall, and Jens Nilsson. 2006. MaltParser: A Data-Driven Parser-Generator for Dependency Parsing.
+    In Proceedings of the Fifth International Conference on Language Resources and Evaluation (LREC’06), Genoa, Italy.
+    European Language Resources Association (ELRA).
+other_references:
+  - "Maltparser: https://www.maltparser.org/download.html"
+  - 'https://aclanthology.org/2021.nodalida-main.20/'
+tool: "Maltparser"
+model: "[Swemalt](https://www.maltparser.org/mco/swedish_parser/swemalt.html)"
+trained_on: "[Svensk trädbank (the TalbankenSTB part)](https://spraakbanken.gu.se/resurser/sv-treebank)"
+tagset: "[MambaDep](https://svn.spraakdata.gu.se/sb-arkiv/pub/mamba.html)"
+evaluation_results: Labelled Attachment Score 0.78 (using the TalbankenSBX train-dev-test split)
+description:
+  swe: |-
+    Denna Maltparser model har konfigurerats för svenska och tränats på TalbankenSTB-korpusen.
+  eng: |-
+    This MaltParser model configured for Swedish has been trained on the TalbankenSTB corpus.
+created: 2010-12-15
+updated: 2021-06-01

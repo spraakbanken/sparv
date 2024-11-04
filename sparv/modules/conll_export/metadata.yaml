@@ -1,0 +1,26 @@
+id: export-conllu
+name:
+  swe: CoNLL-U-export
+  eng: CoNLL-U export
+short_description:
+  swe: Export av korpusdata i Språkbanken Texts CoNLL-U-format
+  eng: Export of corpus data in Språkbanken Text's CoNLL-U format
+task: export
+keywords:
+ - conll-u
+ - export
+sparv_handler: conll_export:conllu
+example_output: |-
+  ```
+  # global.columns = ID FORM LEMMA UPOS XPOS FEATS HEAD DEPREL DEPS MISC
+  # document_name = rävar
+  # text_date = 2017-01-10
+  # text_title = Rödräv
+  # sent_id = 157
+  1	Rödräven	rödräv	NN	NN.UTR.SIN.DEF.NOM	Case=Nom|Definite=Def|Gender=Com|Number=Sing	2	ss	_	_
+  2	är	vara	VB	VB.PRS.AKT	Mood=Ind|Tense=Pres|VerbForm=Fin|Voice=Act	0	root	_	_
+  3	ett	en	DT	DT.NEU.SIN.IND	Definite=Ind|Gender=Neut|Number=Sing	4	dt	_	_
+  4	hunddjur	hunddjur	NN	NN.NEU.SIN.IND.NOM	Case=Nom|Definite=Ind|Gender=Neut|Number=Sing	2	sp	_	_
+  ```
+created: 2020-11-20
+updated: 2022-03-25
