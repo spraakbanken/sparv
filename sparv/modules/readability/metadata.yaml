@@ -5,7 +5,7 @@ language_codes:
   - swe
 keywords:
   - readability measures
-other_references: ''
+other_references: []
 tool: ''
 model: ''
 trained_on: ''
@@ -138,7 +138,7 @@ description:
     dividing this by the number of verbs, adverbs and pronouns. A high nominal ratio suggests a high density of
     information, which can also mean that the text is difficult to read.
 ---
-id: swe-readability-sparv-nk
+id: swe-readability-sparv-ovix
 parent: readability-parent
 name:
   swe: Annotering av Ordvariationsindex (OVIX) för texter
