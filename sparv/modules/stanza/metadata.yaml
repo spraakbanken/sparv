@@ -165,14 +165,14 @@ description:
 id: swe-dependency-stanza-stanzasynt
 parent: stanza-parent-swe
 name:
-  swe: Dependensanalys med Stanza
-  eng: Dependency analysis with Stanza
+  swe: Dependensparsning med Stanza
+  eng: Dependency parsing with Stanza
 short_description:
-  swe: Annotering av SUC-ordklasser med Stanza för svenska
-  eng: Swedish part-of-speech annotation with SUC tags by Stanza
-task: part-of-speech tagging
+  swe: Svensk dependensparsning tränad på Svensk trädbank med Stanza
+  eng: Swedish dependency parsing with Stanza trained on Sweedish treebank
+task: dependency parsing
 keywords:
-  - dependency-parsing
+  - dependency parsing
   - stanza
 annotations:
   - <token>:stanza.dephead_ref
