@@ -1,0 +1,254 @@
+id: lexical-classes-parent
+task: lexical classes
+language_codes:
+  - swe
+keywords: []
+abstract: true
+tool: ''
+trained_on: |-
+    Reference corpora for relative frequencies: [Göteborgsposten 2008](https://spraakbanken.gu.se/resurser/gp2008), [SUC
+    3.0](https://spraakbanken.gu.se/resurser/suc3), [Bonniersromaner I
+    (1976–77)](https://spraakbanken.gu.se/resurser/romi)
+evaluation_results: ''
+updated: 2017-09-21
+---
+id: blingbring-parent
+abstract: true
+parent: lexical-classes-parent
+standard_reference: "[Lars Borin, Luis Nieto Piña, Richard Johansson (2015): Here be dragons? The perils and promises of inter-resource lexical-semantic mapping, in Linköping Electronic Conference Proceedings. Semantic resources and semantic annotation for Natural Language Processing and the Digital Humanities. Workshop at NODALIDA , May 11, 13-18 2015, Vilnius, volume 112, pages 1-11](https://gup.ub.gu.se/publication/217351)"
+other_references:
+  - "[Lars Borin, Jens Allwood, Gerard de Melo (2014): Bring vs. MTRoget: Evaluating automatic thesaurus translation, in Proceedings of LREC 2014, May 26-31, 2014 Reykjavik, Iceland](https://gup.ub.gu.se/publication/198549)"
+tagset: "[Blingbring](https://spraakbanken.gu.se/resurser/blingbring)"
+model: "[Blingbring frequency model](https://github.com/spraakbanken/sparv-models/blob/master/lexical_classes/blingbring.freq.gp2008%2Bsuc3%2Bromi.pickle)"
+---
+id: swe-lexical_classes_token-sparv-blingbring
+parent: blingbring-parent
+name:
+  swe: Lexikala klasser från Blingbring, tokennivå
+  eng: Lexical classes from Blingbring, token-level
+short_description:
+  swe: Lexikala klasser från Blingbring på tokennivå
+  eng: Lexical classes from Blingbring on token-level
+annotations:
+  - <token>:lexical_classes.blingbring
+example_output: |-
+  ```xml
+  <token blingbring="|">Rödräv</token>
+  <token blingbring="|">eller</token>
+  <token blingbring="|allmännelighet|antaglighet|betydelselöshet|enhetlighet|enkelhet|medelmåttighet|upprepning|uttryckslöshet|vana|vanlighet|överensstämmelse|">vanlig</token>
+  <token blingbring="|brunt|djur|rött|slughet|">räv</token>
+  <token blingbring="|förtid|långvarighet|varaktighet|">är</token>
+  <token blingbring="|">ett</token>
+  <token blingbring="|">hunddjur</token>
+  <token blingbring="|">och</token>
+  <token blingbring="|">den</token>
+  <token blingbring="|allmännelighet|betydenhet|flerhet|jämförelse|mängd|upprepning|vanlighet|">mest</token>
+  <token blingbring="|">förekommande</token>
+  <token blingbring="|benämning|klass|tillstånd|">arten</token>
+  <token blingbring="|">i</token>
+  <token blingbring="|">rävsläktet</token>
+  <token blingbring="|">.</token>
+  ```
+description:
+  swe: |-
+    Token slås upp i Blingbring för att berikas med information om vilka lexikala klasser de tillhör.
+
+    Blingbring (version 0.2) bygger på innehållet i Brings Svenskt ordförråd ordnat i begreppsklasser (1930). Ingångarna
+    i Blingbring har försetts med motsvarande SALDO-ordbetydelser. I föreliggande version är ordbetydelselänkarna ibland
+    flertydiga, något som kommer att åtgärdas i framtida versioner.
+  eng: |-
+    Tokens are looked up in Blingbring in order to enrich them with information about their lexical classes.
+
+    Blingbring (version 0.2) is based on the content of Bring's Svenskt ordförråd ordnat i begreppsklasser [The Swedish
+    vocabulary arranged into conceptual classes] (1930). The entries in Blingbring have been linked to the corresponding
+    SALDO word sense entries. The linkages are ambiguous in many cases, but disambiguation is planned for future
+    versions of Blingbring.
+created: 2017-09-05
+---
+id: swe-lexical_classes_text-sparv-blingbring
+parent: blingbring-parent
+name:
+  swe: Lexikala klasser från Blingbring, dokumentnivå
+  eng: Lexical classes from Blingbring, document-level
+short_description:
+  swe: Lexikala klasser från Blingbring på dokumentnivå
+  eng: Lexical classes from Blingbring on document-level
+annotations:
+  - <text>:lexical_classes.blingbring
+example_output: |-
+  ```xml
+  <text blingbring="|brunt:352.54|uttryckslöshet:140.741|rött:135.333|">
+    <token>Rödräv</token>
+    <token>eller</token>
+    <token>vanlig</token>
+    <token>räv</token>
+    <token>är</token>
+    <token>ett</token>
+    <token>hunddjur</token>
+    <token>och</token>
+    <token>den</token>
+    <token>mest</token>
+    <token>förekommande</token>
+    <token>arten</token>
+    <token>i</token>
+    <token>rävsläktet</token>
+    <token>.</token>
+  </text>
+  ```
+description:
+  swe: |-
+    Token slås upp i Blingbring för att berikas med information om sina lexikala klasser. Därefter berikas dokument med
+    information om lexikala klasser baserat på vilka klasser som är relevanta för token i dem.
+
+    Blingbring-frekvensmodellen](https://github.com/spraakbanken/sparv-models/blob/master/lexical_classes/blingbring.freq.gp2008%2Bsuc3%2Bromi.pickle)
+    (tränad på [Göteborgsposten 2008](https://spraakbanken.gu.se/resurser/gp2008), [SUC
+    3.0](https://spraakbanken.gu.se/resurser/suc3) och [Bonniersromaner I
+    (1976–77)](https://spraakbanken.gu.se/resurser/romi)) används som referens för att rangordna de Blingbring-klasser
+    som förekommer i varje dokument. Med hjälp av informationen om lexikala klasser på tokennivå beräknar och tilldelar
+    modellen de mest relevanta klasserna för varje dokument. Dessa klasser filtreras och rangordnas baserat på sin
+    frekvens och dominans jämfört med referensmaterialet.
+
+    Dominans avser i detta fallet den relativa betydelsen för en lexikal klass i ett givet dokument jämfört med ett
+    referensmaterial. Dominansen beräknas genom att jämföra den observerade frekvensen av en lexikal klass i dokumentet
+    med dess förväntade (relativa) frekvens i referensmaterialet.
+
+    Blingbring (version 0.2) bygger på innehållet i Brings Svenskt ordförråd ordnat i begreppsklasser (1930). Ingångarna
+    i Blingbring har försetts med motsvarande SALDO-ordbetydelser. I föreliggande version är ordbetydelselänkarna ibland
+    flertydiga, något som kommer att åtgärdas i framtida versioner.
+  eng: |-
+    Tokens are looked up in Blingbring in order to enrich them with information about their lexical classes. Documents
+    are then enriched with information about lexical classes based on which classes are relevant for the tokens within
+    them.
+    
+    The [Blingbring frequency
+    model](https://github.com/spraakbanken/sparv-models/blob/master/lexical_classes/blingbring.freq.gp2008%2Bsuc3%2Bromi.pickle)
+    (trained on [Göteborgsposten 2008](https://spraakbanken.gu.se/resurser/gp2008), [SUC
+    3.0](https://spraakbanken.gu.se/resurser/suc3) and [Bonniersromaner I
+    (1976–77)](https://spraakbanken.gu.se/resurser/romi)) is used as reference for ranking the Blingbring classes
+    occurring in each document. Using token-level lexical class information, it calculates and assigns the most relevant
+    classes for each document. These classes are filtered and ranked based on their frequency and dominance compared to
+    the reference material.
+
+    Dominance refers to the relative importance or prominence of a lexical class in a given document compared to a
+    reference material. Dominance is derived by comparing the observed frequency of a lexical class in the document to
+    its expected (relative) frequency in the reference material.
+
+    Blingbring (version 0.2) is based on the content of Bring's Svenskt ordförråd ordnat i begreppsklasser [The Swedish
+    vocabulary arranged into conceptual classes] (1930). The entries in Blingbring have been linked to the corresponding
+    SALDO word sense entries. The linkages are ambiguous in many cases, but disambiguation is planned for future
+    versions of Blingbring.
+created: 2017-09-06
+---
+id: swefn-parent
+abstract: true
+parent: lexical-classes-parent
+standard_reference: "[Dana Dannélls, Lars Borin, Karin Friberg Heppin (2021): The Swedish FrameNet++ Harmonization, integration, method development and practical language technology applications](https://gup.ub.gu.se/publication/310036)"
+other_references:
+  - "Dana Dannélls, Lars Borin, Karin Friberg Heppin (2021): The Swedish FrameNet++ Harmonization, integration, method development and practical language technology applications. John Benjamins: Amsterdam, Philadelphia. ISBN 978 90 272 5848 9."
+tagset: "[Swedish FrameNet (SweFN)](https://spraakbanken.gu.se/resurser/swefn)"
+model: "[Frequency model](https://github.com/spraakbanken/sparv-models/blob/master/lexical_classes/swefn.freq.gp2008%2Bsuc3%2Bromi.pickle)"
+---
+id: swe-lexical_classes_token-sparv-swefn
+parent: swefn-parent
+name:
+  swe: Lexikala klasser från SweFN, tokennivå
+  eng: Lexical classes from SweFN, token-level
+short_description:
+  swe: Lexikala klasser från SweFN på tokennivå
+  eng: Lexical classes from SweFN on token-level
+annotations:
+  - <token>:lexical_classes.swefn
+example_output: |-
+  ```xml
+  <token swefn="|Animals|">Rödräv</token>
+  <token swefn="|">eller</token>
+  <token swefn="|Typicality|">vanlig</token>
+  <token swefn="|Animals|Mental_property|">räv</token>
+  <token swefn="|Existence|">är</token>
+  <token swefn="|">ett</token>
+  <token swefn="|Animals|">hunddjur</token>
+  <token swefn="|">och</token>
+  <token swefn="|">den</token>
+  <token swefn="|Degree|Frequency|">mest</token>
+  <token swefn="|">förekommande</token>
+  <token swefn="|Type|">arten</token>
+  <token swefn="|">i</token>
+  <token swefn="|">rävsläktet</token>
+  <token swefn="|">.</token>
+  ```
+description:
+  swe: |-
+    Token slås upp i [Svenskt frasnät](https://spraakbanken.gu.se/resurser/swefn) (SweFN, en lexikal-semantisk resurs
+    som är baserad på teorin om ramsemantik) för att berikas med information om sina lexikala klasser.
+  eng: |-
+    Tokens are looked up in [Swedish FrameNet](https://spraakbanken.gu.se/en/resources/swefn) (SweFN, lexical-semantic
+    resource that follows the theory of Frame Semantics) in order to enrich them with information about their lexical
+    classes.
+created: 2017-09-21
+---
+id: swe-lexical_classes_text-sparv-swefn
+parent: swefn-parent
+name:
+  swe: Lexikala klasser från SweFN, dokumentnivå
+  eng: Lexical classes from SweFN, document-level
+short_description:
+  swe: Lexikala klasser från SweFN på dokumentnivå
+  eng: Lexical classes from SweFN on document-level
+annotations:
+  - <text>:lexical_classes.swefn
+example_output: |-
+  ```xml
+  <text swefn="|Type:149.863|Animals:137.544|Typicality:107.808|">
+    <token>Rödräv</token>
+    <token>eller</token>
+    <token>vanlig</token>
+    <token>räv</token>
+    <token>är</token>
+    <token>ett</token>
+    <token>hunddjur</token>
+    <token>och</token>
+    <token>den</token>
+    <token>mest</token>
+    <token>förekommande</token>
+    <token>arten</token>
+    <token>i</token>
+    <token>rävsläktet</token>
+    <token>.</token>
+  </text>
+  ```
+description:
+  swe: |-
+    Token slås upp i [Svenskt frasnät](https://spraakbanken.gu.se/resurser/swefn) (SweFN, en lexikal-semantisk resurs
+    som är baserad på teorin om ramsemantik) för att berikas med information om sina lexikala klasser. Därefter berikas
+    dokument med information om lexikala klasser baserat på vilka klasser som är relevanta för token i dem.
+
+    [SweFN-frekvensmodellen](https://github.com/spraakbanken/sparv-models/blob/master/lexical_classes/swefn.freq.gp2008%2Bsuc3%2Bromi.pickle)
+    (tränad på [Göteborgsposten 2008](https://spraakbanken.gu.se/resurser/gp2008), [SUC
+    3.0](https://spraakbanken.gu.se/resurser/suc3) och [Bonniersromaner I
+    (1976–77)](https://spraakbanken.gu.se/resurser/romi)) används som referens för att rangordna de SweFN-klasser som
+    förekommer i varje dokument. Med hjälp av informationen om lexikala klasser på tokennivå beräknar och tilldelar
+    modellen de mest relevanta klasserna för varje dokument. Dessa klasser filtreras och rangordnas baserat på sin
+    frekvens och dominans jämfört med referensmaterialet.
+
+    Dominans avser i detta fallet den relativa betydelsen för en lexikal klass i ett givet dokument jämfört med ett
+    referensmaterial. Dominansen beräknas genom att jämföra den observerade frekvensen av en lexikal klass i dokumentet
+    med dess förväntade (relativa) frekvens i referensmaterialet.
+  eng: |-
+    Tokens are looked up in [Swedish FrameNet](https://spraakbanken.gu.se/en/resources/swefn) (SweFN, lexical-semantic
+    resource that follows the theory of Frame Semantics) in order to enrich them with information about their lexical
+    classes. Documents are then enriched with information about lexical classes based on which classes are relevant for
+    the tokens within them.
+    
+    The [SweFN frequency
+    model](https://github.com/spraakbanken/sparv-models/blob/master/lexical_classes/swefn.freq.gp2008%2Bsuc3%2Bromi.pickle)
+    (trained on [Göteborgsposten 2008](https://spraakbanken.gu.se/resurser/gp2008), [SUC
+    3.0](https://spraakbanken.gu.se/resurser/suc3) and [Bonniersromaner I
+    (1976–77)](https://spraakbanken.gu.se/resurser/romi)) is used as reference for ranking the SweFN classes occurring
+    in each document. Using token-level lexical class information, it calculates and assigns the most relevant classes
+    for each document. These classes are filtered and ranked based on their frequency and dominance compared to the
+    reference material.
+
+    Dominance refers to the relative importance or prominence of a lexical class in a given document compared to a
+    reference material. Dominance is derived by comparing the observed frequency of a lexical class in the document to
+    its expected (relative) frequency in the reference material.
+created: 2017-09-21
