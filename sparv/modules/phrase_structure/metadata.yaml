@@ -3,13 +3,11 @@ name:
   swe: Svensk frasstrukturparsning
   eng: Swedish phrase structure parsing
 short_description:
-  swe: Svensk frastrukturparser konverterade från Mamba-Dep dependensanalys
-  eng: Swedish phrase structure parser converted from Mamba-Dep dependency analysis
+  swe: Svensk frasstrukturparsning baserad på Mamba-Dep dependensanalys
+  eng: Swedish phrase structure parsing based on Mamba-Dep dependency analysis
 task: phrase structure parsing
 language_codes:
   - swe
-keywords:
-  - phrase structure parsing
 annotations:
   - phrase_structure.phrase
   - phrase_structure.phrase:phrase_structure.name

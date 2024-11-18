@@ -2,7 +2,6 @@ id: stanza-parent-swe
 abstract: true
 language_codes:
   - swe
-standard_reference: 'https://aclanthology.org/2021.nodalida-main.20/'
 tool: "Stanza"
 trained_on: "[SUC3](https://spraakbanken.gu.se/resurser/suc3), [TalbankenSBX](https://spraakbanken.gu.se/resurser/talbanken), [SIC2](https://spraakbanken.gu.se/resurser/sic2)"
 other_references:
@@ -38,6 +37,7 @@ task: part-of-speech tagging
 keywords:
   - pos-tagging
   - stanza
+standard_reference: 'https://aclanthology.org/2021.nodalida-main.20/'
 annotations:
   - <token>:stanza.pos
 example_output: |-
@@ -57,6 +57,7 @@ description:
     [Sparv](https://spraakbanken.gu.se/sparv).
 ---
 id: swe-msd-stanza-stanzamorph-suc3
+parent: stanza-parent-swe
 name:
   swe: Morfosyntaktisk SUC-taggning med Stanza
   eng: Tagging of morphological features (SUC) by Stanza
@@ -67,6 +68,7 @@ task: morphosyntactic tagging
 keywords:
   - msd
   - stanza
+standard_reference: 'https://aclanthology.org/2021.nodalida-main.20/'
 annotations:
   - <token>:stanza.msd
 example_output: |-
@@ -237,7 +239,7 @@ example_output: |-
   <token pos=".">.</token>
   ```
 ---
-id: eng-sentece-stanza
+id: eng-sentence-stanza
 parent: stanza-parent-eng
 name:
   swe: Meningssegmentering för engelska med Stanza
