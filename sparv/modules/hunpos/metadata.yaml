@@ -117,49 +117,6 @@ description:
 created: 2012-10-23
 updated: 2015-09-11
 ---
-id: swe-pos-hunpos-suc3-1800
-parent: hunpos-parent
-name:
-  swe: SUC-ordklasstaggning med Hunpos för 1800-talssvenska
-  eng: SUC part-of-speech tagging with Hunpos for Swedish from the 1800's
-short_description:
-  swe: Annotering av SUC-ordklasser med Hunpos för 1800-talssvenska
-  eng: Part-of-speech annotation with SUC tags by Hunpos for Swedish from the 1800's
-task: part-of-speech tagging
-keywords: []
-annotations:
-  - <token>:hunpos.pos
-example_output: |-
-  ```xml
-  <token pos="NN">Lådan</token>
-  <token pos="VB">var</token>
-  <token pos="PC">upphängd</token>
-  <token pos="PP">under</token>
-  <token pos="DT">den</token>
-  <token pos="NN">waggon</token>
-  <token pos="HA">hvari</token>
-  <token pos="DT">de</token>
-  <token pos="JJ">andra</token>
-  <token pos="NN">djuren</token>
-  <token pos="VB">befunno</token>
-  <token pos="PN">sig</token>
-  <token pos="MAD">.</token>
-  ```
-model: |-
-  - [suc3_suc-tags_default-setting_utf8.model](https://github.com/spraakbanken/sparv-models/blob/master/hunpos/suc3_suc-tags_default-setting_utf8.model?raw=true)
-  - a word list along with the words' morphosyntactic information generated from the [Dalin
-  morphology](https://spraakbanken.gu.se/resurser/dalinm) and the [Swedberg
-  morphology](https://spraakbanken.gu.se/resurser/swedbergm)
-description:
-  swe: |-
-    Meningssegment analyseras och annoteras med ordklasstaggar. Utöver ordklasstaggningsmodellen använder Hunpos listor
-    med böjningsformer för att kunna generera bättre ordklasstaggar för 1800-talssvenska.
-  eng: |-
-    Sentence segments are analysed to enrich tokens with part-of-speech tags. In addition to the pos model inflection
-    lists are provided to Hunpos to make more accuare part-of-speech predictions for Swedish from the 1800's.
-created: 2012-10-23
-updated: 2015-09-11
----
 id: swe-msd-hunpos-suc3-1800
 parent: hunpos-parent
 name:
