@@ -8,8 +8,7 @@ short_description:
 task: dependency parsing
 language_codes:
   - swe
-keywords:
-  - dependency parsing
+keywords: []
 annotations:
   - <token>:malt.ref
   - <token>:malt.dephead_ref

@@ -2,6 +2,8 @@ id: stanza-parent-swe
 abstract: true
 language_codes:
   - swe
+keywords:
+  - stanza
 tool: "Stanza"
 trained_on: "[SUC3](https://spraakbanken.gu.se/resurser/suc3), [TalbankenSBX](https://spraakbanken.gu.se/resurser/talbanken), [SIC2](https://spraakbanken.gu.se/resurser/sic2)"
 other_references:
@@ -34,9 +36,6 @@ short_description:
   swe: Annotering av SUC-ordklasser med Stanza för svenska
   eng: Swedish part-of-speech annotation with SUC tags by Stanza
 task: part-of-speech tagging
-keywords:
-  - pos-tagging
-  - stanza
 standard_reference: 'https://aclanthology.org/2021.nodalida-main.20/'
 annotations:
   - <token>:stanza.pos
@@ -65,9 +64,6 @@ short_description:
   swe: Annotering av morfosyntaktiska deskriptorer (SUC) med Stanza för svenska
   eng: Annotation of morphological features (SUC) by Stanza for Swedish
 task: morphosyntactic tagging
-keywords:
-  - msd
-  - stanza
 standard_reference: 'https://aclanthology.org/2021.nodalida-main.20/'
 annotations:
   - <token>:stanza.msd
@@ -99,9 +95,6 @@ short_description:
   swe: Morfologisk analys för svenska med universal features (UD) baserad på Stanza
   eng: Stanza-based morphological analysis for Swedish, using universal features (UD)
 task: morphosyntactic tagging
-keywords:
-  - msd
-  - stanza
 annotations:
   - <token>:stanza.ufeats
 example_output: |-
@@ -136,9 +129,6 @@ short_description:
   swe: Annotering av grundformer (lemman) med Stanza för svenska tränat på SUC3
   eng: Swedish citation form analysis (base forms, lemmas) by Stanza, trained on SUC3
 task: lemmatization
-keywords:
-  - lemmatization
-  - stanza
 annotations:
   - <token>:stanza.baseform
 example_output: |-
@@ -173,9 +163,6 @@ short_description:
   swe: Svensk dependensparsning tränad på Svensk trädbank med Stanza
   eng: Swedish dependency parsing with Stanza trained on Sweedish treebank
 task: dependency parsing
-keywords:
-  - dependency parsing
-  - stanza
 annotations:
   - <token>:stanza.dephead_ref
   - <token>:stanza.deprel
@@ -204,6 +191,8 @@ id: stanza-parent-eng
 abstract: true
 language_codes:
   - eng
+keywords:
+  - stanza
 standard_reference: ''
 tool: "Stanza"
 trained_on: ''
@@ -224,9 +213,6 @@ short_description:
   swe: Annotering av ordklasser (Penn Treebank-taggar) med Stanzas standardmodell för engelska
   eng: Part-of-speech annotation with Penn Treebank tags with Stanza's standard model for English
 task: part-of-speech tagging
-keywords:
-  - pos-tagging
-  - stanza
 tagset: "[Penn Treebank tagset](https://www.ling.upenn.edu/courses/Fall_2003/ling001/penn_treebank_pos.html)"
 annotations:
   - <token>:stanza.pos
@@ -248,9 +234,6 @@ short_description:
   swe: Meningssegmentering med Stanzas standardmodell för engelska
   eng: Sentence segmentation with Stanza's standard model for English
 task: sentence segmentation
-keywords:
-  - sentence segmentation
-  - stanza
 annotations:
   - stanza.sentence
 example_output: |-
@@ -287,9 +270,6 @@ short_description:
   swe: Tokenisering med Stanzas standardmodell för engelska
   eng: Tokenization with Stanza's standard model for English
 task: tokenization
-keywords:
-  - tokenization
-  - stanza
 annotations:
   - stanza.token
 example_output: |-
@@ -310,9 +290,6 @@ short_description:
   swe: Lemmatisering med Stanzas standardmodell för engelska
   eng: Lemmatization with Stanza's standard model for English
 task: lemmatization
-keywords:
-  - lemmatization
-  - stanza
 annotations:
   - <token>:stanza.baseform
 example_output: |-
@@ -336,9 +313,6 @@ short_description:
   swe: Dependensparsning med Stanzas standardmodell för engelska
   eng: Dependency parsing with Stanza's standard model for English
 task: dependency parsing
-keywords:
-  - dependency parsing
-  - stanza
 tagset: "[UD](https://universaldependencies.org/en/dep/)"
 annotations:
   - <token>:stanza.ref
@@ -365,9 +339,6 @@ short_description:
   swe: Namnigenkänning (NER) med Stanzas standardmodell för engelska
   eng: Named entity recognition with Stanza's standard model for English
 task: named entity recognition
-keywords:
-  - ner
-  - stanza
 annotations:
   - stanza.ne
   - stanza.ne:stanza.ne_type
@@ -414,9 +385,6 @@ short_description:
   swe: Annotering av UD-ordklasser (universal dependencies) med Stanzas standardmodell för engelska
   eng: Part-of-speech annotation with UD (universal dependency) tags with Stanza's standard model for English
 task: part-of-speech tagging
-keywords:
-  - pos-tagging
-  - stanza
 tagset: "[UD](https://universaldependencies.org/u/pos/)"
 annotations:
   - <token>:stanza.upos
@@ -438,9 +406,6 @@ short_description:
   swe: Morfologisk analys för engelska med universal features (UD) baserad på Stanza
   eng: Stanza-based morphological analysis for English, using universal features (UD)
 task: morphosyntactic tagging
-keywords:
-  - msd
-  - stanza
 tagset: "[UD](https://universaldependencies.org/u/feat/index.html)"
 annotations:
   - <token>:stanza.ufeats

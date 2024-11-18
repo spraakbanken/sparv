@@ -8,8 +8,7 @@ short_description:
 task: sentiment analysis
 language_codes:
   - swe
-keywords:
-  - sentiment analysis
+keywords: []
 annotations:
   - <token>:sensaldo.sentiment_label
   - <token>:sensaldo.sentiment_score

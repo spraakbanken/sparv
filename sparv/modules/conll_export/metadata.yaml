@@ -8,7 +8,6 @@ short_description:
 task: export
 keywords:
  - conll-u
- - export
 sparv_handler: conll_export:conllu
 example_output: |-
   ```

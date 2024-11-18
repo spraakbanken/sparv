@@ -20,7 +20,6 @@ short_description:
   eng: Full-form lookup for SALDO citation forms (lemmas)
 task: lemmatization
 keywords:
-  - lemmatization
   - saldo
 annotations:
   - <token>:saldo.baseform
@@ -55,7 +54,6 @@ short_description:
   eng: Lookup for SALDO lemgrams
 task: lexical lookup
 keywords:
-  - lexical lookup
   - saldo
 annotations:
   - <token>:saldo.lemgram
@@ -89,7 +87,6 @@ short_description:
   eng: Lookup for SALDO identifiers
 task: lexical lookup
 keywords:
-  - lexical lookup
   - saldo
 annotations:
   - <token>:saldo.sense
@@ -120,7 +117,6 @@ short_description:
   eng: Analysis of SALDO lemgram compounds including a probability ranking
 task: compound analysis
 keywords:
-  - compound analysis
   - saldo
 annotations:
   - <token>:saldo.complemgram
@@ -162,7 +158,6 @@ short_description:
   eng: Analysis of SALDO wordform compounds
 task: compound analysis
 keywords:
-  - compound analysis
   - saldo
 annotations:
   - <token>:saldo.compwf
@@ -204,7 +199,6 @@ short_description:
   eng: Full-form lookup for SALDO citation forms (lemmas) plus analysis of compounds made up of SALDO entries
 task: lemmatization
 keywords:
-  - lemmatization
   - saldo
 annotations:
   - <token>:saldo.baseform2

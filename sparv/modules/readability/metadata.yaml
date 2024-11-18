@@ -3,8 +3,7 @@ abstract: true
 task: readability measures
 language_codes:
   - swe
-keywords:
-  - readability measures
+keywords: []
 other_references: []
 tool: ''
 model: ''

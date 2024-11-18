@@ -19,8 +19,7 @@ short_description:
   swe: Annotering av SUC-ordklasser med Hunpos för svenska
   eng: Swedish part-of-speech annotation with SUC tags by Hunpos
 task: part-of-speech tagging
-keywords:
-  - pos-tagging
+keywords: []
 annotations:
   - <token>:hunpos.pos
 example_output: |-
@@ -52,8 +51,7 @@ short_description:
   swe: Annotering av morfosyntaktiska deskriptorer (SUC) med Hunpos för svenska
   eng: Annotation of morphological features (SUC) by Hunpos for Swedish
 task: morphosyntactic tagging
-keywords:
-  - msd
+keywords: []
 annotations:
   - <token>:hunpos.msd
 example_output: |-
@@ -85,8 +83,7 @@ short_description:
   swe: Annotering av SUC-ordklasser med Hunpos för 1800-talssvenska
   eng: Part-of-speech annotation with SUC tags by Hunpos for Swedish from the 1800's
 task: part-of-speech tagging
-keywords:
-  - pos-tagging
+keywords: []
 annotations:
   - <token>:hunpos.pos
 example_output: |-
@@ -129,8 +126,7 @@ short_description:
   swe: Annotering av SUC-ordklasser med Hunpos för 1800-talssvenska
   eng: Part-of-speech annotation with SUC tags by Hunpos for Swedish from the 1800's
 task: part-of-speech tagging
-keywords:
-  - pos-tagging
+keywords: []
 annotations:
   - <token>:hunpos.pos
 example_output: |-
@@ -173,8 +169,7 @@ short_description:
   swe: Annotering av morfosyntaktiska deskriptorer (SUC) med Hunpos för 1800-talssvenska
   eng: Annotation of morphological features (SUC) by Hunpos for Swedish from the 1800's
 task: morphosyntactic tagging
-keywords:
-  - msd
+keywords: []
 annotations:
   - <token>:hunpos.msd
 example_output: |-

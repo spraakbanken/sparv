@@ -3,8 +3,7 @@ abstract: true
 task: geotagging
 language_codes:
   - swe
-keywords:
-  - geotagging
+keywords: []
 standard_reference: ''
 other_references: []
 tool: ''

@@ -8,8 +8,7 @@ short_description:
 task: named entity recognition
 language_codes:
   - swe
-keywords:
-  - ner
+keywords: []
 annotations:
   - swener.ne
   - swener.ne:swener.name
