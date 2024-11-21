@@ -197,7 +197,7 @@ def read_annotation(
     root = annotation.root
     if len(annotations) == 1:
         # Handle single annotation
-        yield from _read_single_annotation(source_file, annotations[0], with_annotation_name, root)
+        yield from _read_single_annotation(source_file, annotations[0], with_annotation_name, spans, root)
     else:
         # Handle multiple annotations used as one
 
@@ -208,12 +208,12 @@ def read_annotation(
 
         # Get iterators for all annotations
         all_annotations = {split_annotation(ann)[0]: _read_single_annotation(source_file, ann, with_annotation_name,
-                                                                             root)
+                                                                             spans, root)
                            for ann in annotations}
 
         # We need to read the annotation spans to be able to interleave the values in the correct order
         for _, ann in heapq.merge(*[_read_single_annotation(source_file, split_annotation(ann)[0],
-                                                            with_annotation_name=True,
+                                                            with_annotation_name=True, spans=spans,
                                                             root=root)
                                     for ann in annotations]):
             yield next(all_annotations[ann])
@@ -242,14 +242,16 @@ def _read_single_annotation(
     source_file: str,
     annotation: str,
     with_annotation_name: bool,
+    spans: bool,
     root: Path | None = None
 ) -> Iterator[Any]:
-    """Read a single annotation file and yield each value.
+    """Read a single annotation file and yield each value, or the underlying text if the annotation has no attribute.
 
     Args:
         source_file: Source filename.
         annotation: Annotation name.
         with_annotation_name: Whether to yield the annotation name along with the value.
+        spans: Whether to read annotation spans or regular values
         root: Root path.
 
     Yields:
@@ -257,9 +259,18 @@ def _read_single_annotation(
     """
     ann_file = get_annotation_path(source_file, annotation, root)
 
+    span_text = not spans and not split_annotation(annotation)[1]
+    text_data = read_data(source_file, TEXT_FILE) if span_text else None
     ctr = 0
     for value in read_annotation_file(ann_file):
-        yield value if not with_annotation_name else (value, annotation)
+        if span_text:
+            yield (
+                text_data[value[0][0] : value[1][0]]
+                if not with_annotation_name
+                else (text_data[value[0][0] : value[1][0]], annotation)
+            )
+        else:
+            yield value if not with_annotation_name else (value, annotation)
         ctr += 1
     logger.debug("Read %d items: %s%s%s", ctr, source_file, "/" if source_file else "", annotation)
 

@@ -204,6 +204,8 @@ class CommonAnnotationMixin(BaseAnnotation):
         """
         super().__init__(name, source_file)
         self._size = {}
+        self._corpus_text = {}
+        self._data = None
 
     def _read(self, source_file: str) -> Iterator[str]:
         """Yield each line from the annotation.
@@ -228,6 +230,20 @@ class CommonAnnotationMixin(BaseAnnotation):
             An iterator of spans from the annotation.
         """
         return io.read_annotation_spans(source_file, self, decimals=decimals, with_annotation_name=with_annotation_name)
+
+    def _read_text(self, source_file: str) -> Iterator[str]:
+        """Get the source text of the annotation.
+
+        Args:
+            source_file: Source file for the annotation.
+
+        Yields:
+            The source text of the annotation.
+        """
+        if self.source_file not in self._corpus_text:
+            self._corpus_text[self.source_file] = io.read_data(self.source_file, io.TEXT_FILE)
+        for start, end in self._read_spans(source_file):
+            yield self._corpus_text[self.source_file][start:end]
 
     @staticmethod
     def _read_attributes(source_file: str, annotations: list[BaseAnnotation] | tuple[BaseAnnotation, ...],
@@ -343,6 +359,28 @@ class CommonAnnotationMixin(BaseAnnotation):
 
         return parent_children, orphans
 
+    def _get_child_values(
+        self, source_file: str, child: BaseAnnotation, append_orphans: bool = False, orphan_alert: bool = False
+    ) -> Iterator:
+        """Get values of children of this annotation.
+
+        Args:
+            source_file: Source file for the annotation.
+            child: Child annotation.
+            append_orphans: If True, append orphans to the end.
+            orphan_alert: If True, log a warning when a child has no parent.
+
+        Yields:
+            For each parent, an iterator of values of children of this annotation. If append_orphans is True, the last
+            iterator is of orphans.
+        """
+        child_values = list(child._read(source_file))
+        parents, orphans = self._get_children(source_file, child, orphan_alert)
+        for parent in parents:
+            yield (child_values[child_index] for child_index in parent)
+        if append_orphans:
+            yield (child_values[child_index] for child_index in orphans)
+
     def _get_parents(self, source_file: str, parent: BaseAnnotation, orphan_alert: bool = False) -> list:
         """Get parents of this annotation.
 
@@ -387,6 +425,16 @@ class CommonAnnotationMixin(BaseAnnotation):
 class Annotation(CommonAnnotationMixin, CommonMixin, BaseAnnotation):
     """Regular Annotation tied to one source file."""
 
+    def __iter__(self) -> Iterator[str]:
+        """Get an iterator of values from the annotation.
+
+        This is a convenience method equivalent to read().
+
+        Returns:
+            An iterator of values from the annotation.
+        """
+        return self._read(self.source_file)
+
     def read(self) -> Iterator[str]:
         """Get an iterator of values from the annotation.
 
@@ -406,6 +454,14 @@ class Annotation(CommonAnnotationMixin, CommonMixin, BaseAnnotation):
             An iterator of spans from the annotation.
         """
         return self._read_spans(self.source_file, decimals=decimals, with_annotation_name=with_annotation_name)
+
+    def read_text(self) -> Iterator[str]:
+        """Get the source text of the annotation.
+
+        Returns:
+            An iterator of the source text of the annotation.
+        """
+        return self._read_text(self.source_file)
 
     def read_attributes(self, annotations: list[BaseAnnotation] | tuple[BaseAnnotation, ...],
                         with_annotation_name: bool = False) -> Iterator:
@@ -436,6 +492,49 @@ class Annotation(CommonAnnotationMixin, CommonMixin, BaseAnnotation):
             Both parents and children are sorted according to their position in the source file.
         """
         return self._get_children(self.source_file, child, orphan_alert)
+
+    def __truediv__(self, child: BaseAnnotation) -> Iterator[Iterator]:
+        """Get values of children of this annotation, without orphans.
+
+        This is a convenience method equivalent to get_child_values(child).
+
+        Args:
+            child: Child annotation.
+
+        Returns:
+            An iterator with one element for each parent. Each element is an iterator of values in the child annotation.
+        """
+        return self._get_child_values(self.source_file, child, append_orphans=False)
+
+    def __floordiv__(self, child: BaseAnnotation) -> Iterator[Iterator]:
+        """Get values of children of this annotation, with orphans appended at the end.
+
+        This is a convenience method equivalent to get_child_values(child, append_orphans=True).
+
+        Args:
+            child: Child annotation.
+
+        Returns:
+            An iterator with one element for each parent. Each element is an iterator of values in the child annotation.
+            The last element is an iterator of orphans.
+        """
+        return self._get_child_values(self.source_file, child, append_orphans=True)
+
+    def get_child_values(
+            self, child: BaseAnnotation, append_orphans: bool = False, orphan_alert: bool = False
+        ) -> Iterator[Iterator]:
+        """Get values of children of this annotation.
+
+        Args:
+            child: Child annotation.
+            append_orphans: If True, append orphans to the end.
+            orphan_alert: If True, log a warning when a child has no parent.
+
+        Returns:
+            An iterator with one element for each parent. Each element is an iterator of values in the child annotation.
+            If append_orphans is True, the last element is an iterator of orphans.
+        """
+        return self._get_child_values(self.source_file, child, append_orphans, orphan_alert)
 
     def get_parents(self, parent: BaseAnnotation, orphan_alert: bool = False) -> list:
         """Get parents of this annotation.
@@ -529,6 +628,20 @@ class AnnotationAllSourceFiles(CommonAnnotationMixin, CommonAllSourceFilesMixin,
         super().__init__(name)
         self._size = {}
 
+    def __call__(self, source_file: str) -> Annotation:
+        """Get an Annotation instance for the specified source file.
+
+        This enables the use of certain convenience methods that are not available on the AnnotationAllSourceFiles
+        class.
+
+        Args:
+            source_file: Source file for the annotation.
+
+        Returns:
+            An Annotation instance for the specified source file.
+        """
+        return Annotation(self.name, source_file)
+
     def read(self, source_file: str) -> Iterator[str]:
         """Get an iterator of values from the annotation.
 
@@ -552,6 +665,17 @@ class AnnotationAllSourceFiles(CommonAnnotationMixin, CommonAllSourceFilesMixin,
             An iterator of spans from the annotation.
         """
         return self._read_spans(source_file, decimals=decimals, with_annotation_name=with_annotation_name)
+
+    def read_text(self, source_file: str) -> Iterator[str]:
+        """Get the source text of the annotation.
+
+        Args:
+            source_file: Source file for the annotation.
+
+        Returns:
+            An iterator of the source text of the annotation.
+        """
+        return self._read_text(source_file)
 
     def read_attributes(self, source_file: str, annotations: list[BaseAnnotation] | tuple[BaseAnnotation, ...],
                         with_annotation_name: bool = False) -> Iterator:
@@ -583,6 +707,23 @@ class AnnotationAllSourceFiles(CommonAnnotationMixin, CommonAllSourceFilesMixin,
             Both parents and children are sorted according to their position in the source file.
         """
         return self._get_children(source_file, child, orphan_alert)
+
+    def get_child_values(
+            self, source_file: str, child: BaseAnnotation, append_orphans: bool = False, orphan_alert: bool = False
+        ) -> Iterator[Iterator]:
+        """Get values of children of this annotation.
+
+        Args:
+            source_file: Source file for the annotation.
+            child: Child annotation.
+            append_orphans: If True, append orphans to the end.
+            orphan_alert: If True, log a warning when a child has no parent.
+
+        Returns:
+            An iterator with one element for each parent. Each element is an iterator of values in the child annotation.
+            If append_orphans is True, the last element is an iterator of orphans.
+        """
+        return self._get_child_values(source_file, child, append_orphans, orphan_alert)
 
     def get_parents(self, source_file: str, parent: BaseAnnotation, orphan_alert: bool = False) -> list:
         """Get parents of this annotation.

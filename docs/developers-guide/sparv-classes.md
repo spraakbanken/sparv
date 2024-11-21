@@ -34,12 +34,16 @@ annotation is needed as input for a function, e.g. `Annotation("<token:word>")`.
 - `remove()`: Remove annotation file.
 - `read()`: Yield each line from the annotation.
 - `read_spans(decimals=False, with_annotation_name=False)`: Yield the spans of the annotation.
+- `read_text()`: Yield the underlying source text of the annotation.
 - `read_attributes(annotations: Union[list[BaseAnnotation], tuple[BaseAnnotation, ...]], with_annotation_name: bool =
   False)`: Yield tuples of multiple attributes on the same annotation.
 - `get_children(child: BaseAnnotation, orphan_alert=False)`: Return two lists.
     The first one is a list with n (= total number of parents) elements where every element is a list of indices in the
     child annotation. The second one is a list of orphans, i.e. containing indices in the child annotation that have no
     parent. Both parents and children are sorted according to their position in the source file.
+- `get_child_values(child: BaseAnnotation, append_orphans=False, orphan_alert=False)`: Get an iterator with one element
+  for each parent. Each element is an iterator of values in the child annotation. If `append_orphans` is `True`, the
+  last element is an iterator of orphans.
 - `get_parents(parent: BaseAnnotation, orphan_alert: bool = False)`: Return a list with n (= total number of children)
   elements where every element is an index in the parent annotation. Return None when no parent is found.
 - `read_parents_and_children(parent, child)`: Read parent and child annotations. Reorder them according to span
@@ -68,13 +72,17 @@ require the specified annotation for every source file in the corpus.
 - `exists(source_file: str)`: Return True if annotation file exists.
 - `remove(source_file: str)`: Remove annotation file.
 - `read(source_file: str)`: Yield each line from the annotation.
-- `read_spans(source_file: str, decimals=False, with_annotation_name=False)`: Yield the spans of the annotation.
+- `read_spans(source_file: str, decimals: bool = False, with_annotation_name: bool = False)`: Yield the spans of the annotation.
+- `read_text(source_file: str)`: Yield the underlying source text of the annotation.
 - `read_attributes(source_file: str, annotations: Union[list[BaseAnnotation], tuple[BaseAnnotation, ...]], with_annotation_name: bool =
   False)`: Yield tuples of multiple attributes on the same annotation.
 - `get_children(source_file: str, child: BaseAnnotation, orphan_alert=False)`: Return two lists.
     The first one is a list with n (= total number of parents) elements where every element is a list of indices in the
     child annotation. The second one is a list of orphans, i.e. containing indices in the child annotation that have no
     parent. Both parents and children are sorted according to their position in the source file.
+- `get_child_values(source_file: str, child: BaseAnnotation, append_orphans=False, orphan_alert=False)`: Get an iterator with one element
+  for each parent. Each element is an iterator of values in the child annotation. If `append_orphans` is `True`, the
+  last element is an iterator of orphans.
 - `get_parents(source_file: str, parent: BaseAnnotation, orphan_alert: bool = False)`: Return a list with n (= total number of children)
   elements where every element is an index in the parent annotation. Return None when no parent is found.
 - `read_parents_and_children(source_file: str, parent, child)`: Read parent and child annotations. Reorder them according to span
