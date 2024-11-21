@@ -1,205 +1,197 @@
 # Utilities
 
-Sparv has a number of utility functions, classes and constants that are not specific to any particular module.
-Most of them are imported from `sparv.api.util` and its submodules, e.g.:
+Sparv provides a variety of utility functions, classes, and constants that are useful across different modules. These
+utilities are primarily imported from `sparv.api.util` and its submodules. For example:
+
 ```python
 from sparv.api.util.system import call_binary
 ```
 
-
 ## Constants
-`sparv.api.util.constants` contains the following constants:
 
-- `DELIM = "|"`
-  Delimiter char to put between ambiguous results
-- `AFFIX = "|"`
-  Character to put before and after results to mark a set
-- `SCORESEP = ":"`
-  Character that separates an annotation from a score
-- `COMPSEP = "+"`
-  Character to separate compound parts
-- `UNDEF = "__UNDEF__"`
-  Value for undefined annotations
-- `OVERLAP_ATTR = "overlap"`
-  Name for automatically created overlap attributes
-- `SPARV_DEFAULT_NAMESPACE = "sparv"`
-  Namespace to be used in case annotation names collide and `sparv_namespace` is not set in config
-- `UTF8 = "UTF-8"`
-  UTF-8 encoding
-- `LATIN1 = "ISO-8859-1"`
-  Latin-1 encoding
-- `HEADER_CONTENTS = "contents"`
-  Name of annotation containing header contents
+The `sparv.api.util.constants` module includes several predefined constants that are used throughout the Sparv pipeline:
 
+- `DELIM = "|"`: Delimiter character used to separate ambiguous results.
+- `AFFIX = "|"`: Character used to enclose results, marking them as a set.
+- `SCORESEP = ":"`: Character that separates an annotation from its score.
+- `COMPSEP = "+"`: Character used to separate parts of a compound.
+- `UNDEF = "__UNDEF__"`: Value representing undefined annotations.
+- `OVERLAP_ATTR = "overlap"`: Name for automatically created overlap attributes.
+- `SPARV_DEFAULT_NAMESPACE = "sparv"`: Default namespace used when annotation names collide and `sparv_namespace` is not
+  set in the configuration.
+- `UTF8 = "UTF-8"`: UTF-8 encoding.
+- `LATIN1 = "ISO-8859-1"`: Latin-1 encoding.
+- `HEADER_CONTENTS = "contents"`: Name of the annotation containing header contents.
 
 ## Export Utils
-`sparv.api.util.export` provides util functions used for preparing data for export.
+
+`sparv.api.util.export` provides utility functions for preparing data for export.
 
 ### gather_annotations()
-Calculate the span hierarchy and the annotation_dict containing all annotation elements and attributes. Returns a
-`spans_dict` and an `annotation_dict` if `flatten` is set to `True`, otherwise `span_positions` and `annotation_dict`.
 
-**Arguments:**
+Calculate the span hierarchy and the `annotation_dict` containing all annotation elements and attributes. Returns a
+`spans_dict` and an `annotation_dict` if `flatten` is `True`, otherwise returns `span_positions` and `annotation_dict`.
 
-- `annotations`: A list of annotations to include.
-- `export_names`: Dictionary that maps from annotation names to export names.
-- `header_annotations`: A list of header annotations.
-- `source_file`: The source filename.
-- `flatten`: Whether to return the spans as a flat list. Default: `True`
-- `split_overlaps`: Whether to split up overlapping spans. Default: `False`
+**Parameters**:
 
+- `annotations`: List of annotations to include.
+- `export_names`: Dictionary mapping annotation names to export names.
+- `header_annotations`: List of header annotations.
+- `source_file`: Source filename.
+- `flatten`: Set to `True` to return the spans as a flat list. Default: `True`
+- `split_overlaps`: Set to `True` to split up overlapping spans. Default: `False`
 
 ### get_annotation_names()
-Get a list of annotations, token attributes and a dictionary with translations from annotation names to export names.
 
-**Arguments:**
+Retrieve a list of annotations, token attributes, and a dictionary translating annotation names to export names.
+
+**Parameters**:
 
 - `annotations`: List of elements:attributes (annotations) to include.
-- `source_annotations`: List of elements:attributes from the source file to include. If not specified, everything
-  will be included.
+- `source_annotations`: List of elements:attributes from the source file to include. If not specified, includes
+  everything.
 - `source_file`: Name of the source file.
 - `source_files`: List of names of source files (alternative to `source_file`).
 - `token_name`: Name of the token annotation.
-- `remove_namespaces`: Remove all namespaces in export_names unless names are ambiguous. Default: `False`
-- `keep_struct_names`: For structural attributes (anything other than token), include the annotation base name
-  (everything before ":") in export_names (used in cwb encode). Default: `False`
-- `sparv_namespace`: The namespace to be added to all Sparv annotations.
-- `source_namespace`: The namespace to be added to all annotations present in the source.
-
+- `remove_namespaces`: Set to `True` to remove all namespaces in `export_names` unless names are ambiguous. Default:
+  `False`
+- `keep_struct_names`: Set to `True` to include the annotation base name (everything before ":") in `export_names` for
+  structural attributes. Default: `False`
+- `sparv_namespace`: Namespace to add to all Sparv annotations.
+- `source_namespace`: Namespace to add to all annotations present in the source.
 
 ### get_header_names()
-Get a list of header annotations and a dictionary for renamed annotations.
 
-**Arguments:**
+Retrieve a list of header annotations and a dictionary for renamed annotations.
+
+**Parameters**:
 
 - `header_annotation_names`: List of header elements:attributes from the source file to include. If not specified,
-  everything will be included.
+  include everything.
 - `source_file`: Name of the source file.
 - `source_files`: List of names of source files (alternative to `source_file`).
 
-
 ### scramble_spans()
-Reorder chunks according to `chunk_order` and open/close tags in the correct order.
 
-**Arguments:**
+Reorder chunks based on `chunk_order` and ensure tags are opened and closed correctly.
 
-- `span_positions`: The original span positions (usually retrieved from [`gather_annotations()`](#gather_annotations)).
-- `chunk_name`: The name of the annotation to scramble on.
-- `chunk_order`: Annotation containing the new order of the chunk.
+**Parameters**:
 
+- `span_positions`: Original span positions, typically obtained from [`gather_annotations()`](#gather_annotations).
+- `chunk_name`: Name of the annotation to reorder.
+- `chunk_order`: Annotation specifying the new order of the chunks.
 
 ## Install/Uninstall Utils
-`sparv.api.util.install` provides util functions used for installing and uninstalling corpora, either locally or
-remotely.
 
+`sparv.api.util.install` provides functions for installing and uninstalling corpora, either locally or remotely.
 
 ### install_path()
+
 Transfer a file or the contents of a directory to a target destination, optionally on a different host.
 
-**Arguments:**
+**Parameters**:
 
-- `source_path`: Path to the local file or directory to sync. If a directory is used, its contents are synced, not the
-   directory itself, and any extraneous files in destination directories are deleted.
-- `host`: The remote host to install to. Set to `None` to install locally.
-- `target_path`: Path to target file or directory.
-
+- `source_path`: Path to the local file or directory to sync. If a directory is specified, its contents are synced, not
+   the directory itself, and any extraneous files in destination directories are deleted.
+- `host`: Remote host to install to. Set to `None` to install locally.
+- `target_path`: Path to the target file or directory.
 
 ### uninstall_path()
+
 Remove a file or directory, optionally on a different host.
 
-**Arguments:**
+**Parameters**:
 
 - `path`: Path to the file or directory to remove.
-- `host` (optional): The remote host on which the file or directory is located.
-
+- `host` (optional): Remote host where the file or directory is located.
 
 ### install_mysql()
-Insert tables and data from one or more SQL-files to local or remote MySQL database.
 
-**Arguments:**
+Insert tables and data from one or more SQL files into a local or remote MySQL database.
 
-- `host`: The remote host to install to. Set to None to install locally.
-- `db_name`: Name of the database.
-- `sqlfile`: Path to a SQL file, or list of paths.
+**Parameters**:
 
+- `host`: The remote host to install to. Set to `None` to install locally.
+- `db_name`: The name of the database.
+- `sqlfile`: The path to a SQL file, or a list of paths to multiple SQL files.
 
 ### install_mysql_dump()
-Copy selected tables (including data) from local to remote MySQL database.
 
-**Arguments:**
+Copy selected tables, including their data, from a local MySQL database to a remote one.
+
+**Parameters**:
 
 - `host`: The remote host to install to.
-- `db_name`: Name of the remote database.
-- `tables`: Names of SQL tables to be copied separated by whitespaces.
-
+- `db_name`: The name of the remote database.
+- `tables`: The names of the SQL tables to be copied, separated by spaces.
 
 ## System Utils
-`sparv.api.util.system` provides functions related to starting and stopping processes, creating directories etc.
 
+`sparv.api.util.system` provides functions for managing processes, creating directories, and more.
 
 ### call_binary()
-Call a binary with `arguments` and `stdin` and return a pair `(stdout, stderr)`.
 
-**Arguments:**
+Execute a binary with specified `arguments` and `stdin`, returning a tuple `(stdout, stderr)`.
 
-- `name`: Name of the binary to call (optionally with absolute or relative path). Either a string or a list of strings,
-  where the first binary found will be used.
-- `arguments`: Arguments to pass to the call. Defaults to `()`.
-- `stdin`: Stdin input to pass to the call. Defaults to `""`.
-- `raw_command`: Don't use this unless you really have to! String holding the raw command that will be executed through
-  the shell. Defaults to `None`.
-- `search_paths`: List of paths where to look for the binary `name`, in addition to the environment variable PATH.
-  Defaults to `()`.
-- `encoding`: Encoding to use for `stdin`. Defaults to `None`.
-- `verbose`: If set to `True` pipes all stderr output from the subprocess to stderr in the terminal, and an empty string
-  is returned as the stderr component. Defaults to `False`.
-- `use_shell`: Don't use this unless you really have to! If set to `True` the binary will be executed through the shell.
-  Defaults to `False`. Is automatically set to `True` when using `raw_command`.
-- `allow_error`: If set to `False` an exception is raised if stderr is not empty and stderr and stdout will be logged.
+**Parameters**:
+
+- `name`: The binary to execute (can include absolute or relative path). Accepts a string or a list of strings, using
+  the first found binary.
+- `arguments`: Arguments to pass to the binary. Defaults to `()`.
+- `stdin`: Input to pass to the binary's stdin. Defaults to `""`.
+- `raw_command`: A raw command string to execute through the shell. Use only if necessary. Defaults to `None`.
+- `search_paths`: Additional paths to search for the binary, besides the environment variable PATH. Defaults to `()`.
+- `encoding`: Encoding for `stdin`. Defaults to `None`.
+- `verbose`: If `True`, pipes all stderr output to the terminal and returns an empty string for stderr. Defaults to
+  `False`.
+- `use_shell`: If `True`, executes the binary through the shell. Automatically set to `True` when using `raw_command`.
   Defaults to `False`.
-- `return_command`: If set to `True` the process is returned. Defaults to `False`.
-
+- `allow_error`: If `False`, raises an exception if stderr is not empty and logs stderr and stdout. Defaults to `False`.
+- `return_command`: If `True`, returns the process. Defaults to `False`.
 
 ### call_java()
-Call Java with a jar file, command line arguments and stdin. Returns a pair `(stdout, stderr)`.
 
-**Arguments:**
+Execute a Java program using a specified jar file, command line arguments, and stdin input. Returns a tuple `(stdout,
+stderr)`.
 
-- `jar`: The name of the jar file to call.
-- `arguments`: Arguments to pass to the call. Defaults to `()`.
-- `options`: List of Java options to pass to the call. Defaults to `[]`, 
-- `stdin`: Stdin input to pass to the call. Defaults to `""`.
-- `search_paths`: List of paths where to look for the binary `name`, in addition to the environment variable PATH.
-  Defaults to `()`.
-- `encoding`: Encoding to use for `stdin`. Defaults to `None`.
-- `verbose`: If set to `True` pipes all stderr output from the subprocess to stderr in the terminal, and an empty string
-  is returned as the stderr component. Defaults to `False`.
-- `return_command`: If set to `True` the process is returned. Defaults to `False`.
+**Parameters**:
 
+- `jar`: The name of the jar file to execute.
+- `arguments`: A list of arguments to pass to the Java program. Defaults to `()`.
+- `options`: A list of Java options to include in the call. Defaults to `[]`.
+- `stdin`: Input to pass to the program's stdin. Defaults to `""`.
+- `search_paths`: Additional paths to search for the Java binary, in addition to the environment variable PATH. Defaults
+  to `()`.
+- `encoding`: The encoding to use for `stdin`. Defaults to `None`.
+- `verbose`: If `True`, pipes all stderr output to the terminal and returns an empty string for stderr. Defaults to
+  `False`.
+- `return_command`: If `True`, returns the process instead of executing it. Defaults to `False`.
 
 ### clear_directory()
-Create a new empty directory. Remove its contents if it already exists.
 
-**Arguments:**
+Create a new directory at the specified path. If the directory already exists, remove all its contents before creating a
+new one.
 
-- `path`: Path to the directory to be created.
+**Parameters**:
 
+- `path`: The path where the directory should be created.
 
 ### find_binary()
-Search for the binary for a program. Returns the path to binary, or `None` if not found.
 
-**Arguments:**
+Locate the binary for a given program. Returns the path to the binary, or `None` if not found.
 
-- `name`: Name of the binary, either a string or a list of strings with alternative names.
-- `search_paths`: List of paths where to look, in addition to the environment variable PATH.
-- `executable`: Set to `False` to not fail when binary is not executable. Defaults to `True`.
-- `allow_dir`: Set to `True` to allow the target to be a directory instead of a file.  Defaults to `False`.
-- `raise_error`: If set to `True` raises error if binary could not be found. Defaults to `False`.
+**Parameters**:
 
+- `name`: The name of the binary, either as a string or a list of strings with alternative names.
+- `search_paths`: A list of additional paths to search, besides those in the environment variable PATH.
+- `executable`: If `False`, does not fail when the binary is not executable. Defaults to `True`.
+- `allow_dir`: If `True`, allows the target to be a directory instead of a file. Defaults to `False`.
+- `raise_error`: If `True`, raises an error if the binary could not be found. Defaults to `False`.
 
 ### gpus()
-Returns a list of available GPUs, ordered by free memory in descending order. Returns `None` if it fails.
-Currently only works for NVIDIA GPUs, and requires the `nvidia-smi` utility to be installed.
+
+Retrieve a list of available NVIDIA GPUs, sorted by free memory in descending order. If the function fails, it returns
+`None`. This function requires the `nvidia-smi` utility to be installed.
 
 **Arguments:**
 
@@ -209,198 +201,202 @@ Currently only works for NVIDIA GPUs, and requires the `nvidia-smi` utility to b
     `CUDA_VISIBLE_DEVICES`, not the actual GPU indices. In the previous example, PyTorch would consider GPU 1 as GPU 0
     and GPU 0 as GPU 1.
 
-
 ### kill_process()
-Kill a process, and ignore the error if it is already dead.
 
-**Arguments:**
+Terminate a process, ignoring any errors if the process is already terminated.
 
-- `process`: The process to be killed.
+**Parameters**:
 
+- `process`: The process to be terminated.
 
 ### rsync()
-Transfer files and/or directories using rsync. When syncing directories, extraneous files in destination dirs are
-deleted.
 
-**Arguments:**
+Synchronize files and directories using rsync. When syncing directories, any extra files in the destination directories
+are removed.
 
-- `local`: Path to a local file or directory.
-- `host`: The remote host to rsync to. Set to `None` to sync locally.
-- `remote`: Path to target file or directory.
+**Parameters**:
 
+- `local`: Path to the local file or directory to be synchronized.
+- `host`: The remote host to sync to. Set to `None` to perform a local sync.
+- `remote`: Path to the target file or directory.
 
 ## Tag Sets
-`sparv.api.util.tagsets` is a subpackage with modules containing functions and objects related to tag set conversions.
+
+The `sparv.api.util.tagsets` subpackage includes modules with functions and objects for tag set conversions.
 
 ### tagmappings.join_tag()
+
 Convert a complex SUC or SALDO tag record into a string.
 
-**Arguments:**
+**Parameters**:
 
-- `tag`: The tag to convert to a string. Can be a dict (`{'pos': pos, 'msd': msd}`) or a tuple (`(pos, msd)`)
-- `sep`: The separator to be used. Default: "."
-
+- `tag`: The tag to convert, which can be a dictionary (`{'pos': pos, 'msd': msd}`) or a tuple (`(pos, msd)`).
+- `sep`: The separator to use. Default: "."
 
 ### tagmappings.mappings
+
 Mappings of part-of-speech tags between different tag sets.
 
-
 ### pos_to_upos()
-Map POS tags to Universal Dependency POS tags. This only works if there is a conversion function in
-`util.tagsets.pos_to_upos` for the given language and tag set.
 
-**Arguments:**
+Map POS tags to Universal Dependency POS tags. This function only works if there is a conversion function in
+`util.tagsets.pos_to_upos` for the specified language and tag set.
+
+**Parameters**:
 
 - `pos`: The part-of-speech tag to convert.
 - `lang`: The language code.
-- `tagset`: The name of the tag set that `pos` belongs to.
-
+- `tagset`: The name of the tag set to which `pos` belongs.
 
 ### tagmappings.split_tag()
-Split a SUC or Saldo tag string ('X.Y.Z') into a tuple ('X', 'Y.Z') where 'X' is a part of speech and 'Y', 'Z' etc. are
-morphologic features (i.e. MSD tags).
 
-**Arguments:**
+Split a SUC or Saldo tag string ('X.Y.Z') into a tuple ('X', 'Y.Z'), where 'X' is the part of speech and 'Y', 'Z', etc.,
+are morphological features (i.e., MSD tags).
 
-- `tag`: The tag string to convert into a tuple.
+**Parameters**:
+
+- `tag`: The tag string to split into a tuple.
 - `sep`: The separator to split on. Default: "."
 
-
 ### suc_to_feats()
-Convert SUC MSD tags into UCoNNL feature list (universal morphological features). Returns a list of universal features.
 
-**Arguments:**
+Convert SUC MSD tags into a UCoNNL feature list (universal morphological features). Returns a list of universal
+features.
+
+**Parameters**:
 
 - `pos`: The SUC part-of-speech tag.
 - `msd`: The SUC MSD tag.
 - `delim`: The delimiter separating the features in `msd`. Default: "."
 
-
 ### tagmappings.tags
+
 Different sets of part-of-speech tags.
 
-
 ## Miscellaneous Utils
-`sparv.api.util.misc` provides miscellaneous util functions.
 
+`sparv.api.util.misc` provides miscellaneous util functions.
 
 <!-- ### chain() -->
 
-
 ### cwbset()
-Take an iterable object and return a set in the format used by Corpus Workbench.
 
-**Arguments:**
+Convert an iterable object into a set formatted for Corpus Workbench.
 
-- `values`: An iterable containing some string values.
-- `delimiter`: Character that delimits the elements in the resulting set. Default: "|"
-- `affix`: Character that the resulting set starts and ends with. that Default: "|"
-- `sort: Set to `True` if you want to values to be sorted. Default: `False`
-- `maxlength`: Maximum length in characters for the resulting set. Default: 4095
-- `encoding`: Encoding of `values`. Default: "UTF-8"
+**Parameters**:
 
+- `values`: An iterable containing string values.
+- `delimiter`: Character used to separate elements in the resulting set. Default: "|"
+- `affix`: Character that encloses the resulting set. Default: "|"
+- `sort`: If `True`, sorts the values. Default: `False`
+- `maxlength`: Maximum length of the resulting set in characters. Default: 4095
+- `encoding`: Encoding of the `values`. Default: "UTF-8"
 
 ### dump_yaml()
-Convert a dict to a YAML document string.
 
-**Arguments:**
+Convert a dictionary to a YAML formatted string.
 
-- `data`: The data to be dumped.
-- `resolve_alias`: Will replace aliases with their anchor's content if set to True.
-- `sort_keys`: Whether to sort the keys alphabetically.
-- `indent`: Number of spaces used for indentation.
+**Parameters**:
 
+- `data`: The dictionary to convert.
+- `resolve_alias`: If `True`, replaces aliases with their anchor's content. Default: `False`.
+- `sort_keys`: If `True`, sorts the keys alphabetically. Default: `False`.
+- `indent`: The number of spaces to use for indentation. Default: `2`.
 
 ### parse_annotation_list()
-Take a list of annotation names and possible export names, and return a list of tuples. Each list item will be split
-into a tuple by the string ' as '. Each tuple will contain 2 elements. If there is no ' as ' in the string, the second
-element will be None.
 
-**Arguments:**
+Parse a list of annotation names and their optional export names, returning a list of tuples. Each item in the list is
+split into a tuple by the string ' as '. Each tuple will contain two elements. If ' as ' is not present in the string,
+the second element will be `None`.
 
-- `annotation_names`: List of annotations.
-- `all_annotations`: List of annotations. If there is an element called '...' everything from all_annotations will be
-  included in the result, except for the elements that are prefixed with 'not '. Default: `[]`
-- `add_plain_annotations`: Plain annotations (without attributes) will be added if needed, unless add_plain_annotations
-  is set to False. Make sure to disable add_plain_annotations if the annotation names may include classes or config
-  variables. Default: `True`
+If the list of annotation names includes the element '...', all annotations from `all_annotations` will be included in
+the result, except those explicitly excluded in the list of annotations by being prefixed with 'not '.
 
+**Parameters**:
+
+- `annotation_names`: A list of annotation names.
+- `all_annotations`: A list of all possible annotations. Default: `[]`
+- `add_plain_annotations`: If `True`, plain annotations (without attributes) will be added if needed. Set to `False` if
+  annotation names may include classes or config variables. Default: `True`
 
 ### PickledLexicon
-Class for reading basic pickled lexicon and looking up keys.
 
-**Arguments:**
+A class for reading a basic pickled lexicon and looking up keys.
 
-- `picklefile`: A `pathlib.Path` or `Model` object pointing to a pickled lexicon.
-- `verbose`: Logs status updates upon reading the lexicon if set to `True`. Default: `True`
+**Parameters**:
 
-**Methods:**
+- `picklefile`: A `pathlib.Path` or `Model` object pointing to the pickled lexicon.
+- `verbose`: If `True`, logs status updates while reading the lexicon. Default: `True`.
 
-- `lookup(key, default=set())`: Look up `key` in the lexicon. Return `default` if `key` is not found.
+**Methods**:
 
+- `lookup(key, default=set())`: Look up `key` in the lexicon. Returns `default` if `key` is not found.
 
 ### remove_control_characters()
-Remove control characters from `text`, except for those in `keep`.
 
-**Arguments:**
+Eliminate control characters from the given `text`, while retaining those specified in `keep`.
 
-- `text`: String to remove control characters from.
-- `keep`: List of control characters to keep. Default: `["\n", "\t", "\r"]`
+**Parameters**:
 
+- `text`: The string from which to remove control characters.
+- `keep`: A list of control characters to retain. Default: `["\n", "\t", "\r"]`
 
 ### remove_formatting_characters()
-Remove formatting characters from `text`, except for those in `keep`.
 
-**Arguments:**
+Eliminate formatting characters from the given `text`, while retaining those specified in `keep`.
 
-- `text`: String to remove formatting characters from.
-- `keep`: List of formatting characters to keep. Default: `[]`
+**Parameters**:
 
+- `text`: The string from which to remove formatting characters.
+- `keep`: A list of formatting characters to retain. Default: `[]`
 
 ### set_to_list()
-Turn a set string into a list.
 
-**Arguments:**
+Convert a set-formatted string into a list.
 
-- `setstring`: A string that can be converted into a list by stripping it of `affix` and splitting the elements on
-  `delimiter`.
-- `delimiter`: Character that delimits the elements in `setstring`. Default: "|"
-- `affix`: Character that `setstring` starts and ends with. that Default: "|"
+**Parameters**:
 
+- `setstring`: The string to convert into a list. The string should be enclosed with `affix` characters and have
+  elements separated by `delimiter`.
+- `delimiter`: The character used to separate elements in `setstring`. Default: "|"
+- `affix`: The character that encloses `setstring`. Default: "|"
 
 ### test_lexicon()
-Test the validity of a lexicon. Takes a dictionary (lexicon) and a list of test words that are expected to occur as keys
-in the lexicon. Prints the value for each test word.
 
-**Arguments:**
+Validate a lexicon by checking if specific test words are present as keys. This function takes a dictionary (lexicon)
+and a list of test words, printing the value associated with each test word.
 
-- `lexicon`: A dictionary.
-- `testwords`: An iterable containing strings that are expected to occur as keys in `lexicon`.
+**Parameters**:
 
+- `lexicon`: A dictionary representing the lexicon.
+- `testwords`: An iterable of strings, each expected to be a key in the `lexicon`.
 
 ## Error Messages and Logging
-The `SparvErrorMessage` exception and `get_logger` function are integral parts of the Sparv pipeline, and unlike other
-utilities on this page, they are found directly under `sparv.api`.
 
+The `SparvErrorMessage` exception and `get_logger` function are essential components of the Sparv pipeline. Unlike other
+utilities mentioned on this page, they are located directly under `sparv.api`.
 
 ### SparvErrorMessage
-Exception (class) used to notify users of errors in a friendly way without displaying traceback. Its usage is described
-in the [Writing Sparv Plugins](writing-sparv-plugins.md#error-messages) section.
+
+This exception class is used to halt the pipeline, while notifying users of errors in a user-friendly manner without
+displaying a traceback. Its usage is detailed in the [Writing Sparv Plugins](writing-sparv-plugins.md#error-messages)
+section.
 
 > [!NOTE]
-> Only the `message` argument should be used when raising this exception in a Sparv module.
+> When raising this exception in a Sparv module, only the `message` argument should be used.
 
-**Arguments:**
+**Parameters**:
 
 - `message`: The error message to display.
-- `module`: Name of the module where the error occurred (optional, not used in Sparv modules). Default: ""
-- `function`: Name of the function where the error occurred (optional, not used in Sparv modules). Default: ""
-
+- `module`: The name of the module where the error occurred (optional, not used in Sparv modules). Default: ""
+- `function`: The name of the function where the error occurred (optional, not used in Sparv modules).
+  Default: ""
 
 ### get_logger()
-Get a logger that is a child of `sparv.modules`. Its usage is described in the
-[Writing Sparv Plugins](writing-sparv-plugins.md#logging) section.
 
-**Arguments:**
+This function retrieves a logger that is a child of `sparv.modules`. Its usage is explained in the [Writing Sparv
+Plugins](writing-sparv-plugins.md#logging) section.
+
+**Parameters**:
 
 - `name`: The name of the current module (usually `__name__`)

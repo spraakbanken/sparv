@@ -1,16 +1,15 @@
 # Requirements for Source Files
-In order for Sparv to be able to process your corpus, please make sure your source files meet the following
-requirements:
 
-1. Make sure you don't have any manually created directories called `sparv-workdir` or `export` in your corpus directory
-   as Sparv will attempt to create and use these.
+To ensure Sparv can process your corpus effectively, please ensure your source files meet the following requirements:
 
-2. If your corpus is in XML format, make sure your **XML is valid** and that the text to be analysed is actual text (not
+- If your corpus is in XML format, ensure your **XML is valid** and that the text to be analyzed is actual text (not
    attribute values).
 
-3. Your source files must all use the same file format, same file extension and (if applicable) the same markup.
+- All source files must use the same file format, file extension, and (if applicable) the same markup.
 
-4. If your source files are very large or if your corpus consists of a large number of tiny files, Sparv
-   may become quite slow. Very large files may also lead to memory problems. Try keeping the maximum file size per
-   file around 5-10 MB, and in the case of many tiny files, combining them into larger files if possible.
-   If your machine has a lot of memory, processing larger files may work just fine.
+- If your source files are very large or if your corpus consists of many small files, Sparv may become slow. Large files
+   may also cause memory issues. Aim to keep each file between 5-10 MB. If you have many small files, consider combining
+   them into larger files. If your machine has ample memory, processing larger files may be feasible.
+
+- Do not manually create directories named `sparv-workdir` or `export` in your corpus directory, as these directories
+  are reserved for Sparv, and their contents may be overwritten or deleted.

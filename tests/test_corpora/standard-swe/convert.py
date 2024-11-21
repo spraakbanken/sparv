@@ -1,4 +1,4 @@
-"""Example for a custom annotator."""
+"""Example of a custom annotator."""
 
 from sparv.api import Annotation, Output, annotator
 
