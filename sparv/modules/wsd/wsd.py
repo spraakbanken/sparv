@@ -179,7 +179,7 @@ def process_output(word: Annotation, out: Output, stdout, in_sentences, saldo_an
 def make_lemgram(lemgram, word, pos):
     """Construct lemgram and simple_lemgram format."""
     lemgram = lemgram.strip(util.constants.AFFIX) if lemgram != util.constants.AFFIX else "_"
-    simple_lemgram = util.constants.DELIM.join({(lem[:lem.rfind(".")] for lem in lemgram.split(util.constants.DELIM))})
+    simple_lemgram = util.constants.DELIM.join({lem[:lem.rfind(".")] for lem in lemgram.split(util.constants.DELIM)})
 
     # Fix simple lemgram for tokens without lemgram (word + pos)
     if not simple_lemgram:
