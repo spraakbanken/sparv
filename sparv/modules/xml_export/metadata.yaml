@@ -1,4 +1,4 @@
-parent: xml-export-parent
+id: xml-export-parent
 abstract: true
 task: export
 language_codes: []
