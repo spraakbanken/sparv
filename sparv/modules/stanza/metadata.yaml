@@ -224,6 +224,12 @@ example_output: |-
   <token pos="NN">corpus</token>
   <token pos=".">.</token>
   ```
+example_extra: |-
+  In order to use this annotation you need to add the following setting to your Sparv corpus configuration file:
+  ```yaml
+  metadata:
+    language: eng
+  ```
 ---
 id: eng-sentence-stanza
 parent: stanza-parent-eng
@@ -260,6 +266,12 @@ example_output: |-
     <token>.</token>
   </sentence>
   ```
+example_extra: |-
+  In order to use this annotation you need to add the following setting to your Sparv corpus configuration file:
+  ```yaml
+  metadata:
+    language: eng
+  ```
 ---
 id: eng-tokenization-stanza
 parent: stanza-parent-eng
@@ -279,6 +291,15 @@ example_output: |-
   <token>a</token>
   <token>corpus</token>
   <token>.</token>
+  ```
+example_extra: |-
+  In order to use this annotation you need to add the following settings to your Sparv corpus configuration file:
+  ```yaml
+  metadata:
+    language: eng
+
+  classes:
+    token: stanza.token
   ```
 ---
 id: eng-lemmatization-stanza
@@ -302,6 +323,12 @@ example_output: |-
   <token baseform="some">some</token>
   <token baseform="word">words</token>
   <token baseform=".">.</token>
+  ```
+example_extra: |-
+  In order to use this annotation you need to add the following setting to your Sparv corpus configuration file:
+  ```yaml
+  metadata:
+    language: eng
   ```
 ---
 id: eng-dependency-stanza
@@ -328,6 +355,12 @@ example_output: |-
   <token dephead_ref="7" deprel="det" ref="6">some</token>
   <token dephead_ref="5" deprel="obj" ref="7">words</token>
   <token dephead_ref="4" deprel="punct" ref="8">.</token>
+  ```
+example_extra: |-
+  In order to use this annotation you need to add the following setting to your Sparv corpus configuration file:
+  ```yaml
+  metadata:
+    language: eng
   ```
 ---
 id: eng-namedentity-stanza
@@ -368,6 +401,12 @@ example_output: |-
   </ne>
   <token>.</token>
   ```
+example_extra: |-
+  In order to use this annotation you need to add the following setting to your Sparv corpus configuration file:
+  ```yaml
+  metadata:
+    language: eng
+  ```
 description:
   swe: |-
     Namnigenkänning (NER) gör det möjligt att märka upp namnentiteter (som t.ex. personnamn, organisationer, ortnamn) i
@@ -396,6 +435,12 @@ example_output: |-
   <token upos="NOUN">corpus</token>
   <token upos="PUNCT">.</token>
   ```
+example_extra: |-
+  In order to use this annotation you need to add the following setting to your Sparv corpus configuration file:
+  ```yaml
+  metadata:
+    language: eng
+  ```
 ---
 id: eng-msd-stanza-ufeats
 parent: stanza-parent-eng
@@ -416,4 +461,10 @@ example_output: |-
   <token ufeats="Definite=Ind|PronType=Art">a</token>
   <token ufeats="Number=Sing">corpus</token>
   <token>.</token>
+  ```
+example_extra: |-
+  In order to use this annotation you need to add the following setting to your Sparv corpus configuration file:
+  ```yaml
+  metadata:
+    language: eng
   ```

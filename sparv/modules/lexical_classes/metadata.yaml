@@ -68,11 +68,11 @@ created: 2017-09-05
 id: swe-lexical_classes_text-sparv-blingbring
 parent: blingbring-parent
 name:
-  swe: Lexikala klasser från Blingbring, dokumentnivå
-  eng: Lexical classes from Blingbring, document-level
+  swe: Lexikala klasser från Blingbring, textnivå
+  eng: Lexical classes from Blingbring, text-level
 short_description:
-  swe: Lexikala klasser från Blingbring på dokumentnivå
-  eng: Lexical classes from Blingbring on document-level
+  swe: Lexikala klasser från Blingbring på textnivå
+  eng: Lexical classes from Blingbring on text-level
 annotations:
   - <text>:lexical_classes.blingbring
 example_output: |-
@@ -97,26 +97,26 @@ example_output: |-
   ```
 description:
   swe: |-
-    Token slås upp i Blingbring för att berikas med information om sina lexikala klasser. Därefter berikas dokument med
+    Token slås upp i Blingbring för att berikas med information om sina lexikala klasser. Därefter berikas texter med
     information om lexikala klasser baserat på vilka klasser som är relevanta för token i dem.
 
     Blingbring-frekvensmodellen](https://github.com/spraakbanken/sparv-models/blob/master/lexical_classes/blingbring.freq.gp2008%2Bsuc3%2Bromi.pickle)
     (tränad på [Göteborgsposten 2008](https://spraakbanken.gu.se/resurser/gp2008), [SUC
     3.0](https://spraakbanken.gu.se/resurser/suc3) och [Bonniersromaner I
     (1976–77)](https://spraakbanken.gu.se/resurser/romi)) används som referens för att rangordna de Blingbring-klasser
-    som förekommer i varje dokument. Med hjälp av informationen om lexikala klasser på tokennivå beräknar och tilldelar
-    modellen de mest relevanta klasserna för varje dokument. Dessa klasser filtreras och rangordnas baserat på sin
+    som förekommer i varje text. Med hjälp av informationen om lexikala klasser på tokennivå beräknar och tilldelar
+    modellen de mest relevanta klasserna för varje text. Dessa klasser filtreras och rangordnas baserat på sin
     frekvens och dominans jämfört med referensmaterialet.
 
-    Dominans avser i detta fallet den relativa betydelsen för en lexikal klass i ett givet dokument jämfört med ett
-    referensmaterial. Dominansen beräknas genom att jämföra den observerade frekvensen av en lexikal klass i dokumentet
+    Dominans avser i detta fallet den relativa betydelsen för en lexikal klass i en given text jämfört med ett
+    referensmaterial. Dominansen beräknas genom att jämföra den observerade frekvensen av en lexikal klass i texten
     med dess förväntade (relativa) frekvens i referensmaterialet.
 
     Blingbring (version 0.2) bygger på innehållet i Brings Svenskt ordförråd ordnat i begreppsklasser (1930). Ingångarna
     i Blingbring har försetts med motsvarande SALDO-ordbetydelser. I föreliggande version är ordbetydelselänkarna ibland
     flertydiga, något som kommer att åtgärdas i framtida versioner.
   eng: |-
-    Tokens are looked up in Blingbring in order to enrich them with information about their lexical classes. Documents
+    Tokens are looked up in Blingbring in order to enrich them with information about their lexical classes. Texts
     are then enriched with information about lexical classes based on which classes are relevant for the tokens within
     them.
     
@@ -125,12 +125,12 @@ description:
     (trained on [Göteborgsposten 2008](https://spraakbanken.gu.se/resurser/gp2008), [SUC
     3.0](https://spraakbanken.gu.se/resurser/suc3) and [Bonniersromaner I
     (1976–77)](https://spraakbanken.gu.se/resurser/romi)) is used as reference for ranking the Blingbring classes
-    occurring in each document. Using token-level lexical class information, it calculates and assigns the most relevant
-    classes for each document. These classes are filtered and ranked based on their frequency and dominance compared to
+    occurring in each text. Using token-level lexical class information, it calculates and assigns the most relevant
+    classes for each text. These classes are filtered and ranked based on their frequency and dominance compared to
     the reference material.
 
-    Dominance refers to the relative importance or prominence of a lexical class in a given document compared to a
-    reference material. Dominance is derived by comparing the observed frequency of a lexical class in the document to
+    Dominance refers to the relative importance or prominence of a lexical class in a given text compared to a
+    reference material. Dominance is derived by comparing the observed frequency of a lexical class in the text to
     its expected (relative) frequency in the reference material.
 
     Blingbring (version 0.2) is based on the content of Bring's Svenskt ordförråd ordnat i begreppsklasser [The Swedish
@@ -189,11 +189,11 @@ created: 2017-09-21
 id: swe-lexical_classes_text-sparv-swefn
 parent: swefn-parent
 name:
-  swe: Lexikala klasser från SweFN, dokumentnivå
-  eng: Lexical classes from SweFN, document-level
+  swe: Lexikala klasser från SweFN, textnivå
+  eng: Lexical classes from SweFN, text-level
 short_description:
-  swe: Lexikala klasser från SweFN på dokumentnivå
-  eng: Lexical classes from SweFN on document-level
+  swe: Lexikala klasser från SweFN på textnivå
+  eng: Lexical classes from SweFN on text-level
 annotations:
   - <text>:lexical_classes.swefn
 example_output: |-
@@ -220,23 +220,23 @@ description:
   swe: |-
     Token slås upp i [Svenskt frasnät](https://spraakbanken.gu.se/resurser/swefn) (SweFN, en lexikal-semantisk resurs
     som är baserad på teorin om ramsemantik) för att berikas med information om sina lexikala klasser. Därefter berikas
-    dokument med information om lexikala klasser baserat på vilka klasser som är relevanta för token i dem.
+    texter med information om lexikala klasser baserat på vilka klasser som är relevanta för token i dem.
 
     [SweFN-frekvensmodellen](https://github.com/spraakbanken/sparv-models/blob/master/lexical_classes/swefn.freq.gp2008%2Bsuc3%2Bromi.pickle)
     (tränad på [Göteborgsposten 2008](https://spraakbanken.gu.se/resurser/gp2008), [SUC
     3.0](https://spraakbanken.gu.se/resurser/suc3) och [Bonniersromaner I
     (1976–77)](https://spraakbanken.gu.se/resurser/romi)) används som referens för att rangordna de SweFN-klasser som
-    förekommer i varje dokument. Med hjälp av informationen om lexikala klasser på tokennivå beräknar och tilldelar
-    modellen de mest relevanta klasserna för varje dokument. Dessa klasser filtreras och rangordnas baserat på sin
+    förekommer i varje text. Med hjälp av informationen om lexikala klasser på tokennivå beräknar och tilldelar
+    modellen de mest relevanta klasserna för varje text. Dessa klasser filtreras och rangordnas baserat på sin
     frekvens och dominans jämfört med referensmaterialet.
 
-    Dominans avser i detta fallet den relativa betydelsen för en lexikal klass i ett givet dokument jämfört med ett
-    referensmaterial. Dominansen beräknas genom att jämföra den observerade frekvensen av en lexikal klass i dokumentet
+    Dominans avser i detta fallet den relativa betydelsen för en lexikal klass i en given text jämfört med ett
+    referensmaterial. Dominansen beräknas genom att jämföra den observerade frekvensen av en lexikal klass i texten
     med dess förväntade (relativa) frekvens i referensmaterialet.
   eng: |-
     Tokens are looked up in [Swedish FrameNet](https://spraakbanken.gu.se/en/resources/swefn) (SweFN, lexical-semantic
     resource that follows the theory of Frame Semantics) in order to enrich them with information about their lexical
-    classes. Documents are then enriched with information about lexical classes based on which classes are relevant for
+    classes. Texts are then enriched with information about lexical classes based on which classes are relevant for
     the tokens within them.
     
     The [SweFN frequency
@@ -244,11 +244,11 @@ description:
     (trained on [Göteborgsposten 2008](https://spraakbanken.gu.se/resurser/gp2008), [SUC
     3.0](https://spraakbanken.gu.se/resurser/suc3) and [Bonniersromaner I
     (1976–77)](https://spraakbanken.gu.se/resurser/romi)) is used as reference for ranking the SweFN classes occurring
-    in each document. Using token-level lexical class information, it calculates and assigns the most relevant classes
-    for each document. These classes are filtered and ranked based on their frequency and dominance compared to the
+    in each text. Using token-level lexical class information, it calculates and assigns the most relevant classes
+    for each text. These classes are filtered and ranked based on their frequency and dominance compared to the
     reference material.
 
-    Dominance refers to the relative importance or prominence of a lexical class in a given document compared to a
-    reference material. Dominance is derived by comparing the observed frequency of a lexical class in the document to
+    Dominance refers to the relative importance or prominence of a lexical class in a given text compared to a
+    reference material. Dominance is derived by comparing the observed frequency of a lexical class in the text to
     its expected (relative) frequency in the reference material.
 created: 2017-09-21

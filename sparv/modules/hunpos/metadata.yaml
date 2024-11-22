@@ -102,6 +102,13 @@ example_output: |-
   <token pos="PN">sig</token>
   <token pos="MAD">.</token>
   ```
+example_extra: |-
+  In order to use this annotation you need to add the following setting to your Sparv corpus configuration file:
+  ```yaml
+  metadata:
+    language: swe
+    variety: "1800"
+  ```
 model: |-
   - [suc3_suc-tags_default-setting_utf8.model](https://github.com/spraakbanken/sparv-models/blob/master/hunpos/suc3_suc-tags_default-setting_utf8.model?raw=true)
   - a word list along with the words' morphosyntactic information generated from the [Dalin
@@ -144,6 +151,13 @@ example_output: |-
   <token msd="VB.INF.AKT">befunno</token>
   <token msd="PN.UTR+NEU.SIN+PLU.DEF.OBJ">sig</token>
   <token msd="MAD">.</token>
+  ```
+example_extra: |-
+  In order to use this annotation you need to add the following setting to your Sparv corpus configuration file:
+  ```yaml
+  metadata:
+    language: swe
+    variety: "1800"
   ```
 model: |-
   - [suc3_suc-tags_default-setting_utf8.model](https://github.com/spraakbanken/sparv-models/blob/master/hunpos/suc3_suc-tags_default-setting_utf8.model?raw=true)

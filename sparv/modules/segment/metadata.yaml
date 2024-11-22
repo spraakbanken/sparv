@@ -399,8 +399,6 @@ example_output: |-
   ```
 model: "[punkt-nltk-svenska.pickle](https://github.com/spraakbanken/sparv-models/blob/master/segment/punkt-nltk-svenska.pickle?raw=true)"
 trained_on: "[StorSUC](https://spraakbanken.gu.se/resurser/storsuc)"
-tagset: ''
-evaluation_results: ''
 description:
   swe: |-
     Meningssegmenteraren är baserad på NLTKs
