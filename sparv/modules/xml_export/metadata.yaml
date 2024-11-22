@@ -1,0 +1,336 @@
+parent: xml-export-parent
+abstract: true
+task: export
+language_codes: []
+keywords: []
+example_extra: ''
+standard_reference: ''
+other_references: []
+tool: ''
+model: ''
+trained_on: ''
+tagset: ''
+evaluation_results: ''
+description:
+  eng: ''
+  swe: ''
+updated: 2023-11-06
+---
+id: export-xml-pretty
+parent: xml-export-parent
+name:
+  swe: XML-export, finformaterad
+  eng: XML export, pretty format
+short_description:
+  swe: XML-korpusexport där varje token skrivs på en egen rad
+  eng: XML corpus export where every token is printed on a new line
+sparv_handler: xml_export:pretty
+example_output: |-
+  ```xml
+  <?xml version='1.0' encoding='utf-8'?>
+  <document name="rävar">
+    <text date="2017-01-10" source="https://jarvzoo.se/djur/rodrav/" title="Rödräv">
+      <paragraph>
+        <sentence>
+          <token pos="NN">Rödräven</token>
+          <token pos="VB">är</token>
+          <token pos="DT">ett</token>
+          <token pos="NN">hunddjur</token>
+          <token pos="HP">som</token>
+          <token pos="VB">har</token>
+          <token pos="DT">en</token>
+          <token pos="AB">mycket</token>
+          <token pos="JJ">vidsträckt</token>
+          <token pos="NN">utbredning</token>
+          <token pos="PP">över</token>
+          <token pos="JJ">norra</token>
+          <token pos="NN">halvklotet</token>
+          <token pos="MAD">.</token>
+        </sentence>
+        <sentence>
+          <token pos="PP">I</token>
+          <token pos="PM">Sverige</token>
+          <token pos="VB">förekommer</token>
+          <token pos="PN">den</token>
+          <token pos="PP">i</token>
+          <token pos="PN">allt</token>
+          <token pos="PP">från</token>
+          <token pos="DT">de</token>
+          <token pos="JJ">nordligaste</token>
+          <token pos="NN">vildmarkerna</token>
+          <token pos="PP">till</token>
+          <token pos="NN">villaträdgården</token>
+          <token pos="PP">i</token>
+          <token pos="NN">söder</token>
+          <token pos="MAD">.</token>
+        </sentence>
+        <sentence>
+          <token pos="PN">Detta</token>
+          <token pos="VB">beror</token>
+          <token pos="AB">säkert</token>
+          <token pos="AB">delvis</token>
+          <token pos="PP">på</token>
+          <token pos="PS">dess</token>
+          <token pos="JJ">stora</token>
+          <token pos="NN">förmåga</token>
+          <token pos="IE">att</token>
+          <token pos="VB">utnyttja</token>
+          <token pos="JJ">olika</token>
+          <token pos="NN">sorters</token>
+          <token pos="NN">föda</token>
+          <token pos="MAD">.</token>
+        </sentence>
+        <sentence>
+          <token pos="PAD">”</token>
+          <token pos="JJ">Slug</token>
+          <token pos="KN">som</token>
+          <token pos="DT">en</token>
+          <token pos="NN">räv</token>
+          <token pos="PAD">”</token>
+          <token pos="VB">är</token>
+          <token pos="DT">ett</token>
+          <token pos="PC">känt</token>
+          <token pos="NN">ordspråk</token>
+          <token pos="PP">i</token>
+          <token pos="PM">Sverige</token>
+          <token pos="MAD">.</token>
+        </sentence>
+        <sentence>
+          <token pos="KN">Och</token>
+          <token pos="AB">visst</token>
+          <token pos="VB">är</token>
+          <token pos="NN">räven</token>
+          <token pos="DT">ett</token>
+          <token pos="JJ">klokt</token>
+          <token pos="KN">och</token>
+          <token pos="JJ">läraktigt</token>
+          <token pos="NN">hunddjur</token>
+          <token pos="HP">som</token>
+          <token pos="AB">relativt</token>
+          <token pos="AB">lätt</token>
+          <token pos="VB">kan</token>
+          <token pos="VB">bli</token>
+          <token pos="JJ">tama</token>
+          <token pos="PP">i</token>
+          <token pos="DT">den</token>
+          <token pos="NN">aspekten</token>
+          <token pos="SN">att</token>
+          <token pos="PN">de</token>
+          <token pos="AB">inte</token>
+          <token pos="VB">visar</token>
+          <token pos="DT">någon</token>
+          <token pos="JJ">större</token>
+          <token pos="NN">rädsla</token>
+          <token pos="PP">för</token>
+          <token pos="NN">människor</token>
+          <token pos="MAD">.</token>
+        </sentence>
+      </paragraph>
+      <paragraph>
+        <sentence>
+          <token pos="VB">Visste</token>
+          <token pos="PN">du</token>
+          <token pos="SN">att</token>
+          <token pos="MAD">…</token>
+          <token pos="MAD">•</token>
+          <token pos="NN">Rävar</token>
+          <token pos="VB">blir</token>
+          <token pos="AB">sällan</token>
+          <token pos="JJ">äldre</token>
+          <token pos="KN">än</token>
+          <token pos="RG">10</token>
+          <token pos="NN">år</token>
+          <token pos="PP">i</token>
+          <token pos="DT">det</token>
+          <token pos="JJ">vilda</token>
+          <token pos="MAD">.</token>
+        </sentence>
+        <sentence>
+          <token pos="MAD">•</token>
+          <token pos="SN">Om</token>
+          <token pos="PN">man</token>
+          <token pos="VB">hittar</token>
+          <token pos="DT">en</token>
+          <token pos="NN">fågel</token>
+          <token pos="HP">som</token>
+          <token pos="VB">tagits</token>
+          <token pos="PP">av</token>
+          <token pos="DT">en</token>
+          <token pos="NN">räv</token>
+          <token pos="AB">så</token>
+          <token pos="VB">är</token>
+          <token pos="NN">fjädrarna</token>
+          <token pos="PC">avbitna</token>
+          <token pos="MID">,</token>
+          <token pos="SN">medan</token>
+          <token pos="NN">rovfåglar</token>
+          <token pos="VB">sliter</token>
+          <token pos="PL">ut</token>
+          <token pos="NN">fjädrarna</token>
+          <token pos="MAD">.</token>
+        </sentence>
+        <sentence>
+          <token pos="MAD">•</token>
+          <token pos="NN">Ungdödligheten</token>
+          <token pos="VB">varierar</token>
+          <token pos="PP">mellan</token>
+          <token pos="RG">7-70</token>
+          <token pos="NN">%</token>
+          <token pos="PC">beroende</token>
+          <token pos="PP">på</token>
+          <token pos="NN">tillgång</token>
+          <token pos="PP">på</token>
+          <token pos="NN">föda</token>
+          <token pos="PAD">(</token>
+          <token pos="NN">sork</token>
+          <token pos="PAD">)</token>
+          <token pos="MAD">.</token>
+        </sentence>
+      </paragraph>
+    </text>
+  </document>
+  ```
+created: 2011-09-05
+---
+id: export-xml-preserved
+parent: xml-export-parent
+name:
+  swe: XML-export, bevarat format
+  eng: XML export, preserved format
+short_description:
+  swe: XML-korpusexport som bevarar formateringen från källfilen
+  eng: XML corpus export preserving whitespaces from source file
+sparv_handler: xml_export:preserved_format
+example_output: |-
+  ```xml
+  <?xml version='1.0' encoding='utf-8'?>
+  <document name="rävar">
+    <text date="2017-01-10" source="https://jarvzoo.se/djur/rodrav/" title="Rödräv"><paragraph><sentence><token pos="NN">Rödräven</token> <token pos="VB">är</token> <token pos="DT">ett</token> <token pos="NN">hunddjur</token> <token pos="HP">som</token> <token pos="VB">har</token> <token pos="DT">en</token> <token pos="AB">mycket</token> <token pos="JJ">vidsträckt</token> <token pos="NN">utbredning</token> <token pos="PP">över</token> <token pos="JJ">norra</token> <token pos="NN">halvklotet</token><token pos="MAD">.</token></sentence> <sentence><token pos="PP">I</token> <token pos="PM">Sverige</token> <token pos="VB">förekommer</token> <token pos="PN">den</token> <token pos="PP">i</token> <token pos="PN">allt</token> <token pos="PP">från</token> <token pos="DT">de</token> <token pos="JJ">nordligaste</token> <token pos="NN">vildmarkerna</token> <token pos="PP">till</token> <token pos="NN">villaträdgården</token> <token pos="PP">i</token> <token pos="NN">söder</token><token pos="MAD">.</token></sentence> <sentence><token pos="PN">Detta</token> <token pos="VB">beror</token> <token pos="AB">säkert</token> <token pos="AB">delvis</token> <token pos="PP">på</token> <token pos="PS">dess</token> <token pos="JJ">stora</token> <token pos="NN">förmåga</token> <token pos="IE">att</token> <token pos="VB">utnyttja</token> <token pos="JJ">olika</token> <token pos="NN">sorters</token> <token pos="NN">föda</token><token pos="MAD">.</token></sentence> <sentence><token pos="PAD">”</token><token pos="JJ">Slug</token> <token pos="KN">som</token> <token pos="DT">en</token> <token pos="NN">räv</token><token pos="PAD">”</token> <token pos="VB">är</token> <token pos="DT">ett</token> <token pos="PC">känt</token> <token pos="NN">ordspråk</token> <token pos="PP">i</token> <token pos="PM">Sverige</token><token pos="MAD">.</token></sentence> <sentence><token pos="KN">Och</token> <token pos="AB">visst</token> <token pos="VB">är</token> <token pos="NN">räven</token> <token pos="DT">ett</token> <token pos="JJ">klokt</token> <token pos="KN">och</token> <token pos="JJ">läraktigt</token> <token pos="NN">hunddjur</token> <token pos="HP">som</token> <token pos="AB">relativt</token> <token pos="AB">lätt</token> <token pos="VB">kan</token> <token pos="VB">bli</token> <token pos="JJ">tama</token> <token pos="PP">i</token> <token pos="DT">den</token> <token pos="NN">aspekten</token> <token pos="SN">att</token> <token pos="PN">de</token> <token pos="AB">inte</token> <token pos="VB">visar</token> <token pos="DT">någon</token> <token pos="JJ">större</token> <token pos="NN">rädsla</token> <token pos="PP">för</token> <token pos="NN">människor</token><token pos="MAD">.</token></sentence></paragraph>
+
+    <paragraph><sentence><token pos="VB">Visste</token> <token pos="PN">du</token> <token pos="SN">att</token><token pos="MAD">…</token>
+        <token pos="MAD">•</token> <token pos="NN">Rävar</token> <token pos="VB">blir</token> <token pos="AB">sällan</token> <token pos="JJ">äldre</token> <token pos="KN">än</token> <token pos="RG">10</token> <token pos="NN">år</token> <token pos="PP">i</token> <token pos="DT">det</token> <token pos="JJ">vilda</token><token pos="MAD">.</token></sentence>
+        <sentence><token pos="MAD">•</token> <token pos="SN">Om</token> <token pos="PN">man</token> <token pos="VB">hittar</token> <token pos="DT">en</token> <token pos="NN">fågel</token> <token pos="HP">som</token> <token pos="VB">tagits</token> <token pos="PP">av</token> <token pos="DT">en</token> <token pos="NN">räv</token> <token pos="AB">så</token> <token pos="VB">är</token> <token pos="NN">fjädrarna</token> <token pos="PC">avbitna</token><token pos="MID">,</token> <token pos="SN">medan</token> <token pos="NN">rovfåglar</token> <token pos="VB">sliter</token> <token pos="PL">ut</token> <token pos="NN">fjädrarna</token><token pos="MAD">.</token></sentence>
+        <sentence><token pos="MAD">•</token> <token pos="NN">Ungdödligheten</token> <token pos="VB">varierar</token> <token pos="PP">mellan</token> <token pos="RG">7-70</token> <token pos="NN">%</token> <token pos="PC">beroende</token> <token pos="PP">på</token> <token pos="NN">tillgång</token> <token pos="PP">på</token> <token pos="NN">föda</token> <token pos="PAD">(</token><token pos="NN">sork</token><token pos="PAD">)</token><token pos="MAD">.</token></sentence></paragraph></text>
+  </document>
+  ```
+created: 2016-05-31
+---
+id: export-xml-scrambled
+parent: xml-export-parent
+name:
+  swe: XML-export, omkastad
+  eng: XML export, scrambled
+short_description:
+  swe: XML-korpusexport med omkastat innehåll
+  eng: XML corpus export with scrambled contents
+sparv_handler: xml_export:scrambled
+example_output: |-
+  ```xml
+  <document name="rävar">
+    <text date="2016-10-31" source="https://jarvzoo.se/djur/fjallrav/" title="Fjällräv">
+      <sentence>
+        <token pos="DT">De</token>
+        <token pos="JJ">flesta</token>
+        <token pos="VB">tänker</token>
+        <token pos="PN">sig</token>
+        <token pos="SN">att</token>
+        <token pos="NN">fjällräven</token>
+        <token pos="VB">är</token>
+        <token pos="JJ">vit</token>
+        <token pos="MID">,</token>
+        <token pos="HP">vilket</token>
+        <token pos="PN">många</token>
+        <token pos="VB">är</token>
+        <token pos="PP">på</token>
+        <token pos="NN">vintern</token>
+        <token pos="MID">,</token>
+        <token pos="KN">men</token>
+        <token pos="PN">det</token>
+        <token pos="VB">finns</token>
+        <token pos="AB">också</token>
+        <token pos="DT">en</token>
+        <token pos="NN">variant</token>
+        <token pos="HP">som</token>
+        <token pos="VB">är</token>
+        <token pos="JJ">blågrå</token>
+        <token pos="NN">året</token>
+        <token pos="PP">om</token>
+        <token pos="MAD">.</token>
+      </sentence>
+    </text>
+    <text date="2020-06-16" source="https://sv.wikipedia.org/wiki/R%C3%B6dr%C3%A4v" title="Rödräv">
+      <sentence>
+        <token pos="PN">Den</token>
+        <token pos="VB">förekommer</token>
+        <token pos="PP">i</token>
+        <token pos="JJ">stora</token>
+        <token pos="NN">delar</token>
+        <token pos="PP">av</token>
+        <token pos="PM">Palearktis</token>
+        <token pos="KN">och</token>
+        <token pos="PM">Nearktis</token>
+        <token pos="KN">och</token>
+        <token pos="PP">i</token>
+        <token pos="AB">mycket</token>
+        <token pos="JJ">mindre</token>
+        <token pos="NN">utsträckning</token>
+        <token pos="PP">i</token>
+        <token pos="PM">Afrika</token>
+        <token pos="MAD">.</token>
+      </sentence>
+    </text>
+    <text date="2017-01-10" source="https://jarvzoo.se/djur/rodrav/" title="Rödräv">
+      <sentence>
+        <token pos="PP">I</token>
+        <token pos="PM">Sverige</token>
+        <token pos="VB">förekommer</token>
+        <token pos="PN">den</token>
+        <token pos="PP">i</token>
+        <token pos="PN">allt</token>
+        <token pos="PP">från</token>
+        <token pos="DT">de</token>
+        <token pos="JJ">nordligaste</token>
+        <token pos="NN">vildmarkerna</token>
+        <token pos="PP">till</token>
+        <token pos="NN">villaträdgården</token>
+        <token pos="PP">i</token>
+        <token pos="NN">söder</token>
+        <token pos="MAD">.</token>
+      </sentence>
+      <sentence>
+        <token pos="MAD">•</token>
+        <token pos="NN">Ungdödligheten</token>
+        <token pos="VB">varierar</token>
+        <token pos="PP">mellan</token>
+        <token pos="RG">7-70</token>
+        <token pos="NN">%</token>
+        <token pos="PC">beroende</token>
+        <token pos="PP">på</token>
+        <token pos="NN">tillgång</token>
+        <token pos="PP">på</token>
+        <token pos="NN">föda</token>
+        <token pos="PAD">(</token>
+        <token pos="NN">sork</token>
+        <token pos="PAD">)</token>
+        <token pos="MAD">.</token>
+      </sentence>
+    </text>
+  </document>
+  ```
+example_extra: |-
+  You need to tell Sparv which annotation to use for scrambling (typically `<sentence>` or `<paragraph>`). You can do
+  this with the `xml_export.scramble_on` setting. E.g. if you want to have a sentence-scrambled export you will need to
+  add the following setting to your Sparv corpus configuration file:
+  ```yaml
+  xml_export:
+    scramble_on: <sentence>
+  ```
+intended_uses:
+  eng: |-
+    This export is typically used when publishing the original corpus contents (with added annotations) would infringe
+    on copyrights. Scrambling the contents ensures that one cannot reconstruct the original material.
+  swe: |-
+    Denna export används vanligtvis när publicering av det ursprungliga korpusinnehållet (med tillagda annotationer)
+    skulle innebära ett intrång i upphovsrätten. Att kasta om innehållet i slumpvis ordning säkerställer att man inte
+    kan återskapa det ursprungliga materialet.
+created: 2011-09-05
