@@ -53,6 +53,10 @@ class Unset:
 
 def read_yaml(yaml_file: Union[str, Path]) -> dict:
     """Read YAML file and handle errors."""
+    # Handle dates as strings
+    yaml.constructor.SafeConstructor.yaml_constructors["tag:yaml.org,2002:timestamp"] = (
+        yaml.constructor.SafeConstructor.yaml_constructors["tag:yaml.org,2002:str"]
+    )
     try:
         with open(yaml_file, encoding="utf-8") as f:
             data = yaml.load(f, Loader=SafeLoader)
