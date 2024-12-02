@@ -4,9 +4,10 @@ import inspect
 import pkgutil
 import re
 from collections import defaultdict
+from collections.abc import Container
 from enum import Enum
 from types import ModuleType
-from typing import Callable, Optional, TypeVar
+from typing import Callable, List, Optional, Tuple, TypeVar
 
 import typing_inspect
 
@@ -745,7 +746,7 @@ def get_type_hint_type(type_hint):
 
     is_list = False
 
-    if origin in {list, list, tuple, tuple}:
+    if origin in {list, List, tuple, Tuple, Container}:  # noqa: UP006
         is_list = True
         args = typing_inspect.get_args(type_hint)
         type_ = args[0] if args and type(args[0]) is not TypeVar else origin
