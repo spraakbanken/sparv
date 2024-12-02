@@ -317,7 +317,7 @@ def get_annotation_names(
         export names.
     """
     # Combine all annotations
-    all_annotations = _remove_duplicates(list(annotations) + list(source_annotations))
+    all_annotations = _remove_duplicates(list(annotations) + list(source_annotations or []))
 
     if token_name:
         # Get the names of all token attributes
@@ -330,8 +330,8 @@ def get_annotation_names(
     xml_namespaces = Namespaces(source_file).read()
 
     export_names = _create_export_names(all_annotations, token_name, remove_namespaces, keep_struct_names,
-                                        list(source_annotations), sparv_namespace, source_namespace, xml_namespaces,
-                                        xml_mode=xml_mode)
+                                        list(source_annotations or []), sparv_namespace, source_namespace,
+                                        xml_namespaces, xml_mode=xml_mode)
 
     return [i[0] for i in all_annotations], token_attributes, export_names
 
