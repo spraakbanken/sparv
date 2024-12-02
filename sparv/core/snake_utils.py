@@ -552,6 +552,9 @@ def rule_helper(rule: RuleStorage, config: dict, storage: SnakeStorage, config_m
             if "{" in rule.parameters[param_name]:
                 rule.wildcard_annotations.append(param_name)
         # Everything else
+        elif param_type == param.empty:
+            print_sparv_warning(f"The parameter '{param_name}' in '{rule.full_name}' is missing a required type hint.")
+            rule.parameters[param_name] = param_value
         else:
             rule.parameters[param_name] = param_value
 
