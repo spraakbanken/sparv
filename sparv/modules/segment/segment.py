@@ -22,11 +22,12 @@ logger = get_logger(__name__)
     Config("segment.token_segmenter", default="better_word", description="Token segmenter to use", datatype=str,
            choices=lambda: sorted(SEGMENTERS)),
     Config("segment.token_chunk", default="<sentence>",
-           description="Text chunk (annotation) to use as input when tokenizing"),
-    Config("segment.existing_tokens", description="Optional existing token annotation"),
-    Config("segment.tokenizer_config", default="segment/bettertokenizer.sv", description="Path to tokenizer config"),
+           description="Text chunk (annotation) to use as input when tokenizing", datatype=str),
+    Config("segment.existing_tokens", description="Optional existing token annotation", datatype=str),
+    Config("segment.tokenizer_config", default="segment/bettertokenizer.sv", description="Path to tokenizer config",
+           datatype=str),
     Config("segment.token_list", default="segment/bettertokenizer.sv.saldo-tokens",
-           description="Path to optional token list file")
+           description="Path to optional token list file", datatype=str),
 ])
 def tokenize(text: Text = Text(),
              out: Output = Output("segment.token", cls="token", description="Token segments"),
@@ -45,9 +46,10 @@ def tokenize(text: Text = Text(),
            datatype=str,
            choices=lambda: sorted(SEGMENTERS)),
     Config("segment.sentence_chunk", default="<paragraph>, <text>",
-           description="Text chunk (annotation) to use as input when segmenting"),
-    Config("segment.existing_sentences", description="Optional existing sentence annotation"),
-    Config("segment.sentence_model", default="segment/punkt-nltk-svenska.pickle", description="Path to model")
+           description="Text chunk (annotation) to use as input when segmenting", datatype=str),
+    Config("segment.existing_sentences", description="Optional existing sentence annotation", datatype=str),
+    Config("segment.sentence_model", default="segment/punkt-nltk-svenska.pickle", description="Path to model",
+           datatype=str),
 ])
 def sentence(text: Text = Text(),
              out: Output = Output("segment.sentence", cls="sentence", description="Sentence segments"),
@@ -64,8 +66,8 @@ def sentence(text: Text = Text(),
     Config("segment.paragraph_segmenter", default="blanklines", description="Paragraph segmenter to use", datatype=str,
            choices=lambda: sorted(SEGMENTERS)),
     Config("segment.paragraph_chunk", default="<text>",
-           description="Text chunk (annotation) to use as input when segmenting"),
-    Config("segment.existing_paragraphs", description="Optional existing paragraph annotation")
+           description="Text chunk (annotation) to use as input when segmenting", datatype=str),
+    Config("segment.existing_paragraphs", description="Optional existing paragraph annotation", datatype=str),
 ])
 def paragraph(text: Text = Text(),
               out: Output = Output("segment.paragraph", cls="paragraph", description="Paragraph segments"),
@@ -164,7 +166,8 @@ def download_bettertokenizer(out: ModelOutput = ModelOutput("segment/bettertoken
 
 @modelbuilder("Token list for BetterWordTokenizer", language=["swe"], config=[
     Config("segment.token_wordlist_segmenter", "better_word",
-           description="Segmenter to use when building wordlist")
+           description="Segmenter to use when building wordlist", datatype=str,
+           choices=lambda: sorted(SEGMENTERS))
 ])
 def build_tokenlist(saldo_model: Model = Model("saldo/saldo.pickle"),
                     out: ModelOutput = ModelOutput("segment/bettertokenizer.sv.saldo-tokens"),

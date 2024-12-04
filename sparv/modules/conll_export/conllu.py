@@ -10,24 +10,24 @@ logger = get_logger(__name__)
 
 @exporter("CoNLL-U (SBX version) export", language=["swe"], config=[
     Config("conll_export.source_annotations", description="List of annotations and attributes from the source data to "
-           "include. Everything will be included by default."),
-    Config("conll_export.conll_fields.sentid", default="<sentence>:misc.id", description="Sentence ID"),
+           "include. Everything will be included by default.", datatype=list[str]),
+    Config("conll_export.conll_fields.sentid", default="<sentence>:misc.id", description="Sentence ID", datatype=str),
     Config("conll_export.conll_fields.id", default="<token:ref>",
-           description="Annotation in ID field of CoNLL-U output"),
+           description="Annotation in ID field of CoNLL-U output", datatype=str),
     Config("conll_export.conll_fields.lemma", default="<token:baseform>",
-           description="Annotation in LEMMA field of CoNLL-U output"),
+           description="Annotation in LEMMA field of CoNLL-U output", datatype=str),
     Config("conll_export.conll_fields.upos", default="<token:pos>",
-           description="Annotation in UPOS field of CoNLL-U output"),
+           description="Annotation in UPOS field of CoNLL-U output", datatype=str),
     Config("conll_export.conll_fields.xpos", default="<token:msd>",
-           description="Annotation in XPOS field of CoNLL-U output"),
+           description="Annotation in XPOS field of CoNLL-U output", datatype=str),
     Config("conll_export.conll_fields.feats", default="<token:ufeats>",
-           description="Annotation in FEATS field of CoNLL-U output"),
+           description="Annotation in FEATS field of CoNLL-U output", datatype=str),
     Config("conll_export.conll_fields.head", default="<token:dephead_ref>",
-           description="Annotation in HEAD field of CoNLL-U output"),
+           description="Annotation in HEAD field of CoNLL-U output", datatype=str),
     Config("conll_export.conll_fields.deprel", default="<token:deprel>",
-           description="Annotation in DEPREL field of CoNLL-U output"),
-    Config("conll_export.conll_fields.deps", description="Annotation in DEPS field of CoNLL-U output"),
-    Config("conll_export.conll_fields.misc", description="Annotation in MISC field of CoNLL-U output")
+           description="Annotation in DEPREL field of CoNLL-U output", datatype=str),
+    Config("conll_export.conll_fields.deps", description="Annotation in DEPS field of CoNLL-U output", datatype=str),
+    Config("conll_export.conll_fields.misc", description="Annotation in MISC field of CoNLL-U output", datatype=str)
 ])
 def conllu(source_file: SourceFilename = SourceFilename(),
            out: Export = Export("conll_export/{file}.conllu"),

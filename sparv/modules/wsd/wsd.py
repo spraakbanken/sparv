@@ -8,12 +8,14 @@ SENT_SEP = "$SENT$"
 
 
 @annotator("Word sense disambiguation", language=["swe"], config=[
-    Config("wsd.sense_model", default="wsd/ALL_512_128_w10_A2_140403_ctx1.bin", description="Path to sense model"),
-    Config("wsd.context_model", default="wsd/lem_cbow0_s512_w10_NEW2_ctx.bin", description="Path to context model"),
-    Config("wsd.default_prob", -1.0, description="Default value for unanalyzed senses"),
-    Config("wsd.jar", default="wsd/saldowsd.jar", description="Path name of the executable .jar file"),
+    Config("wsd.sense_model", default="wsd/ALL_512_128_w10_A2_140403_ctx1.bin", description="Path to sense model",
+           datatype=str),
+    Config("wsd.context_model", default="wsd/lem_cbow0_s512_w10_NEW2_ctx.bin", description="Path to context model",
+           datatype=str),
+    Config("wsd.default_prob", -1.0, description="Default value for unanalyzed senses", datatype=float),
+    Config("wsd.jar", default="wsd/saldowsd.jar", description="Path name of the executable .jar file", datatype=str),
     Config("wsd.prob_format", util.constants.SCORESEP + "%.3f", description="Format string for how to print the "
-                                                                            "sense probability")
+                                                                            "sense probability", datatype=str),
 ])
 def annotate(wsdjar: Binary = Binary("[wsd.jar]"),
              sense_model: Model = Model("[wsd.sense_model]"),

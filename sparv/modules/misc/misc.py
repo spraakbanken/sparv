@@ -11,7 +11,7 @@ from sparv.api.util.tagsets import pos_to_upos, suc_to_feats, tagmappings
 @annotator("Text content of tokens", config=[
     Config("misc.keep_formatting_chars", default=False,
            description="Set to True if you don't want formatting characters (e.g. soft hyphens) to be removed from "
-                       "tokens in the output.")])
+                       "tokens in the output.", datatype=bool)])
 def text_spans(text: Text = Text(),
                chunk: Annotation = Annotation("<token>"),
                out: Output = Output("<token>:misc.word", cls="token:word", description="Text content of every token"),
@@ -42,7 +42,8 @@ def text_spans(text: Text = Text(),
     "following token's 'head'.",
     config=[
     Config("misc.head_tail_max_length",
-           description="If set to an int misc.head and misc.tail will be truncated to that many characters.")])
+           description="Truncate misc.head and misc.tail to this number of characters.",
+           datatype=int)])
 def text_headtail(text: Text = Text(),
                   chunk: Annotation = Annotation("<token>"),
                   out_head: Output = Output("<token>:misc.head", description="Whitespace characters preceding every token"),

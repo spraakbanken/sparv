@@ -60,8 +60,8 @@ def contextual(out: Output = Output("{chunk}:geo.geo_context", description="Geog
 
 
 @annotator("Annotate {chunk} with location data, based on metadata containing location names", config=[
-    Config("geo.metadata_source", description="Source attribute for location metadata"),
-    Config("geo.model", default="geo/geo.pickle", description="Path to model")
+    Config("geo.metadata_source", description="Source attribute for location metadata", datatype=str),
+    Config("geo.model", default="geo/geo.pickle", description="Path to model", datatype=str)
 ], wildcards=[Wildcard("chunk", Wildcard.ANNOTATION)])
 def metadata(out: Output = Output("{chunk}:geo.geo_metadata", description="Geographical places with coordinates"),
              chunk: Annotation = Annotation("{chunk}"),

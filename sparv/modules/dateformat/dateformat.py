@@ -11,26 +11,58 @@ from sparv.api import Annotation, Config, Output, OutputCommonData, SparvErrorMe
 logger = get_logger(__name__)
 
 
-@annotator("Convert existing dates to specified output format", config=[
-    Config("dateformat.datetime_from", description="Annotation attribute containing from-dates (and times)"),
-    Config("dateformat.datetime_to", description="Annotation attribute containing to-dates (and times)"),
-    Config("dateformat.datetime_informat",
-           description="Format of the source date/time values. Several formats can be specified separated "
-                       "by |. They will be tried in order."),
-    Config("dateformat.splitter", description="One or more characters separating two dates in 'datetime_from', "
-                                              "treating them as from-date and to-date."),
-    Config("dateformat.pre_regex",
-           description="Regular expression with a catching group whose content will be used in the parsing instead of "
-                       "the whole string. Applied before splitting."),
-    Config("dateformat.regex",
-           description="Regular expression with a catching group whose content will be used in the parsing instead of "
-                       "the whole string. Applied on each value after splitting."),
-    Config("dateformat.date_outformat", default="%Y%m%d",
-           description="Desired format of the formatted dates. Several formats can be specified separated "
-                       "by |. They will be tied to their respective in-format."),
-    Config("dateformat.out_annotation", default="<text>",
-           description="Annotation on which the resulting formatted date attributes will be written.")
-])
+@annotator(
+    "Convert existing dates to specified output format",
+    config=[
+        Config(
+            "dateformat.datetime_from",
+            description="Annotation attribute containing from-dates (and times)",
+            datatype=str,
+        ),
+        Config(
+            "dateformat.datetime_to", description="Annotation attribute containing to-dates (and times)", datatype=str
+        ),
+        Config(
+            "dateformat.datetime_informat",
+            description="Format of the source date/time values, using format codes from "
+            "https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes. Several "
+            "formats can be specified separated by '|'. They will be tried in order.",
+            datatype=str,
+        ),
+        Config(
+            "dateformat.splitter",
+            description="One or more characters separating two dates in 'datetime_from', "
+            "treating them as from-date and to-date.",
+            datatype=str,
+        ),
+        Config(
+            "dateformat.pre_regex",
+            description="Regular expression with a catching group whose content will be used in the parsing instead of "
+            "the whole string. Applied before splitting.",
+            datatype=str,
+        ),
+        Config(
+            "dateformat.regex",
+            description="Regular expression with a catching group whose content will be used in the parsing instead of "
+            "the whole string. Applied on each value after splitting.",
+            datatype=str,
+        ),
+        Config(
+            "dateformat.date_outformat",
+            default="%Y%m%d",
+            description="Desired format of the formatted dates, specified using the same format codes as for the "
+            "in-format. Several formats can be specified separated by '|'. They will be tied to their respective "
+            "in-format.",
+            datatype=str,
+        ),
+        Config(
+            "dateformat.out_annotation",
+            default="<text>",
+            description="Annotation on which the resulting formatted date attributes will be written.",
+            datatype=str,
+        ),
+    ],
+)
 def dateformat(in_from: Annotation = Annotation("[dateformat.datetime_from]"),
                in_to: Optional[Annotation] = Annotation("[dateformat.datetime_to]"),
                out_from: Output = Output("[dateformat.out_annotation]:dateformat.datefrom",
@@ -80,7 +112,8 @@ def dateformat_pretty(in_date: Annotation = Annotation("[dateformat.datetime_fro
 @annotator("Convert existing times to specified output format", config=[
     Config("dateformat.time_outformat", "%H%M%S",
            description="Desired format of the formatted times. Several formats can be specified separated "
-                       "by |. They will be tied to their respective in-format.")
+                       "by |. They will be tied to their respective in-format.",
+           datatype=str)
 ])
 def timeformat(in_from: Annotation = Annotation("[dateformat.datetime_from]"),
                in_to: Optional[Annotation] = Annotation("[dateformat.datetime_to]"),

@@ -85,7 +85,7 @@ LABELS = {
             datatype=list[Union[dict, str]]
         ),
         Config("korp.custom_annotations", description="Custom Korp-annotations.", datatype=list[dict]),
-        Config("korp.morphology", description="Morphologies"),
+        Config("korp.morphology", description="Pipe-separated list of morphologies used by the corpus", datatype=str),
         Config("korp.reading_mode", description="Reading mode configuration", datatype=dict),
         Config("korp.filters", description="List of annotations to use for filtering in Korp", datatype=list[str]),
         Config(
@@ -152,7 +152,7 @@ def config(
         cwb_source_annotations: Source annotations in CWB encoded corpus, used unless 'source_annotations' is set.
         annotation_definitions: Korp frontend definitions of annotations in 'annotations' and 'source_annotations'.
         custom_annotations: Korp frontend 'custom annotations' definitions.
-        morphology: List of morphologies used by the corpus.
+        morphology: Pipe-separated list of morphologies used by the corpus.
         reading_mode: Reading mode configuration.
         hidden_annotations: List of annotations to exclude.
         filters: List of annotations to use for filtering in Korp.

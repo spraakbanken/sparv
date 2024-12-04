@@ -41,8 +41,8 @@ def cleanup(maltjar, model, encoding, process_dict):
 
 @annotator("Dependency parsing using MaltParser", language=["swe"], config=[
     Config("malt.jar", default="maltparser-1.7.2/maltparser-1.7.2.jar",
-           description="Path name of the executable .jar file"),
-    Config("malt.model", default="malt/swemalt-1.7.2.mco", description="Path to Malt model")],
+           description="Path name of the executable .jar file", datatype=str),
+    Config("malt.model", default="malt/swemalt-1.7.2.mco", description="Path to Malt model", datatype=str)],
     preloader=preloader, preloader_params=["maltjar", "model", "encoding"], preloader_target="process_dict",
     preloader_cleanup=cleanup, preloader_shared=False)
 def annotate(maltjar: Binary = Binary("[malt.jar]"),
