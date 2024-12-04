@@ -10,6 +10,7 @@
 - The detailed `sparv modules` listings now include info about accepted values for config variables.
 - Sparv now respects the `JAVA_HOME` environment variable.
 - Added autocomplete instructions for `zsh`.
+- Added 'misc:fake_text_headtail' annotator.
 
 ### Changed
 
@@ -125,7 +126,7 @@
 - Added a new annotator `misc:concat2` which concatenates two or more annotations with an optional separator.
 - Added a `remove` method to the `Annotation` classes for removing annotation files.
 - Added a metadata field: `short_description`.
-- Added a setting for truncating the annotations `misc_head` and `misc_tail` to avoid crashes by cwb-encode.
+- Added a setting for truncating the annotations `misc.head` and `misc.tail` to avoid crashes by cwb-encode.
 
 ### Changed
 

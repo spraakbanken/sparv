@@ -38,6 +38,7 @@ def text_spans(text: Text = Text(),
 
 @annotator(
     "Head and tail whitespace characters for tokens\n\n"
+    "Spaces are encoded as '\\s', newlines as '\\n', and tabs as '\\t'.\n\n"
     "The whitespace doesn't overlap, meaning that whitespace covered by one token's 'tail' will not be included in the "
     "following token's 'head'.",
     config=[
@@ -48,9 +49,9 @@ def text_headtail(text: Text = Text(),
                   chunk: Annotation = Annotation("<token>"),
                   out_head: Output = Output("<token>:misc.head", description="Whitespace characters preceding every token"),
                   out_tail: Output = Output("<token>:misc.tail", description="Whitespace characters following every token"),
-                  truncate_after: Optional[int] = Config("misc.head_tail_max_length")):
+                  truncate_after: Optional[int] = Config("misc.head_tail_max_length")) -> None:
     """Extract "head" and "tail" whitespace characters for tokens."""
-    def escape(t):
+    def escape(t: str) -> str:
         """Escape whitespace characters."""
         return t.replace(" ", "\\s").replace("\n", "\\n").replace("\t", "\\t")
 
@@ -87,6 +88,43 @@ def text_headtail(text: Text = Text(),
                     out_tail_annotation[i] = escape(tail_text)[:truncate_after]
                 else:
                     out_tail_annotation[i] = escape(tail_text)
+
+    out_head.write(out_head_annotation)
+    out_tail.write(out_tail_annotation)
+
+
+@annotator(
+    "Fake head and tail whitespace characters for tokens\n\n"
+    "Instead of using the existing whitespace from the source text, this annotator annotates every token with a "
+    "space as the 'tail' (encoded as '\\s'), up to a specified line length. When the line length is reached, a newline "
+    "character (encoded as '\\n') is used instead, resetting the line length counter. The 'head' is always an empty "
+    "string.\n\n"
+    "This is useful when 'head' and 'tail' annotations are needed, but the source text has no useful whitespace, such "
+    "as source files with one token per line.",
+    config=[
+        Config("misc.fake_headtail_line_length", description="Max line length", default=120, datatype=int)
+    ]
+)
+def fake_text_headtail(
+    chunk: Annotation = Annotation("<token:word>"),
+    out_head: Output = Output("<token>:misc.fake_head", description="Whitespace characters preceding every token"),
+    out_tail: Output = Output("<token>:misc.fake_tail", description="Whitespace characters following every token"),
+    max_line_length: int = Config("misc.fake_headtail_line_length")
+) -> None:
+    """Create fake "head" and "tail" whitespace characters for tokens."""
+    word_annotation = chunk.read()
+    out_head_annotation = []
+    out_tail_annotation = []
+    line_length = 0
+    # Loop through all words, adding whitespace after each word until the line length is reached, then add a newline
+    for word in word_annotation:
+        if out_tail_annotation and line_length + len(word) > max_line_length:
+            # Change previous line to end with a newline
+            out_tail_annotation[-1] = "\\n"
+            line_length = 0
+        out_head_annotation.append("")
+        out_tail_annotation.append("\\s")
+        line_length += len(word) + 1
 
     out_head.write(out_head_annotation)
     out_tail.write(out_tail_annotation)
