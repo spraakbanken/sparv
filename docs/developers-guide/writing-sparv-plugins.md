@@ -73,8 +73,9 @@ The `__init__.py` file must include a short description (one sentence) of the mo
 example below, both methods are used, though only one is required. If both are present, the `__description__` value
 takes precedence.
 
-A longer description can be included by adding additional lines. Only the first line will be shown in space-limited
-contexts, such as `sparv modules`. The full description appears when running `sparv modules modulename`.
+A longer description can be included by adding additional lines, separated from the first line by a blank line. Only the
+first line will be shown in space-limited contexts, such as `sparv modules`. The full description appears when running
+`sparv modules modulename`.
 
 Example of an `__init__.py` file:
 ```python

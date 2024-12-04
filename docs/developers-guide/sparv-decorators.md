@@ -14,7 +14,9 @@ tokens, sentences, parts of speeches etc.) and outputs one or more new annotatio
 **Arguments:**
 
 - `name`: Optional name to use instead of the function name.
-- `description`: Description of the annotator. Used for displaying help texts in the CLI.
+- `description`: Description of the annotator. Used for displaying help texts in the CLI. The first line should be a
+  short summary of what the annotator does. Optionally, a longer description can be added below the first line,
+  separated by a blank line.
 - `config`: List of Config instances defining config options for the annotator.
 - `language`: List of supported languages. If no list is supplied all languages are supported.
 - `priority`: Functions with higher priority will be preferred when scheduling which functions to run. The default
@@ -63,7 +65,9 @@ using the `Text` class, and a list of the annotations created from existing mark
 
 **Arguments:**
 
-- `description`: Description of the importer. Used for displaying help texts in the CLI.
+- `description`: Description of the importer. Used for displaying help texts in the CLI. The first line should be a
+  short summary of what the importer does. Optionally, a longer description can be added below the first line,
+  separated by a blank line.
 - `file_extension`: The file extension of the type of source this importer handles, e.g. "xml" or "txt".
 - `name`: Optional name to use instead of the function name.
 - `outputs`: A list of annotations and attributes that the importer is guaranteed to generate. May also be a Config
@@ -90,7 +94,9 @@ files into one output file.
 
 **Arguments:**
 
-- `description`: Description of the exporter. Used for displaying help texts in the CLI.
+- `description`: Description of the exporter. Used for displaying help texts in the CLI. The first line should be a
+  short summary of what the exporter does. Optionally, a longer description can be added below the first line,
+  separated by a blank line.
 - `name`: Optional name to use instead of the function name.
 - `config`: List of Config instances defining config options for the exporter.
 - `language`: List of supported languages. If no list is supplied all languages are supported.
@@ -129,7 +135,9 @@ It is recommended that an installer removes any related uninstaller's marker, to
 
 **Arguments:**
 
-- `description`: Description of the installer. Used for displaying help texts in the CLI.
+- `description`: Description of the installer. Used for displaying help texts in the CLI. The first line should be a
+  short summary of what the installer does. Optionally, a longer description can be added below the first line,
+  separated by a blank line.
 - `name`: Optional name to use instead of the function name.
 - `config`: List of Config instances defining config options for the installer.
 - `language`: List of supported languages. If no list is supplied all languages are supported.
@@ -163,7 +171,9 @@ It is recommended that an uninstaller removes any related installer's marker, to
 
 **Arguments:**
 
-- `description`: Description of the uninstaller. Used for displaying help texts in the CLI.
+- `description`: Description of the uninstaller. Used for displaying help texts in the CLI. The first line should be a
+  short summary of what the uninstaller does. Optionally, a longer description can be added below the first line,
+  separated by a blank line.
 - `name`: Optional name to use instead of the function name.
 - `config`: List of Config instances defining config options for the uninstaller.
 - `language`: List of supported languages. If no list is supplied all languages are supported.
@@ -192,9 +202,11 @@ your system it will be available for any corpus.
 
 **Arguments:**
 
-- `description`: Description of the installer. Used for displaying help texts in the CLI.
+- `description`: Description of the model builder. Used for displaying help texts in the CLI. The first line should be a
+  short summary of what the model builder does. Optionally, a longer description can be added below the first line,
+  separated by a blank line.
 - `name`: Optional name to use instead of the function name.
-- `config`: List of Config instances defining config options for the installer.
+- `config`: List of Config instances defining config options for the model builder.
 - `language`: List of supported languages. If no list is supplied all languages are supported.
 - `priority`: Functions with higher priority will be preferred when scheduling which functions to run. The default
   priority is 0.
