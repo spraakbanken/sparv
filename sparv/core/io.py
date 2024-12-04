@@ -212,7 +212,7 @@ def write_data(source_file: Optional[str], name: Union[BaseAnnotation, str], val
         logger.info(
             "Wrote %d bytes: %s%s%s",
             file_path.stat().st_size,
-            source_file,
+            source_file or "",
             "/" if source_file else "",
             name.name if isinstance(name, BaseAnnotation) else name
         )
@@ -227,7 +227,7 @@ def read_data(source_file: Optional[str], name: Union[BaseAnnotation, str]) -> A
         logger.debug(
             "Read %d bytes: %s%s%s",
             file_path.stat().st_size,
-            source_file,
+            source_file or "",
             "/" if source_file else "",
             name.name if isinstance(name, BaseAnnotation) else name
         )
