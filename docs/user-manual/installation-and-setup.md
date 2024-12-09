@@ -242,27 +242,17 @@ Please follow the installation instructions given in the fast_align repository a
 
 ## Plugins
 
-Plugins for Sparv can be installed by one of the following commands, depending on whether you installed Sparv using pipx
-or pip:
-```
-pipx inject sparv-pipeline [pointer-to-sparv-plugin]
-```
+Sparv plugins are handled by the `sparv plugins` command.
 
-```
-pip install [pointer-to-sparv-plugin]
-```
+To install a plugin, use the command `sparv plugins install [pointer-to-sparv-plugin]`.
 
 The `pointer-to-sparv-plugin` can be a package available on the [Python Package Index (PyPI)](https://pypi.org/), a
 remote public repository, or a local directory on your machine.
 
-Plugins can be uninstalled using one of the following commands:
-```
-pipx runpip sparv-pipeline uninstall [name-of-sparv-plugin]
-```
+To uninstall a plugin, use the command `sparv plugins uninstall [name-of-sparv-plugin]`.
 
-```
-pip uninstall [name-of-sparv-plugin]
-```
+It is also possible to install and uninstall plugins using the `pip` package manager, as plugins are regular Python
+packages.
 
 ## Uninstalling Sparv
 

@@ -155,7 +155,8 @@ def main():
         },
         "preload": "Preload annotators and models",
         "autocomplete": "Enable tab completion in bash/zsh",
-        "schema": "Print a JSON schema for the Sparv config format"
+        "schema": "Print a JSON schema for the Sparv config format",
+        "plugins": "Manage Sparv plugins",
     }
 
     description = [
@@ -178,6 +179,7 @@ def main():
         "",
         "Setting up the Sparv Pipeline:",
         f"   setup            {help['setup']['short']}",
+        f"   plugins          {help['plugins']}",
         f"   wizard           {help['wizard']}",
         f"   build-models     {help['build-models']['short']}",
         "",
@@ -305,6 +307,34 @@ def main():
     schema_parser = subparsers.add_parser("schema", help=help["schema"], description=help["schema"])
     schema_parser.add_argument("--compact", action="store_true", help="Don't indent output")
 
+    # Plugins
+    plugins_parser = subparsers.add_parser("plugins", help=help["plugins"], description=help["plugins"])
+    plugins_subparsers = plugins_parser.add_subparsers(
+        dest="plugins_command",
+        title="plugin commands",
+        metavar="<plugin_command>"
+    )
+
+    # Sub-command: install
+    plugins_install_parser = plugins_subparsers.add_parser("install", help="Install a Sparv plugin")
+    plugins_install_parser.add_argument("plugin", help="The plugin to install (PyPI package name, URL or local path)")
+    plugins_install_parser.add_argument(
+        "-e",
+        "--editable",
+        action="store_true",
+        help="Install the plugin in editable mode (only when installing from a local directory)"
+    )
+    plugins_install_parser.add_argument("-v", "--verbose", action="store_true", help="Show more details")
+
+    # Sub-command: list
+    plugins_list_parser = plugins_subparsers.add_parser("list", help="List installed Sparv plugins")
+    plugins_list_parser.add_argument("-v", "--verbose", action="store_true", help="Show more details")
+
+    # Sub-command: uninstall
+    plugins_uninstall_parser = plugins_subparsers.add_parser("uninstall", help="Uninstall a Sparv plugin")
+    plugins_uninstall_parser.add_argument("plugin", help="The name of the plugin to uninstall")
+    plugins_uninstall_parser.add_argument("-v", "--verbose", action="store_true", help="Show more details")
+
     # Add common arguments
     for subparser in [run_parser, runrule_parser]:
         subparser.add_argument("-f", "--file", nargs="+", default=[], help="Only annotate specified input file(s)")
@@ -417,6 +447,17 @@ def main():
         from sparv.core.wizard import Wizard
         wizard = Wizard()
         wizard.run()
+        sys.exit(0)
+    elif args.command == "plugins":
+        from sparv.core import plugins
+        if args.plugins_command == "install":
+            plugins.install_plugin(args.plugin, editable=args.editable, verbose=args.verbose)
+        elif args.plugins_command == "uninstall":
+            plugins.uninstall_plugin(args.plugin, verbose=args.verbose)
+        elif args.plugins_command == "list":
+            plugins.list_installed_plugins(args.verbose)
+        elif args.plugins_command is None:
+            plugins.list_installed_plugins()
         sys.exit(0)
 
     # Check that a corpus config file is available in the working dir

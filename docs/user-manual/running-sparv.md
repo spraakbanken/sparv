@@ -35,6 +35,7 @@ Show annotation info:
 
 Setting up the Sparv Pipeline:
    setup            Set up the Sparv data directory
+   plugins          Manage Sparv plugins
    wizard           Run config wizard to create a corpus config
    build-models     Download and build the Sparv models
 
