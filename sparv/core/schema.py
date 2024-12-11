@@ -1,11 +1,13 @@
 """Functions for creating and validating JSON schemas."""
 
+from __future__ import annotations
+
 import itertools
 import json
 import re
 from collections import defaultdict
 from collections.abc import Sequence
-from typing import Optional, Union
+from typing import Any as AnyType
 
 import typing_inspect
 
@@ -17,7 +19,7 @@ NO_COND = ((), ())
 
 class BaseProperty:
     """Base class for other types of properties."""
-    def __init__(self, prop_type: Optional[str], allow_null: Optional[bool] = False, **kwargs) -> None:
+    def __init__(self, prop_type: str | None, allow_null: bool | None = False, **kwargs: AnyType) -> None:
         self.schema = {
             "type": prop_type if not allow_null else [prop_type, "null"],
             **kwargs
@@ -26,7 +28,7 @@ class BaseProperty:
 
 class Any(BaseProperty):
     """Class representing any type."""
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: AnyType) -> None:
         super().__init__(None, **kwargs)
 
 
@@ -34,12 +36,12 @@ class String(BaseProperty):
     """Class representing a string."""
     def __init__(
         self,
-        pattern: Optional[str] = None,
-        choices: Optional[list[str]] = None,
-        min_len: Optional[int] = None,
-        max_len: Optional[int] = None,
+        pattern: str | None = None,
+        choices: list[str] | None = None,
+        min_len: int | None = None,
+        max_len: int | None = None,
         allow_null: bool = False,
-        **kwargs
+        **kwargs: AnyType
     ) -> None:
         if pattern:
             kwargs["pattern"] = pattern
@@ -58,10 +60,10 @@ class Integer(BaseProperty):
     """Class representing an integer."""
     def __init__(
         self,
-        min_value: Optional[int] = None,
-        max_value: Optional[int] = None,
-        **kwargs
-    ):
+        min_value: int | None = None,
+        max_value: int | None = None,
+        **kwargs: AnyType
+    ) -> None:
         if min_value is not None:
             kwargs["minimum"] = min_value
         if max_value is not None:
@@ -73,10 +75,10 @@ class Number(BaseProperty):
     """Class representing either a float or an integer."""
     def __init__(
         self,
-        min_value: Optional[Union[int, float]],
-        max_value: Optional[Union[int, float]],
-        **kwargs
-    ):
+        min_value: int | float | None,
+        max_value: int | float | None,
+        **kwargs: AnyType
+    ) -> None:
         if min_value is not None:
             kwargs["minimum"] = min_value
         if max_value is not None:
@@ -86,13 +88,13 @@ class Number(BaseProperty):
 
 class Boolean(BaseProperty):
     """Class representing a boolean."""
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: AnyType) -> None:
         super().__init__("boolean", **kwargs)
 
 
 class Null(BaseProperty):
     """Class representing a null value."""
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: AnyType) -> None:
         super().__init__("null", **kwargs)
 
 
@@ -100,9 +102,9 @@ class Array(BaseProperty):
     """Class representing an array of values."""
     def __init__(
         self,
-        items: Optional[type[Union[String, Integer, Number, Boolean, Null, Any, "Array", "Object"]]] = None,
-        **kwargs
-    ):
+        items: type[String | Integer | Number | Boolean | Null | Any | Array | Object] | None = None,
+        **kwargs: AnyType
+    ) -> None:
         if items:
             if isinstance(items, list):
                 kwargs["items"] = {"type": []}
@@ -118,9 +120,9 @@ class Array(BaseProperty):
 class Object:
     """Class representing an object."""
     def __init__(
-        self, additional_properties: Union[dict, bool] = True, description: Optional[str] = None,
-        **kwargs
-    ):
+        self, additional_properties: dict | bool = True, description: str | None = None,
+        **kwargs: AnyType
+    ) -> None:
         if additional_properties is False or isinstance(additional_properties, dict):
             kwargs["additionalProperties"] = additional_properties
         if description:
@@ -130,15 +132,15 @@ class Object:
         self.required = []
         self.allof: defaultdict[tuple[tuple[Object, ...], tuple[Object, ...]], list] = defaultdict(list)
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(json.dumps(self.schema, sort_keys=True))
 
-    def __eq__(self, other):
+    def __eq__(self, other: Object) -> bool:
         if other is None:
             return False
         return json.dumps(self.schema, sort_keys=True) == json.dumps(other.schema, sort_keys=True)
 
-    def __lt__(self, other):
+    def __lt__(self, other: Object) -> bool:
         if other is None:
             return False
         return json.dumps(self.schema, sort_keys=True) < json.dumps(other.schema, sort_keys=True)
@@ -146,10 +148,10 @@ class Object:
     def add_property(
         self,
         name: str,
-        prop_obj: Union[list, Union[String, Integer, Number, "Object", Any]],
+        prop_obj: list | String | Integer | Number | Object | Any,
         required: bool = False,
-        condition: Optional[tuple[tuple["Object", ...], tuple["Object", ...]]] = None
-    ) -> "Object":
+        condition: tuple[tuple[Object, ...], tuple[Object, ...]] | None = None
+    ) -> Object:
         """Add a property to the object."""
         if condition and condition != NO_COND:
             self.allof[condition].append((name, prop_obj))
@@ -245,15 +247,15 @@ def build_json_schema(config_structure: dict) -> dict:
 
     def handle_object(
         structure: dict,
-        parent_obj: Optional[Object] = None,
-        parent_name: Optional[str] = None,
-        is_condition: Optional[bool] = False
-    ) -> defaultdict[tuple[tuple[Optional[Object], ...], tuple[Object, ...]], list]:
+        parent_obj: Object | None = None,
+        parent_name: str | None = None,
+        is_condition: bool | None = False
+    ) -> defaultdict[tuple[tuple[Object | None, ...], tuple[Object, ...]], list]:
         """Handle dictionary which will become an object in the JSON schema.
 
         Return a dictionary with conditionals as keys and lists of children to each conditional as values.
         """
-        conditionals: defaultdict[tuple[tuple[Optional[Object], ...], tuple[Object, ...]], list] = defaultdict(list)
+        conditionals: defaultdict[tuple[tuple[Object | None, ...], tuple[Object, ...]], list] = defaultdict(list)
 
         for key in structure:
             if not structure[key].get("_source"):  # Not a leaf, has children
@@ -325,7 +327,7 @@ def build_json_schema(config_structure: dict) -> dict:
 
     def handle_property(
         cfg: Config
-    ) -> tuple[Union[BaseProperty, list[BaseProperty]], tuple[Object, ...]]:
+    ) -> tuple[BaseProperty | list[BaseProperty], tuple[Object, ...]]:
         """Handle a property and its conditions.
 
         Args:

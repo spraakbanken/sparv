@@ -1,10 +1,11 @@
 """Miscellaneous classes and methods."""
 
+from __future__ import annotations
+
 import logging
 import re
 from collections import OrderedDict, defaultdict
 from collections.abc import Iterable
-from typing import Optional
 
 
 class SparvErrorMessage(Exception):  # noqa: N818
@@ -13,7 +14,7 @@ class SparvErrorMessage(Exception):  # noqa: N818
     start_marker = "<<<START>>>"
     end_marker = "<<<END>>>"
 
-    def __init__(self, message, module="", function=""):
+    def __init__(self, message: str, module: str = "", function: str = "") -> None:
         """Raise an error and notify user of the problem in a friendly way.
 
         Args:
@@ -26,15 +27,15 @@ class SparvErrorMessage(Exception):  # noqa: N818
         super().__init__(f"{SparvErrorMessage.start_marker}{module}\n{function}\n{message}{SparvErrorMessage.end_marker}")
 
 
-def get_logger(name):
+def get_logger(name: str) -> logging.Logger:
     """Get a logger that is a child of 'sparv.modules'."""
     if not name.startswith("sparv.modules"):
         name = "sparv.modules." + name
     return logging.getLogger(name)
 
 
-def parse_annotation_list(annotation_names: Optional[Iterable[str]], all_annotations: Optional[Iterable[str]] = None,
-                          add_plain_annotations: bool = True) -> list[tuple[str, Optional[str]]]:
+def parse_annotation_list(annotation_names: Iterable[str] | None, all_annotations: Iterable[str] | None = None,
+                          add_plain_annotations: bool = True) -> list[tuple[str, str | None]]:
     """Take a list of annotation names and possible export names, and return a list of tuples.
 
     Each list item will be split into a tuple by the string ' as '.

@@ -17,7 +17,7 @@ plugin_name = "plugin"
 snakemake = snakemake  # noqa
 
 
-def exit_with_error_message(message, logger_name):
+def exit_with_error_message(message: str, logger_name: str) -> None:
     """Log error message and exit with non-zero status."""
     error_logger = logging.getLogger(logger_name)
     if snakemake.params.source_file:
@@ -29,19 +29,19 @@ def exit_with_error_message(message, logger_name):
 class StreamToLogger:
     """File-like stream object that redirects writes to a logger instance."""
 
-    def __init__(self, logger, log_level=logging.INFO):
+    def __init__(self, logger: logging.Logger, log_level: int = logging.INFO) -> None:
         self.logger = logger
         self.log_level = log_level
 
-    def write(self, buf):
+    def write(self, buf: str) -> None:
         self.logger.log(self.log_level, buf.rstrip())
 
     @staticmethod
-    def isatty():
+    def isatty() -> bool:
         return False
 
     @staticmethod
-    def flush():
+    def flush() -> None:
         pass
 
 

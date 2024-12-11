@@ -1,4 +1,7 @@
 """Sparv preloader."""
+
+from __future__ import annotations
+
 import logging
 import multiprocessing
 import os
@@ -9,6 +12,7 @@ import time
 from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
+from typing import Any, Callable
 
 from rich.logging import RichHandler
 
@@ -39,7 +43,15 @@ if compression:
 class Preloader:
     """Class representing a preloader."""
 
-    def __init__(self, function, target, preloader, params, cleanup, shared):
+    def __init__(
+        self,
+        function: Callable,
+        target: str,
+        preloader: Callable,
+        params: dict,
+        cleanup: Callable,
+        shared: bool
+    ) -> None:
         self.function = function
         self.target = target
         self.preloader = preloader
@@ -70,7 +82,7 @@ def socketcontext(socket_path: str) -> Iterator[socket.socket]:
         s.close()
 
 
-def receive_data(sock):
+def receive_data(sock: socket.socket) -> Any:
     """Receive pickled data from socket and unpickle."""
     # Get data length
     buf_length = recvall(sock, 4)
@@ -85,28 +97,28 @@ def receive_data(sock):
     return pickle.loads(data)
 
 
-def send_data(sock, data):
+def send_data(sock: socket.socket, data: Any) -> None:
     """Send pickled data over socket."""
     datap = pickle.dumps(data)
     sock.sendall(struct.pack(">I", len(datap)))
     sock.sendall(datap)
 
 
-def get_preloader_info(socket_path):
+def get_preloader_info(socket_path: str) -> dict:
     """Get information about preloaded modules."""
     with socketcontext(socket_path) as sock:
         send_data(sock, INFO)
         return receive_data(sock)
 
 
-def get_preloader_status(socket_path):
+def get_preloader_status(socket_path: str) -> Any:
     """Get preloader status."""
     with socketcontext(socket_path) as sock:
         send_data(sock, STATUS)
         return receive_data(sock)
 
 
-def stop(socket_path):
+def stop(socket_path: str) -> bool:
     """Send stop signal to Sparv preloader."""
     try:
         with socketcontext(socket_path) as sock:
@@ -116,7 +128,7 @@ def stop(socket_path):
         return False
 
 
-def recvall(sock, size: int):
+def recvall(sock: socket.socket, size: int) -> bytes | None:
     """Receive data of a specific size from socket.
 
     If 'size' number of bytes are not received, None is returned.
@@ -131,7 +143,7 @@ def recvall(sock, size: int):
     return buf
 
 
-def handle(client_sock, annotators: dict[str, Preloader]):
+def handle(client_sock: socket.socket, annotators: dict[str, Preloader]) -> bool | None:
     """Handle request and execute preloaded function."""
     # Get data
     data = receive_data(client_sock)
@@ -190,7 +202,12 @@ def handle(client_sock, annotators: dict[str, Preloader]):
         annotator.preloaded = annotator.cleanup(**{**annotator.params, annotator.target: annotator.preloaded})
 
 
-def worker(worker_no: int, server_socket, annotators: dict[str, Preloader], stop_event):
+def worker(
+    worker_no: int,
+    server_socket: socket.socket,
+    annotators: dict[str, Preloader],
+    stop_event: multiprocessing.synchronize.Event
+) -> None:
     """Listen to the socket server and handle incoming requests."""
     log.info("Worker %d started", worker_no)
 
@@ -217,7 +234,7 @@ def worker(worker_no: int, server_socket, annotators: dict[str, Preloader], stop
         client_sock.close()
 
 
-def serve(socket_path: str, processes: int, storage: SnakeStorage, stop_signal: multiprocessing.Event):
+def serve(socket_path: str, processes: int, storage: SnakeStorage, stop_signal: multiprocessing.Event) -> None:
     """Start the Sparv preloader socket server."""
     socket_file = Path(socket_path)
     if socket_file.exists():

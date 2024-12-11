@@ -1,4 +1,7 @@
 """Handler for log messages, both from the logging library and from Snakemake."""
+
+from __future__ import annotations
+
 import datetime
 import logging
 import logging.handlers
@@ -10,9 +13,10 @@ import struct
 import threading
 import time
 from collections import OrderedDict, defaultdict
+from collections.abc import Iterable
 from datetime import timedelta
 from pathlib import Path
-from typing import Optional
+from typing import Any
 
 from pythonjsonlogger import jsonlogger
 from rich import box, progress
@@ -40,7 +44,12 @@ INTERNAL = 100
 logging.addLevelName(INTERNAL, "INTERNAL")
 
 
-def _log_progress(self, progress=None, advance=None, total=None):
+def _log_progress(
+    self: logging.Logger,
+    progress: int | None = None,
+    advance: int | None = None,
+    total: int | None = None
+) -> None:
     """Log progress of task."""
     if self.isEnabledFor(INTERNAL):
         self._log(INTERNAL, "progress", (), extra={"progress": progress, "advance": advance, "total": total,
@@ -60,7 +69,7 @@ FINAL = 80
 logging.addLevelName(FINAL, "FINAL")
 
 
-def _export_dirs(self, dirs):
+def _export_dirs(self: logging.Logger, dirs: list[str]) -> None:
     """Send list of export dirs to log handler."""
     if self.isEnabledFor(INTERNAL):
         self._log(INTERNAL, "export_dirs", (), extra={"export_dirs": dirs})
@@ -87,7 +96,7 @@ missing_annotations_msg = (
 class LogRecordStreamHandler(socketserver.StreamRequestHandler):
     """Handler for streaming logging requests."""
 
-    def handle(self):
+    def handle(self) -> None:
         """Handle multiple requests - each expected to be a 4-byte length followed by the LogRecord in pickle format."""
         while True:
             chunk = self.connection.recv(4)
@@ -102,7 +111,7 @@ class LogRecordStreamHandler(socketserver.StreamRequestHandler):
             self.handle_log_record(record)
 
     @staticmethod
-    def handle_log_record(record):
+    def handle_log_record(record: logging.LogRecord) -> None:
         """Handle log record."""
         sparv_logger = logging.getLogger("sparv_logging")
         sparv_logger.handle(record)
@@ -111,11 +120,11 @@ class LogRecordStreamHandler(socketserver.StreamRequestHandler):
 class LogLevelCounterHandler(logging.Handler):
     """Handler that counts the number of log messages per log level."""
 
-    def __init__(self, count_dict, *args, **kwargs):
+    def __init__(self, count_dict: dict[str, int], *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.levelcount = count_dict
 
-    def emit(self, record):
+    def emit(self, record: logging.LogRecord) -> None:
         """Increment level counter for each log message."""
         if record.levelno < FINAL:
             self.levelcount[record.levelname] += 1
@@ -124,7 +133,7 @@ class LogLevelCounterHandler(logging.Handler):
 class FileHandlerWithDirCreation(logging.FileHandler):
     """FileHandler which creates necessary directories when the first log message is handled."""
 
-    def emit(self, record):
+    def emit(self, record: logging.LogRecord) -> None:
         """Emit a record and create necessary directories if needed."""
         if self.stream is None:
             os.makedirs(os.path.dirname(self.baseFilename), exist_ok=True)
@@ -135,7 +144,7 @@ class InternalFilter(logging.Filter):
     """Filter out internal log messages."""
 
     @staticmethod
-    def filter(record):
+    def filter(record: logging.LogRecord) -> bool:
         """Filter out internal records."""
         return record.levelno < INTERNAL
 
@@ -144,7 +153,7 @@ class ProgressInternalFilter(logging.Filter):
     """Filter out progress and internal log messages."""
 
     @staticmethod
-    def filter(record):
+    def filter(record: logging.LogRecord) -> bool:
         """Filter out progress and internal records."""
         return record.levelno < PROGRESS
 
@@ -152,14 +161,14 @@ class ProgressInternalFilter(logging.Filter):
 class InternalLogHandler(logging.Handler):
     """Handler for internal log messages."""
 
-    def __init__(self, export_dirs_list, progress_, jobs, job_ids):
+    def __init__(self, export_dirs_list: set, progress_: progress.Progress, jobs: OrderedDict, job_ids: dict) -> None:
         self.export_dirs_list = export_dirs_list
         self.progress: progress.Progress = progress_
         self.jobs = jobs
         self.job_ids = job_ids
         super().__init__()
 
-    def emit(self, record):
+    def emit(self, record: logging.LogRecord) -> None:
         """Handle log record."""
         if record.msg == "export_dirs":
             self.export_dirs_list.update(record.export_dirs)
@@ -199,13 +208,13 @@ class ModifiedRichHandler(RichHandler):
 class ProgressWithTable(progress.Progress):
     """Progress bar with additional table."""
 
-    def __init__(self, all_tasks, current_tasks, max_len, *args, **kwargs):
+    def __init__(self, all_tasks: dict, current_tasks: OrderedDict, max_len: int, *args: Any, **kwargs: Any) -> None:
         self.all_tasks = all_tasks
         self.current_tasks = current_tasks
         self.task_max_len = max_len
         super().__init__(*args, **kwargs)
 
-    def get_renderables(self):
+    def get_renderables(self) -> Iterable[progress.RenderableType]:
         """Get a number of renderables for the progress display."""
         # Progress bar
         yield self.make_tasks_table(self.tasks[0:1])
@@ -245,8 +254,18 @@ class LogHandler:
 
     icon = "\U0001f426"
 
-    def __init__(self, progressbar=True, log_level=None, log_file_level=None, simple=False, stats=False,
-                 pass_through=False, dry_run=False, keep_going=False, json=False):
+    def __init__(
+        self,
+        progressbar: bool = True,
+        log_level: str | None = None,
+        log_file_level: str | None = None,
+        simple: bool = False,
+        stats: bool = False,
+        pass_through: bool = False,
+        dry_run: bool = False,
+        keep_going: bool = False,
+        json: bool = False
+    ) -> None:
         """Initialize log handler.
 
         Args:
@@ -286,8 +305,8 @@ class LogHandler:
         self.terminated = False
 
         # Progress bar related variables
-        self.progress: Optional[progress.Progress] = None
-        self.bar: Optional[progress.TaskID] = None
+        self.progress: progress.Progress | None = None
+        self.bar: progress.TaskID | None = None
         self.bar_started: bool = False
         self.last_percentage = 0
         self.current_jobs = OrderedDict()
@@ -308,7 +327,7 @@ class LogHandler:
             # When using progress bar, we must hold off on setting up logging until after the bar is initialized
             self.setup_loggers()
 
-    def setup_loggers(self):
+    def setup_loggers(self) -> None:
         """Set up log handlers for logging to stdout and log file."""
         if not self.log_level or not self.log_file_level:
             return
@@ -372,7 +391,7 @@ class LogHandler:
         internal_handler.setLevel(INTERNAL)
         self.logger.addHandler(internal_handler)
 
-    def setup_bar(self):
+    def setup_bar(self) -> None:
         """Initialize the progress bar but don't start it yet."""
         console.print()
         progress_layout = [
@@ -394,36 +413,36 @@ class LogHandler:
         # Logging needs to be set up after the bar, to make use of its print hook
         self.setup_loggers()
 
-    def start_bar(self, total: int):
+    def start_bar(self, total: int) -> None:
         """Start progress bar."""
         self.progress.update(self.bar, total=total)
         self.progress.start_task(self.bar)
         self.bar_started = True
 
-    def info(self, msg):
+    def info(self, msg: str) -> None:
         """Print info message."""
         if self.json:
             self.logger.log(FINAL, msg)
         else:
             console.print(Text(msg, style="green"))
 
-    def warning(self, msg):
+    def warning(self, msg: str) -> None:
         """Print warning message."""
         if self.json:
             self.logger.log(FINAL, msg)
         else:
             console.print(Text(msg, style="yellow"))
 
-    def error(self, msg):
+    def error(self, msg: str) -> None:
         """Print error message."""
         if self.json:
             self.logger.log(FINAL, msg)
         else:
             console.print(Text(msg, style="red"))
 
-    def log_handler(self, msg):
+    def log_handler(self, msg: dict) -> None:
         """Log handler for Snakemake displaying a progress bar."""
-        def missing_config_message(source):
+        def missing_config_message(source: str) -> None:
             """Create error message when config variables are missing."""
             _variables = messages["missing_configs"][source]
             _message = "The following config variable{} need{} to be set:\n • {}".format(
@@ -431,7 +450,7 @@ class LogHandler:
                 "\n • ".join(_variables))
             self.messages["error"].append((source, _message))
 
-        def missing_binary_message(source):
+        def missing_binary_message(source: str) -> None:
             """Create error message when binaries are missing."""
             _binaries = messages["missing_binaries"][source]
             _message = "The following executable{} {} needed but could not be found:\n • {}".format(
@@ -439,7 +458,7 @@ class LogHandler:
                 "\n • ".join(_binaries))
             self.messages["error"].append((source, _message))
 
-        def missing_class_message(source, classes=None):
+        def missing_class_message(source: str, classes: list[str] | None = None) -> None:
             """Create error message when class variables are missing."""
             _variables = messages["missing_classes"][source]
             if not _variables:
@@ -457,7 +476,7 @@ class LogHandler:
 
             self.messages["error"].append((source, _message))
 
-        def missing_annotations_or_files(source, files):
+        def missing_annotations_or_files(source: str, files: str) -> None:
             """Create error message when annotations or other files are missing."""
             errmsg = []
             missing_annotations = []
@@ -678,7 +697,7 @@ class LogHandler:
                     # not leading to a full traceback being printed (due to Snakemake's handling of exceptions)
                     raise BrokenPipeError
 
-    def stop(self):
+    def stop(self) -> None:
         """Stop the progress bar and output any messages."""
         # Make sure this is only run once
         if not self.finished:
@@ -792,7 +811,7 @@ class LogHandler:
                     self.info(f"{spacer}Sparv was stopped by a TERM signal")
 
     @staticmethod
-    def cleanup():
+    def cleanup() -> None:
         """Remove Snakemake log files."""
         snakemake_log_file = logger.get_logfile()
         if snakemake_log_file is not None:
@@ -804,7 +823,13 @@ class LogHandler:
                     pass
 
 
-def setup_logging(log_server, log_level: str = "warning", log_file_level: str = "warning", file=None, job=None):
+def setup_logging(
+    log_server: tuple[str | bytes | bytearray, int],
+    log_level: str = "warning",
+    log_file_level: str = "warning",
+    file: str | None = None,
+    job: str | None = None
+) -> None:
     """Set up logging with socket handler."""
     # Set logger to use the lowest selected log level, but never higher than warning (we still want to count warnings)
     log_level = min(logging.WARNING, getattr(logging, log_level.upper()), getattr(logging, log_file_level.upper()))

@@ -1,7 +1,9 @@
 """Paths used by Sparv."""
+
+from __future__ import annotations
+
 import os
 from pathlib import Path
-from typing import Optional, Union
 
 import appdirs
 import yaml
@@ -12,7 +14,7 @@ except ImportError:
     from yaml import SafeLoader
 
 
-def read_sparv_config():
+def read_sparv_config() -> dict:
     """Get Sparv data path from config file."""
     data = {}
     if sparv_config_file.is_file():
@@ -24,7 +26,7 @@ def read_sparv_config():
     return data
 
 
-def get_data_path(subpath: Union[str, Path] = "") -> Optional[Path]:
+def get_data_path(subpath: str | Path = "") -> Path | None:
     """Get location of directory containing Sparv models, binaries and other files."""
     global data_dir
 

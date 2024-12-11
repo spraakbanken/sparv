@@ -443,7 +443,7 @@ def _print_modules(modules_data: dict) -> None:
                 console.print()
 
 
-def print_annotation_classes():
+def print_annotation_classes() -> None:
     """Print info about annotation classes."""
     console.print()
     table = Table(box=box.SIMPLE, show_header=False, title_justify="left")
@@ -472,7 +472,7 @@ def print_annotation_classes():
     console.print(table)
 
 
-def print_languages():
+def print_languages() -> None:
     """Print all supported languages."""
     console.print()
     table = Table(title="Supported languages", box=box.SIMPLE, show_header=False, title_justify="left")
@@ -492,12 +492,12 @@ def print_languages():
         console.print(table)
 
 
-def get_custom_module_description(name):
+def get_custom_module_description(name: str) -> str:
     """Return string with description for custom modules."""
     return "Custom module from corpus directory ({}.py).".format(name.split(".")[1])
 
 
-def print_installers(snake_storage, uninstall: bool = False):
+def print_installers(snake_storage: snake_utils.SnakeStorage, uninstall: bool = False) -> None:
     """Print list of installers or uninstallers."""
     if uninstall:
         targets = snake_storage.uninstall_targets

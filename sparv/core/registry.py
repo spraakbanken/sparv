@@ -1,4 +1,7 @@
 """Builds a registry of all available annotator functions in Sparv modules."""
+
+from __future__ import annotations
+
 import importlib
 import inspect
 import pkgutil
@@ -7,7 +10,7 @@ from collections import defaultdict
 from collections.abc import Container
 from enum import Enum
 from types import ModuleType
-from typing import Callable, get_type_hints, List, Optional, Tuple, TypeVar
+from typing import Any, Callable, List, Tuple, TypeVar, get_type_hints  # noqa: UP035
 
 import typing_inspect
 
@@ -47,7 +50,7 @@ class Annotator(Enum):
 class Module:
     """Class holding data about Sparv modules."""
 
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         self.name = name
         self.functions: dict[str, dict] = {}
         self.description = None
@@ -229,9 +232,9 @@ def add_module_to_registry(module: ModuleType, module_name: str, skip_language_c
     del _potential_annotators[module_name]
 
 
-def wizard(config_keys: list[str], source_structure: bool = False):
+def wizard(config_keys: list[str], source_structure: bool = False) -> Callable:
     """Return a wizard decorator."""
-    def decorator(f):
+    def decorator(f: Callable) -> Callable:
         """Add wrapped function to wizard registry."""
         wizards.append((f, tuple(config_keys), source_structure))
         return f
@@ -258,27 +261,27 @@ def _get_module_name(module_string: str) -> str:
 def _annotator(
     description: str,
     a_type: Annotator,
-    name: Optional[str] = None,
-    file_extension: Optional[str] = None,
-    outputs=(),
-    text_annotation=None,
-    structure=None,
-    language: Optional[list[str]] = None,
-    config: Optional[list[Config]] = None,
-    priority: Optional[int] = None,
-    order: Optional[int] = None,
+    name: str | None = None,
+    file_extension: str | None = None,
+    outputs: list[str] | Config | None = None,
+    text_annotation: str | None = None,
+    structure: type[SourceStructureParser] | None = None,
+    language: list[str] | None = None,
+    config: list[Config] | None = None,
+    priority: int | None = None,
+    order: int | None = None,
     abstract: bool = False,
-    wildcards: Optional[list[Wildcard]] = None,
-    preloader: Optional[Callable] = None,
-    preloader_params: Optional[list[str]] = None,
-    preloader_target: Optional[str] = None,
-    preloader_cleanup: Optional[Callable] = None,
+    wildcards: list[Wildcard] | None = None,
+    preloader: Callable | None = None,
+    preloader_params: list[str] | None = None,
+    preloader_target: str | None = None,
+    preloader_cleanup: Callable | None = None,
     preloader_shared: bool = True,
-    uninstaller: Optional[str] = None,
-):
+    uninstaller: str | None = None,
+) -> Callable:
     """Return a decorator for annotator functions, adding them to annotator registry."""
 
-    def decorator(f):
+    def decorator(f: Callable) -> Callable:
         """Add wrapped function to registry."""
         module_name = _get_module_name(f.__module__)
         _potential_annotators[module_name].append(
@@ -313,18 +316,18 @@ def _annotator(
 
 def annotator(
     description: str,
-    name: Optional[str] = None,
-    language: Optional[list[str]] = None,
-    config: Optional[list[Config]] = None,
-    priority: Optional[int] = None,
-    order: Optional[int] = None,
-    wildcards: Optional[list[Wildcard]] = None,
-    preloader: Optional[Callable] = None,
-    preloader_params: Optional[list[str]] = None,
-    preloader_target: Optional[str] = None,
-    preloader_cleanup: Optional[Callable] = None,
+    name: str | None = None,
+    language: list[str] | None = None,
+    config: list[Config] | None = None,
+    priority: int | None = None,
+    order: int | None = None,
+    wildcards: list[Wildcard] | None = None,
+    preloader: Callable | None = None,
+    preloader_params: list[str] | None = None,
+    preloader_target: str | None = None,
+    preloader_cleanup: Callable | None = None,
     preloader_shared: bool = True,
-):
+) -> Callable:
     """Return a decorator for annotator functions, adding them to the annotator registry."""
     return _annotator(
         description=description,
@@ -343,9 +346,9 @@ def annotator(
     )
 
 
-def importer(description: str, file_extension: str, name: Optional[str] = None, outputs=None,
-             text_annotation: Optional[str] = None, structure: Optional[type[SourceStructureParser]] = None,
-             config: Optional[list[Config]] = None):
+def importer(description: str, file_extension: str, name: str | None = None, outputs: list[str] | Config | None = None,
+             text_annotation: str | None = None, structure: type[SourceStructureParser] | None = None,
+             config: list[Config] | None = None) -> Callable:
     """Return a decorator for importer functions.
 
     Args:
@@ -370,13 +373,13 @@ def importer(description: str, file_extension: str, name: Optional[str] = None, 
 
 def exporter(
     description: str,
-    name: Optional[str] = None,
-    config: Optional[list[Config]] = None,
-    language: Optional[list[str]] = None,
-    priority: Optional[int] = None,
-    order: Optional[int] = None,
+    name: str | None = None,
+    config: list[Config] | None = None,
+    language: list[str] | None = None,
+    priority: int | None = None,
+    order: int | None = None,
     abstract: bool = False,
-):
+) -> Callable:
     """Return a decorator for exporter functions.
 
     Args:
@@ -404,12 +407,12 @@ def exporter(
 
 def installer(
     description: str,
-    name: Optional[str] = None,
-    config: Optional[list[Config]] = None,
-    language: Optional[list[str]] = None,
-    priority: Optional[int] = None,
-    uninstaller: Optional[str] = None,
-):
+    name: str | None = None,
+    config: list[Config] | None = None,
+    language: list[str] | None = None,
+    priority: int | None = None,
+    uninstaller: str | None = None,
+) -> Callable:
     """Return a decorator for installer functions."""
     return _annotator(
         description=description,
@@ -424,11 +427,11 @@ def installer(
 
 def uninstaller(
     description: str,
-    name: Optional[str] = None,
-    config: Optional[list[Config]] = None,
-    language: Optional[list[str]] = None,
-    priority: Optional[int] = None,
-):
+    name: str | None = None,
+    config: list[Config] | None = None,
+    language: list[str] | None = None,
+    priority: int | None = None,
+) -> Callable:
     """Return a decorator for uninstaller functions."""
     return _annotator(
         description=description,
@@ -442,12 +445,12 @@ def uninstaller(
 
 def modelbuilder(
     description: str,
-    name: Optional[str] = None,
-    config: Optional[list[Config]] = None,
-    language: Optional[list[str]] = None,
-    priority: Optional[int] = None,
-    order: Optional[int] = None,
-):
+    name: str | None = None,
+    config: list[Config] | None = None,
+    language: list[str] | None = None,
+    priority: int | None = None,
+    order: int | None = None,
+) -> Callable:
     """Return a decorator for modelbuilder functions."""
     return _annotator(
         description=description,
@@ -460,7 +463,7 @@ def modelbuilder(
     )
 
 
-def _add_to_registry(annotator: dict, skip_language_check: bool = False):
+def _add_to_registry(annotator: dict, skip_language_check: bool = False) -> None:
     """Add function to annotator registry. Used by annotator."""
     module_name = annotator["module_name"]
     f_name = annotator["function"].__name__ if not annotator["name"] else annotator["name"]
@@ -591,8 +594,8 @@ def find_implicit_classes() -> None:
 def handle_config(
     cfg: Config,
     module_name: str,
-    rule_name: Optional[str] = None,
-    language: Optional[list[str]] = None
+    rule_name: str | None = None,
+    language: list[str] | None = None
 ) -> None:
     """Handle Config instances."""
     if not cfg.name.startswith(module_name + "."):
@@ -627,7 +630,7 @@ def handle_config(
         raise SparvErrorMessage(f"Missing description for configuration key '{cfg.name}' in module '{module_name}'.")
 
 
-def _expand_class(cls):
+def _expand_class(cls: str) -> str | None:
     """Convert class name to annotation.
 
     Classes from config takes precedence over classes automatically collected from modules.
@@ -642,7 +645,7 @@ def _expand_class(cls):
     return annotation
 
 
-def find_config_variables(string, match_objects: bool = False):
+def find_config_variables(string: str, match_objects: bool = False) -> list[str] | list[re.Match]:
     """Find all config variables in a string and return a list of strings or match objects."""
     if match_objects:
         result = list(re.finditer(r"\[([^\]=[]+)(?:=([^\][]+))?\]", string))
@@ -651,7 +654,7 @@ def find_config_variables(string, match_objects: bool = False):
     return result
 
 
-def find_classes(string, match_objects: bool = False):
+def find_classes(string: str, match_objects: bool = False) -> list[str] | list[re.Match]:
     """Find all class references in a string and return a list of strings or match objects."""
     if match_objects:
         result = list(re.finditer(r"<([^>]+)>", string))
@@ -660,7 +663,7 @@ def find_classes(string, match_objects: bool = False):
     return result
 
 
-def expand_variables(string, rule_name: Optional[str] = None, is_annotation: bool = False) -> tuple[str, list[str]]:
+def expand_variables(string: str, rule_name: str | None = None, is_annotation: bool = False) -> tuple[str, list[str]]:
     """Take a string and replace [config] references with config values, and <class> references with real annotations.
 
     Config references are replaced before classes.
@@ -704,7 +707,7 @@ def expand_variables(string, rule_name: Optional[str] = None, is_annotation: boo
         # Split if list of alternatives
         strings = [s for s in string.split(", ") for string in strings]
 
-    def expand_classes(s: str, parents: set[str]) -> tuple[Optional[str], Optional[str]]:
+    def expand_classes(s: str, parents: set[str]) -> tuple[str | None, str | None]:
         classes = find_classes(s, True)
         if not classes:
             return s, None
@@ -741,7 +744,7 @@ def expand_variables(string, rule_name: Optional[str] = None, is_annotation: boo
     return string, rest
 
 
-def get_type_hint_type(type_hint):
+def get_type_hint_type(type_hint: Any) -> tuple[type, bool, bool]:
     """Given a type hint, return the type, whether it's contained in a List and whether it's Optional."""
     optional = typing_inspect.is_optional_type(type_hint)
     if optional:
@@ -760,7 +763,7 @@ def get_type_hint_type(type_hint):
     return type_, is_list, optional
 
 
-def check_language(corpus_lang: str, langs: list[str], corpus_lang_suffix: Optional[str] = None) -> bool:
+def check_language(corpus_lang: str, langs: list[str], corpus_lang_suffix: str | None = None) -> bool:
     """Check if corpus language is among a list of languages.
 
     Any suffix on corpus_lang will be ignored.

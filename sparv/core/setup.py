@@ -1,11 +1,13 @@
 """Functions for setting up the Sparv data dir and config."""
+
+from __future__ import annotations
+
 import filecmp
 import importlib.resources
 import os
 import pathlib
 import shutil
 import sys
-from typing import Optional
 
 import appdirs
 from rich.padding import Padding
@@ -19,7 +21,7 @@ from sparv.core.console import console
 VERSION_FILE = "version"
 
 
-def check_sparv_version() -> Optional[bool]:
+def check_sparv_version() -> bool | None:
     """Check if the Sparv data dir is outdated.
 
     Returns:
@@ -32,7 +34,7 @@ def check_sparv_version() -> Optional[bool]:
     return None
 
 
-def copy_resource_files(data_dir: pathlib.Path):
+def copy_resource_files(data_dir: pathlib.Path) -> None:
     """Copy resource files to data dir."""
     resources_dir = importlib.resources.files("sparv") / "resources"
     with importlib.resources.as_file(resources_dir) as path:
@@ -50,7 +52,7 @@ def copy_resource_files(data_dir: pathlib.Path):
                 shutil.copy(f, data_dir / rel_f)
 
 
-def reset():
+def reset() -> None:
     """Remove the data dir config file."""
     if paths.sparv_config_file.is_file():
         data_dir = paths.read_sparv_config().get("sparv_data")
@@ -70,7 +72,7 @@ def reset():
         console.print("Nothing to reset.")
 
 
-def run(sparv_datadir: Optional[str] = None):
+def run(sparv_datadir: str | None = None) -> None:
     """Query user about data dir path unless provided by argument, and populate path with files."""
     default_dir = pathlib.Path(appdirs.user_data_dir("sparv"))
     current_dir = paths.get_data_path()

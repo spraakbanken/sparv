@@ -1,5 +1,7 @@
 """Used to run Sparv modules from the command line."""
 
+from __future__ import annotations
+
 import argparse
 import importlib
 import inspect
@@ -10,7 +12,7 @@ from sparv.api.classes import Annotation, AnnotationData, Config, Output, Output
 from sparv.core import log_handler, paths, registry
 
 
-def main(argv=None, log_level: str = "info"):
+def main(argv: list[str] | None = None, log_level: str = "info") -> None:
     """Parse command line arguments and execute the requested Sparv module."""
     # Set up logging
     logging.basicConfig(format=log_handler.LOG_FORMAT, datefmt=log_handler.DATE_FORMAT, level=log_level.upper(),

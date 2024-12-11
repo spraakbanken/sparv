@@ -1,10 +1,11 @@
 """Functions for parsing the Sparv configuration files."""
+from __future__ import annotations
 
 import copy
 from collections import defaultdict
 from functools import reduce
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any
 
 import yaml
 import yaml.scanner
@@ -51,7 +52,7 @@ class Unset:
     """Class used to represent a config value that isn't set."""
 
 
-def read_yaml(yaml_file: Union[str, Path]) -> dict:
+def read_yaml(yaml_file: str | Path) -> dict:
     """Read YAML file and handle errors."""
     # Handle dates as strings
     yaml.constructor.SafeConstructor.yaml_constructors["tag:yaml.org,2002:timestamp"] = (
@@ -70,7 +71,7 @@ def read_yaml(yaml_file: Union[str, Path]) -> dict:
     return data or {}
 
 
-def load_config(config_file: Optional[str], config_dict: Optional[dict] = None) -> None:
+def load_config(config_file: str | None, config_dict: dict | None = None) -> None:
     """Load both default config and corpus config and merge into one config structure.
 
     Args:
@@ -91,7 +92,7 @@ def load_config(config_file: Optional[str], config_dict: Optional[dict] = None) 
         global _config_user
         _config_user = read_yaml(config_file) or {}
 
-        def handle_parents(cfg, current_dir=Path()) -> dict:
+        def handle_parents(cfg: dict, current_dir: Path = Path()) -> dict:
             """Combine parent configs recursively."""
             combined_parents = {}
             if cfg.get(PARENT):
@@ -126,14 +127,14 @@ def load_config(config_file: Optional[str], config_dict: Optional[dict] = None) 
                                     function="config")
 
 
-def _get(name: str, config_dict=None):
+def _get(name: str, config_dict: dict | None = None) -> Any:
     """Try to get value from config, raising an exception if key doesn't exist."""
     config_dict = config_dict if config_dict is not None else config
     # Handle dot notation
     return reduce(lambda c, k: c[k], name.split("."), config_dict)
 
 
-def set_value(name: str, value: Any, overwrite=True, config_dict=None):
+def set_value(name: str, value: Any, overwrite: bool = True, config_dict: dict | None = None) -> None:
     """Set value in config, possibly using dot notation."""
     keys = name.split(".")
     prev = config_dict if config_dict is not None else config
@@ -146,7 +147,7 @@ def set_value(name: str, value: Any, overwrite=True, config_dict=None):
         prev.setdefault(keys[-1], value)
 
 
-def get(name: str, default=None):
+def get(name: str, default: Any = None) -> Any:
     """Get value from config, or return the supplied 'default' if key doesn't exist."""
     try:
         return _get(name)
@@ -154,7 +155,7 @@ def get(name: str, default=None):
         return default
 
 
-def set_default(name: str, default=None):
+def set_default(name: str, default: Any = None) -> None:
     """Set default value for config variable."""
     # If config variable is already set to None but we get a better default value, replace the existing
     if default is not None:
@@ -167,18 +168,18 @@ def set_default(name: str, default=None):
         set_value(name, default, overwrite=False)
 
 
-def extend_config(new_config):
+def extend_config(new_config: dict) -> None:
     """Extend existing config with new values for missing keys."""
     _merge_dicts(config, new_config)
 
 
-def update_config(new_config):
+def update_config(new_config: dict) -> None:
     """Update existing config with new values, replacing existing values."""
     global config
     config = _merge_dicts(copy.deepcopy(new_config), config)
 
 
-def _merge_dicts(d: dict, default: dict):
+def _merge_dicts(d: dict, default: dict) -> dict:
     """Merge dict 'd' with dict 'default', letting values from 'd' override default values."""
     if isinstance(d, dict) and isinstance(default, dict):
         for k, v in default.items():
@@ -189,7 +190,7 @@ def _merge_dicts(d: dict, default: dict):
     return d
 
 
-def add_to_structure(cfg: Config, annotator: Optional[str] = None):
+def add_to_structure(cfg: Config, annotator: str | None = None) -> None:
     """Add config variable to config structure."""
     set_value(
         cfg.name,
@@ -204,23 +205,23 @@ def add_to_structure(cfg: Config, annotator: Optional[str] = None):
         add_config_usage(cfg.name, annotator)
 
 
-def get_config_description(name):
+def get_config_description(name: str) -> str | None:
     """Get description for config key."""
     cfg = _get(name, config_structure).get("_cfg")
     return cfg.description if cfg else None
 
 
-def get_config_object(name: str) -> Optional[Config]:
+def get_config_object(name: str) -> Config | None:
     """Get original Config object for config key."""
     return _get(name, config_structure).get("_cfg")
 
 
-def add_config_usage(config_key, annotator):
+def add_config_usage(config_key: str, annotator: str) -> None:
     """Add an annotator to the list of annotators that are using a given config key."""
     config_usage[config_key].add(annotator)
 
 
-def validate_module_config():
+def validate_module_config() -> None:
     """Make sure that modules don't try to access undeclared config keys."""
     for config_key in config_usage:
         try:
@@ -233,7 +234,7 @@ def validate_module_config():
                     "are" if len(annotators) > 1 else "is", config_key), "sparv", "config") from None
 
 
-def load_presets(lang, lang_variety):
+def load_presets(lang: str, lang_variety: str | None) -> dict:
     """Read presets files and return dictionaries with all available presets annotations and preset classes."""
     class_dict = {}
     full_lang = lang
@@ -267,7 +268,7 @@ def load_presets(lang, lang_variety):
     return class_dict
 
 
-def resolve_presets(annotations, class_dict, preset_classes):
+def resolve_presets(annotations: list[str], class_dict: dict, preset_classes: dict) -> tuple[list[str], dict]:
     """Resolve annotation presets into actual annotations."""
     result_annotations = []
     for annotation in annotations:
@@ -280,7 +281,7 @@ def resolve_presets(annotations, class_dict, preset_classes):
     return result_annotations, preset_classes
 
 
-def apply_presets():
+def apply_presets() -> None:
     """Resolve annotations from presets and set preset classes."""
     # Load annotation presets and classes
     class_dict = load_presets(get("metadata.language"), get("metadata.variety"))
@@ -304,7 +305,7 @@ def apply_presets():
     config["classes"] = classes
 
 
-def handle_text_annotation():
+def handle_text_annotation() -> None:
     """Copy text annotation to text class."""
     text_ann = get("import.text_annotation")
 

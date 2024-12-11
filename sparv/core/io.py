@@ -1,5 +1,7 @@
 """Corpus-related util functions like reading and writing annotations."""
 
+from __future__ import annotations
+
 import bz2
 import gzip
 import heapq
@@ -9,7 +11,7 @@ import os
 import pickle
 from collections.abc import Iterator
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any
 
 from sparv.api.classes import BaseAnnotation, BaseOutput
 from sparv.core import paths
@@ -36,13 +38,13 @@ _compressed_open = {
 }
 
 
-def annotation_exists(annotation: BaseAnnotation, source_file: Optional[str] = None) -> bool:
+def annotation_exists(annotation: BaseAnnotation, source_file: str | None = None) -> bool:
     """Check if an annotation file exists."""
     annotation_path = get_annotation_path(source_file or annotation.source_file, annotation, data=annotation.data)
     return annotation_path.exists()
 
 
-def remove_annotation(annotation: BaseAnnotation, source_file: Optional[str] = None) -> None:
+def remove_annotation(annotation: BaseAnnotation, source_file: str | None = None) -> None:
     """Remove an annotation file."""
     annotation_path = get_annotation_path(source_file or annotation.source_file, annotation, data=annotation.data)
     annotation_path.unlink(missing_ok=True)
@@ -173,7 +175,7 @@ def read_annotation(
             yield next(all_annotations[ann])
 
 
-def read_annotation_attributes(source_file: str, annotations: Union[list[BaseAnnotation], tuple[BaseAnnotation, ...]],
+def read_annotation_attributes(source_file: str, annotations: list[BaseAnnotation] | tuple[BaseAnnotation, ...],
                                with_annotation_name: bool = False) -> Iterator[tuple]:
     """Yield tuples of multiple attributes on the same annotation."""
     assert isinstance(annotations, (tuple, list)), "'annotations' argument must be tuple or list"
@@ -187,7 +189,7 @@ def _read_single_annotation(
     source_file: str,
     annotation: str,
     with_annotation_name: bool,
-    root: Optional[Path] = None
+    root: Path | None = None
 ) -> Iterator[Any]:
     """Read a single annotation file."""
     ann_file = get_annotation_path(source_file, annotation, root)
@@ -199,7 +201,7 @@ def _read_single_annotation(
     logger.debug("Read %d items: %s%s%s", ctr, source_file, "/" if source_file else "", annotation)
 
 
-def write_data(source_file: Optional[str], name: Union[BaseAnnotation, str], value: Any) -> None:
+def write_data(source_file: str | None, name: BaseAnnotation | str, value: Any) -> None:
     """Write arbitrary data to file in workdir directory."""
     file_path = get_annotation_path(source_file, name, data=True)
     file_path.parent.mkdir(parents=True, exist_ok=True)
@@ -218,7 +220,7 @@ def write_data(source_file: Optional[str], name: Union[BaseAnnotation, str], val
         )
 
 
-def read_data(source_file: Optional[str], name: Union[BaseAnnotation, str]) -> Any:
+def read_data(source_file: str | None, name: BaseAnnotation | str) -> Any:
     """Read arbitrary data from file in workdir directory."""
     file_path = get_annotation_path(source_file, name, data=True)
     data = next(read_annotation_file(file_path, is_data=True))
@@ -234,7 +236,7 @@ def read_data(source_file: Optional[str], name: Union[BaseAnnotation, str]) -> A
     return data
 
 
-def split_annotation(annotation: Union[BaseAnnotation, str]) -> tuple[str, str]:
+def split_annotation(annotation: BaseAnnotation | str) -> tuple[str, str]:
     """Split annotation into annotation name and attribute."""
     if isinstance(annotation, BaseAnnotation):
         annotation = annotation.name
@@ -242,12 +244,12 @@ def split_annotation(annotation: Union[BaseAnnotation, str]) -> tuple[str, str]:
     return elem, attr
 
 
-def join_annotation(name: str, attribute: Optional[str]) -> str:
+def join_annotation(name: str, attribute: str | None) -> str:
     """Join annotation name and attribute."""
     return ELEM_ATTR_DELIM.join((name, attribute)) if attribute else name
 
 
-def get_annotation_path(source_file: Optional[str], annotation: Union[BaseAnnotation, str], root: Optional[Path] = None,
+def get_annotation_path(source_file: str | None, annotation: BaseAnnotation | str, root: Path | None = None,
                         data: bool = False) -> Path:
     """Construct a path to an annotation file given a source filename and annotation."""
     chunk = ""
