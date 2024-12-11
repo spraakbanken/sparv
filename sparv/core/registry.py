@@ -7,7 +7,7 @@ from collections import defaultdict
 from collections.abc import Container
 from enum import Enum
 from types import ModuleType
-from typing import Callable, List, Optional, Tuple, TypeVar
+from typing import Callable, get_type_hints, List, Optional, Tuple, TypeVar
 
 import typing_inspect
 
@@ -488,6 +488,10 @@ def _add_to_registry(annotator: dict, skip_language_check: bool = False):
             sparv_config.handle_text_annotation()
 
     has_marker = False  # Needed by installers and uninstallers
+
+    # Convert type hints from strings to actual types (needed because of __future__.annotations)
+    # TODO: Use the eval_str parameter for inspect.signature instead, once we target Python 3.10
+    annotator["function"].__annotations__ = get_type_hints(annotator["function"])
 
     for val in inspect.signature(annotator["function"]).parameters.values():
         if isinstance(val.default, BaseOutput):
