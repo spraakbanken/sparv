@@ -1,5 +1,4 @@
 """Functions related to handling plugins."""
-
 import json
 import subprocess
 import sys
@@ -10,6 +9,25 @@ from importlib_metadata import Distribution, entry_points
 from rich.table import Table
 
 from sparv.core.console import console
+
+
+def check_pip() -> bool:
+    """Check if pip is available in the current environment.
+
+    An error message is printed if pip is not available.
+
+    Returns:
+        True if pip is available, False otherwise.
+    """
+    try:
+        import pip  # noqa
+    except ImportError:
+        console.print(
+            "[red]ERROR:[/] 'pip' is required to install plugins, but it is not available in the current environment."
+        )
+        return False
+
+    return True
 
 
 def install_plugin(plugin_package: str, editable: bool = True, verbose: bool = False) -> bool:
@@ -23,6 +41,9 @@ def install_plugin(plugin_package: str, editable: bool = True, verbose: bool = F
     Returns:
         True if the plugin was successfully installed, False otherwise.
     """
+    if not check_pip():
+        return False
+
     extra_args = []
 
     if Path(plugin_package).is_dir():
@@ -55,6 +76,9 @@ def uninstall_plugin(plugin_name: str, verbose: bool = False) -> bool:
     Returns:
         True if the plugin was successfully uninstalled, False otherwise.
     """
+    if not check_pip():
+        return False
+
     found_entry_points = {e.name: e for e in entry_points(group="sparv.plugin")}
     found_entry_points_dist = {e.dist.name: e for e in found_entry_points.values()}
     entry_point = found_entry_points.get(plugin_name) or found_entry_points_dist.get(plugin_name)
