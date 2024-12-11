@@ -240,19 +240,77 @@ Please follow the installation instructions given in the fast_align repository a
 `atools` and `fast_align` in your path. Alternatively you can place them in the [Sparv data directory](#setting-up-sparv) under
 `bin/word_alignment`. -->
 
-## Plugins
+## Installing and Uninstalling Plugins
 
-Sparv plugins are handled by the `sparv plugins` command.
+Sparv plugins are managed using the `sparv plugins` command. This command allows you to **install**, **uninstall**, and
+**list** plugins. Under the hood, plugins are standard Python packages, so Sparv relies on `pip` to handle
+installations. This means you can install plugins from any source supported by `pip`, such as PyPI, remote repositories,
+or local directories.
 
-To install a plugin, use the command `sparv plugins install [pointer-to-sparv-plugin]`.
+### Installing Plugins
 
-The `pointer-to-sparv-plugin` can be a package available on the [Python Package Index (PyPI)](https://pypi.org/), a
-remote public repository, or a local directory on your machine.
+To install a plugin, use the following command:
 
-To uninstall a plugin, use the command `sparv plugins uninstall [name-of-sparv-plugin]`.
+```shell
+sparv plugins install [plugin-source]
+```
 
-It is also possible to install and uninstall plugins using the `pip` package manager, as plugins are regular Python
-packages.
+The `[plugin-source]` can refer to different locations:
+
+**Install from PyPI**
+
+To install a plugin published on the [Python Package Index (PyPI)](https://pypi.org/), use its name, e.g.:
+
+```shell
+sparv plugins install sparv-sbx-uppercase
+```
+
+**Install from a Remote Repository**
+
+To install a plugin from a remote repository (e.g., GitHub), provide the repository URL or archive link:
+
+```shell
+sparv plugins install https://github.com/spraakbanken/sparv-plugin-template/archive/main.zip
+```
+
+**Install from a Local Directory**
+
+To install a plugin from a local directory, use the path to the directory:
+
+```shell
+sparv plugins install ./sparv-sbx-uppercase
+```
+
+Using the `-e` flag when installing from a local directory will install the plugin in **editable mode**, meaning that
+changes to the plugin code will immediately be available to Sparv without having to reinstall the plugin:
+
+```shell
+sparv plugins install -e ./sparv-sbx-uppercase
+```
+
+### Listing Installed Plugins
+
+To view all installed plugins, run:
+```shell
+sparv plugins list
+```
+
+### Uninstalling Plugins
+
+To uninstall a plugin, use the following command:
+
+```shell
+sparv plugins uninstall [plugin-name]
+```
+
+The `[plugin-name]` can be either the package name (e.g. `sparv-sbx-uppercase`), or the plugin name used within Sparv
+(e.g. `sbx_uppercase`).
+
+For example:
+
+```shell
+sparv plugins uninstall sbx_uppercase
+```
 
 ## Uninstalling Sparv
 

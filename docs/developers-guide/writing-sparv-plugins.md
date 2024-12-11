@@ -241,51 +241,17 @@ Note that all functions marked with `swe` will also be available for these corpo
 
 ## Installing and Uninstalling Plugins
 
-Sparv plugins are managed by the `sparv plugins` command. This command can be used to install, uninstall, and list
-installed plugins.
+Installation and uninstallation of Sparv plugins are handled by the `sparv plugins` command. How to use this command is
+described in the [Installation and Setup](../user-manual/installation-and-setup.md#installing-and-uninstalling-plugins)
+section of the user manual.
 
-A Sparv plugin can be installed from the [Python Package Index (PyPI)](https://pypi.org/), a remote public repository,
-or from a local directory stored anywhere on your machine. To install a plugin, simply run:
-```
-sparv plugins install [pointer-to-sparv-plugin]
-```
-
-So if you are trying to install the `sparv-sbx-uppercase` plugin, and it exists on PyPI, you can install it like this:
-```
-sparv plugins install sparv-sbx-uppercase
-```
-
-For installing a plugin from a public repository from GitHub, the installation command looks like this:
-```
-sparv plugins install https://github.com/spraakbanken/sparv-plugin-template/archive/main.zip
-```
-
-For installing a plugin from a local directory, the installation command looks like this (run from the directory
-containing the plugin):
-```
-sparv plugins install ./sparv-sbx-uppercase
-```
-
-Using the `-e` flag when installing from a local directory will install the plugin in editable mode, which means that
-changes to the plugin code will be immediately available to Sparv without having to reinstall the plugin:
-```
-sparv plugins install -e ./sparv-sbx-uppercase
-```
-
-After installation, the plugin functionality should be available, and the installed module will be treated like any
-other module within the Sparv Pipeline.
-
-To list all installed plugins, run:
-```
-sparv plugins list
-```
-
-You can uninstall the plugin by running:
-```
-sparv plugins uninstall [name-of-sparv-plugin]
-```
-In this example `[name-of-sparv-plugin]` would be `sparv-sbx-uppercase`.
-
+> [!TIP]
+> To make things easier during development, you can install a plugin in **editable mode**. This means that changes to
+> the plugin code will immediately be available to Sparv without having to reinstall the plugin. This is done by using
+> the `-e` flag when installing from a local directory:
+> ```shell
+> sparv plugins install -e ./sparv-sbx-uppercase
+> ```
 
 ## Advanced Features
 This section contains documentation for more advanced features which may be used but are not necessary for writing
