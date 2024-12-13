@@ -103,8 +103,9 @@ def load_config(config_file: str | None, config_dict: dict | None = None) -> Non
                     parent_path = current_dir / parent
                     config_parent = read_yaml(parent_path)
                     config_parent = handle_parents(config_parent, parent_path.parent)
-                    combined_parents = _merge_dicts(config_parent, combined_parents)
-                cfg = _merge_dicts(cfg, combined_parents)
+                    _merge_dicts(config_parent, combined_parents)
+                    combined_parents = config_parent
+                _merge_dicts(cfg, combined_parents)
             return cfg
 
         # If parent configs are specified, inherit their contents
@@ -116,7 +117,8 @@ def load_config(config_file: str | None, config_dict: dict | None = None) -> Non
 
     # Merge default and corpus config and save to global config variable
     global config
-    config = _merge_dicts(copy.deepcopy(_config_user), _config_default)
+    config = copy.deepcopy(_config_user)
+    _merge_dicts(config, _config_default)
 
     # Make sure that the root level only contains dictionaries or lists to save us a lot of headache
     for key in config:
@@ -175,19 +177,44 @@ def extend_config(new_config: dict) -> None:
 
 def update_config(new_config: dict) -> None:
     """Update existing config with new values, replacing existing values."""
-    global config
-    config = _merge_dicts(copy.deepcopy(new_config), config)
+    _merge_dicts_replace(config, new_config)
 
 
-def _merge_dicts(d: dict, default: dict) -> dict:
-    """Merge dict 'd' with dict 'default', letting values from 'd' override default values."""
+def _merge_dicts(d: dict, default: dict) -> None:
+    """Merge dict 'd' with dict 'default', adding missing keys from 'default'.
+
+    The dictionary 'd' is modified in place.
+
+    Args:
+        d: Main diciotnary to merge into.
+        default: Dictionary with default values to merge.
+    """
     if isinstance(d, dict) and isinstance(default, dict):
         for k, v in default.items():
             if k not in d:
                 d[k] = v
             else:
-                d[k] = _merge_dicts(d[k], v)
-    return d
+                _merge_dicts(d[k], v)
+
+
+def _merge_dicts_replace(d: dict, new_dict: dict) -> None:
+    """Merge dict 'd' with dict 'new_dict', replacing existing values.
+
+    The dictionary 'd' is modified in place.
+
+    Args:
+        d: Main dictionary to merge into.
+        new_dict: Dictionary with new values to merge.
+    """
+    if isinstance(d, dict) and isinstance(new_dict, dict):
+        for k, v in new_dict.items():
+            if k in d:
+                if isinstance(d[k], dict) and isinstance(v, dict):
+                    _merge_dicts_replace(d[k], v)
+                else:
+                    d[k] = v
+            else:
+                d[k] = v
 
 
 def add_to_structure(cfg: Config, annotator: str | None = None) -> None:
@@ -274,7 +301,7 @@ def resolve_presets(annotations: list[str], class_dict: dict, preset_classes: di
     for annotation in annotations:
         if annotation in presets:
             if annotation in class_dict:
-                preset_classes = _merge_dicts(preset_classes, class_dict[annotation])
+                _merge_dicts(preset_classes, class_dict[annotation])
             result_annotations.extend(resolve_presets(presets[annotation], class_dict, preset_classes)[0])
         else:
             result_annotations.append(annotation)
@@ -300,9 +327,9 @@ def apply_presets() -> None:
     # Update classes
     default_classes = _config_default.get("classes", {})
     user_classes = _config_user.get("classes", {}).copy()
-    combined_classes = _merge_dicts(preset_classes, default_classes)
-    classes = _merge_dicts(user_classes, combined_classes)
-    config["classes"] = classes
+    _merge_dicts(preset_classes, default_classes)
+    _merge_dicts(user_classes, preset_classes)
+    config["classes"] = user_classes
 
 
 def handle_text_annotation() -> None:

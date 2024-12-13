@@ -259,8 +259,7 @@ def rule_helper(rule: RuleStorage, config: dict, storage: SnakeStorage, config_m
                     f"The custom annotation for annotator '{custom_rule_obj['annotator']}' is missing the required "
                     "key 'suffix'."
                 ) from None
-            sparv_config.config = sparv_config._merge_dicts(copy.deepcopy(custom_rule_obj["config"]),
-                                                            sparv_config.config)
+            sparv_config._merge_dicts_replace(sparv_config.config, custom_rule_obj["config"])
         else:
             # This is a custom rule which doesn't require any parameters, so it has already been processed
             return False
