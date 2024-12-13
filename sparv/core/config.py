@@ -295,14 +295,25 @@ def load_presets(lang: str, lang_variety: str | None) -> dict:
     return class_dict
 
 
-def resolve_presets(annotations: list[str], class_dict: dict, preset_classes: dict) -> tuple[list[str], dict]:
-    """Resolve annotation presets into actual annotations."""
+def resolve_presets(annotations: list[str], class_dict: dict) -> tuple[list[str], dict]:
+    """Resolve annotation presets into actual annotations.
+
+    Args:
+        annotations: List of annotations with possible presets to resolve.
+        class_dict: Dictionary with classes set by each preset.
+
+    Returns:
+        Tuple with resolved annotations and classes set by the used presets.
+    """
     result_annotations = []
+    preset_classes = {}
     for annotation in annotations:
         if annotation in presets:
             if annotation in class_dict:
                 _merge_dicts(preset_classes, class_dict[annotation])
-            result_annotations.extend(resolve_presets(presets[annotation], class_dict, preset_classes)[0])
+            resolved_annotations, resolved_classes = resolve_presets(presets[annotation], class_dict)
+            result_annotations.extend(resolved_annotations)
+            _merge_dicts(preset_classes, resolved_classes)
         else:
             result_annotations.append(annotation)
     return result_annotations, preset_classes
@@ -312,7 +323,7 @@ def apply_presets() -> None:
     """Resolve annotations from presets and set preset classes."""
     # Load annotation presets and classes
     class_dict = load_presets(get("metadata.language"), get("metadata.variety"))
-    preset_classes = {}
+    all_preset_classes = {}
 
     # Go through annotation lists in config to find references to presets
     for a in registry.annotation_sources:
@@ -321,14 +332,15 @@ def apply_presets() -> None:
             continue
 
         # Resolve presets and update annotation list in config
-        annotations, preset_classes = resolve_presets(annotations, class_dict, preset_classes)
+        annotations, preset_classes = resolve_presets(annotations, class_dict)
+        _merge_dicts(all_preset_classes, preset_classes)
         set_value(a, annotations)
 
     # Update classes
     default_classes = _config_default.get("classes", {})
     user_classes = _config_user.get("classes", {}).copy()
-    _merge_dicts(preset_classes, default_classes)
-    _merge_dicts(user_classes, preset_classes)
+    _merge_dicts(all_preset_classes, default_classes)
+    _merge_dicts(user_classes, all_preset_classes)
     config["classes"] = user_classes
 
 
