@@ -51,6 +51,7 @@ class Module:
     """Class holding data about Sparv modules."""
 
     def __init__(self, name: str) -> None:
+        """Initialize module."""
         self.name = name
         self.functions: dict[str, dict] = {}
         self.description = None
@@ -61,6 +62,14 @@ class LanguageRegistry(dict):
     """Registry for supported languages."""
 
     def add_language(self, lang: str) -> str:
+        """Add language to registry.
+
+        Args:
+            lang: Language code plus optional suffix.
+
+        Returns:
+            The full language name.
+        """
         from sparv.api import util
         if lang not in self:
             langcode, _, suffix = lang.partition("-")
@@ -121,6 +130,9 @@ def find_modules(no_import: bool = False, find_custom: bool = False) -> list:
 
     Returns:
         A list of available module names.
+
+    Raises:
+        SparvErrorMessage: If a module cannot be imported due to an error.
     """
     from importlib_metadata import entry_points
     from packaging.requirements import Requirement
@@ -196,7 +208,13 @@ def find_modules(no_import: bool = False, find_custom: bool = False) -> list:
 
 
 def add_module_to_registry(module: ModuleType, module_name: str, skip_language_check: bool = False) -> None:
-    """Add module and its annotators to registry."""
+    """Add module and its annotators to registry.
+
+    Args:
+        module: The Python module to add.
+        module_name: The name of the Sparv module.
+        skip_language_check: Set to True to skip checking of language compatibility.
+    """
     if not skip_language_check and hasattr(module, "__language__"):
         # Add to set of supported languages...
         for lang in module.__language__:
@@ -233,16 +251,39 @@ def add_module_to_registry(module: ModuleType, module_name: str, skip_language_c
 
 
 def wizard(config_keys: list[str], source_structure: bool = False) -> Callable:
-    """Return a wizard decorator."""
+    """Return a wizard decorator.
+
+    Args:
+        config_keys: A list of config keys to be set or changed by the decorated function.
+        source_structure: Set to `True` if the decorated function needs access to a SourceStructureParser instance
+          (holding information on the structure of the source files).
+
+    Returns:
+        A decorator that adds the wrapped function to the wizard registry.
+    """
     def decorator(f: Callable) -> Callable:
-        """Add wrapped function to wizard registry."""
+        """Add wrapped function to wizard registry.
+
+        Args:
+            f: The function to add to the wizard registry.
+
+        Returns:
+            The function.
+        """
         wizards.append((f, tuple(config_keys), source_structure))
         return f
     return decorator
 
 
 def _get_module_name(module_string: str) -> str:
-    """Extract module name from dotted path, i.e. 'modulename.submodule' -> 'modulename'."""
+    """Extract module name from dotted path, i.e. 'modulename.submodule' -> 'modulename'.
+
+    Args:
+        module_string: Dotted path to module.
+
+    Returns:
+        The module name.
+    """
     if module_string.startswith(modules_path):
         # Built-in Sparv module
         module_name = module_string[len(modules_path) + 1:].split(".")[0]
@@ -279,10 +320,50 @@ def _annotator(
     preloader_shared: bool = True,
     uninstaller: str | None = None,
 ) -> Callable:
-    """Return a decorator for annotator functions, adding them to annotator registry."""
+    """Return a decorator for annotator functions, adding them to annotator registry.
+
+    Args:
+        description: Description of annotator.
+        a_type: Type of annotator.
+        name: Optional name to use instead of the function name.
+        file_extension: (importer) The file extension of the type of source this importer handles, e.g. "xml" or
+            "txt".
+        outputs: (importer) A list of annotations and attributes that the importer is guaranteed to generate.
+            May also be a Config instance referring to such a list.
+            It may generate more outputs than listed, but only the annotations listed here will be available
+            to use as input for annotator functions.
+        text_annotation: (importer) An annotation from 'outputs' that should be used as the value for the
+            import.text_annotation config variable, unless it or classes.text has been set manually.
+        structure: (importer) A class used to parse and return the structure of source files.
+        language: List of supported languages.
+        config: List of Config instances defining config options for the annotator.
+        priority: Functions with higher priority (higher number) will be preferred when scheduling which functions to
+            run. The default priority is 0.
+        order: If several annotators have the same output, this integer value will help decide which to try to use
+            first. A lower number indicates higher priority.
+        abstract: (exporter) Set to True if this exporter has no output.
+        wildcards: List of wildcards used in the annotator function's arguments.
+        preloader: Reference to a preloader function, used to preload models or processes.
+        preloader_params: List of names of parameters for the annotator, which will be used as arguments for the
+            preloader.
+        preloader_target: The name of the annotator parameter which should receive the return value of the preloader.
+        preloader_cleanup: Reference to an optional cleanup function, which will be executed after each annotator use.
+        preloader_shared: Set to False if the preloader result should not be shared among preloader processes.
+        uninstaller: (installer) Name of related uninstaller.
+
+    Returns:
+        A decorator adding the wrapped function to the annotator registry.
+    """
 
     def decorator(f: Callable) -> Callable:
-        """Add wrapped function to registry."""
+        """Add wrapped function to registry.
+
+        Args:
+            f: The function to add to the registry.
+
+        Returns:
+            The function.
+        """
         module_name = _get_module_name(f.__module__)
         _potential_annotators[module_name].append(
             {
@@ -328,7 +409,28 @@ def annotator(
     preloader_cleanup: Callable | None = None,
     preloader_shared: bool = True,
 ) -> Callable:
-    """Return a decorator for annotator functions, adding them to the annotator registry."""
+    """Return a decorator for annotator functions, adding them to the annotator registry.
+
+    Args:
+        description: Description of annotator.
+        name: Optional name to use instead of the function name.
+        language: List of supported languages.
+        config: List of Config instances defining config options for the annotator.
+        priority: Functions with higher priority (higher number) will be preferred when scheduling which functions to
+            run. The default priority is 0.
+        order: If several annotators have the same output, this integer value will help decide which to try to use
+            first. A lower number indicates higher priority.
+        wildcards: List of wildcards used in the annotator function's arguments.
+        preloader: Reference to a preloader function, used to preload models or processes.
+        preloader_params: List of names of parameters for the annotator, which will be used as arguments for the
+            preloader.
+        preloader_target: The name of the annotator parameter which should receive the return value of the preloader.
+        preloader_cleanup: Reference to an optional cleanup function, which will be executed after each annotator use.
+        preloader_shared: Set to False if the preloader result should not be shared among preloader processes.
+
+    Returns:
+        A decorator.
+    """
     return _annotator(
         description=description,
         a_type=Annotator.annotator,
@@ -365,7 +467,7 @@ def importer(description: str, file_extension: str, name: str | None = None, out
         config: List of Config instances defining config options for the importer.
 
     Returns:
-        A decorator
+        A decorator.
     """
     return _annotator(description=description, a_type=Annotator.importer, name=name, file_extension=file_extension,
                       outputs=outputs, text_annotation=text_annotation, structure=structure, config=config)
@@ -387,7 +489,10 @@ def exporter(
         name: Optional name to use instead of the function name.
         config: List of Config instances defining config options for the exporter.
         language: List of supported languages.
+        priority: Functions with higher priority (higher number) will be preferred when scheduling which functions to
+            run. The default priority is 0.
         order: If several exporters have the same output, this integer value will help decide which to try to use first.
+            A lower number indicates higher priority.
         abstract: Set to True if this exporter has no output.
 
     Returns:
@@ -413,7 +518,20 @@ def installer(
     priority: int | None = None,
     uninstaller: str | None = None,
 ) -> Callable:
-    """Return a decorator for installer functions."""
+    """Return a decorator for installer functions.
+
+    Args:
+        description: Description of installer.
+        name: Optional name to use instead of the function name.
+        config: List of Config instances defining config options for the installer.
+        language: List of supported languages.
+        priority: Functions with higher priority (higher number) will be preferred when scheduling which functions to
+            run. The default priority is 0.
+        uninstaller: Name of related uninstaller.
+
+    Returns:
+        A decorator.
+    """
     return _annotator(
         description=description,
         a_type=Annotator.installer,
@@ -432,7 +550,19 @@ def uninstaller(
     language: list[str] | None = None,
     priority: int | None = None,
 ) -> Callable:
-    """Return a decorator for uninstaller functions."""
+    """Return a decorator for uninstaller functions.
+
+    Args:
+        description: Description of uninstaller.
+        name: Optional name to use instead of the function name.
+        config: List of Config instances defining config options for the uninstaller.
+        language: List of supported languages.
+        priority: Functions with higher priority (higher number) will be preferred when scheduling which functions to
+            run. The default priority is 0.
+
+    Returns:
+        A decorator.
+    """
     return _annotator(
         description=description,
         a_type=Annotator.uninstaller,
@@ -451,7 +581,21 @@ def modelbuilder(
     priority: int | None = None,
     order: int | None = None,
 ) -> Callable:
-    """Return a decorator for modelbuilder functions."""
+    """Return a decorator for modelbuilder functions.
+
+    Args:
+        description: Description of modelbuilder.
+        name: Optional name to use instead of the function name.
+        config: List of Config instances defining config options for the modelbuilder.
+        language: List of supported languages.
+        priority: Functions with higher priority (higher number) will be preferred when scheduling which functions to
+            run. The default priority is 0.
+        order: If several modelbuilders have the same output, this integer value will help decide which to try to use
+            first. A lower number indicates higher priority.
+
+    Returns:
+        A decorator.
+    """
     return _annotator(
         description=description,
         a_type=Annotator.modelbuilder,
@@ -464,7 +608,15 @@ def modelbuilder(
 
 
 def _add_to_registry(annotator: dict, skip_language_check: bool = False) -> None:
-    """Add function to annotator registry. Used by annotator."""
+    """Add function to annotator registry. Used by annotator.
+
+    Args:
+        annotator: Annotator data.
+        skip_language_check: Set to True to skip checking of language compatibility.
+
+    Raises:
+        SparvErrorMessage: On any expected errors.
+    """
     module_name = annotator["module_name"]
     f_name = annotator["function"].__name__ if not annotator["name"] else annotator["name"]
     rule_name = f"{module_name}:{f_name}"
@@ -597,7 +749,18 @@ def handle_config(
     rule_name: str | None = None,
     language: list[str] | None = None
 ) -> None:
-    """Handle Config instances."""
+    """Handle Config instances.
+
+    Args:
+        cfg: The Config instance.
+        module_name: The name of the module.
+        rule_name: The name of the rule using the config variable.
+        language: List of supported languages.
+
+    Raises:
+        SparvErrorMessage: If the config variable doesn't include the module name as prefix, or if the config variable
+            has already been declared, or if the config variable is missing a description.
+    """
     if not cfg.name.startswith(module_name + "."):
         raise SparvErrorMessage(f"Config option '{cfg.name}' in module '{module_name}' doesn't include module "
                                 "name as prefix.")
@@ -631,9 +794,15 @@ def handle_config(
 
 
 def _expand_class(cls: str) -> str | None:
-    """Convert class name to annotation.
+    """Convert class name to annotation name.
 
     Classes from config takes precedence over classes automatically collected from modules.
+
+    Args:
+        cls: The class name.
+
+    Returns:
+        The annotation name, or None if the class is not found.
     """
     annotation = None
     if cls in annotation_classes["config_classes"]:
@@ -646,7 +815,15 @@ def _expand_class(cls: str) -> str | None:
 
 
 def find_config_variables(string: str, match_objects: bool = False) -> list[str] | list[re.Match]:
-    """Find all config variables in a string and return a list of strings or match objects."""
+    """Find all config variables in a string and return a list of strings or match objects.
+
+    Args:
+        string: The string to process.
+        match_objects: Set to True to return match objects instead of strings.
+
+    Returns:
+        A list of strings or match objects.
+    """
     if match_objects:
         result = list(re.finditer(r"\[([^\]=[]+)(?:=([^\][]+))?\]", string))
     else:
@@ -655,7 +832,15 @@ def find_config_variables(string: str, match_objects: bool = False) -> list[str]
 
 
 def find_classes(string: str, match_objects: bool = False) -> list[str] | list[re.Match]:
-    """Find all class references in a string and return a list of strings or match objects."""
+    """Find all class references in a string and return a list of strings or match objects.
+
+    Args:
+        string: The string to process.
+        match_objects: Set to True to return match objects instead of strings.
+
+    Returns:
+        A list of strings or match objects.
+    """
     if match_objects:
         result = list(re.finditer(r"<([^>]+)>", string))
     else:
@@ -745,7 +930,14 @@ def expand_variables(string: str, rule_name: str | None = None, is_annotation: b
 
 
 def get_type_hint_type(type_hint: Any) -> tuple[type, bool, bool]:
-    """Given a type hint, return the type, whether it's contained in a List and whether it's Optional."""
+    """Given a type hint, return the type, whether it's contained in a List and whether it's Optional.
+
+    Args:
+        type_hint: The type hint.
+
+    Returns:
+        A tuple with the type, a boolean indicating whether it's a list and a boolean indicating whether it's optional.
+    """
     optional = typing_inspect.is_optional_type(type_hint)
     if optional:
         type_hint = typing_inspect.get_args(type_hint)[0]
@@ -770,6 +962,14 @@ def check_language(corpus_lang: str, langs: list[str], corpus_lang_suffix: str |
 
     If langs is empty, always return True.
     If corpus_lang is "__all__", always return True.
+
+    Args:
+        corpus_lang: The language of the corpus.
+        langs: A list of languages to check against.
+        corpus_lang_suffix: Optional suffix for the corpus language.
+
+    Returns:
+        True if the corpus language is among the languages, otherwise False.
     """
     if not langs or corpus_lang == "__all__":
         return True

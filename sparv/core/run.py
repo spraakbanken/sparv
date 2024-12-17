@@ -13,7 +13,12 @@ from sparv.core import log_handler, paths, registry
 
 
 def main(argv: list[str] | None = None, log_level: str = "info") -> None:
-    """Parse command line arguments and execute the requested Sparv module."""
+    """Parse command line arguments and execute the requested Sparv module.
+
+    Args:
+        argv: List of command line arguments.
+        log_level: Log level.
+    """
     # Set up logging
     logging.basicConfig(format=log_handler.LOG_FORMAT, datefmt=log_handler.DATE_FORMAT, level=log_level.upper(),
                         stream=sys.stdout)

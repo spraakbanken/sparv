@@ -28,7 +28,14 @@ class SparvErrorMessage(Exception):  # noqa: N818
 
 
 def get_logger(name: str) -> logging.Logger:
-    """Get a logger that is a child of 'sparv.modules'."""
+    """Get a logger that is a child of 'sparv.modules'.
+
+    Args:
+        name: Name of the logger.
+
+    Returns:
+        Logger object.
+    """
     if not name.startswith("sparv.modules"):
         name = "sparv.modules." + name
     return logging.getLogger(name)
@@ -51,6 +58,14 @@ def parse_annotation_list(annotation_names: Iterable[str] | None, all_annotation
 
     Plain annotations (without attributes) will be added if needed, unless add_plain_annotations is set to False.
     Make sure to disable add_plain_annotations if the annotation names may include classes or config variables.
+
+    Args:
+        annotation_names: List of annotation names.
+        all_annotations: List of all available annotations.
+        add_plain_annotations: If True, add plain annotations to the list if they are not already included.
+
+    Returns:
+        List of tuples with annotation names and export names.
     """
     from sparv.api import Annotation
 

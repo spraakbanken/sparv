@@ -30,19 +30,35 @@ class StreamToLogger:
     """File-like stream object that redirects writes to a logger instance."""
 
     def __init__(self, logger: logging.Logger, log_level: int = logging.INFO) -> None:
+        """Initialize file-like stream object with a logger and a log level.
+
+        Args:
+            logger: Logger instance.
+            log_level: Log level.
+        """
         self.logger = logger
         self.log_level = log_level
 
     def write(self, buf: str) -> None:
+        """Write to logger.
+
+        Args:
+            buf: String to write.
+        """
         self.logger.log(self.log_level, buf.rstrip())
 
     @staticmethod
     def isatty() -> bool:
+        """Return False to indicate that this is not a terminal.
+
+        Returns:
+            Always returns False.
+        """
         return False
 
     @staticmethod
     def flush() -> None:
-        pass
+        """Do nothing; needed for compatibility with sys.stdout."""
 
 
 # Set compression

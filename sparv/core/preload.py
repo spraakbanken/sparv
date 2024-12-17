@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import multiprocessing
+import multiprocessing.synchronize
 import os
 import pickle
 import socket
@@ -52,6 +53,7 @@ class Preloader:
         cleanup: Callable,
         shared: bool
     ) -> None:
+        """Initialize a preloader."""
         self.function = function
         self.target = target
         self.preloader = preloader
@@ -62,7 +64,15 @@ class Preloader:
 
 
 def connect_to_socket(socket_path: str, timeout: bool = False) -> socket.socket:
-    """Connect to a socket and return it."""
+    """Connect to a socket and return it.
+
+    Args:
+        socket_path: Path to the socket file.
+        timeout: Whether to use a 1 second timeout when connecting or not.
+
+    Returns:
+        A connected socket.
+    """
     s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     if timeout:
         s.settimeout(1)
@@ -73,7 +83,14 @@ def connect_to_socket(socket_path: str, timeout: bool = False) -> socket.socket:
 
 @contextmanager
 def socketcontext(socket_path: str) -> Iterator[socket.socket]:
-    """Context manager for socket."""
+    """Context manager for socket.
+
+    Args:
+        socket_path: Path to the socket file.
+
+    Yields:
+        A connected socket.
+    """
     s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     s.connect(socket_path)
     try:
@@ -83,7 +100,14 @@ def socketcontext(socket_path: str) -> Iterator[socket.socket]:
 
 
 def receive_data(sock: socket.socket) -> Any:
-    """Receive pickled data from socket and unpickle."""
+    """Receive pickled data from socket and unpickle.
+
+    Args:
+        sock: Socket object.
+
+    Returns:
+        Unpickled data.
+    """
     # Get data length
     buf_length = recvall(sock, 4)
     if not buf_length or len(buf_length) < 4:
@@ -98,28 +122,54 @@ def receive_data(sock: socket.socket) -> Any:
 
 
 def send_data(sock: socket.socket, data: Any) -> None:
-    """Send pickled data over socket."""
+    """Send pickled data over socket.
+
+    Args:
+        sock: Socket object.
+        data: Data to send.
+    """
     datap = pickle.dumps(data)
     sock.sendall(struct.pack(">I", len(datap)))
     sock.sendall(datap)
 
 
 def get_preloader_info(socket_path: str) -> dict:
-    """Get information about preloaded modules."""
+    """Get information about preloaded modules.
+
+    Args:
+        socket_path: Path to the socket file.
+
+    Returns:
+        Information about preloaded modules.
+    """
     with socketcontext(socket_path) as sock:
         send_data(sock, INFO)
         return receive_data(sock)
 
 
 def get_preloader_status(socket_path: str) -> Any:
-    """Get preloader status."""
+    """Get preloader status.
+
+    Args:
+        socket_path: Path to the socket file.
+
+    Returns:
+        Preloader status.
+    """
     with socketcontext(socket_path) as sock:
         send_data(sock, STATUS)
         return receive_data(sock)
 
 
 def stop(socket_path: str) -> bool:
-    """Send stop signal to Sparv preloader."""
+    """Send stop signal to Sparv preloader.
+
+    Args:
+        socket_path: Path to the socket file.
+
+    Returns:
+        True if the preloader was succesfully stopped, False if the connection was refused.
+    """
     try:
         with socketcontext(socket_path) as sock:
             send_data(sock, STOP)
@@ -132,6 +182,13 @@ def recvall(sock: socket.socket, size: int) -> bytes | None:
     """Receive data of a specific size from socket.
 
     If 'size' number of bytes are not received, None is returned.
+
+    Args:
+        sock: Socket object.
+        size: Number of bytes to receive.
+
+    Returns:
+        Received data.
     """
     buf = b""
     while size:
@@ -144,7 +201,15 @@ def recvall(sock: socket.socket, size: int) -> bytes | None:
 
 
 def handle(client_sock: socket.socket, annotators: dict[str, Preloader]) -> bool | None:
-    """Handle request and execute preloaded function."""
+    """Handle request and execute preloaded function.
+
+    Args:
+        client_sock: Client socket.
+        annotators: Dictionary of preloaded annotators.
+
+    Returns:
+        False if stop signal received, otherwise None.
+    """
     # Get data
     data = receive_data(client_sock)
     if data is None:
@@ -208,7 +273,14 @@ def worker(
     annotators: dict[str, Preloader],
     stop_event: multiprocessing.synchronize.Event
 ) -> None:
-    """Listen to the socket server and handle incoming requests."""
+    """Listen to the socket server and handle incoming requests.
+
+    Args:
+        worker_no: Worker number.
+        server_socket: Server socket.
+        annotators: Dictionary of preloaded annotators.
+        stop_event: Event to signal when stopping.
+    """
     log.info("Worker %d started", worker_no)
 
     # Load any non-shared preloaders
@@ -234,8 +306,21 @@ def worker(
         client_sock.close()
 
 
-def serve(socket_path: str, processes: int, storage: SnakeStorage, stop_signal: multiprocessing.Event) -> None:
-    """Start the Sparv preloader socket server."""
+def serve(
+    socket_path: str, processes: int, storage: SnakeStorage, stop_signal: multiprocessing.synchronize.Event
+) -> None:
+    """Start the Sparv preloader socket server.
+
+    Args:
+        socket_path: Path to the socket file.
+        processes: Number of processes to start.
+        storage: SnakeStorage object.
+        stop_signal: Event to signal when stopping.
+
+    Raises:
+        SparvErrorMessage: If the socket already exists, or if an annotator in the preloader config is unknown, or if
+            the annotator doesn't support preloading.
+    """
     socket_file = Path(socket_path)
     if socket_file.exists():
         raise SparvErrorMessage(f"Socket {socket_path} already exists.")

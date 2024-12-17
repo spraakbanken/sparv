@@ -121,6 +121,13 @@ class LogLevelCounterHandler(logging.Handler):
     """Handler that counts the number of log messages per log level."""
 
     def __init__(self, count_dict: dict[str, int], *args: Any, **kwargs: Any) -> None:
+        """Initialize handler.
+
+        Args:
+            count_dict: Dictionary to store the count of log messages per log level.
+            args: Additional arguments.
+            kwargs: Additional keyword arguments.
+        """
         super().__init__(*args, **kwargs)
         self.levelcount = count_dict
 
@@ -145,7 +152,14 @@ class InternalFilter(logging.Filter):
 
     @staticmethod
     def filter(record: logging.LogRecord) -> bool:
-        """Filter out internal records."""
+        """Filter out internal records.
+
+        Args:
+            record: Log record.
+
+        Returns:
+            True if record is not internal, False otherwise.
+        """
         return record.levelno < INTERNAL
 
 
@@ -154,7 +168,14 @@ class ProgressInternalFilter(logging.Filter):
 
     @staticmethod
     def filter(record: logging.LogRecord) -> bool:
-        """Filter out progress and internal records."""
+        """Filter out progress and internal records.
+
+        Args:
+            record: Log record.
+
+        Returns:
+            True if record is not progress or internal, False otherwise.
+        """
         return record.levelno < PROGRESS
 
 
@@ -162,6 +183,14 @@ class InternalLogHandler(logging.Handler):
     """Handler for internal log messages."""
 
     def __init__(self, export_dirs_list: set, progress_: progress.Progress, jobs: OrderedDict, job_ids: dict) -> None:
+        """Initialize handler.
+
+        Args:
+            export_dirs_list: Set to be updated with export directories.
+            progress_: Progress bar object.
+            jobs: Dictionary of jobs.
+            job_ids: Translation from (Sparv task name, source file) to Snakemake job ID.
+        """
         self.export_dirs_list = export_dirs_list
         self.progress: progress.Progress = progress_
         self.jobs = jobs
@@ -209,13 +238,26 @@ class ProgressWithTable(progress.Progress):
     """Progress bar with additional table."""
 
     def __init__(self, all_tasks: dict, current_tasks: OrderedDict, max_len: int, *args: Any, **kwargs: Any) -> None:
+        """Initialize progress bar with table.
+
+        Args:
+            all_tasks: Dictionary of all tasks.
+            current_tasks: Currently running tasks.
+            max_len: Maximum length of task names.
+            args: Additional arguments.
+            kwargs: Additional keyword arguments.
+        """
         self.all_tasks = all_tasks
         self.current_tasks = current_tasks
         self.task_max_len = max_len
         super().__init__(*args, **kwargs)
 
     def get_renderables(self) -> Iterable[progress.RenderableType]:
-        """Get a number of renderables for the progress display."""
+        """Get a number of renderables for the progress display.
+
+        Yields:
+            Renderables for the progress display.
+        """
         # Progress bar
         yield self.make_tasks_table(self.tasks[0:1])
 
@@ -414,34 +456,57 @@ class LogHandler:
         self.setup_loggers()
 
     def start_bar(self, total: int) -> None:
-        """Start progress bar."""
+        """Start progress bar.
+
+        Args:
+            total: Total number of tasks.
+        """
         self.progress.update(self.bar, total=total)
         self.progress.start_task(self.bar)
         self.bar_started = True
 
     def info(self, msg: str) -> None:
-        """Print info message."""
+        """Print info message.
+
+        Args:
+            msg: Message to print.
+        """
         if self.json:
             self.logger.log(FINAL, msg)
         else:
             console.print(Text(msg, style="green"))
 
     def warning(self, msg: str) -> None:
-        """Print warning message."""
+        """Print warning message.
+
+        Args:
+            msg: Message to print.
+        """
         if self.json:
             self.logger.log(FINAL, msg)
         else:
             console.print(Text(msg, style="yellow"))
 
     def error(self, msg: str) -> None:
-        """Print error message."""
+        """Print error message.
+
+        Args:
+            msg: Message to print.
+        """
         if self.json:
             self.logger.log(FINAL, msg)
         else:
             console.print(Text(msg, style="red"))
 
     def log_handler(self, msg: dict) -> None:
-        """Log handler for Snakemake displaying a progress bar."""
+        """Log handler for Snakemake displaying a progress bar.
+
+        Args:
+            msg: Log message dictionary.
+
+        Raises:
+            BrokenPipeError: If a missing config variable is detected. This stops Snakemake.
+        """
         def missing_config_message(source: str) -> None:
             """Create error message when config variables are missing."""
             _variables = messages["missing_configs"][source]
@@ -830,7 +895,15 @@ def setup_logging(
     file: str | None = None,
     job: str | None = None
 ) -> None:
-    """Set up logging with socket handler."""
+    """Set up logging with socket handler.
+
+    Args:
+        log_server: Tuple with host and port for logging server.
+        log_level: Log level for logging to stdout.
+        log_file_level: Log level for logging to file.
+        file: Source file name for current job.
+        job: Current task name.
+    """
     # Set logger to use the lowest selected log level, but never higher than warning (we still want to count warnings)
     log_level = min(logging.WARNING, getattr(logging, log_level.upper()), getattr(logging, log_file_level.upper()))
     socket_logger = logging.getLogger("sparv")

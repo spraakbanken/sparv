@@ -39,7 +39,15 @@ _compressed_open = {
 
 
 def annotation_exists(annotation: BaseAnnotation, source_file: str | None = None) -> bool:
-    """Check if an annotation file exists."""
+    """Check if an annotation file exists.
+
+    Args:
+        annotation: Annotation object to check.
+        source_file: Related source file.
+
+    Returns:
+        True if the annotation file exists, False otherwise.
+    """
     annotation_path = get_annotation_path(source_file or annotation.source_file, annotation, data=annotation.data)
     return annotation_path.exists()
 
@@ -57,7 +65,10 @@ def write_annotation(
 ) -> None:
     """Write an annotation to one or more files. The file is overwritten if it exists.
 
-    The annotation should be a list of values.
+    Args:
+        source_file: Source filename.
+        annotation: Annotation object.
+        values: List of values to write.
     """
     annotations = annotation.name.split()
 
@@ -82,13 +93,18 @@ def write_annotation(
                                      annotation_values[annotation_name], annotation.root)
 
 
-def _write_single_annotation(
-    source_file: str,
-    annotation: str,
-    values: list,
-    root: Path
-) -> None:
-    """Write an annotation to a file."""
+def _write_single_annotation(source_file: str, annotation: str, values: list, root: Path) -> None:
+    """Write an annotation to a file.
+
+    Args:
+        source_file: Source filename.
+        annotation: Annotation name.
+        values: List of values to write.
+        root: Root directory for the annotation.
+
+    Raises:
+        SparvErrorMessage: If annotation spans are not sorted.
+    """
     is_span = not split_annotation(annotation)[1]
 
     if is_span:
@@ -117,7 +133,15 @@ def _write_single_annotation(
 
 
 def get_annotation_size(source_file: str, annotation: BaseAnnotation) -> int:
-    """Return number of lines in an annotation."""
+    """Return number of lines in an annotation.
+
+    Args:
+        source_file: Source filename.
+        annotation: Annotation object.
+
+    Returns:
+        Number of values in the annotation.
+    """
     count = 0
 
     for ann in annotation.name.split():
@@ -133,7 +157,17 @@ def read_annotation_spans(
     decimals: bool = False,
     with_annotation_name: bool = False
 ) -> Iterator[tuple]:
-    """Iterate over the spans of an annotation."""
+    """Iterate over the spans of an annotation.
+
+    Args:
+        source_file: Source filename.
+        annotation: Annotation object.
+        decimals: Whether to return spans as decimals or not. Defaults to False.
+        with_annotation_name: Whether to yield the annotation name along with the value.
+
+    Yields:
+        The annotation spans. If with_annotation_name is True, yields a tuple with the value and the annotation name.
+    """
     # Strip any annotation attributes
     for span in read_annotation(source_file, annotation, with_annotation_name, spans=True):
         if not decimals:
@@ -148,7 +182,17 @@ def read_annotation(
     with_annotation_name: bool = False,
     spans: bool = False
 ) -> Iterator:
-    """Yield each line from an annotation file."""
+    """Yield each line from an annotation file.
+
+    Args:
+        source_file: Source filename.
+        annotation: Annotation object.
+        with_annotation_name: Whether to yield the annotation name along with the value.
+        spans: Whether to read annotation spans or regular values.
+
+    Yields:
+        The annotation values. If with_annotation_name is True, yields a tuple with the value and the annotation name.
+    """
     annotations = [split_annotation(ann)[0] for ann in annotation.name.split()] if spans else annotation.name.split()
     root = annotation.root
     if len(annotations) == 1:
@@ -177,7 +221,16 @@ def read_annotation(
 
 def read_annotation_attributes(source_file: str, annotations: list[BaseAnnotation] | tuple[BaseAnnotation, ...],
                                with_annotation_name: bool = False) -> Iterator[tuple]:
-    """Yield tuples of multiple attributes on the same annotation."""
+    """Yield tuples of multiple attributes on the same annotation.
+
+    Args:
+        source_file: Source filename.
+        annotations: List of annotation objects.
+        with_annotation_name: Whether to yield the annotation name along with the value.
+
+    Returns:
+        An iterator of tuples with the values of the attributes.
+    """
     assert isinstance(annotations, (tuple, list)), "'annotations' argument must be tuple or list"
     assert len({split_annotation(annotation)[0] for annotation in
                 annotations}) == 1, "All attributes need to be for the same annotation"
@@ -191,7 +244,17 @@ def _read_single_annotation(
     with_annotation_name: bool,
     root: Path | None = None
 ) -> Iterator[Any]:
-    """Read a single annotation file."""
+    """Read a single annotation file and yield each value.
+
+    Args:
+        source_file: Source filename.
+        annotation: Annotation name.
+        with_annotation_name: Whether to yield the annotation name along with the value.
+        root: Root path.
+
+    Yields:
+        The annotation values. If with_annotation_name is True, yields a tuple with the value and the annotation name.
+    """
     ann_file = get_annotation_path(source_file, annotation, root)
 
     ctr = 0
@@ -202,7 +265,13 @@ def _read_single_annotation(
 
 
 def write_data(source_file: str | None, name: BaseAnnotation | str, value: Any) -> None:
-    """Write arbitrary data to file in workdir directory."""
+    """Write arbitrary data to file in workdir directory.
+
+    Args:
+        source_file: Source filename.
+        name: Annotation object or name.
+        value: Data to write.
+    """
     file_path = get_annotation_path(source_file, name, data=True)
     file_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -221,7 +290,15 @@ def write_data(source_file: str | None, name: BaseAnnotation | str, value: Any) 
 
 
 def read_data(source_file: str | None, name: BaseAnnotation | str) -> Any:
-    """Read arbitrary data from file in workdir directory."""
+    """Read arbitrary data from file in workdir directory.
+
+    Args:
+        source_file: Source filename.
+        name: Annotation object or name.
+
+    Returns:
+        The data read from the annotation.
+    """
     file_path = get_annotation_path(source_file, name, data=True)
     data = next(read_annotation_file(file_path, is_data=True))
 
@@ -237,7 +314,14 @@ def read_data(source_file: str | None, name: BaseAnnotation | str) -> Any:
 
 
 def split_annotation(annotation: BaseAnnotation | str) -> tuple[str, str]:
-    """Split annotation into annotation name and attribute."""
+    """Split annotation into annotation name and attribute.
+
+    Args:
+        annotation: Annotation object or name.
+
+    Returns:
+        Tuple with annotation name and attribute.
+    """
     if isinstance(annotation, BaseAnnotation):
         annotation = annotation.name
     elem, _, attr = annotation.partition(ELEM_ATTR_DELIM)
@@ -245,13 +329,31 @@ def split_annotation(annotation: BaseAnnotation | str) -> tuple[str, str]:
 
 
 def join_annotation(name: str, attribute: str | None) -> str:
-    """Join annotation name and attribute."""
+    """Join annotation name and attribute.
+
+    Args:
+        name: Annotation name.
+        attribute: Annotation attribute.
+
+    Returns:
+        Annotation name joined with with attribute.
+    """
     return ELEM_ATTR_DELIM.join((name, attribute)) if attribute else name
 
 
 def get_annotation_path(source_file: str | None, annotation: BaseAnnotation | str, root: Path | None = None,
                         data: bool = False) -> Path:
-    """Construct a path to an annotation file given a source filename and annotation."""
+    """Construct a path to an annotation file given a source filename and annotation.
+
+    Args:
+        source_file: Source filename.
+        annotation: Annotation object or name.
+        root: Root path.
+        data: Whether the annotation is of the type data or not.
+
+    Returns:
+        The path to the annotation file.
+    """
     chunk = ""
     if source_file:
         source_file, _, chunk = source_file.partition(DOC_CHUNK_DELIM)
@@ -273,7 +375,13 @@ def get_annotation_path(source_file: str | None, annotation: BaseAnnotation | st
 
 
 def write_annotation_file(file_path: Path, value: Any, is_data: bool = False) -> None:
-    """Write annotation data to a file."""
+    """Write annotation data to a file.
+
+    Args:
+        file_path: Path to the file to write.
+        value: Data to write.
+        is_data: Whether the value is of the type data.
+    """
     chunk_size = 1000
     opener = _compressed_open.get(compression, open)
     with opener(file_path, mode="wb") as f:
@@ -285,7 +393,18 @@ def write_annotation_file(file_path: Path, value: Any, is_data: bool = False) ->
 
 
 def read_annotation_file(file_path: Path, is_data: bool = False) -> Iterator:
-    """Return an iterator for reading an annotation file."""
+    """Return an iterator for reading an annotation file.
+
+    Args:
+        file_path: Path to the file to read.
+        is_data: Whether the value is of the type data.
+
+    Yields:
+        The annotation values.
+
+    Raises:
+        SparvErrorMessage: If the file is not in the correct format.
+    """
     opener = _compressed_open.get(compression, open)
     with opener(file_path, mode="rb") as f:
         try:

@@ -35,7 +35,11 @@ def check_sparv_version() -> bool | None:
 
 
 def copy_resource_files(data_dir: pathlib.Path) -> None:
-    """Copy resource files to data dir."""
+    """Copy resource files to data dir.
+
+    Args:
+        data_dir: Path to the data directory.
+    """
     resources_dir = importlib.resources.files("sparv") / "resources"
     with importlib.resources.as_file(resources_dir) as path:
         for f in path.rglob("*"):
@@ -73,7 +77,11 @@ def reset() -> None:
 
 
 def run(sparv_datadir: str | None = None) -> None:
-    """Query user about data dir path unless provided by argument, and populate path with files."""
+    """Query user about data dir path unless provided by argument, and populate path with files.
+
+    Args:
+        sparv_datadir: Path to the data directory.
+    """
     default_dir = pathlib.Path(appdirs.user_data_dir("sparv"))
     current_dir = paths.get_data_path()
     path: pathlib.Path

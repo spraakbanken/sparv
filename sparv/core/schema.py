@@ -20,6 +20,13 @@ NO_COND = ((), ())
 class BaseProperty:
     """Base class for other types of properties."""
     def __init__(self, prop_type: str | None, allow_null: bool | None = False, **kwargs: AnyType) -> None:
+        """Initialize the class.
+
+        Args:
+            prop_type: The type of the property.
+            allow_null: If null values are allowed.
+            **kwargs: Additional keyword arguments.
+        """
         self.schema = {
             "type": prop_type if not allow_null else [prop_type, "null"],
             **kwargs
@@ -29,6 +36,11 @@ class BaseProperty:
 class Any(BaseProperty):
     """Class representing any type."""
     def __init__(self, **kwargs: AnyType) -> None:
+        """Initialize the class.
+
+        Args:
+            **kwargs: Additional keyword arguments.
+        """
         super().__init__(None, **kwargs)
 
 
@@ -43,6 +55,16 @@ class String(BaseProperty):
         allow_null: bool = False,
         **kwargs: AnyType
     ) -> None:
+        """Initialize the class.
+
+        Args:
+            pattern: A regex pattern.
+            choices: A list of possible choices.
+            min_len: The minimum length of the string.
+            max_len: The maximum length of the string.
+            allow_null: If null values are allowed.
+            **kwargs: Additional keyword arguments.
+        """
         if pattern:
             kwargs["pattern"] = pattern
         if choices:
@@ -64,6 +86,13 @@ class Integer(BaseProperty):
         max_value: int | None = None,
         **kwargs: AnyType
     ) -> None:
+        """Initialize the class.
+
+        Args:
+            min_value: The minimum value.
+            max_value: The maximum value.
+            **kwargs: Additional keyword arguments.
+        """
         if min_value is not None:
             kwargs["minimum"] = min_value
         if max_value is not None:
@@ -79,6 +108,13 @@ class Number(BaseProperty):
         max_value: int | float | None,
         **kwargs: AnyType
     ) -> None:
+        """Initialize the class.
+
+        Args:
+            min_value: The minimum value.
+            max_value: The maximum value.
+            **kwargs: Additional keyword arguments.
+        """
         if min_value is not None:
             kwargs["minimum"] = min_value
         if max_value is not None:
@@ -89,12 +125,22 @@ class Number(BaseProperty):
 class Boolean(BaseProperty):
     """Class representing a boolean."""
     def __init__(self, **kwargs: AnyType) -> None:
+        """Initialize the class.
+
+        Args:
+            **kwargs: Additional keyword arguments.
+        """
         super().__init__("boolean", **kwargs)
 
 
 class Null(BaseProperty):
     """Class representing a null value."""
     def __init__(self, **kwargs: AnyType) -> None:
+        """Initialize the class.
+
+        Args:
+            **kwargs: Additional keyword arguments.
+        """
         super().__init__("null", **kwargs)
 
 
@@ -105,6 +151,12 @@ class Array(BaseProperty):
         items: type[String | Integer | Number | Boolean | Null | Any | Array | Object] | None = None,
         **kwargs: AnyType
     ) -> None:
+        """Initialize the class.
+
+        Args:
+            items: The type of items in the array.
+            **kwargs: Additional keyword arguments.
+        """
         if items:
             if isinstance(items, list):
                 kwargs["items"] = {"type": []}
@@ -123,6 +175,13 @@ class Object:
         self, additional_properties: dict | bool = True, description: str | None = None,
         **kwargs: AnyType
     ) -> None:
+        """Initialize the class.
+
+        Args:
+            additional_properties: If additional properties are allowed.
+            description: A description of the object.
+            **kwargs: Additional keyword arguments.
+        """
         if additional_properties is False or isinstance(additional_properties, dict):
             kwargs["additionalProperties"] = additional_properties
         if description:
@@ -133,14 +192,35 @@ class Object:
         self.allof: defaultdict[tuple[tuple[Object, ...], tuple[Object, ...]], list] = defaultdict(list)
 
     def __hash__(self) -> int:
+        """Return a hash of the schema.
+
+        Returns:
+            A hash of the schema.
+        """
         return hash(json.dumps(self.schema, sort_keys=True))
 
     def __eq__(self, other: Object) -> bool:
+        """Compare two objects based on their schema.
+
+        Args:
+            other: The object to compare with.
+
+        Returns:
+            True if the schema of the current object is equal to the schema of the other object.
+        """
         if other is None:
             return False
         return json.dumps(self.schema, sort_keys=True) == json.dumps(other.schema, sort_keys=True)
 
     def __lt__(self, other: Object) -> bool:
+        """Compare two objects based on their schema.
+
+        Args:
+            other: The object to compare with.
+
+        Returns:
+            True if the schema of the current object is less than the schema of the other object.
+        """
         if other is None:
             return False
         return json.dumps(self.schema, sort_keys=True) < json.dumps(other.schema, sort_keys=True)
@@ -152,7 +232,17 @@ class Object:
         required: bool = False,
         condition: tuple[tuple[Object, ...], tuple[Object, ...]] | None = None
     ) -> Object:
-        """Add a property to the object."""
+        """Add a property to the object.
+
+        Args:
+            name: The name of the property.
+            prop_obj: The property object.
+            required: If the property is required.
+            condition: A tuple with two tuples of conditions (positive and negative).
+
+        Returns:
+            The object itself.
+        """
         if condition and condition != NO_COND:
             self.allof[condition].append((name, prop_obj))
         else:
@@ -227,7 +317,14 @@ class JsonSchema(Object):
 
 
 def get_class_from_type(t: type) -> type:
-    """Get JSON schema class from Python type."""
+    """Get JSON schema class from Python type.
+
+    Args:
+        t: A Python type.
+
+    Returns:
+        A JSON schema class.
+    """
     types = {
         str: String,
         int: Integer,
@@ -242,7 +339,14 @@ def get_class_from_type(t: type) -> type:
 
 
 def build_json_schema(config_structure: dict) -> dict:
-    """Build a JSON schema based on Sparv's config structure."""
+    """Build a JSON schema based on Sparv's config structure.
+
+    Args:
+        config_structure: A dictionary with info about the structure of the config file.
+
+    Returns:
+        A dictionary with the JSON schema.
+    """
     schema = JsonSchema()
 
     def handle_object(
@@ -253,7 +357,18 @@ def build_json_schema(config_structure: dict) -> dict:
     ) -> defaultdict[tuple[tuple[Object | None, ...], tuple[Object, ...]], list]:
         """Handle dictionary which will become an object in the JSON schema.
 
-        Return a dictionary with conditionals as keys and lists of children to each conditional as values.
+        Args:
+            structure: The dictionary to handle.
+            parent_obj: The parent object.
+            parent_name: The name of the parent object.
+            is_condition: If this object is a condition.
+
+        Returns:
+            A dictionary with conditionals as keys and lists of children to each conditional as values.
+
+        Raises:
+            ValueError: If the datatype is not supported.
+            SparvErrorMessage: If an unknown error occurs.
         """
         conditionals: defaultdict[tuple[tuple[Object | None, ...], tuple[Object, ...]], list] = defaultdict(list)
 
@@ -336,6 +451,9 @@ def build_json_schema(config_structure: dict) -> dict:
         Returns:
             A tuple with two values. The first is either a datatype object or a list of datatype objects, and the
             second is a tuple of conditions (possible empty).
+
+        Raises:
+            ValueError: If the datatype is not supported.
         """
         kwargs = {}
         if cfg.description:
@@ -425,7 +543,15 @@ def build_json_schema(config_structure: dict) -> dict:
 
 
 def validate(cfg: dict, schema: dict) -> None:
-    """Validate a Sparv config using JSON schema."""
+    """Validate a Sparv config using JSON schema.
+
+    Args:
+        cfg: The config to validate.
+        schema: The JSON schema to validate against.
+
+    Raises:
+        SparvErrorMessage: If the config is invalid.
+    """
     import jsonschema  # noqa: PLC0415
 
     def build_path_string(path: Sequence) -> str:

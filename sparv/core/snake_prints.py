@@ -16,7 +16,11 @@ from sparv.core.console import console
 
 
 def prettyprint_yaml(in_dict: dict) -> None:
-    """Pretty-print YAML."""
+    """Pretty-print YAML.
+
+    Args:
+        in_dict: Dictionary to print.
+    """
     from rich.syntax import Syntax
 
     from sparv.api.util.misc import dump_yaml
@@ -26,7 +30,12 @@ def prettyprint_yaml(in_dict: dict) -> None:
 
 
 def print_modules_summary(snake_storage: snake_utils.SnakeStorage, json_output: bool = False) -> None:
-    """Print a summary of all annotation modules."""
+    """Print a summary of all annotation modules.
+
+    Args:
+        snake_storage: SnakeStorage object.
+        json_output: Print output as JSON.
+    """
     all_module_types = {
         "annotators": snake_storage.all_annotators,
         "importers": snake_storage.all_importers,
@@ -80,7 +89,16 @@ def print_modules_info(
     json_output: bool = False,
     include_params: bool = False
 ) -> None:
-    """Print full info for chosen module_types and module_names."""
+    """Print full info for chosen module_types and module_names.
+
+    Args:
+        module_types: List of module types to print.
+        module_names: List of module names to print.
+        snake_storage: SnakeStorage object.
+        reverse_config_usage: Dictionary with config usage.
+        json_output: Print output as JSON.
+        include_params: Include parameters in output.
+    """
     all_module_types = {
         "annotators": snake_storage.all_annotators,
         "importers": snake_storage.all_importers,
@@ -265,7 +283,11 @@ def print_modules_info(
 
 
 def _print_modules(modules_data: dict) -> None:
-    """Pretty print module information."""
+    """Pretty print module information.
+
+    Args:
+        modules_data: Dictionary with module information.
+    """
     # Box styles
     left_line = box.Box("    \n┃   \n┃   \n┃   \n┃   \n┃   \n┃   \n    ")
     minimal = box.Box("    \n  │ \n╶─┼╴\n  │ \n╶─┼╴\n╶─┼╴\n  │ \n    \n")
@@ -493,12 +515,21 @@ def print_languages() -> None:
 
 
 def get_custom_module_description(name: str) -> str:
-    """Return string with description for custom modules."""
+    """Return string with description for custom modules.
+
+    Args:
+        name: Name of the custom module.
+    """
     return "Custom module from corpus directory ({}.py).".format(name.split(".")[1])
 
 
 def print_installers(snake_storage: snake_utils.SnakeStorage, uninstall: bool = False) -> None:
-    """Print list of installers or uninstallers."""
+    """Print list of installers or uninstallers.
+
+    Args:
+        snake_storage: SnakeStorage object.
+        uninstall: Print uninstallers instead of installers.
+    """
     if uninstall:
         targets = snake_storage.uninstall_targets
         prefix = "un"

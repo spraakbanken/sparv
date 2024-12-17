@@ -15,7 +15,11 @@ except ImportError:
 
 
 def read_sparv_config() -> dict:
-    """Get Sparv data path from config file."""
+    """Get Sparv data path from config file.
+
+    Returns:
+        dict: Sparv config data.
+    """
     data = {}
     if sparv_config_file.is_file():
         try:
@@ -27,7 +31,14 @@ def read_sparv_config() -> dict:
 
 
 def get_data_path(subpath: str | Path = "") -> Path | None:
-    """Get location of directory containing Sparv models, binaries and other files."""
+    """Get location of directory containing Sparv models, binaries and other files.
+
+    Args:
+        subpath: Optional subpath to append to data dir.
+
+    Returns:
+        Path to data dir or data dir subpath.
+    """
     global data_dir
 
     if not data_dir:

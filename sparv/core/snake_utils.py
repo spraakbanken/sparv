@@ -166,6 +166,12 @@ def rule_helper(rule: RuleStorage, config: dict, storage: SnakeStorage, config_m
         storage: Object for saving information for all rules.
         config_missing: True if there is no corpus config file.
         custom_rule_obj: Custom annotation dictionary from corpus config.
+
+    Returns:
+        True if a Snakemake rule should be created, otherwise False.
+
+    Raises:
+        SparvErrorMessage: On assorted errors.
     """
     # Only create certain rules when config is missing
     if config_missing and not rule.modelbuilder:
@@ -616,9 +622,24 @@ def rule_helper(rule: RuleStorage, config: dict, storage: SnakeStorage, config_m
 
 
 def name_custom_rule(rule: RuleStorage, storage: SnakeStorage) -> None:
-    """Create unique name for custom rule."""
+    """Create unique name for custom rule.
+
+    If the rule name already exists, a numerical suffix is added to the name.
+
+    Args:
+        rule: RuleStorage object.
+        storage: SnakeStorage object.
+    """
     def get_new_suffix(name: str, existing_names: list[str]) -> str:
-        """Find a numerical suffix that leads to a unique rule name."""
+        """Find a numerical suffix that leads to a unique rule name.
+
+        Args:
+            name: Base name for the rule.
+            existing_names: List of existing rule names.
+
+        Returns:
+            A numerical suffix that leads to a unique rule name.
+        """
         i = 2
         new_name = name + str(i)
         while new_name in existing_names:
@@ -636,7 +657,14 @@ def name_custom_rule(rule: RuleStorage, storage: SnakeStorage) -> None:
 
 
 def check_ruleorder(storage: SnakeStorage) -> set[tuple[RuleStorage, RuleStorage]]:
-    """Order rules where necessary and print warning if rule order is missing."""
+    """Order rules where necessary and print warning if rule order is missing.
+
+    Args:
+        storage: SnakeStorage object.
+
+    Returns:
+        A set of tuples with ordered rules.
+    """
     ruleorder_pairs = set()
     ordered_rules = set()
     # Find rules that have common outputs and therefore need to be ordered
@@ -664,14 +692,28 @@ def check_ruleorder(storage: SnakeStorage) -> set[tuple[RuleStorage, RuleStorage
 
 
 def file_value(rule_params: RuleStorage) -> Callable:
-    """Get source filename for use as parameter to rule."""
+    """Get source filename for use as parameter to rule.
+
+    Args:
+        rule_params: RuleStorage object.
+
+    Returns:
+        Function that returns the source filename.
+    """
     def _file_value(wildcards: snakemake.io.Wildcards) -> str | None:
         return get_file_value(wildcards, rule_params.annotator)
     return _file_value
 
 
 def get_parameters(rule_params: RuleStorage) -> Callable:
-    """Extend function parameters with source filenames and replace wildcards."""
+    """Extend function parameters with source filenames and replace wildcards.
+
+    Args:
+        rule_params: RuleStorage object.
+
+    Returns:
+        Function that returns the parameters for the rule.
+    """
     def get_params(wildcards: snakemake.io.Wildcards) -> dict:
         file = get_file_value(wildcards, rule_params.annotator)
         # We need to make a copy of the parameters, since the rule might be used for multiple source files
@@ -712,7 +754,12 @@ def get_parameters(rule_params: RuleStorage) -> Callable:
 
 
 def update_storage(storage: SnakeStorage, rule: RuleStorage) -> None:
-    """Update info to snake storage with different targets."""
+    """Update info to snake storage with different targets.
+
+    Args:
+        storage: SnakeStorage object.
+        rule: RuleStorage object.
+    """
     if rule.exporter:
         storage.export_targets.append((rule.target_name, rule.description,
                                        rule.annotator_info["language"]))
@@ -732,12 +779,25 @@ def update_storage(storage: SnakeStorage, rule: RuleStorage) -> None:
 
 
 def get_source_path() -> str:
-    """Get path to source files."""
+    """Get path to source files.
+
+    Returns:
+        Path to source files.
+    """
     return sparv_config.get("import.source_dir")
 
 
 def get_annotation_path(annotation: str | BaseAnnotation, data: bool = False, common: bool = False) -> Path:
-    """Construct a path to an annotation file given an annotation name."""
+    """Construct a path to an annotation file given an annotation name.
+
+    Args:
+        annotation: Annotation name or BaseAnnotation object.
+        data: Set to True if the annotation is of the data type.
+        common: Set to True if the annotation is a common annotation for the whole corpus.
+
+    Returns:
+        Path to the annotation file.
+    """
     if not isinstance(annotation, BaseAnnotation):
         annotation = BaseAnnotation(annotation)
     elem, attr = annotation.split()
@@ -754,22 +814,52 @@ def get_annotation_path(annotation: str | BaseAnnotation, data: bool = False, co
 
 
 def get_file_values(config: dict, snake_storage: SnakeStorage) -> list[str]:
-    """Get a list of files represented by the {file} wildcard."""
+    """Get a list of files represented by the {file} wildcard.
+
+    Args:
+        config: Dictionary containing the corpus configuration.
+        snake_storage: SnakeStorage object.
+
+    Returns:
+        List of files represented by the {file} wildcard.
+    """
     return config.get("file") or snake_storage.source_files
 
 
 def get_wildcard_values(config: dict) -> dict:
-    """Get user-supplied wildcard values."""
+    """Get user-supplied wildcard values.
+
+    Args:
+        config: Dictionary containing the corpus configuration.
+
+    Returns:
+        Dictionary with wildcard values.
+    """
     return dict(wc.split("=") for wc in config.get("wildcards", []))
 
 
 def escape_wildcards(s: Path | str) -> str:
-    """Escape all wildcards other than {file}."""
+    """Escape all wildcards other than {file}.
+
+    Args:
+        s: Path or string to escape.
+
+    Returns:
+        Escaped string.
+    """
     return re.sub(r"(?!{file})({[^}]+})", r"{\1}", str(s))
 
 
 def get_file_value(wildcards: snakemake.io.Wildcards, annotator: bool) -> str | None:
-    """Extract the {file} part from full annotation path."""
+    """Extract the {file} part from full annotation path.
+
+    Args:
+        wildcards: Wildcards object.
+        annotator: True if the rule is an annotator.
+
+    Returns:
+        The value of {file}.
+    """
     file = None
     if hasattr(wildcards, "file"):
         if annotator:
@@ -780,7 +870,14 @@ def get_file_value(wildcards: snakemake.io.Wildcards, annotator: bool) -> str | 
 
 
 def load_config(snakemake_config: dict) -> bool:
-    """Load corpus config and override the corpus language (if needed)."""
+    """Load corpus config and override the corpus language (if needed).
+
+    Args:
+        snakemake_config: Snakemake config dictionary.
+
+    Returns:
+        True if the corpus config is missing.
+    """
     # Find corpus config
     corpus_config_file = Path.cwd() / paths.config_file
     if corpus_config_file.is_file():
@@ -806,7 +903,19 @@ def get_install_outputs(
     install_types: list | None = None,
     uninstall: bool = False
 ) -> list[Path]:
-    """Collect files to be created for all (un)installations given as argument or listed in config.(un)install."""
+    """Collect files to be created for all (un)installations given as argument or listed in config.(un)install.
+
+    Args:
+        snake_storage: SnakeStorage object.
+        install_types: List of (un)installation types.
+        uninstall: True if uninstallation files should be collected instead of installation files.
+
+    Returns:
+        List of files to be created by the selected (un)installations.
+
+    Raises:
+        SparvErrorMessage: If unknown (un)installation types are given.
+    """
     unknown = []
     install_outputs = []
 
@@ -844,7 +953,20 @@ def get_export_targets(
     file: list[str],
     wildcards: dict
 ) -> list:
-    """Get export targets from sparv_config."""
+    """Get export targets from sparv_config.
+
+    Args:
+        snake_storage: SnakeStorage object.
+        workflow: Snakemake workflow object.
+        file: List of files represented by the {file} wildcard.
+        wildcards: Dictionary with wildcard values.
+
+    Returns:
+        List of export targets.
+
+    Raises:
+        SparvErrorMessage: If unknown output formats are specified in export.default.
+    """
     all_outputs = []
     config_exports = set(sparv_config.get("export.default", []))
 
@@ -867,7 +989,15 @@ def get_export_targets(
 
 
 def make_param_dict(params: OrderedDict[str, inspect.Parameter]) -> dict:
-    """Make dictionary storing info about a function's parameters."""
+    """Make dictionary storing info about a function's parameters.
+
+    Args:
+        params: OrderedDict of function parameters.
+
+    Returns:
+        Dictionary with parameter names as keys and tuples with default value, type, whether it is a list and whether
+        it is optional as values.
+    """
     param_dict = {}
     for p, v in params.items():
         default = v.default if v.default != inspect.Parameter.empty else None
@@ -877,7 +1007,11 @@ def make_param_dict(params: OrderedDict[str, inspect.Parameter]) -> dict:
 
 
 def get_reverse_config_usage() -> defaultdict[str, list]:
-    """Get a dictionary with annotators as keys, and lists of the config variables they use as values."""
+    """Get a dictionary with annotators as keys, and lists of the config variables they use as values.
+
+    Returns:
+        Dictionary with annotators as keys, and lists of the config variables they use as values.
+    """
     reverse_config_usage = defaultdict(list)
     for config_key in sparv_config.config_usage:
         for annotator in sparv_config.config_usage[config_key]:
@@ -886,10 +1020,18 @@ def get_reverse_config_usage() -> defaultdict[str, list]:
 
 
 def print_sparv_warning(msg: str) -> None:
-    """Format msg into a Sparv warning message."""
-    console.print(f"[yellow]WARNING: {msg}[/yellow]", highlight=False)
+    """Format msg into a Sparv warning message.
+
+    Args:
+        msg: Warning message.
+    """
+    console.print(f"[red]WARNING:[/] {msg}")
 
 
 def print_sparv_info(msg: str) -> None:
-    """Format msg into a Sparv info message."""
+    """Format msg into a Sparv info message.
+
+    Args:
+        msg: Info message.
+    """
     console.print(f"[green]{msg}[/green]", highlight=False)

@@ -53,7 +53,17 @@ class Unset:
 
 
 def read_yaml(yaml_file: str | Path) -> dict:
-    """Read YAML file and handle errors."""
+    """Read YAML file and handle errors.
+
+    Args:
+        yaml_file: Path to YAML file.
+
+    Returns:
+        Dictionary with parsed YAML data.
+
+    Raises:
+        SparvErrorMessage: If the config can't be parsed or read.
+    """
     # Handle dates as strings
     yaml.constructor.SafeConstructor.yaml_constructors["tag:yaml.org,2002:timestamp"] = (
         yaml.constructor.SafeConstructor.yaml_constructors["tag:yaml.org,2002:str"]
@@ -77,6 +87,9 @@ def load_config(config_file: str | None, config_dict: dict | None = None) -> Non
     Args:
         config_file: Path to corpus config file. If None, only the default config is read.
         config_dict: Get corpus config from dictionary instead of config file.
+
+    Raises:
+        SparvErrorMessage: If the config can't be parsed.
     """
     assert not (config_file and config_dict), "config_file and config_dict can not be used together"
     # Read default config
@@ -93,7 +106,15 @@ def load_config(config_file: str | None, config_dict: dict | None = None) -> Non
         _config_user = read_yaml(config_file) or {}
 
         def handle_parents(cfg: dict, current_dir: Path = Path()) -> dict:
-            """Combine parent configs recursively."""
+            """Combine parent configs recursively.
+
+            Args:
+                cfg: Config dictionary.
+                current_dir: Current directory.
+
+            Returns:
+                Combined config.
+            """
             combined_parents = {}
             if cfg.get(PARENT):
                 parents = cfg[PARENT]
@@ -130,14 +151,29 @@ def load_config(config_file: str | None, config_dict: dict | None = None) -> Non
 
 
 def _get(name: str, config_dict: dict | None = None) -> Any:
-    """Try to get value from config, raising an exception if key doesn't exist."""
+    """Try to get value from config, raising an exception if key doesn't exist.
+
+    Args:
+        name: Config key to look up.
+        config_dict: Dictionary to look up key in. If None, the global config is used.
+
+    Returns:
+        The value of the config key. If the key is not found, a KeyError is raised.
+    """
     config_dict = config_dict if config_dict is not None else config
     # Handle dot notation
     return reduce(lambda c, k: c[k], name.split("."), config_dict)
 
 
 def set_value(name: str, value: Any, overwrite: bool = True, config_dict: dict | None = None) -> None:
-    """Set value in config, possibly using dot notation."""
+    """Set value in config, possibly using dot notation.
+
+    Args:
+        name: Config key to set.
+        value: Value to set.
+        overwrite: If False, only set value if key doesn't exist.
+        config_dict: Dictionary to set key in. If None, the global config is used.
+    """
     keys = name.split(".")
     prev = config_dict if config_dict is not None else config
     for key in keys[:-1]:
@@ -150,7 +186,15 @@ def set_value(name: str, value: Any, overwrite: bool = True, config_dict: dict |
 
 
 def get(name: str, default: Any = None) -> Any:
-    """Get value from config, or return the supplied 'default' if key doesn't exist."""
+    """Get value from config, or return the supplied 'default' if key doesn't exist.
+
+    Args:
+        name: Config key to look up.
+        default: Value to return if key doesn't exist.
+
+    Returns:
+        The value of the config key, or the default value if the key is not found.
+    """
     try:
         return _get(name)
     except KeyError:
@@ -158,8 +202,12 @@ def get(name: str, default: Any = None) -> Any:
 
 
 def set_default(name: str, default: Any = None) -> None:
-    """Set default value for config variable."""
-    # If config variable is already set to None but we get a better default value, replace the existing
+    """Set config value to default if key is not already set, or if it is set to None.
+
+    Args:
+        name: Config key.
+        default: Value to set if key is not already set.
+    """
     if default is not None:
         try:
             if _get(name) is None:
@@ -171,12 +219,20 @@ def set_default(name: str, default: Any = None) -> None:
 
 
 def extend_config(new_config: dict) -> None:
-    """Extend existing config with new values for missing keys."""
+    """Extend existing config with new values for missing keys.
+
+    Args:
+        new_config: Dictionary with new config values.
+    """
     _merge_dicts(config, new_config)
 
 
 def update_config(new_config: dict) -> None:
-    """Update existing config with new values, replacing existing values."""
+    """Update existing config with new values, replacing existing values.
+
+    Args:
+        new_config: Dictionary with new config values.
+    """
     _merge_dicts_replace(config, new_config)
 
 
@@ -218,7 +274,12 @@ def _merge_dicts_replace(d: dict, new_dict: dict) -> None:
 
 
 def add_to_structure(cfg: Config, annotator: str | None = None) -> None:
-    """Add config variable to config structure."""
+    """Add config variable to config structure.
+
+    Args:
+        cfg: Config object to add.
+        annotator: Name of annotator using the config.
+    """
     set_value(
         cfg.name,
         {
@@ -233,23 +294,46 @@ def add_to_structure(cfg: Config, annotator: str | None = None) -> None:
 
 
 def get_config_description(name: str) -> str | None:
-    """Get description for config key."""
+    """Get description for config key.
+
+    Args:
+        name: Config key.
+
+    Returns:
+        Description of the config key.
+    """
     cfg = _get(name, config_structure).get("_cfg")
     return cfg.description if cfg else None
 
 
 def get_config_object(name: str) -> Config | None:
-    """Get original Config object for config key."""
+    """Get original Config object for config key.
+
+    Args:
+        name: Config key.
+
+    Returns:
+        Config object for the config key.
+    """
     return _get(name, config_structure).get("_cfg")
 
 
 def add_config_usage(config_key: str, annotator: str) -> None:
-    """Add an annotator to the list of annotators that are using a given config key."""
+    """Add an annotator to the list of annotators that are using a given config key.
+
+    Args:
+        config_key: Config key.
+        annotator: Name of annotator using the config key.
+    """
     config_usage[config_key].add(annotator)
 
 
 def validate_module_config() -> None:
-    """Make sure that modules don't try to access undeclared config keys."""
+    """Make sure that modules don't try to access undeclared config keys.
+
+    Raises:
+        SparvErrorMessage: If an annotator tries to access a config key that isn't declared anywhere.
+    """
     for config_key in config_usage:
         try:
             _get(config_key, config_structure)
@@ -262,7 +346,15 @@ def validate_module_config() -> None:
 
 
 def load_presets(lang: str, lang_variety: str | None) -> dict:
-    """Read presets files and return dictionaries with all available presets annotations and preset classes."""
+    """Read presets files and return dictionaries with all available preset annotations and preset classes.
+
+    Args:
+        lang: Language code.
+        lang_variety: Language variety.
+
+    Returns:
+        Dictionary with all available preset annotations and preset classes.
+    """
     class_dict = {}
     full_lang = lang
     if lang_variety:
@@ -320,7 +412,7 @@ def resolve_presets(annotations: list[str], class_dict: dict) -> tuple[list[str]
 
 
 def apply_presets() -> None:
-    """Resolve annotations from presets and set preset classes."""
+    """Resolve annotations from presets in all annotation lists, and set preset classes."""
     # Load annotation presets and classes
     class_dict = load_presets(get("metadata.language"), get("metadata.variety"))
     all_preset_classes = {}
@@ -345,7 +437,11 @@ def apply_presets() -> None:
 
 
 def handle_text_annotation() -> None:
-    """Copy text annotation to text class."""
+    """Copy text annotation to text class.
+
+    Raises:
+        SparvErrorMessage: If classes.text and import.text_annotation have different values.
+    """
     text_ann = get("import.text_annotation")
 
     # Make sure that if both classes.text and import.text_annotation are set, that they have the same value
@@ -360,7 +456,7 @@ def handle_text_annotation() -> None:
 
 
 def inherit_config(source: str, target: str) -> None:
-    """Let 'target' inherit config values from 'source' for evey key that is supported and not already populated.
+    """Let 'target' inherit config values from 'source' for every key that is supported and not already populated.
 
     Only keys which are either missing or with a value of None in the target will inherit the source's value, meaning
     that falsy values like empty strings or lists will not be overwritten.

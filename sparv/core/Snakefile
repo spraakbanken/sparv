@@ -31,7 +31,11 @@ selected_targets = config.get("targets", [])  # Explicitly selected rule names
 # ==============================================================================
 
 def make_rules(config_missing: bool) -> None:
-    """Load all Sparv modules and create Snakemake rules."""
+    """Load all Sparv modules and create Snakemake rules.
+
+    Args:
+        config_missing: Whether the config file is missing.
+    """
     # Get preloader info
     if config.get("socket") and not config.get("preloader"):
         from sparv.core import preload
@@ -68,7 +72,15 @@ def make_rules(config_missing: bool) -> None:
 
 def make_rule(module_name: str, f_name: str, annotator_info: dict, config_missing: bool = False,
               custom_rule_obj: dict = None) -> None:
-    """Create single Snakemake rule."""
+    """Create single Snakemake rule.
+
+    Args:
+        module_name: Name of the module.
+        f_name: Name of the function.
+        annotator_info: Information about the annotator.
+        config_missing: Whether the config file is missing.
+        custom_rule_obj: Custom rule object.
+    """
     # Init rule storage
     rule_storage = snake_utils.RuleStorage(module_name, f_name, annotator_info)
 
@@ -113,7 +125,11 @@ def make_rule(module_name: str, f_name: str, annotator_info: dict, config_missin
 
 
 def make_all_files_rule(rule_storage: snake_utils.RuleStorage) -> None:
-    """Create named rule to run an annotation on all input files."""
+    """Create named rule to run an annotation on all input files.
+
+    Args:
+        rule_storage: Rule storage object.
+    """
     # Only create rule when explicitly called
     if config.get("run_by_sparv") and rule_storage.target_name not in selected_targets:
         return
