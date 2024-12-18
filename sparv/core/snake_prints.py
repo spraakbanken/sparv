@@ -61,11 +61,11 @@ def print_modules_summary(snake_storage: snake_utils.SnakeStorage, json_output: 
         table.add_column(no_wrap=True)
         table.add_column()
 
-        for module_type in modules_data:
+        for module_type, module_type_data in modules_data.items():
             table.add_row(f"[b]{module_type.upper()}[/b]")
-            for module, module_data in modules_data[module_type].items():
+            for module, module_data in module_type_data.items():
                 table.add_row(
-                    "  " + module,
+                    f"  {module}",
                     module_data["description"].split("\n")[0]
                 )
             table.add_row()
@@ -475,21 +475,21 @@ def print_annotation_classes() -> None:
     table.add_row("[b]Available annotation classes[/b]")
     table.add_row("  [i]Class[/i]", "[i]Annotation[/i]")
     for annotation_class, anns in sorted(registry.annotation_classes["module_classes"].items()):
-        table.add_row("  " + annotation_class, "\n".join(sorted(set(anns), key=anns.index)))
+        table.add_row(f"  {annotation_class}", "\n".join(sorted(set(anns), key=anns.index)))
 
     if registry.annotation_classes["config_classes"]:
         table.add_row()
         table.add_row("[b]Classes set in config[/b]")
         table.add_row("  [i]Class[/i]", "[i]Annotation[/i]")
         for annotation_class, ann in registry.annotation_classes["config_classes"].items():
-            table.add_row("  " + annotation_class, ann)
+            table.add_row(f"  {annotation_class}", ann)
 
     if registry.annotation_classes["implicit_classes"]:
         table.add_row()
         table.add_row("[b]Class values inferred from annotation usage[/b]")
         table.add_row("  [i]Class[/i]", "[i]Annotation[/i]")
         for annotation_class, ann in registry.annotation_classes["implicit_classes"].items():
-            table.add_row("  " + annotation_class, ann)
+            table.add_row(f"  {annotation_class}", ann)
 
     console.print(table)
 
@@ -503,8 +503,7 @@ def print_languages() -> None:
         table.add_row(name, language)
     console.print(table)
 
-    sub_langs = {k: v for k, v in registry.languages.items() if "-" in k}
-    if sub_langs:
+    if sub_langs := {k: v for k, v in registry.languages.items() if "-" in k}:
         console.print()
         table = Table(title="Supported language varieties", box=box.SIMPLE, show_header=False, title_justify="left")
         table.add_row("[b]Name[/b]", "[b]Language[/b]", "[b]Variety[/b]")
@@ -520,7 +519,7 @@ def get_custom_module_description(name: str) -> str:
     Args:
         name: Name of the custom module.
     """
-    return "Custom module from corpus directory ({}.py).".format(name.split(".")[1])
+    return f"Custom module from corpus directory ({name.split('.')[1]}.py)."
 
 
 def print_installers(snake_storage: snake_utils.SnakeStorage, uninstall: bool = False) -> None:

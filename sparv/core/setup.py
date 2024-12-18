@@ -49,7 +49,7 @@ def copy_resource_files(data_dir: pathlib.Path) -> None:
             elif (data_dir / rel_f).is_file():
                 # Only copy if files are different
                 if not filecmp.cmp(f, (data_dir / rel_f)):
-                    shutil.copy((data_dir / rel_f), (data_dir / rel_f.parent / (rel_f.name + ".bak")))
+                    shutil.copy(data_dir / rel_f, data_dir / rel_f.parent / f"{rel_f.name}.bak")
                     console.print(f"{rel_f} has been updated and a backup was created")
                     shutil.copy(f, data_dir / rel_f)
             else:
@@ -66,7 +66,7 @@ def reset() -> None:
             # Delete config dir if empty
             if not any(paths.sparv_config_file.parent.iterdir()):
                 paths.sparv_config_file.parent.rmdir()
-        except:
+        except Exception:
             console.print("An error occurred while trying to reset the configuration.")
             sys.exit(1)
         console.print("Sparv's data directory information has been reset.")
@@ -143,7 +143,7 @@ def run(sparv_datadir: str | None = None) -> None:
         path.mkdir(parents=True, exist_ok=True)
         for d in dirs:
             (path / d).mkdir(exist_ok=True)
-    except:
+    except Exception:
         console.print(
             "\nAn error occurred while trying to create the directories. "
             "Make sure the path you entered is correct, and that you have the necessary read/write permissions.")
@@ -156,7 +156,7 @@ def run(sparv_datadir: str | None = None) -> None:
         }
 
         paths.sparv_config_file.parent.mkdir(parents=True, exist_ok=True)
-        with open(paths.sparv_config_file, "w", encoding="utf-8") as f:
+        with paths.sparv_config_file.open("w", encoding="utf-8") as f:
             f.write(dump_yaml(config_dict))
 
     copy_resource_files(path)

@@ -28,7 +28,7 @@ class BaseProperty:
             **kwargs: Additional keyword arguments.
         """
         self.schema = {
-            "type": prop_type if not allow_null else [prop_type, "null"],
+            "type": [prop_type, "null"] if allow_null else prop_type,
             **kwargs
         } if prop_type else kwargs
 
@@ -277,7 +277,7 @@ class Object:
                 pos_conds, neg_conds = condition
                 if len(pos_conds) + len(neg_conds) > 1:
                     cond_schema = {
-                        "allOf": [c.schema for c in pos_conds if not c is None] + [  # noqa
+                        "allOf": [c.schema for c in pos_conds if c is not None] + [
                             {"not": c.schema}
                             for c in neg_conds
                         ]
@@ -372,14 +372,14 @@ def build_json_schema(config_structure: dict) -> dict:
         """
         conditionals: defaultdict[tuple[tuple[Object | None, ...], tuple[Object, ...]], list] = defaultdict(list)
 
-        for key in structure:
-            if not structure[key].get("_source"):  # Not a leaf, has children
+        for key, value in structure.items():
+            if not value.get("_source"):  # Not a leaf, has children
                 description = None
                 if parent_name is None and key in registry.modules:
                     # This is a module
                     description = registry.modules[key].description
                 child_obj = Object(additional_properties=is_condition, description=description)
-                children = handle_object(structure[key], parent_name=key, is_condition=is_condition)
+                children = handle_object(value, parent_name=key, is_condition=is_condition)
 
                 if len(children) == 1:
                     # Same or no condition for all children
@@ -415,18 +415,18 @@ def build_json_schema(config_structure: dict) -> dict:
                         )
 
                         if not set(positive_conds).intersection(set(negative_conds)):
-                            conditionals[(positive_conds, negative_conds)].append((key, child_obj))
+                            conditionals[positive_conds, negative_conds].append((key, child_obj))
 
-            elif "_cfg" in structure[key]:  # A leaf
+            elif "_cfg" in value:  # A leaf
                 try:
-                    prop, condition = handle_property(structure[key]["_cfg"])
+                    prop, condition = handle_property(value["_cfg"])
                 except ValueError:
                     full_key = f"{parent_name}.{key}" if parent_name else key
                     raise ValueError(
-                        f"Unsupported datatype for '{full_key}': '{structure[key]['_cfg'].datatype}'"
+                        f"Unsupported datatype for '{full_key}': '{value['_cfg'].datatype}'"
                     ) from None
 
-                conditionals[(condition, ())].append((key, prop))
+                conditionals[condition, ()].append((key, prop))
 
             else:
                 full_key = f"{parent_name}.{key}" if parent_name else key
@@ -571,7 +571,7 @@ def validate(cfg: dict, schema: dict) -> None:
         # Rephrase messages about unexpected keys
         unknown_key = re.search(r"properties are not allowed \('(.+)' was unexpected", e.message)
         if unknown_key:
-            full_path = ".".join([*list(e.absolute_path), unknown_key.group(1)])
+            full_path = ".".join([*list(e.absolute_path), unknown_key[1]])
             msg.append(f"Unexpected key in config file: {full_path!r}")
         else:
             msg.append(e.message)

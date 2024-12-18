@@ -37,7 +37,7 @@ def get_logger(name: str) -> logging.Logger:
         Logger object.
     """
     if not name.startswith("sparv.modules"):
-        name = "sparv.modules." + name
+        name = f"sparv.modules.{name}"
     return logging.getLogger(name)
 
 

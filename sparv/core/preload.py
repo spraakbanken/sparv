@@ -213,7 +213,7 @@ def handle(client_sock: socket.socket, annotators: dict[str, Preloader]) -> bool
     # Get data
     data = receive_data(client_sock)
     if data is None:
-        return
+        return None
 
     # Check if we got a command instead of annotator info
     if isinstance(data, str):
@@ -221,12 +221,12 @@ def handle(client_sock: socket.socket, annotators: dict[str, Preloader]) -> bool
             return False
         elif data == INFO:
             send_data(client_sock, {k: v.params for k, v in annotators.items()})
-            return
+            return None
         elif data == PING:
             try:
                 send_data(client_sock, PONG)
             except BrokenPipeError:
-                return
+                return None
             data = receive_data(client_sock)
 
     log.info("Running %s...", data[0])
@@ -248,11 +248,11 @@ def handle(client_sock: socket.socket, annotators: dict[str, Preloader]) -> bool
         annotator.function(**data[1])
     except SparvErrorMessage as e:
         send_data(client_sock, e)
-        return
+        return None
     except Exception as e:
         console.print_exception()
         send_data(client_sock, e)
-        return
+        return None
     finally:
         # Clear log handlers
         logger = logging.getLogger("sparv")
@@ -265,6 +265,8 @@ def handle(client_sock: socket.socket, annotators: dict[str, Preloader]) -> bool
     # Run cleanup if available
     if annotator.cleanup:
         annotator.preloaded = annotator.cleanup(**{**annotator.params, annotator.target: annotator.preloaded})
+
+    return None
 
 
 def worker(

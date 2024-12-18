@@ -97,7 +97,7 @@ class SnakeStorage:
                     "sparv"
                 ) from None
             # Collect files in source dir
-            sf = list(snakemake.utils.listfiles(Path(get_source_path(), "{file}")))
+            sf = list(snakemake.utils.listfiles(str(Path(get_source_path(), "{file}"))))
             self._source_files = [f[1][0][:-len(file_extension)] for f in sf if f[1][0].endswith(file_extension)]
             # Collect files that don't match the file extension provided by the corpus config
             wrong_ext = [f[1][0] for f in sf if not f[1][0].endswith(file_extension) and not Path(f[0]).is_dir()]

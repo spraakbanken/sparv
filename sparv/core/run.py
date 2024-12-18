@@ -43,7 +43,7 @@ def main(argv: list[str] | None = None, log_level: str = "info") -> None:
     # Import module, which will add available functions to annotators registry
     importlib.import_module(f"{modules_path}.{module_name}")
 
-    parser = argparse.ArgumentParser(prog="sparv run-module " + module_name,
+    parser = argparse.ArgumentParser(prog=f"sparv run-module {module_name}",
                                      epilog="note: Annotation classes and configuration variables are not available "
                                             "when running annotators independently. Complete names must be used.")
     subparsers = parser.add_subparsers(dest="_annotator", help="Annotator function")
@@ -91,9 +91,9 @@ def main(argv: list[str] | None = None, log_level: str = "info") -> None:
                     else:
                         required = True
             if required:
-                required_args.add_argument("--" + parameter[0], required=True, **f_args)
+                required_args.add_argument(f"--{parameter[0]}", required=True, **f_args)
             else:
-                subparser.add_argument("--" + parameter[0], help=" ", **f_args)
+                subparser.add_argument(f"--{parameter[0]}", help=" ", **f_args)
 
         subparser.set_defaults(has_source_=has_source)
         if not has_source and needs_source:

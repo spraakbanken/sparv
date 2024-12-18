@@ -259,7 +259,7 @@ class ProgressWithTable(progress.Progress):
             Renderables for the progress display.
         """
         # Progress bar
-        yield self.make_tasks_table(self.tasks[0:1])
+        yield self.make_tasks_table(self.tasks[:1])
 
         # Task table
         if self.all_tasks:
@@ -409,7 +409,7 @@ class LogHandler:
         self.logger.addHandler(stream_handler)
 
         # File logger
-        self.log_filename = "{}.log".format(datetime.datetime.now().strftime("%Y-%m-%d_%H.%M.%S.%f"))
+        self.log_filename = f"{datetime.datetime.now().strftime('%Y-%m-%d_%H.%M.%S.%f')}.log"
         file_handler = FileHandlerWithDirCreation(os.path.join(paths.log_dir, self.log_filename), mode="w",
                                                   encoding="UTF-8", delay=True)
         file_handler.setLevel(self.log_file_level.upper())
@@ -438,7 +438,7 @@ class LogHandler:
         console.print()
         progress_layout = [
             progress.SpinnerColumn("dots2"),
-            progress.BarColumn(bar_width=None if not self.simple else 40),
+            progress.BarColumn(bar_width=40 if self.simple else None),
             progress.TextColumn("[progress.description]{task.description}"),
             progress.TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
             progress.TextColumn("[progress.remaining]{task.completed} of {task.total} tasks"),
@@ -525,9 +525,7 @@ class LogHandler:
 
         def missing_class_message(source: str, classes: list[str] | None = None) -> None:
             """Create error message when class variables are missing."""
-            _variables = messages["missing_classes"][source]
-            if not _variables:
-                _variables = classes
+            _variables = messages["missing_classes"][source] or classes
             _message = "The following class{} need{} to be set:\n • {}".format(
                 *("es", "") if len(_variables) > 1 else ("", "s"),
                 "\n • ".join(_variables))
@@ -633,7 +631,7 @@ class LogHandler:
                         "file": file
                     }
 
-                    self.job_ids[(msg["msg"], file)] = msg["jobid"]
+                    self.job_ids[msg["msg"], file] = msg["jobid"]
 
         elif (level == "job_finished" or (level == "job_error" and self.keep_going)) and self.use_progressbar and msg[
                 "jobid"] in self.current_jobs:
@@ -679,7 +677,7 @@ class LogHandler:
                 self.messages["error"].append(
                     (
                         None,
-                        f"A Sparv subprocess was unexpectedly killed due to receiving a {signal_match.group(1)} signal."
+                        f"A Sparv subprocess was unexpectedly killed due to receiving a {signal_match[1]} signal.",
                     )
                 )
                 self.handled_error = True
@@ -707,7 +705,7 @@ class LogHandler:
             # Missing output files
             elif "MissingOutputException" in msg["msg"]:
                 msg_contents = re.search(r"Missing files after .*?:\n(.+)", msg["msg"], flags=re.DOTALL)
-                missing_files = "\n • ".join(msg_contents.group(1).strip().splitlines())
+                missing_files = "\n • ".join(msg_contents[1].strip().splitlines())
                 message = (
                     "The following output files were expected but are missing:\n"
                     f" • {missing_files}\n{missing_annotations_msg}"
@@ -765,115 +763,119 @@ class LogHandler:
     def stop(self) -> None:
         """Stop the progress bar and output any messages."""
         # Make sure this is only run once
-        if not self.finished:
-            # Stop progress bar
-            if self.bar is not None:
-                if self.bar_started:
-                    # Add message about elapsed time
-                    elapsed = round(time.time() - self.start_time)
-                    self.progress.update(self.bar, text=f"Total time: {timedelta(seconds=elapsed)}")
-                else:
-                    # Hide bar if it was never started
-                    self.progress.update(self.bar, visible=False)
+        if self.finished:
+            return
 
-                # Stop bar
-                self.progress.stop()
-                if not self.simple and self.bar_started:
-                    # Clear table header from screen
-                    console.control(Control(
-                        ControlType.CARRIAGE_RETURN,
-                        *((ControlType.CURSOR_UP, 1), (ControlType.ERASE_IN_LINE, 2)) * 2
-                    ))
-
-            self.finished = True
-
-            # Execution failed but we handled the error
-            if self.handled_error:
-                # Print any collected core error messages
-                if self.messages["error"]:
-                    errmsg = ["Sparv exited with the following error message{}:".format(
-                        "s" if len(self.messages) > 1 else "")]
-                    for message in self.messages["error"]:
-                        error_source, msg = message
-                        error_source = f"[{error_source}]\n" if error_source else ""
-                        errmsg.append(f"\n{error_source}{msg}")
-                    self.error("\n".join(errmsg))
-                else:
-                    # Errors from modules have already been logged, so notify user
-                    if self.log_filename:
-                        self.error(
-                            "Job execution failed. See log messages above or "
-                            f"{os.path.join(paths.log_dir, self.log_filename)} for details.")
-                    else:
-                        self.error("Job execution failed. See log messages above for details.")
-            # Unhandled errors
-            elif self.messages["unhandled_error"]:
-                for error in self.messages["unhandled_error"]:
-                    errmsg = ["An unexpected error occurred."]
-                    if self.log_level and logging._nameToLevel[self.log_level.upper()] > logging.DEBUG:
-                        errmsg[0] += (
-                            " To display further details about this error, rerun Sparv with the "
-                            "'--log debug' argument.\n"
-                        )
-                        if error.get("msg"):
-                            # Show only a summary of the error
-                            # Parsing is based on the format in format_error() in snakemake/exceptions.py
-                            error_lines = error["msg"].splitlines()
-                            if " in file " in error_lines[0]:
-                                errmsg.append(error_lines[0].split(" in file ")[0] + ":")
-                                for line in error_lines[1:]:
-                                    if line.startswith("  File "):
-                                        break
-                                    errmsg.append(line)
-                    else:
-                        errmsg.append("")
-                        errmsg.append(error.get("msg") or "An unknown error occurred.")
-                    self.error("\n".join(errmsg))
+        # Stop progress bar
+        if self.bar is not None:
+            if self.bar_started:
+                # Add message about elapsed time
+                elapsed = round(time.time() - self.start_time)
+                self.progress.update(self.bar, text=f"Total time: {timedelta(seconds=elapsed)}")
             else:
+                # Hide bar if it was never started
+                self.progress.update(self.bar, visible=False)
+
+            # Stop bar
+            self.progress.stop()
+            if not self.simple and self.bar_started:
+                # Clear table header from screen
+                console.control(Control(
+                    ControlType.CARRIAGE_RETURN,
+                    *((ControlType.CURSOR_UP, 1), (ControlType.ERASE_IN_LINE, 2)) * 2
+                ))
+
+        self.finished = True
+
+        # Execution failed but we handled the error
+        if self.handled_error:
+            # Print any collected core error messages
+            if self.messages["error"]:
+                errmsg = [f"Sparv exited with the following error message{'s' if len(self.messages) > 1 else ''}:"]
+                for message in self.messages["error"]:
+                    error_source, msg = message
+                    error_source = f"[{error_source}]\n" if error_source else ""
+                    errmsg.append(f"\n{error_source}{msg}")
+                self.error("\n".join(errmsg))
+            elif self.log_filename:
+                # Errors from modules have already been logged to both stdout and the log file
+                self.error(
+                    "Job execution failed. See log messages above or "
+                    f"{os.path.join(paths.log_dir, self.log_filename)} for details.")
+            else:
+                # Errors from modules have already been logged to stdout
+                self.error("Job execution failed. See log messages above for details.")
+        # Unhandled errors
+        elif self.messages["unhandled_error"]:
+            for error in self.messages["unhandled_error"]:
+                errmsg = ["An unexpected error occurred."]
+                if self.log_level and logging._nameToLevel[self.log_level.upper()] > logging.DEBUG:
+                    errmsg[0] += (
+                        " To display further details about this error, rerun Sparv with the "
+                        "'--log debug' argument.\n"
+                    )
+                    if error.get("msg"):
+                        # Show only a summary of the error
+                        # Parsing is based on the format in format_error() in snakemake/exceptions.py
+                        error_lines = error["msg"].splitlines()
+                        if " in file " in error_lines[0]:
+                            errmsg.append(error_lines[0].split(" in file ")[0] + ":")
+                            for line in error_lines[1:]:
+                                if line.startswith("  File "):
+                                    break
+                                errmsg.append(line)
+                else:
+                    errmsg.append("")
+                    errmsg.append(error.get("msg") or "An unknown error occurred.")
+                self.error("\n".join(errmsg))
+        else:
+            spacer = ""
+            if self.export_dirs:
+                spacer = "\n"
+                self.info("The exported files can be found in the following location{}:\n • {}".format(
+                    "s" if len(self.export_dirs) > 1 else "", "\n • ".join(sorted(self.export_dirs))))
+
+            if self.stats_data:
                 spacer = ""
-                if self.export_dirs:
-                    spacer = "\n"
-                    self.info("The exported files can be found in the following location{}:\n • {}".format(
-                        "s" if len(self.export_dirs) > 1 else "", "\n • ".join(sorted(self.export_dirs))))
+                table = Table(show_header=False, box=box.SIMPLE)
+                table.add_column("Task", no_wrap=True, min_width=self.jobs_max_len + 2, ratio=1)
+                table.add_column("Time taken", no_wrap=True, justify="right", style="progress.remaining")
+                table.add_column("Percentage", no_wrap=True, justify="right")
+                table.add_row("[b]Task[/]", "[default b]Time taken[/]", "[b]Percentage[/b]")
+                total_time = sum(self.stats_data.values())
+                for task, elapsed in sorted(self.stats_data.items(), key=lambda x: -x[1]):
+                    table.add_row(task, str(timedelta(seconds=round(elapsed))),
+                                    f"{100 * elapsed / total_time:.1f}%")
+                console.print(table)
 
-                if self.stats_data:
-                    spacer = ""
-                    table = Table(show_header=False, box=box.SIMPLE)
-                    table.add_column("Task", no_wrap=True, min_width=self.jobs_max_len + 2, ratio=1)
-                    table.add_column("Time taken", no_wrap=True, justify="right", style="progress.remaining")
-                    table.add_column("Percentage", no_wrap=True, justify="right")
-                    table.add_row("[b]Task[/]", "[default b]Time taken[/]", "[b]Percentage[/b]")
-                    total_time = sum(self.stats_data.values())
-                    for task, elapsed in sorted(self.stats_data.items(), key=lambda x: -x[1]):
-                        table.add_row(task, str(timedelta(seconds=round(elapsed))),
-                                      f"{100 * elapsed / total_time:.1f}%")
-                    console.print(table)
+            if self.log_levelcount:
+                # Errors or warnings were logged but execution finished anyway. Notify user of potential problems.
+                problems = []
+                if self.log_levelcount["ERROR"]:
+                    problems.append(
+                        f"{self.log_levelcount['ERROR']} error{'s' if self.log_levelcount['ERROR'] > 1 else ''}"
+                    )
+                if self.log_levelcount["WARNING"]:
+                    problems.append(
+                        f"{self.log_levelcount['WARNING']} warning{'s' if self.log_levelcount['WARNING'] > 1 else ''}"
+                    )
+                self.warning(
+                    f"{spacer}Job execution finished but {' and '.join(problems)} occurred. See log messages "
+                    f"above or {os.path.join(paths.log_dir, self.log_filename)} for details."
+                )
+            elif self.dry_run:
+                console.print("The following tasks were scheduled but not run:")
+                table = Table(show_header=False, box=box.SIMPLE)
+                table.add_column(justify="right")
+                table.add_column()
+                for job in self.jobs:
+                    table.add_row(str(self.jobs[job]), job)
+                table.add_row()
+                table.add_row(str(sum(self.jobs.values())), "Total number of tasks")
+                console.print(table)
 
-                if self.log_levelcount:
-                    # Errors or warnings were logged but execution finished anyway. Notify user of potential problems.
-                    problems = []
-                    if self.log_levelcount["ERROR"]:
-                        problems.append("{} error{}".format(self.log_levelcount["ERROR"],
-                                                            "s" if self.log_levelcount["ERROR"] > 1 else ""))
-                    if self.log_levelcount["WARNING"]:
-                        problems.append("{} warning{}".format(self.log_levelcount["WARNING"],
-                                                              "s" if self.log_levelcount["WARNING"] > 1 else ""))
-                    self.warning(
-                        "{}Job execution finished but {} occurred. See log messages above or {} for details.".format(
-                            spacer, " and ".join(problems), os.path.join(paths.log_dir, self.log_filename)))
-                elif self.dry_run:
-                    console.print("The following tasks were scheduled but not run:")
-                    table = Table(show_header=False, box=box.SIMPLE)
-                    table.add_column(justify="right")
-                    table.add_column()
-                    for job in self.jobs:
-                        table.add_row(str(self.jobs[job]), job)
-                    table.add_row()
-                    table.add_row(str(sum(self.jobs.values())), "Total number of tasks")
-                    console.print(table)
-
-                if self.terminated:
-                    self.info(f"{spacer}Sparv was stopped by a TERM signal")
+            if self.terminated:
+                self.info(f"{spacer}Sparv was stopped by a TERM signal")
 
     @staticmethod
     def cleanup() -> None:

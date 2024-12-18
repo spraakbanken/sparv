@@ -1,4 +1,5 @@
 """Builds a registry of all available annotator functions in Sparv modules."""
+# ruff: noqa: PLC0415
 
 from __future__ import annotations
 
@@ -6,7 +7,7 @@ import importlib
 import inspect
 import pkgutil
 import re
-from collections import defaultdict
+from collections import defaultdict, UserDict
 from collections.abc import Container
 from enum import Enum
 from types import ModuleType
@@ -58,7 +59,7 @@ class Module:
         self.language = None
 
 
-class LanguageRegistry(dict):
+class LanguageRegistry(UserDict):
     """Registry for supported languages."""
 
     def add_language(self, lang: str) -> str:
@@ -73,8 +74,7 @@ class LanguageRegistry(dict):
         from sparv.api import util
         if lang not in self:
             langcode, _, suffix = lang.partition("-")
-            iso_lang = util.misc.get_language_name_by_part3(langcode)
-            if iso_lang:
+            if iso_lang := util.misc.get_language_name_by_part3(langcode):
                 self[lang] = f"{iso_lang} ({suffix})" if suffix else iso_lang
             else:
                 self[lang] = lang
@@ -618,7 +618,7 @@ def _add_to_registry(annotator: dict, skip_language_check: bool = False) -> None
         SparvErrorMessage: On any expected errors.
     """
     module_name = annotator["module_name"]
-    f_name = annotator["function"].__name__ if not annotator["name"] else annotator["name"]
+    f_name = annotator["name"] or annotator["function"].__name__
     rule_name = f"{module_name}:{f_name}"
 
     if not skip_language_check and annotator["language"]:
@@ -658,10 +658,10 @@ def _add_to_registry(annotator: dict, skip_language_check: bool = False) -> None
 
             # Make sure annotation names include module names as prefix
             if not attr:
-                if not ann_name.startswith(module_name + "."):
+                if not ann_name.startswith(f"{module_name}."):
                     raise SparvErrorMessage(f"Output annotation '{ann_name}' in module '{module_name}' doesn't include "
                                             "module name as prefix.")
-            elif not attr.startswith(module_name + "."):
+            elif not attr.startswith(f"{module_name}."):
                 raise SparvErrorMessage(f"Output annotation '{ann}' in module '{module_name}' doesn't include "
                                         "module name as prefix in attribute.")
 
@@ -691,9 +691,8 @@ def _add_to_registry(annotator: dict, skip_language_check: bool = False) -> None
                         sparv_config.get("metadata.language"),
                         annotator["language"],
                         sparv_config.get("metadata.variety")
-                    ):
-                        if cls_target not in annotation_classes["module_classes"][cls]:
-                            annotation_classes["module_classes"][cls].append(cls_target)
+                    ) and cls_target not in annotation_classes["module_classes"][cls]:
+                        annotation_classes["module_classes"][cls].append(cls_target)
 
         elif isinstance(val.default, ModelOutput):
             modeldir = val.default.name.split("/")[0]
@@ -710,7 +709,7 @@ def _add_to_registry(annotator: dict, skip_language_check: bool = False) -> None
                 raise SparvErrorMessage(f"Illegal export path for export '{val.default}' in module '{module_name}'. "
                                         "A subdirectory must be used.")
             export_dir = val.default.split("/")[0]
-            if not (export_dir.startswith(module_name + ".") or export_dir == module_name):
+            if not (export_dir.startswith(f"{module_name}.") or export_dir == module_name):
                 raise SparvErrorMessage(f"Illegal export path for export '{val.default}' in module '{module_name}'. "
                                         "The export subdirectory must include the module name as prefix.")
 
@@ -761,7 +760,7 @@ def handle_config(
         SparvErrorMessage: If the config variable doesn't include the module name as prefix, or if the config variable
             has already been declared, or if the config variable is missing a description.
     """
-    if not cfg.name.startswith(module_name + "."):
+    if not cfg.name.startswith(f"{module_name}."):
         raise SparvErrorMessage(f"Config option '{cfg.name}' in module '{module_name}' doesn't include module "
                                 "name as prefix.")
     # Check that config variable hasn't already been declared
@@ -824,11 +823,8 @@ def find_config_variables(string: str, match_objects: bool = False) -> list[str]
     Returns:
         A list of strings or match objects.
     """
-    if match_objects:
-        result = list(re.finditer(r"\[([^\]=[]+)(?:=([^\][]+))?\]", string))
-    else:
-        result = [c.group()[1:-1] for c in re.finditer(r"\[([^\]=[]+)(?:=([^\][]+))?\]", string)]
-    return result
+    pattern = re.finditer(r"\[([^\]=[]+)(?:=([^\][]+))?\]", string)
+    return list(pattern) if match_objects else [c.group()[1:-1] for c in pattern]
 
 
 def find_classes(string: str, match_objects: bool = False) -> list[str] | list[re.Match]:
@@ -841,11 +837,8 @@ def find_classes(string: str, match_objects: bool = False) -> list[str] | list[r
     Returns:
         A list of strings or match objects.
     """
-    if match_objects:
-        result = list(re.finditer(r"<([^>]+)>", string))
-    else:
-        result = [c.group()[1:-1] for c in re.finditer(r"<([^>]+)>", string)]
-    return result
+    pattern = re.finditer(r"<([^>]+)>", string)
+    return list(pattern) if match_objects else [c.group(1) for c in pattern]
 
 
 def expand_variables(string: str, rule_name: str | None = None, is_annotation: bool = False) -> tuple[str, list[str]]:
@@ -920,11 +913,14 @@ def expand_variables(string: str, rule_name: str | None = None, is_annotation: b
         if unknown:
             rest.append(unknown)
 
-        if is_annotation and len(strings) > 1:
-            # If multiple alternative annotations, return the first one that is explicitly used as an export annotation,
-            # or referred to by a class in the config. As a fallback use the last annotation.
-            if string in explicit_annotations or string in annotation_classes["config_classes"].values():
-                break
+        # If multiple alternative annotations, return the first one that is explicitly used as an export annotation,
+        # or referred to by a class in the config. As a fallback use the last annotation.
+        if (
+            is_annotation
+            and len(strings) > 1
+            and (string in explicit_annotations or string in annotation_classes["config_classes"].values())
+        ):
+            break
 
     return string, rest
 
@@ -978,6 +974,6 @@ def check_language(corpus_lang: str, langs: list[str], corpus_lang_suffix: str |
         return False
 
     if corpus_lang_suffix:
-        corpus_lang = corpus_lang + "-" + corpus_lang_suffix
+        corpus_lang = f"{corpus_lang}-{corpus_lang_suffix}"
 
     return corpus_lang in langs or corpus_lang.split("-")[0] in langs

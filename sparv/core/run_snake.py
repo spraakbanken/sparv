@@ -109,8 +109,7 @@ if not use_preloader:
         except ModuleNotFoundError:
             # Try to find plugin module
             entry_points = {e.name: e for e in entry_points(group=f"sparv.{plugin_name}")}
-            entry_point = entry_points.get(module_name)
-            if entry_point:
+            if entry_point := entry_points.get(module_name):
                 module = entry_point.load()
             else:
                 exit_with_error_message(
@@ -133,7 +132,7 @@ logger.info("RUN: %s:%s(%s)", module_name, f_name, ", ".join(f"{i[0]}={i[1]!r}" 
 # Redirect any prints to logging module
 old_stdout = sys.stdout
 old_stderr = sys.stderr
-module_logger = logging.getLogger("sparv.modules." + module_name)
+module_logger = logging.getLogger(f"sparv.modules.{module_name}")
 sys.stdout = StreamToLogger(module_logger)
 sys.stderr = StreamToLogger(module_logger, logging.WARNING)
 
@@ -146,12 +145,12 @@ if not use_preloader:
         if snakemake.params.export_dirs:
             logger.export_dirs(snakemake.params.export_dirs)
     except KeyboardInterrupt:
-        exit_with_error_message("Execution was terminated by an interrupt signal", "sparv.modules." + module_name)
+        exit_with_error_message("Execution was terminated by an interrupt signal", f"sparv.modules.{module_name}")
     except SparvErrorMessage as e:
         # Any exception raised here would be printed directly to the terminal, due to how Snakemake runs the script.
         # Instead, we log the error message and exit with a non-zero status to signal to Snakemake that
         # something went wrong.
-        exit_with_error_message(e.message, "sparv.modules." + module_name)
+        exit_with_error_message(e.message, f"sparv.modules.{module_name}")
     except Exception as e:
         current_file = f" for the file {snakemake.params.source_file!r}" if snakemake.params.source_file else ""
         errmsg = f"An error occurred while executing {module_name}:{f_name}{current_file}:\n\n  {type(e).__name__}: {e}"
@@ -172,9 +171,9 @@ else:
         preload.send_data(sock, (f"{module_name}:{f_name}", parameters, snakemake.config, snakemake.params.source_file))
         response = preload.receive_data(sock)
         if isinstance(response, SparvErrorMessage):
-            exit_with_error_message(response.message, "sparv.modules." + module_name)
+            exit_with_error_message(response.message, f"sparv.modules.{module_name}")
         elif isinstance(response, BaseException):
-            exit_with_error_message(str(response), "sparv.modules." + module_name)
+            exit_with_error_message(str(response), f"sparv.modules.{module_name}")
         elif response is not True:
             exit_with_error_message("An error occurred while using the Sparv preloader.",
                                     f"sparv.modules.{module_name}")

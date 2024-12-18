@@ -1,4 +1,6 @@
 """Functions for parsing the Sparv configuration files."""
+# ruff: noqa: PLW0603
+
 from __future__ import annotations
 
 import copy
@@ -69,14 +71,14 @@ def read_yaml(yaml_file: str | Path) -> dict:
         yaml.constructor.SafeConstructor.yaml_constructors["tag:yaml.org,2002:str"]
     )
     try:
-        with open(yaml_file, encoding="utf-8") as f:
+        with Path(yaml_file).open(encoding="utf-8") as f:
             data = yaml.load(f, Loader=SafeLoader)
     except yaml.parser.ParserError as e:
-        raise SparvErrorMessage("Could not parse the configuration file:\n" + str(e))
+        raise SparvErrorMessage("Could not parse the configuration file:\n" + str(e)) from e
     except yaml.scanner.ScannerError as e:
-        raise SparvErrorMessage("An error occurred while reading the configuration file:\n" + str(e))
-    except FileNotFoundError:
-        raise SparvErrorMessage(f"Could not find the config file '{yaml_file}'")
+        raise SparvErrorMessage("An error occurred while reading the configuration file:\n" + str(e)) from e
+    except FileNotFoundError as e:
+        raise SparvErrorMessage(f"Could not find the config file '{yaml_file}'") from e
 
     return data or {}
 
@@ -116,8 +118,7 @@ def load_config(config_file: str | None, config_dict: dict | None = None) -> Non
                 Combined config.
             """
             combined_parents = {}
-            if cfg.get(PARENT):
-                parents = cfg[PARENT]
+            if parents := cfg.get(PARENT):
                 if isinstance(parents, str):
                     parents = [parents]
                 for parent in parents:
@@ -356,9 +357,7 @@ def load_presets(lang: str, lang_variety: str | None) -> dict:
         Dictionary with all available preset annotations and preset classes.
     """
     class_dict = {}
-    full_lang = lang
-    if lang_variety:
-        full_lang = lang + "-" + lang_variety
+    full_lang = f"{lang}-{lang_variety}" if lang_variety else lang
 
     for f in PRESETS_DIR.rglob("*.yaml"):
         presets_yaml = read_yaml(f)

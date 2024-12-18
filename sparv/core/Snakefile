@@ -324,7 +324,7 @@ rule presets:
     run:
         resolved_presets = {}
         for preset, annots in sparv_config.presets.items():
-            preset_annotations, _ = sparv_config.resolve_presets(sparv_config.presets[preset], {}, {})
+            preset_annotations, _ = sparv_config.resolve_presets(annots, {})
             resolved_presets[preset] = preset_annotations
         snake_prints.prettyprint_yaml(resolved_presets)
 

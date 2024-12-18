@@ -23,9 +23,9 @@ def read_sparv_config() -> dict:
     data = {}
     if sparv_config_file.is_file():
         try:
-            with open(sparv_config_file, encoding="utf-8") as f:
+            with sparv_config_file.open(encoding="utf-8") as f:
                 data = yaml.load(f, Loader=SafeLoader)
-        except:
+        except Exception:
             data = {}
     return data
 
@@ -41,18 +41,13 @@ def get_data_path(subpath: str | Path = "") -> Path | None:
     """
     global data_dir
 
-    if not data_dir:
-        # Environment variable overrides config
-        data_dir_str = os.environ.get(data_dir_env) or read_sparv_config().get("sparv_data")
-        if data_dir_str:
-            data_dir = Path(data_dir_str).expanduser()
+    # Environment variable overrides config
+    if not data_dir and (data_dir_str := os.environ.get(data_dir_env) or read_sparv_config().get("sparv_data")):
+        data_dir = Path(data_dir_str).expanduser()
 
-    if subpath and data_dir:
-        return data_dir / subpath
-    elif subpath:
-        return Path(subpath)
-    else:
-        return data_dir
+    if subpath:
+        return data_dir / subpath if data_dir else Path(subpath)
+    return data_dir
 
 
 # Path to the 'sparv' package
