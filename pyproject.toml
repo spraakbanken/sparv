@@ -71,8 +71,6 @@ select = [
     "C4",     # flake8-comprehensions
     "COM",    # flake8-commas
     "D",      # pydocstyle
-    "D400",   # pydocstyle: ends-in-period
-    "D401",   # pydocstyle: non-imperative-mood
     "DOC",    # pydoclint
     "E",      # pycodestyle: errors
     "F",      # Pyflakes
