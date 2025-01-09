@@ -1,4 +1,5 @@
 """System utility functions."""
+from __future__ import annotations
 
 import errno
 import os
@@ -6,7 +7,6 @@ import shlex
 import shutil
 import subprocess
 from pathlib import Path
-from typing import Optional, Union
 
 from sparv.api import SparvErrorMessage, get_logger
 from sparv.core.paths import paths
@@ -14,8 +14,15 @@ from sparv.core.paths import paths
 logger = get_logger(__name__)
 
 
-def kill_process(process):
-    """Kill a process, and ignore the error if it is already dead."""
+def kill_process(process: subprocess.Popen) -> None:
+    """Kill a process, and ignore the error if it is already dead.
+
+    Args:
+        process: The process to kill.
+
+    Raises:
+        OSError: If an error occurs while killing the process.
+    """
     try:
         process.kill()
     except OSError as exc:
@@ -25,10 +32,11 @@ def kill_process(process):
             raise
 
 
-def clear_directory(path):
-    """Create a new empty dir.
+def clear_directory(path: str | Path) -> None:
+    """Create a new empty directory at the given path, and remove its contents if it already exists.
 
-    Remove its contents if it already exists.
+    Args:
+        path: The path to the directory.
     """
     shutil.rmtree(path, ignore_errors=True)
     os.makedirs(path, exist_ok=True)
@@ -36,21 +44,29 @@ def clear_directory(path):
 
 def call_java(
     jar: str,
-    arguments: Union[list, tuple],
-    options: Union[list, tuple] = (),
+    arguments: list | tuple,
+    options: list | tuple = (),
     stdin: str = "",
-    search_paths: Union[list, tuple] = (),
-    encoding: Optional[str] = None,
+    search_paths: list | tuple = (),
+    encoding: str | None = None,
     verbose: bool = False,
     return_command: bool = False
-):
+) -> tuple[str, str]:
     """Call java with a jar file, command line arguments and stdin.
 
-    Returns a pair (stdout, stderr).
-    If the verbose flag is True, pipes all stderr output to stderr,
-    and an empty string is returned as the stderr component.
+    Args:
+        jar: The jar file to run.
+        arguments: List of arguments to pass to the jar.
+        options: List of options to pass to java.
+        stdin: Input to pass to the process.
+        search_paths: List of paths where to look for the jar file.
+        encoding: Encoding to use for stdin and stdout.
+        verbose: If True, pipe stderr to stderr in the terminal, instead of returning it.
+        return_command: If True, return the process instead of stdout and stderr.
 
-    If return_command is set, then the process is returned.
+    Returns:
+        A tuple with stdout and stderr, or the process if return_command is True.
+        If verbose is True, stderr is an empty string.
     """
     assert isinstance(arguments, (list, tuple))
     assert isinstance(options, (list, tuple))
@@ -76,14 +92,38 @@ def call_java(
     )
 
 
-def call_binary(name, arguments=(), stdin="", raw_command=None, search_paths=(), encoding=None, verbose=False,
-                use_shell=False, allow_error=False, return_command=False):
-    """Call a binary with arguments and stdin, return a pair (stdout, stderr).
+def call_binary(
+    name: str,
+    arguments: list | tuple = (),
+    stdin: str | list | tuple = "",
+    raw_command: str | None = None,
+    search_paths: list | tuple = (),
+    encoding: str | None = None,
+    verbose: bool = False,
+    use_shell: bool = False,
+    allow_error: bool = False,
+    return_command: bool = False
+) -> tuple[str, str] | subprocess.Popen:
+    """Call a binary with arguments and stdin, return a pair (stdout, stderr) or the process.
 
-    If the verbose flag is True, pipes all stderr output from the subprocess to
-    stderr in the terminal, and an empty string is returned as the stderr component.
+    Args:
+        name: Name of the binary to call.
+        arguments: List of arguments to pass to the binary.
+        stdin: Input to pass to the process.
+        raw_command: Raw command to execute (implies use_shell=True).
+        search_paths: List of paths where to look for the binary.
+        encoding: Encoding to use for stdin and stdout.
+        verbose: If True, pipe stderr to stderr in the terminal, instead of returning it.
+        use_shell: If True, execute the command through the shell.
+        allow_error: If True, do not raise an error if the binary returns a non-zero exit code.
+        return_command: If True, return the process instead of stdout and stderr.
 
-    If return_command is set, then the process is returned.
+    Returns:
+        A tuple with stdout and stderr, or the process if return_command is True.
+        If verbose is True, stderr is an empty string.
+
+    Raises:
+        OSError: If an error occurs while calling the binary.
     """
     from subprocess import PIPE, Popen
     assert isinstance(arguments, (list, tuple))
@@ -124,12 +164,12 @@ def call_binary(name, arguments=(), stdin="", raw_command=None, search_paths=(),
 
 
 def find_binary(
-    name: Union[str, list[str]],
-    search_paths: Union[list, tuple] = (),
+    name: str | list[str],
+    search_paths: list | tuple = (),
     executable: bool = True,
     allow_dir: bool = False,
     raise_error: bool = False
-) -> Optional[str]:
+) -> str | None:
     """Search for the binary for a program.
 
     Args:
@@ -141,6 +181,9 @@ def find_binary(
 
     Returns:
         Path to binary, or None if not found.
+
+    Raises:
+        SparvErrorMessage: If raise_error is True and the binary could not be found.
     """
     if isinstance(name, str):
         name = [name]
@@ -180,10 +223,17 @@ def find_binary(
     return None
 
 
-def rsync(local: Union[str, Path], host: Optional[str], remote: Union[str, Path]):
+def rsync(local: str | Path, host: str | None, remote: str | Path) -> None:
     """Transfer files and/or directories using rsync.
 
-    When syncing directories, extraneous files in destination dirs are deleted.
+    When syncing a directory, extraneous files in the destination directory are deleted, and it is always the contents
+    of the source directory that are synced, not the directory itself (i.e. the rsync source directory is always
+    suffixed with a slash).
+
+    Args:
+        local: The file or directory to transfer.
+        host: The remote host to transfer to. Set to None to transfer locally.
+        remote: The destination path (file or directory).
     """
     assert local and remote, "Both 'local' and 'remote' must be set."
     remote_dir = os.path.dirname(remote)
@@ -203,8 +253,13 @@ def rsync(local: Union[str, Path], host: Optional[str], remote: Union[str, Path]
         subprocess.check_call(["rsync", *args, remote])
 
 
-def remove_path(path: Union[str, Path], host: Optional[str] = None):
-    """Remove a file or directory, either locally or remotely."""
+def remove_path(path: str | Path, host: str | None = None) -> None:
+    """Remove a file or directory, either locally or remotely.
+
+    Args:
+        path: The file or directory to remove.
+        host: The remote host to remove from. Leave empty to remove locally.
+    """
     assert path, "'path' must not be empty."
     if host:
         subprocess.check_call(["ssh", host, f"rm -rf {shlex.quote(str(path))}"])
@@ -216,7 +271,7 @@ def remove_path(path: Union[str, Path], host: Optional[str] = None):
             shutil.rmtree(p)
 
 
-def gpus() -> Optional[list[int]]:
+def gpus() -> list[int] | None:
     """Return a list of available GPUs, sorted by free memory in descending order.
 
     Returns None on failure.

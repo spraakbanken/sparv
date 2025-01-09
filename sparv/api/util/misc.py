@@ -1,8 +1,10 @@
 """Misc util functions."""
+from __future__ import annotations
 
 import pathlib
 import unicodedata
-from typing import Optional, Union
+from collections.abc import Generator, Iterable
+from typing import Any
 
 import yaml
 
@@ -21,23 +23,26 @@ def dump_yaml(data: dict, resolve_alias: bool = False, sort_keys: bool = False, 
         resolve_alias: Will replace aliases with their anchor's content if set to True.
         sort_keys: Whether to sort the keys alphabetically.
         indent: Number of spaces used for indentation.
+
+    Returns:
+        The YAML document as a string.
     """
 
     class IndentDumper(yaml.SafeDumper):
         """Customized YAML dumper that indents lists."""
 
-        def increase_indent(self, flow=False, indentless=False):
+        def increase_indent(self, flow: bool = False, indentless: bool = False) -> None:  # noqa: ARG002
             """Force indentation."""
             return super().increase_indent(flow)
 
-    def str_representer(dumper, data):
-        """Custom string representer for prettier multiline strings."""
+    def str_representer(dumper: yaml.Dumper, data: str) -> yaml.ScalarNode:
+        """Custom string representer for prettier multiline strings."""  # noqa: DOC201
         if "\n" in data:  # Check for multiline string
             return dumper.represent_scalar("tag:yaml.org,2002:str", data, style="|")
         return dumper.represent_scalar("tag:yaml.org,2002:str", data)
 
-    def obj_representer(dumper, data):
-        """Custom representer to cast subclasses of str to strings."""
+    def obj_representer(dumper: yaml.Dumper, data: str) -> yaml.ScalarNode:
+        """Custom representer to cast subclasses of str to strings."""  # noqa: DOC201
         return dumper.represent_scalar("tag:yaml.org,2002:str", str(data))
 
     yaml.representer.SafeRepresenter.add_representer(str, str_representer)
@@ -54,8 +59,27 @@ def dump_yaml(data: dict, resolve_alias: bool = False, sort_keys: bool = False, 
 
 # TODO: Split into two functions: one for Sparv-internal lists of values, and one used by the CWB module to create the
 # CWB-specific set format.
-def cwbset(values, delimiter="|", affix="|", sort=False, maxlength=4095, encoding="UTF-8"):
-    """Take an iterable object and return a set in the format used by Corpus Workbench."""
+def cwbset(
+    values: Iterable[str],
+    delimiter: str = "|",
+    affix: str = "|",
+    sort: bool = False,
+    maxlength: int = 4095,
+    encoding: str = "UTF-8",
+) -> str:
+    """Take an iterable with strings and return a set in the format used by Corpus Workbench.
+
+    Args:
+        values: The values to be joined.
+        delimiter: The delimiter to be used between the values.
+        affix: The affix to be used at the beginning and end of the set.
+        sort: Whether to sort the values before joining them.
+        maxlength: Maximum length of the resulting string.
+        encoding: Encoding to use when calculating the length of the string.
+
+    Returns:
+        The joined string.
+    """
     values = list(values)
     if sort:
         values.sort()
@@ -69,30 +93,63 @@ def cwbset(values, delimiter="|", affix="|", sort=False, maxlength=4095, encodin
     return affix if not values else affix + delimiter.join(values) + affix
 
 
-def set_to_list(setstring, delimiter="|", affix="|"):
-    """Turn a set string into a list."""
+def set_to_list(setstring: str, delimiter: str = "|", affix: str = "|") -> list[str]:
+    """Turn a set string into a list.
+
+    Args:
+        setstring: The set string to be converted.
+        delimiter: The delimiter used in the set string.
+        affix: The affix used in the set string.
+
+    Returns:
+        A list of strings.
+    """
     if setstring == affix:
         return []
     setstring = setstring.strip(affix)
     return setstring.split(delimiter)
 
 
-def remove_control_characters(text, keep: Optional[str] = None):
-    """Remove control characters from text, except for those in 'keep'."""
+def remove_control_characters(text: str, keep: str | None = None) -> str:
+    """Remove control characters from text, except for those in 'keep'.
+
+    Args:
+        text: The text to be processed.
+        keep: A list of control characters to keep.
+
+    Returns:
+        The text with control characters removed.
+    """
     if keep is None:
         keep = ["\n", "\t", "\r"]
     return "".join(c for c in text if c in keep or unicodedata.category(c)[0:2] != "Cc")
 
 
-def remove_formatting_characters(text, keep: Optional[str] = None):
-    """Remove formatting characters from text, except for those in 'keep'."""
+def remove_formatting_characters(text: str, keep: str | None = None) -> str:
+    """Remove formatting characters from text, except for those in 'keep'.
+
+    Args:
+        text: The text to be processed.
+        keep: A list of formatting characters to keep.
+
+    Returns:
+        The text with formatting characters removed.
+    """
     if keep is None:
         keep = []
     return "".join(c for c in text if c in keep or unicodedata.category(c)[0:2] != "Cf")
 
 
-def chain(annotations, default=None):
+def chain(annotations: Iterable[dict], default: Any = None) -> Generator[tuple]:
     """Create a functional composition of a list of annotations.
+
+    Args:
+        annotations: A list of dictionaries where each dictionary maps keys to values. The values are keys in the next
+            dictionary, except for the last dictionary where the values are the final values.
+        default: The default value to return if a key is not found.
+
+    Returns:
+        A generator that yields tuples with the original key and the final value.
 
     E.g., token.sentence + sentence.id -> token.sentence-id
 
@@ -115,7 +172,7 @@ def chain(annotations, default=None):
      'w:4': 'The Principia Discordia',
      'w:5': 'The Principia Discordia'}
     """
-    def follow(key):
+    def follow(key: Any) -> Any:
         for annot in annotations:
             try:
                 key = annot[key]
@@ -125,11 +182,15 @@ def chain(annotations, default=None):
     return ((key, follow(key)) for key in annotations[0])
 
 
-def test_lexicon(lexicon: dict, testwords):
+def test_lexicon(lexicon: dict, testwords: list[str]) -> None:
     """Test the validity of a lexicon.
 
     Takes a dictionary ('lexicon') and a list of test words that are expected to occur as keys in 'lexicon'.
     Prints the value for each test word.
+
+    Args:
+        lexicon: The lexicon to test.
+        testwords: A list of test words.
     """
     logger.info("Testing annotations...")
     for key in testwords:
@@ -139,7 +200,7 @@ def test_lexicon(lexicon: dict, testwords):
 class PickledLexicon:
     """Read basic pickled lexicon and look up keys."""
 
-    def __init__(self, picklefile: Union[pathlib.Path, Model], verbose=True):
+    def __init__(self, picklefile: pathlib.Path | Model, verbose: bool = True) -> None:
         """Read lexicon from picklefile."""
         import pickle
         picklefile_path: pathlib.Path = picklefile.path if isinstance(picklefile, Model) else picklefile
@@ -150,21 +211,43 @@ class PickledLexicon:
         if verbose:
             logger.info("OK, read %d words", len(self.lexicon))
 
-    def lookup(self, key, default=set()):
-        """Lookup a key in the lexicon."""
+    def lookup(self, key: Any, default: Any = None) -> Any:
+        """Lookup a key in the lexicon.
+
+        Args:
+            key: The key to look up.
+            default: The default value to return if the key is not found.
+
+        Returns:
+            The value for the key, or the default value if the key is not found.
+        """
         return self.lexicon.get(key, default)
 
 
-def get_language_name_by_part3(part3: str) -> Optional[str]:
-    """Return language name in English given an ISO 639-3 code."""
+def get_language_name_by_part3(part3: str) -> str | None:
+    """Return language name in English given an ISO 639-3 code.
+
+    Args:
+        part3: ISO 639-3 code.
+
+    Returns:
+        Language name in English.
+    """
     import pycountry  # noqa: PLC0415
 
     lang = pycountry.languages.get(alpha_3=part3)
     return lang.name if lang else None
 
 
-def get_language_part1_by_part3(part3: str) -> Optional[str]:
-    """Return ISO 639-1 code given an ISO 639-3 code."""
+def get_language_part1_by_part3(part3: str) -> str | None:
+    """Return ISO 639-1 code given an ISO 639-3 code.
+
+    Args:
+        part3: ISO 639-3 code.
+
+    Returns:
+        ISO 639-1 code.
+    """
     import pycountry  # noqa: PLC0415
 
     lang = pycountry.languages.get(alpha_3=part3)

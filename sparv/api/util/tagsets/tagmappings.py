@@ -41,6 +41,8 @@ saldo_to_granska: 1-many mapping between Saldo and Granska-ish
 saldo_to_parole: 1-many mapping between Saldo and Parole
 saldo_to_saldo: 1-many identity mapping of Saldo tags
 """
+from __future__ import annotations
+
 import re
 from typing import Union
 
@@ -48,17 +50,32 @@ TAGSEP = "."
 
 
 def split_tag(tag: str, sep: str = TAGSEP) -> tuple:
-    """Split a tag "X.Y.Z" into a tuple ("X", "Y.Z")."""
+    """Split a tag "X.Y.Z" into a tuple ("X", "Y.Z").
+
+    Args:
+        tag: A tag to split.
+        sep: A separator between parts of the tag.
+
+    Returns:
+        A tuple (pos, msd).
+    """
     pos_msd = tuple(tag.split(sep, 1))
     if len(pos_msd) == 1:
         return pos_msd[0], ""
     return pos_msd
 
 
-def join_tag(tag: Union[dict, tuple], sep: str = TAGSEP) -> str:
+def join_tag(tag: dict | tuple, sep: str = TAGSEP) -> str:
     """Join a complex tag into a string.
 
     The tag can be a dict {"pos": pos, "msd": msd} or a tuple (pos, msd).
+
+    Args:
+        tag: A tag to join.
+        sep: A separator between parts of the tag in the result.
+
+    Returns:
+        The joined tag.
     """
     if isinstance(tag, dict):
         pos, msd = tag["pos"], tag["msd"]
@@ -1317,7 +1334,17 @@ _suc_tag_replacements = [
 
 
 def _make_saldo_to_suc(compound: bool = False) -> dict[str, set[str]]:
-    """Generate SALDO to SUC tag mapping."""
+    """Generate SALDO to SUC tag mapping.
+
+    Args:
+        compound: Whether to include compound tags.
+
+    Returns:
+        Mapping from SALDO tags to SUC tags.
+
+    Raises:
+        Exception: If a SALDO tag cannot be mapped to a SUC tag.
+    """
     tagmap = {}
     for saldo_tag in _saldo_tags:
         params = saldo_tag.split()
@@ -1354,7 +1381,14 @@ class Mappings:
         self.mappings = {}
 
     def __getitem__(self, item: str) -> dict:
-        """Get a tag mapping through subscripting for backward compatibility."""
+        """Get a tag mapping through subscripting for backward compatibility.
+
+        Args:
+            item: The tag mapping to get.
+
+        Returns:
+            The tag mapping.
+        """
         if item in self.mappings:
             return self.mappings[item]
         return getattr(self, item)
@@ -1481,7 +1515,14 @@ class Tags:
         }
 
     def __getitem__(self, item: str) -> dict:
-        """Get a tag set through subscripting for backward compatibility."""
+        """Get a tag set through subscripting for backward compatibility.
+
+        Args:
+            item: The tag set to get.
+
+        Returns:
+            The tag set.
+        """
         if item in self.tags:
             return self.tags[item]
         return getattr(self, item)

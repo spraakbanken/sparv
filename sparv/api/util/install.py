@@ -1,10 +1,11 @@
 """Util functions for installations on remote servers."""
+from __future__ import annotations
 
 import os
 import shlex
 import subprocess
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Optional, Union
 
 from sparv.api import get_logger
 from sparv.api.util import system
@@ -13,20 +14,31 @@ logger = get_logger(__name__)
 
 
 def install_path(
-    source_path: Union[str, Path],
-    host: Optional[str],
-    target_path: Union[str, Path]
+    source_path: str | Path,
+    host: str | None,
+    target_path: str | Path
 ) -> None:
-    """Transfer a file or the contents of a directory to a target destination, optionally on a different host."""
+    """Transfer a file or the contents of a directory to a target destination, optionally on a different host.
+
+    Args:
+        source_path: The file or directory to transfer.
+        host: The remote host to transfer to. Set to None to transfer locally.
+        target_path: The destination path.
+    """
     system.rsync(source_path, host, target_path)
 
 
-def uninstall_path(path: Union[str, Path], host: Optional[str] = None) -> None:
-    """Remove a file or directory, optionally on a remote host."""
+def uninstall_path(path: str | Path, host: str | None = None) -> None:
+    """Remove a file or directory, optionally on a remote host.
+
+    Args:
+        path: The file or directory to remove.
+        host: The remote host to remove from. Set to None to remove locally.
+    """
     system.remove_path(path, host)
 
 
-def install_mysql(host: Optional[str], db_name: str, sqlfile: Union[str, list[str]]):
+def install_mysql(host: str | None, db_name: str, sqlfile: Path | str | list[Path | str]) -> None:
     """Insert tables and data from SQL-file(s) to local or remote MySQL database.
 
     Args:
@@ -55,7 +67,7 @@ def install_mysql(host: Optional[str], db_name: str, sqlfile: Union[str, list[st
                 )
 
 
-def install_mysql_dump(host, db_name, tables):
+def install_mysql_dump(host: str, db_name: str, tables: str | Iterable[str]) -> None:
     """Copy selected tables (including data) from local to remote MySQL database."""
     if isinstance(tables, str):
         tables = tables.split()

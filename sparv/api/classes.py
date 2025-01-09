@@ -1,5 +1,7 @@
 """Classes used as default input for annotator functions."""
 
+from __future__ import annotations
+
 import gzip
 import os
 import pathlib
@@ -9,7 +11,7 @@ import urllib.request
 import zipfile
 from abc import ABC, abstractmethod
 from collections.abc import Iterable, Iterator, Sequence
-from typing import Any, Callable, Optional, Union
+from typing import Any, Callable
 
 import sparv.core
 from sparv.core import io
@@ -23,37 +25,66 @@ class Base(ABC):
     """Base class for most Sparv classes."""
 
     @abstractmethod
-    def __init__(self, name: str = ""):
+    def __init__(self, name: str = "") -> None:
+        """Initialize class.
+
+        Args:
+            name: Name of the annotation/model/etc.
+        """
         assert isinstance(name, str), "'name' must be a string"
         self.name = name
         self.original_name = name
         self.root = pathlib.Path.cwd()  # Save current working dir as root
 
     def expand_variables(self, rule_name: str = "") -> list[str]:
-        """Update name by replacing <class> references with annotation names, and [config] references with config values.
+        """Update name by replacing <class> references with annotation names and [config] references with config values.
 
-        Return a list of any unresolved config references.
+        Args:
+            rule_name: The name of the rule using the string, for logging config usage.
+
+        Returns:
+            A list of any unresolved config references.
         """
         new_value, rest = sparv.core.registry.expand_variables(self.name, rule_name)
         self.name = new_value
         return rest
 
-    def __contains__(self, string):
+    def __contains__(self, string: str) -> bool:
+        """Check if a string is contained in the name.
+
+        Args:
+            string: The string to check for.
+
+        Returns:
+            True if the string is contained in the name.
+        """
         return string in self.name
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Return string representation of the class."""
         return self.__repr__()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """Return string representation of the class."""
         return f"<{self.__class__.__name__} {self.name!r}>"
 
-    def __format__(self, format_spec):
+    def __format__(self, format_spec: str) -> str:
+        """Return formatted string representation of the class."""
         return self.name.__format__(format_spec)
 
-    def __lt__(self, other):
+    def __lt__(self, other: Base) -> bool:
+        """Compare two Base instances by name.
+
+        Args:
+            other: Another Base instance to compare with.
+
+        Returns:
+            True if self is less than other.
+        """
         return self.name < other.name
 
-    def __len__(self):
+    def __len__(self) -> int:
+        """Return length of name."""
         return len(self.name)
 
 
@@ -65,23 +96,38 @@ class BaseAnnotation(Base):
     common = False
     is_input = True
 
-    def __init__(self, name: str = "", source_file: Optional[str] = None, is_input: Optional[bool] = None):
+    def __init__(self, name: str = "", source_file: str | None = None, is_input: bool | None = None) -> None:
+        """Initialize class.
+
+        Args:
+            name: Name of the annotation.
+            source_file: Source file for the annotation.
+            is_input: Deprecated, use AnnotationName instead of setting this to False.
+        """
         super().__init__(name)
         self.source_file = source_file
         if is_input is not None:
             self.is_input = is_input
 
     def expand_variables(self, rule_name: str = "") -> list[str]:
-        """Update name by replacing <class> references with annotation names, and [config] references with config values.
+        """Update name by replacing <class> references with annotation names and [config] references with config values.
 
-        Return a list of any unresolved config references.
+        Args:
+            rule_name: The name of the rule using the string, for logging config usage.
+
+        Returns:
+            A list of any unresolved config references.
         """
         new_value, rest = sparv.core.registry.expand_variables(self.name, rule_name, is_annotation=True)
         self.name = new_value
         return rest
 
     def split(self) -> tuple[str, str]:
-        """Split name into annotation name and attribute."""
+        """Split name into annotation name and attribute.
+
+        Returns:
+            A tuple with the annotation name and attribute name.
+        """
         return io.split_annotation(self.name)
 
     def has_attribute(self) -> bool:
@@ -90,29 +136,46 @@ class BaseAnnotation(Base):
 
     @property
     def annotation_name(self) -> str:
-        """Get annotation name (excluding name of any attribute)."""
+        """Get annotation name (excluding name of any attribute).
+
+        Returns:
+            The annotation name without any attribute.
+        """
         return self.split()[0]
 
     @property
-    def attribute_name(self) -> Optional[str]:
-        """Get attribute name (excluding name of annotation)."""
+    def attribute_name(self) -> str | None:
+        """Get attribute name (excluding name of annotation).
+
+        Returns:
+            The attribute name without name of annotation.
+        """
         return self.split()[1] or None
 
-    def __eq__(self, other):
+    def __eq__(self, other: BaseAnnotation) -> bool:
+        """Check if two BaseAnnotation instances are equal.
+
+        Args:
+            other: Another BaseAnnotation instance to compare with.
+
+        Returns:
+            True if the instances are equal.
+        """
         return type(self) is type(other) and self.name == other.name and self.source_file == other.source_file
 
-    def __hash__(self):
+    def __hash__(self) -> int:
+        """Return hash of the class instance."""
         return hash(repr(self) + repr(self.source_file))
 
 
 class CommonMixin(BaseAnnotation):
     """Common methods used by many classes."""
 
-    def exists(self):
+    def exists(self) -> bool:
         """Return True if annotation file exists."""
         return io.annotation_exists(self)
 
-    def remove(self):
+    def remove(self) -> None:
         """Remove annotation file."""
         io.remove_annotation(self)
 
@@ -120,11 +183,11 @@ class CommonMixin(BaseAnnotation):
 class CommonAllSourceFilesMixin(BaseAnnotation):
     """Common methods used by many classes."""
 
-    def exists(self, source_file: str):
+    def exists(self, source_file: str) -> bool:
         """Return True if annotation file exists."""
         return io.annotation_exists(self, source_file)
 
-    def remove(self, source_file: str):
+    def remove(self, source_file: str) -> None:
         """Remove annotation file."""
         io.remove_annotation(self, source_file)
 
@@ -132,32 +195,77 @@ class CommonAllSourceFilesMixin(BaseAnnotation):
 class CommonAnnotationMixin(BaseAnnotation):
     """Methods common to Annotation and AnnotationAllSourceFiles."""
 
-    def __init__(self, name: str = "", source_file: Optional[str] = None):
+    def __init__(self, name: str = "", source_file: str | None = None) -> None:
+        """Initialize class.
+
+        Args:
+            name: Name of the annotation.
+            source_file: Source file for the annotation.
+        """
         super().__init__(name, source_file)
         self._size = {}
 
-    def _read(self, source_file: str):
-        """Yield each line from the annotation."""
+    def _read(self, source_file: str) -> Iterator[str]:
+        """Yield each line from the annotation.
+
+        Args:
+            source_file: Source file for the annotation.
+
+        Returns:
+            An iterator of lines from the annotation.
+        """
         return io.read_annotation(source_file, self)
 
-    def _read_spans(self, source_file: str, decimals=False, with_annotation_name=False):
-        """Yield the spans of the annotation."""
+    def _read_spans(self, source_file: str, decimals: bool = False, with_annotation_name: bool = False) -> Iterator:
+        """Yield the spans of the annotation.
+
+        Args:
+            source_file: Source file for the annotation.
+            decimals: If True, return spans with decimals.
+            with_annotation_name: If True, return spans with annotation name.
+
+        Returns:
+            An iterator of spans from the annotation.
+        """
         return io.read_annotation_spans(source_file, self, decimals=decimals, with_annotation_name=with_annotation_name)
 
     @staticmethod
-    def _read_attributes(source_file: str, annotations: Union[list[BaseAnnotation], tuple[BaseAnnotation, ...]],
-                         with_annotation_name: bool = False):
-        """Yield tuples of multiple attributes on the same annotation."""
+    def _read_attributes(source_file: str, annotations: list[BaseAnnotation] | tuple[BaseAnnotation, ...],
+                         with_annotation_name: bool = False) -> Iterator:
+        """Yield tuples of multiple attributes on the same annotation.
+
+        Args:
+            source_file: Source file for the annotation.
+            annotations: List of annotations to read attributes from.
+            with_annotation_name: If True, return attributes with annotation name.
+
+        Returns:
+            An iterator of tuples of attributes.
+        """
         return io.read_annotation_attributes(source_file, annotations, with_annotation_name=with_annotation_name)
 
-    def _get_size(self, source_file: str):
-        """Get number of values."""
+    def _get_size(self, source_file: str) -> int:
+        """Get number of values.
+
+        Args:
+            source_file: Source file for the annotation.
+
+        Returns:
+            The number of values in the annotation.
+        """
         if self._size.get(source_file) is None:
             self._size[source_file] = io.get_annotation_size(source_file, self)
         return self._size[source_file]
 
-    def _create_empty_attribute(self, source_file: str):
-        """Return a list filled with None of the same size as this annotation."""
+    def _create_empty_attribute(self, source_file: str) -> list:
+        """Return a list filled with None of the same size as this annotation.
+
+        Args:
+            source_file: Source file for the annotation.
+
+        Returns:
+            A list filled with None of the same size as this annotation.
+        """
         return [None] * self._get_size(source_file)
 
     @staticmethod
@@ -166,7 +274,16 @@ class CommonAnnotationMixin(BaseAnnotation):
         parent: BaseAnnotation,
         child: BaseAnnotation
     ) -> tuple[Iterator, Iterator]:
-        """Read parent and child annotations."""
+        """Read parent and child annotations.
+
+        Args:
+            source_file: Source file for the annotation.
+            parent: Parent annotation.
+            child: Child annotation.
+
+        Returns:
+            A tuple of iterators for parent and child annotations.
+        """
         parent_spans = list(io.read_annotation_spans(source_file, parent, decimals=True))
         child_spans = list(io.read_annotation_spans(source_file, child, decimals=True))
 
@@ -177,13 +294,20 @@ class CommonAnnotationMixin(BaseAnnotation):
 
         return iter(parent_spans), iter(child_spans)
 
-    def _get_children(self, source_file: str, child: BaseAnnotation, orphan_alert: bool = False):
-        """Return two lists.
+    def _get_children(self, source_file: str, child: BaseAnnotation, orphan_alert: bool = False) -> tuple[list, list]:
+        """Get children of this annotation.
 
-        The first one is a list with n (= total number of parents) elements where every element is a list
-        of indices in the child annotation.
-        The second one is a list of orphans, i.e. containing indices in the child annotation that have no parent.
-        Both parents and children are sorted according to their position in the source file.
+        Args:
+            source_file: Source file for the annotation.
+            child: Child annotation.
+            orphan_alert: If True, log a warning when a child has no parent.
+
+        Returns:
+            A tuple of two lists.
+            The first one is a list with n (= total number of parents) elements where every element is a list
+            of indices in the child annotation.
+            The second one is a list of orphans, i.e. containing indices in the child annotation that have no parent.
+            Both parents and children are sorted according to their position in the source file.
         """
         parent_spans, child_spans = self._read_parents_and_children(source_file, self, child)
         parent_children = []
@@ -220,9 +344,16 @@ class CommonAnnotationMixin(BaseAnnotation):
         return parent_children, orphans
 
     def _get_parents(self, source_file: str, parent: BaseAnnotation, orphan_alert: bool = False) -> list:
-        """Return a list with n (=number of children) elements where every element is an index in the parent annotation.
+        """Get parents of this annotation.
 
-        Return empty list when no parent is found.
+        Args:
+            source_file: Source file for the annotation.
+            parent: Parent annotation.
+            orphan_alert: If True, log a warning when a child has no parent.
+
+        Returns:
+            A list with n (= total number of children) elements where every element is an index in the parent
+            annotation, or None when no parent is found.
         """
         parent_spans, child_spans = self._read_parents_and_children(source_file, parent, self)
         parent_index_spans = enumerate(parent_spans)
@@ -256,49 +387,93 @@ class CommonAnnotationMixin(BaseAnnotation):
 class Annotation(CommonAnnotationMixin, CommonMixin, BaseAnnotation):
     """Regular Annotation tied to one source file."""
 
-    def read(self):
-        """Yield each line from the annotation."""
+    def read(self) -> Iterator[str]:
+        """Get an iterator of values from the annotation.
+
+        Returns:
+            An iterator of values from the annotation.
+        """
         return self._read(self.source_file)
 
-    def read_spans(self, decimals=False, with_annotation_name=False):
-        """Yield the spans of the annotation."""
+    def read_spans(self, decimals: bool = False, with_annotation_name: bool = False) -> Iterator:
+        """Get an iterator of spans from the annotation.
+
+        Args:
+            decimals: If True, return spans with decimals.
+            with_annotation_name: If True, return spans with annotation name.
+
+        Returns:
+            An iterator of spans from the annotation.
+        """
         return self._read_spans(self.source_file, decimals=decimals, with_annotation_name=with_annotation_name)
 
-    def read_attributes(self, annotations: Union[list[BaseAnnotation], tuple[BaseAnnotation, ...]],
-                        with_annotation_name: bool = False):
-        """Yield tuples of multiple attributes on the same annotation."""
+    def read_attributes(self, annotations: list[BaseAnnotation] | tuple[BaseAnnotation, ...],
+                        with_annotation_name: bool = False) -> Iterator:
+        """Return an iterator of tuples of multiple attributes on the same annotation.
+
+        Args:
+            annotations: List of annotations to read attributes from.
+            with_annotation_name: If True, return attributes with annotation name.
+
+        Returns:
+            An iterator of tuples of attributes.
+        """
         return self._read_attributes(self.source_file, annotations, with_annotation_name)
 
-    def get_children(self, child: BaseAnnotation, orphan_alert=False):
-        """Return two lists.
+    def get_children(self, child: BaseAnnotation, orphan_alert: bool = False) -> tuple[list, list]:
+        """Get children of this annotation.
 
-        The first one is a list with n (= total number of parents) elements where every element is a list
-        of indices in the child annotation.
-        The second one is a list of orphans, i.e. containing indices in the child annotation that have no parent.
-        Both parents and children are sorted according to their position in the source file.
+        Args:
+            child: Child annotation.
+            orphan_alert: If True, log a warning when a child has no parent.
+
+        Returns:
+            A tuple of two lists.
+
+            The first one is a list with n (= total number of parents) elements where every element is a list
+            of indices in the child annotation.
+            The second one is a list of orphans, i.e. containing indices in the child annotation that have no parent.
+            Both parents and children are sorted according to their position in the source file.
         """
         return self._get_children(self.source_file, child, orphan_alert)
 
-    def get_parents(self, parent: BaseAnnotation, orphan_alert: bool = False):
-        """Return a list with n (= total number of children) elements where every element is an index in the parent annotation.
+    def get_parents(self, parent: BaseAnnotation, orphan_alert: bool = False) -> list:
+        """Get parents of this annotation.
 
-        Return None when no parent is found.
+        Args:
+            parent: Parent annotation.
+            orphan_alert: If True, log a warning when a child has no parent.
+
+        Returns:
+            A list with n (= total number of children) elements where every element is an index in the parent
+            annotation, or None when no parent is found.
         """
         return self._get_parents(self.source_file, parent, orphan_alert)
 
-    def read_parents_and_children(self, parent: BaseAnnotation, child: BaseAnnotation):
+    def read_parents_and_children(self, parent: BaseAnnotation, child: BaseAnnotation) -> tuple[Iterator, Iterator]:
         """Read parent and child annotations.
 
         Reorder them according to span position, but keep original index information.
+
+        Args:
+            parent: Parent annotation.
+            child: Child annotation.
+
+        Returns:
+            A tuple of iterators for parent and child annotations.
         """
         return self._read_parents_and_children(self.source_file, parent, child)
 
-    def create_empty_attribute(self):
+    def create_empty_attribute(self) -> list:
         """Return a list filled with None of the same size as this annotation."""
         return self._create_empty_attribute(self.source_file)
 
-    def get_size(self):
-        """Get number of values."""
+    def get_size(self) -> int:
+        """Get number of values.
+
+        Returns:
+            The number of values in the annotation.
+        """
         return self._get_size(self.source_file)
 
 
@@ -316,11 +491,24 @@ class AnnotationData(CommonMixin, BaseAnnotation):
 
     data = True
 
-    def __init__(self, name: str = "", source_file: Optional[str] = None):
+    def __init__(self, name: str = "", source_file: str | None = None) -> None:
+        """Initialize class.
+
+        Args:
+            name: Name of the annotation.
+            source_file: Source file for the annotation.
+        """
         super().__init__(name, source_file=source_file)
 
-    def read(self, source_file: Optional[str] = None):
-        """Read arbitrary string data from annotation file."""
+    def read(self, source_file: str | None = None) -> Iterator[str]:
+        """Read arbitrary string data from annotation file.
+
+        Args:
+            source_file: Source file for the annotation.
+
+        Returns:
+            The data of the annotation.
+        """
         return io.read_data(self.source_file or source_file, self)
 
 
@@ -332,46 +520,101 @@ class AnnotationAllSourceFiles(CommonAnnotationMixin, CommonAllSourceFilesMixin,
 
     all_files = True
 
-    def __init__(self, name: str = ""):
+    def __init__(self, name: str = "") -> None:
+        """Initialize class.
+
+        Args:
+            name: Name of the annotation.
+        """
         super().__init__(name)
         self._size = {}
 
-    def read(self, source_file: str):
-        """Yield each line from the annotation."""
+    def read(self, source_file: str) -> Iterator[str]:
+        """Get an iterator of values from the annotation.
+
+        Args:
+            source_file: Source file for the annotation.
+
+        Returns:
+            An iterator of values from the annotation.
+        """
         return self._read(source_file)
 
-    def read_spans(self, source_file: str, decimals=False, with_annotation_name=False):
-        """Yield the spans of the annotation."""
+    def read_spans(self, source_file: str, decimals: bool = False, with_annotation_name: bool = False) -> Iterator:
+        """Get an iterator of spans from the annotation.
+
+        Args:
+            source_file: Source file for the annotation.
+            decimals: If True, return spans with decimals.
+            with_annotation_name: If True, return spans with annotation name.
+
+        Returns:
+            An iterator of spans from the annotation.
+        """
         return self._read_spans(source_file, decimals=decimals, with_annotation_name=with_annotation_name)
 
-    def read_attributes(self, source_file: str, annotations: Union[list[BaseAnnotation], tuple[BaseAnnotation, ...]],
-                        with_annotation_name: bool = False):
-        """Yield tuples of multiple attributes on the same annotation."""
+    def read_attributes(self, source_file: str, annotations: list[BaseAnnotation] | tuple[BaseAnnotation, ...],
+                        with_annotation_name: bool = False) -> Iterator:
+        """Return an iterator of tuples of multiple attributes on the same annotation.
+
+        Args:
+            source_file: Source file for the annotation.
+            annotations: List of annotations to read attributes from.
+            with_annotation_name: If True, return attributes with annotation name.
+
+        Returns:
+            An iterator of tuples of attributes.
+        """
         return self._read_attributes(source_file, annotations, with_annotation_name=with_annotation_name)
 
-    def get_children(self, source_file: str, child: BaseAnnotation, orphan_alert=False):
-        """Return two lists.
+    def get_children(self, source_file: str, child: BaseAnnotation, orphan_alert: bool = False) -> tuple[list, list]:
+        """Get children of this annotation.
 
-        The first one is a list with n (= total number of parents) elements where every element is a list
-        of indices in the child annotation.
-        The second one is a list of orphans, i.e. containing indices in the child annotation that have no parent.
-        Both parents and children are sorted according to their position in the source file.
+        Args:
+            source_file: Source file for the annotation.
+            child: Child annotation.
+            orphan_alert: If True, log a warning when a child has no parent.
+
+        Returns:
+            A tuple of two lists.
+            The first one is a list with n (= total number of parents) elements where every element is a list
+            of indices in the child annotation.
+            The second one is a list of orphans, i.e. containing indices in the child annotation that have no parent.
+            Both parents and children are sorted according to their position in the source file.
         """
         return self._get_children(source_file, child, orphan_alert)
 
-    def get_parents(self, source_file: str, parent: BaseAnnotation, orphan_alert: bool = False):
-        """Return a list with n (= total number of children) elements where every element is an index in the parent annotation.
+    def get_parents(self, source_file: str, parent: BaseAnnotation, orphan_alert: bool = False) -> list:
+        """Get parents of this annotation.
 
-        Return None when no parent is found.
+        Args:
+            source_file: Source file for the annotation.
+            parent: Parent annotation.
+            orphan_alert: If True, log a warning when a child has no parent.
+
+        Returns:
+            A list with n (= total number of children) elements where every element is an index in the parent
+            annotation, or None when no parent is found.
         """
         return self._get_parents(source_file, parent, orphan_alert)
 
-    def create_empty_attribute(self, source_file: str):
-        """Return a list filled with None of the same size as this annotation."""
+    def create_empty_attribute(self, source_file: str) -> list:
+        """Return a list filled with None of the same size as this annotation.
+
+        Args:
+            source_file: Source file for the annotation.
+        """
         return self._create_empty_attribute(source_file)
 
-    def get_size(self, source_file: str):
-        """Get number of values."""
+    def get_size(self, source_file: str) -> int:
+        """Get number of values.
+
+        Args:
+            source_file: Source file for the annotation.
+
+        Returns:
+            The number of values in the annotation.
+        """
         return self._get_size(source_file)
 
 
@@ -381,11 +624,23 @@ class AnnotationDataAllSourceFiles(CommonAllSourceFilesMixin, BaseAnnotation):
     all_files = True
     data = True
 
-    def __init__(self, name: str = ""):
+    def __init__(self, name: str = "") -> None:
+        """Initialize class.
+
+        Args:
+            name: Name of the annotation.
+        """
         super().__init__(name)
 
-    def read(self, source_file: str):
-        """Read arbitrary string data from annotation file."""
+    def read(self, source_file: str) -> Iterator[str]:
+        """Read arbitrary string data from annotation file.
+
+        Args:
+            source_file: Source file for the annotation.
+
+        Returns:
+            The data of the annotation.
+        """
         return io.read_data(source_file, self)
 
 
@@ -395,11 +650,20 @@ class AnnotationCommonData(CommonMixin, BaseAnnotation):
     common = True
     data = True
 
-    def __init__(self, name: str = ""):
+    def __init__(self, name: str = "") -> None:
+        """Initialize class.
+
+        Args:
+            name: Name of the annotation.
+        """
         super().__init__(name)
 
-    def read(self):
-        """Read arbitrary corpus level string data from annotation file."""
+    def read(self) -> Iterator[str]:
+        """Read arbitrary corpus level string data from annotation file.
+
+        Returns:
+            The data of the annotation.
+        """
         return io.read_data(None, self)
 
 
@@ -420,8 +684,16 @@ class BaseOutput(BaseAnnotation):
     all_files = False
     common = False
 
-    def __init__(self, name: str = "", cls: Optional[str] = None, description: Optional[str] = None,
-                 source_file: Optional[str] = None):
+    def __init__(self, name: str = "", cls: str | None = None, description: str | None = None,
+                 source_file: str | None = None) -> None:
+        """Initialize class.
+
+        Args:
+            name: Name of the annotation.
+            cls: Class of the annotation.
+            description: Description of the annotation.
+            source_file: Source file for the annotation.
+        """
         super().__init__(name, source_file)
         self.cls = cls
         self.description = description
@@ -430,14 +702,24 @@ class BaseOutput(BaseAnnotation):
 class Output(CommonMixin, BaseOutput):
     """Regular annotation or attribute used as output."""
 
-    def __init__(self, name: str = "", cls: Optional[str] = None, description: Optional[str] = None,
-                 source_file: Optional[str] = None):
+    def __init__(self, name: str = "", cls: str | None = None, description: str | None = None,
+                 source_file: str | None = None) -> None:
+        """Initialize class.
+
+        Args:
+            name: Name of the annotation.
+            cls: Class of the annotation.
+            description: Description of the annotation.
+            source_file: Source file for the annotation.
+        """
         super().__init__(name, cls, description=description, source_file=source_file)
 
-    def write(self, values, source_file: Optional[str] = None):
+    def write(self, values: list, source_file: str | None = None) -> None:
         """Write an annotation to file. Existing annotation will be overwritten.
 
-        'values' should be a list of values.
+        Args:
+            values: A list of values.
+            source_file: Source file for the annotation.
         """
         io.write_annotation(self.source_file or source_file, self, values)
 
@@ -447,13 +729,22 @@ class OutputAllSourceFiles(CommonAllSourceFilesMixin, BaseOutput):
 
     all_files = True
 
-    def __init__(self, name: str = "", cls: Optional[str] = None, description: Optional[str] = None):
+    def __init__(self, name: str = "", cls: str | None = None, description: str | None = None) -> None:
+        """Initialize class.
+
+        Args:
+            name: Name of the annotation.
+            cls: Class of the annotation.
+            description: Description of the annotation.
+        """
         super().__init__(name, cls, description=description)
 
-    def write(self, values, source_file: str):
+    def write(self, values: list, source_file: str) -> None:
         """Write an annotation to file. Existing annotation will be overwritten.
 
-        'values' should be a list of values.
+        Args:
+            values: A list of values.
+            source_file: Source file for the annotation.
         """
         io.write_annotation(source_file, self, values)
 
@@ -463,12 +754,24 @@ class OutputData(CommonMixin, BaseOutput):
 
     data = True
 
-    def __init__(self, name: str = "", cls: Optional[str] = None, description: Optional[str] = None,
-                 source_file: Optional[str] = None):
+    def __init__(self, name: str = "", cls: str | None = None, description: str | None = None,
+                 source_file: str | None = None) -> None:
+        """Initialize class.
+
+        Args:
+            name: Name of the annotation.
+            cls: Class of the annotation.
+            description: Description of the annotation.
+            source_file: Source file for the annotation.
+        """
         super().__init__(name, cls, description=description, source_file=source_file)
 
-    def write(self, value):
-        """Write arbitrary string data to annotation file."""
+    def write(self, value: Any) -> None:
+        """Write arbitrary data to annotation file.
+
+        Args:
+            value: The data to write.
+        """
         io.write_data(self.source_file, self, value)
 
 
@@ -478,15 +781,34 @@ class OutputDataAllSourceFiles(CommonAllSourceFilesMixin, BaseOutput):
     all_files = True
     data = True
 
-    def __init__(self, name: str = "", cls: Optional[str] = None, description: Optional[str] = None):
+    def __init__(self, name: str = "", cls: str | None = None, description: str | None = None) -> None:
+        """Initialize class.
+
+        Args:
+            name: Name of the annotation.
+            cls: Class of the annotation.
+            description: Description of the annotation.
+        """
         super().__init__(name, cls, description=description)
 
-    def read(self, source_file: str):
-        """Read arbitrary string data from annotation file."""
+    def read(self, source_file: str) -> Any:
+        """Read arbitrary string data from annotation file.
+
+        Args:
+            source_file: Source file for the annotation.
+
+        Returns:
+            The data of the annotation.
+        """
         return io.read_data(source_file, self)
 
-    def write(self, value, source_file: str):
-        """Write arbitrary string data to annotation file."""
+    def write(self, value: Any, source_file: str) -> None:
+        """Write arbitrary data to annotation file.
+
+        Args:
+            value: The data to write.
+            source_file: Source file for the annotation.
+        """
         io.write_data(source_file, self, value)
 
 
@@ -496,18 +818,36 @@ class OutputCommonData(CommonMixin, BaseOutput):
     common = True
     data = True
 
-    def __init__(self, name: str = "", cls: Optional[str] = None, description: Optional[str] = None):
+    def __init__(self, name: str = "", cls: str | None = None, description: str | None = None) -> None:
+        """Initialize class.
+
+        Args:
+            name: Name of the annotation.
+            cls: Class of the annotation.
+            description: Description of the annotation.
+        """
         super().__init__(name, cls, description=description)
 
-    def write(self, value):
-        """Write arbitrary corpus level string data to annotation file."""
+    def write(self, value: Any) -> None:
+        """Write arbitrary corpus level data to annotation file.
+
+        Args:
+            value: The data to write.
+        """
         io.write_data(None, self, value)
 
 
 class OutputMarker(OutputCommonData):
     """A class for creating a marker, indicating that something has run."""
 
-    def write(self, value=""):
+    def write(self, value: str = "") -> None:
+        """Create a marker, indicating that something has run.
+
+        This is used by functions that don't have any natural output, like installers and uninstallers.
+
+        Args:
+            value: The data to write. Usually this should be left out.
+        """
         # Write current timestamp, as Snakemake also compares checksums for small files, not just modified time
         super().write(value or str(time.time()))
 
@@ -515,21 +855,32 @@ class OutputMarker(OutputCommonData):
 class Text:
     """Corpus text."""
 
-    def __init__(self, source_file: Optional[str] = None):
+    def __init__(self, source_file: str | None = None) -> None:
+        """Initialize class.
+
+        Args:
+            source_file: Source file for the annotation.
+        """
         self.source_file = source_file
 
     def read(self) -> str:
-        """Get corpus text."""
+        """Get corpus text.
+
+        Returns:
+            The corpus text.
+        """
         return io.read_data(self.source_file, io.TEXT_FILE)
 
-    def write(self, text):
+    def write(self, text: str) -> None:
         """Write text to the designated file of a corpus.
 
-        text is a unicode string.
+        Args:
+            text: The text to write.
         """
         io.write_data(self.source_file, io.TEXT_FILE, text)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """Return class name as string representation of the class."""
         return "<Text>"
 
 
@@ -538,15 +889,28 @@ class SourceStructure(BaseAnnotation):
 
     data = True
 
-    def __init__(self, source_file):
+    def __init__(self, source_file: str) -> None:
+        """Initialize class.
+
+        Args:
+            source_file: Source file for the annotation.
+        """
         super().__init__(io.STRUCTURE_FILE, source_file)
 
     def read(self) -> list[str]:
-        """Read structure file."""
+        """Read structure file to get a list of nams of annotations in the source file.
+
+        Returns:
+            A list of annotation names.
+        """
         return io.read_data(self.source_file, self).split("\n")
 
-    def write(self, structure):
-        """Sort the source file's structural elements and write structure file."""
+    def write(self, structure: list[str]) -> None:
+        """Sort the source file's structural elements and write structure file.
+
+        Args:
+            structure: A list of annotation names.
+        """
         structure.sort()
         io.write_data(self.source_file, self, "\n".join(structure))
 
@@ -556,15 +920,28 @@ class Headers(CommonMixin, BaseAnnotation):
 
     data = True
 
-    def __init__(self, source_file):
+    def __init__(self, source_file: str) -> None:
+        """Initialize class.
+
+        Args:
+            source_file: Source file for the annotation.
+        """
         super().__init__(io.HEADERS_FILE, source_file)
 
     def read(self) -> list[str]:
-        """Read headers file."""
+        """Read headers file.
+
+        Returns:
+            A list of header annotation names.
+        """
         return io.read_data(self.source_file, self).splitlines()
 
-    def write(self, header_annotations: list[str]):
-        """Write headers file."""
+    def write(self, header_annotations: list[str]) -> None:
+        """Write headers file.
+
+        Args:
+            header_annotations: A list of header annotation names.
+        """
         io.write_data(self.source_file, self, "\n".join(header_annotations))
 
 
@@ -573,19 +950,32 @@ class Namespaces(BaseAnnotation):
 
     data = True
 
-    def __init__(self, source_file):
+    def __init__(self, source_file: str) -> None:
+        """Initialize class.
+
+        Args:
+            source_file: Source file for the annotation.
+        """
         super().__init__(io.NAMESPACE_FILE, source_file)
 
-    def read(self):
-        """Read namespace file and parse it into a dict."""
+    def read(self) -> dict[str, str]:
+        """Read namespace file and parse it into a dict.
+
+        Returns:
+            A dict with prefixes as keys and URIs as values.
+        """
         try:
             lines = io.read_data(self.source_file, self).split("\n")
             return dict(l.split(" ") for l in lines)
         except FileNotFoundError:
             return {}
 
-    def write(self, namespaces: dict[str, str]):
-        """Write namespace file."""
+    def write(self, namespaces: dict[str, str]) -> None:
+        """Write namespace file.
+
+        Args:
+            namespaces: A dict with prefixes as keys and URIs as values.
+        """
         io.write_data(self.source_file, self, "\n".join([f"{k} {v}" for k, v in namespaces.items()]))
 
 
@@ -600,13 +990,16 @@ class Corpus(str):
 class AllSourceFilenames(Sequence[str]):
     """List with names of all source files."""
 
-    def __init__(self):
+    def __init__(self) -> None:
+        """Initialize class."""
         self.items: Sequence[str] = []
 
-    def __getitem__(self, index: int):
+    def __getitem__(self, index: int) -> str:
+        """Return item at index."""
         return self.items[index]
 
-    def __len__(self):
+    def __len__(self) -> int:
+        """Return number of source files."""
         return len(self.items)
 
 
@@ -620,17 +1013,33 @@ class Config(str):
         self,
         name: str,
         default: Any = None,
-        description: Optional[str] = None,
-        datatype: Optional[type] = None,
-        choices: Optional[Union[Iterable, Callable]] = None,
-        pattern: Optional[str] = None,
-        min_len: Optional[int] = None,
-        max_len: Optional[int] = None,
-        min_value: Optional[Union[int, float]] = None,
-        max_value: Optional[Union[int, float]] = None,
-        const: Optional[Any] = None,
-        conditions: Optional[list["Config"]] = None
+        description: str | None = None,
+        datatype: type | None = None,
+        choices: Iterable | Callable | None = None,
+        pattern: str | None = None,
+        min_len: int | None = None,
+        max_len: int | None = None,
+        min_value: int | float | None = None,
+        max_value: int | float | None = None,
+        const: Any | None = None,
+        conditions: list[Config] | None = None
     ) -> None:
+        """Initialize class.
+
+        Args:
+            name: Name of the config key.
+            default: Default value of the config key.
+            description: Description of the config key.
+            datatype: Datatype of the config key.
+            choices: A list of allowed values for the config key, or a function that returns them.
+            pattern: A regex pattern that the value must match.
+            min_len: Minimum length of the value.
+            max_len: Maximum length of the value.
+            min_value: Minimum value of the value.
+            max_value: Maximum value of the value.
+            const: A constant value that the value must equal.
+            conditions: A list of other Config objects that must be met for this Config to be valid.
+        """
         self.name = name
         self.default = default
         self.description = description
@@ -656,7 +1065,15 @@ class Wildcard(str):
     def __new__(cls, name: str, *args, **kwargs):
         return super().__new__(cls, name)
 
-    def __init__(self, name: str, type: int = OTHER, description: Optional[str] = None):
+    def __init__(self, name: str, type: int = OTHER, description: str | None = None) -> None:
+        """Initialize class.
+
+        Args:
+            name: Name of the wildcard.
+            type: Type of the wildcard, by reference to the constants defined in this class
+                (ANNOTATION, ATTRIBUTE, ANNOTATION_ATTRIBUTE, OTHER).
+            description: Description of the wildcard.
+        """
         self.name = name
         self.type = type
         self.description = description
@@ -665,15 +1082,32 @@ class Wildcard(str):
 class Model(Base):
     """Path to model file."""
 
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
+        """Initialize class.
+
+        Args:
+            name: Name of the model file
+        """
         super().__init__(name)
 
-    def __eq__(self, other):
+    def __eq__(self, other: Model) -> bool:
+        """Check if two Model instances are equal.
+
+        Args:
+            other: Another Model instance to compare with.
+
+        Returns:
+            True if the instances are equal.
+        """
         return type(self) is type(other) and self.name == other.name and self.path == other.path
 
     @property
     def path(self) -> pathlib.Path:
-        """Get model path."""
+        """Get model path.
+
+        Returns:
+            The path to the model file.
+        """
         return_path = pathlib.Path(self.name)
         # Return as is if path is absolute, models dir is already included, or if relative path to a file that exists
         if return_path.is_absolute() or paths.models_dir in return_path.parents or return_path.is_file():
@@ -681,8 +1115,12 @@ class Model(Base):
         else:
             return paths.models_dir / return_path
 
-    def write(self, data):
-        """Write arbitrary string data to models directory."""
+    def write(self, data: str) -> None:
+        """Write arbitrary string data to models directory.
+
+        Args:
+            data: The data to write.
+        """
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.path.write_text(data, encoding="utf-8")
 
@@ -690,14 +1128,23 @@ class Model(Base):
         os.utime(self.path, None)
         logger.info("Wrote %d bytes: %s", len(data), self.name)
 
-    def read(self):
-        """Read arbitrary string data from file in models directory."""
+    def read(self) -> str:
+        """Read arbitrary string data from file in models directory.
+
+        Returns:
+            The data of the model.
+        """
         data = self.path.read_text(encoding="utf-8")
         logger.debug("Read %d bytes: %s", len(data), self.name)
         return data
 
-    def write_pickle(self, data, protocol=-1):
-        """Dump data to pickle file in models directory."""
+    def write_pickle(self, data: Any, protocol: int = -1) -> None:
+        """Dump arbitrary data to pickle file in models directory.
+
+        Args:
+            data: The data to write.
+            protocol: Pickle protocol to use.
+        """
         self.path.parent.mkdir(parents=True, exist_ok=True)
         with self.path.open("wb") as f:
             pickle.dump(data, f, protocol=protocol)
@@ -705,16 +1152,24 @@ class Model(Base):
         os.utime(self.path, None)
         logger.info("Wrote %d bytes: %s", len(data), self.name)
 
-    def read_pickle(self):
-        """Read pickled data from file in models directory."""
+    def read_pickle(self) -> Any:
+        """Read pickled data from file in models directory.
+
+        Returns:
+            The data of the model.
+        """
         with self.path.open("rb") as f:
             data = pickle.load(f)
         logger.debug("Read %d bytes: %s", len(data), self.name)
         return data
 
-    def download(self, url: str):
-        """Download file from url and save to modeldir."""
-        def log_progress(block_num, block_size, total_size):
+    def download(self, url: str) -> None:
+        """Download file from URL and save to models directory.
+
+        Args:
+            url: URL to download from.
+        """
+        def log_progress(block_num: int, block_size: int, total_size: int) -> None:
             if total_size > 0:
                 logger.progress(progress=block_num * block_size, total=total_size)
         os.makedirs(self.path.parent, exist_ok=True)
@@ -726,30 +1181,44 @@ class Model(Base):
             logger.error("Download of %s from %s failed", self.name, url)
             raise e
 
-    def unzip(self):
-        """Unzip zip file inside modeldir."""
+    def unzip(self) -> None:
+        """Unzip zip file inside models directory."""
         out_dir = self.path.parent
         with zipfile.ZipFile(self.path) as z:
             z.extractall(out_dir)
         logger.info("Successfully unzipped %s", self.name)
 
-    def ungzip(self, out: str):
-        """Unzip gzip file inside modeldir."""
+    def ungzip(self, out: str) -> None:
+        """Unzip gzip file inside modeldir.
+
+        Args:
+            out: Path to output file.
+        """
         with gzip.open(self.path) as z:
             data = z.read()
             with open(out, "wb") as f:
                 f.write(data)
         logger.info("Successfully unzipped %s", out)
 
-    def remove(self, raise_errors: bool = False):
-        """Remove model file from disk."""
+    def remove(self, raise_errors: bool = False) -> None:
+        """Remove model file from disk.
+
+        Args:
+            raise_errors: If True, raise errors if file doesn't exist.
+        """
         self.path.unlink(missing_ok=not raise_errors)
 
 
 class ModelOutput(Model):
     """Path to model file used as output of a modelbuilder."""
 
-    def __init__(self, name: str, description: Optional[str] = None):
+    def __init__(self, name: str, description: str | None = None) -> None:
+        """Initialize class.
+
+        Args:
+            name: Name of the model file.
+            description: Description of the model.
+        """
         super().__init__(name)
         self.description = description
 
@@ -765,11 +1234,25 @@ class BinaryDir(str):
 class Source:
     """Path to directory containing input files."""
 
-    def __init__(self, source_dir: str = ""):
+    def __init__(self, source_dir: str = "") -> None:
+        """Initialize class.
+
+        Args:
+            source_dir: Path to directory containing input files. Should usually be left blank, for Sparv to
+                automatically get the path.
+        """
         self.source_dir = source_dir
 
-    def get_path(self, source_file: SourceFilename, extension: str):
-        """Get the path of a source file."""
+    def get_path(self, source_file: SourceFilename, extension: str) -> pathlib.Path:
+        """Get the path of a source file.
+
+        Args:
+            source_file: Name of the source file.
+            extension: File extension to append to the source file.
+
+        Returns:
+            The path to the source file.
+        """
         if not extension.startswith("."):
             extension = "." + extension
         if ":" in source_file:
@@ -790,26 +1273,43 @@ class ExportInput(str):
     def __new__(cls, val: str, *args, **kwargs):
         return super().__new__(cls, val)
 
-    def __init__(self, val: str, all_files: bool = False):
+    def __init__(self, val: str, all_files: bool = False) -> None:
+        """Initialize class.
+
+        Args:
+            val: Export directory and filename pattern (e.g. `"xml_export.pretty/[xml_export.filename]"`).
+            all_files: Set to `True` to get the export for all source files.
+        """
         self.all_files = all_files
 
 
-class ExportAnnotations(Sequence[tuple[Annotation, Optional[str]]]):
+class ExportAnnotations(Sequence[tuple[Annotation, str | None]]):
     """Iterable with annotations to include in export."""
 
     # If is_input = False the annotations won't be added to the rule's input.
     is_input = True
 
-    def __init__(self, config_name: str, is_input: Optional[bool] = None):
+    def __init__(self, config_name: str, is_input: bool | None = None) -> None:
+        """Initialize class.
+
+        Args:
+            config_name: Name of the config key.
+            is_input: Deprecated, use ExportAnnotationNames instead of setting this to False.
+        """
         self.config_name = config_name
         self.items = []
         if is_input is not None:
             self.is_input = is_input
 
-    def __getitem__(self, index: int):
+    def __getitem__(self, index: int) -> tuple[Annotation, str | None]:
+        """Return item at index.
+
+        Each item is a tuple of an Annotation and an optional export name.
+        """
         return self.items[index]
 
-    def __len__(self):
+    def __len__(self) -> int:
+        """Return number of annotations."""
         return len(self.items)
 
 
@@ -821,39 +1321,59 @@ class ExportAnnotationNames(ExportAnnotations):
 
     is_input = False
 
-    def __init__(self, config_name: str):
+    def __init__(self, config_name: str) -> None:
+        """Initialize class.
+
+        Args:
+            config_name: Name of the config key.
+        """
         super().__init__(config_name)
 
 
-class ExportAnnotationsAllSourceFiles(Sequence[tuple[AnnotationAllSourceFiles, Optional[str]]]):
+class ExportAnnotationsAllSourceFiles(Sequence[tuple[AnnotationAllSourceFiles, str | None]]):
     """List of annotations to include in export."""
 
     # Always true for ExportAnnotationsAllSourceFiles
     is_input = True
 
-    def __init__(self, config_name: str):
-        self.config_name = config_name
-        self.items: Sequence[tuple[AnnotationAllSourceFiles, Optional[str]]] = []
+    def __init__(self, config_name: str) -> None:
+        """Initialize class.
 
-    def __getitem__(self, index: int):
+        Args:
+            config_name: Name of the config key.
+        """
+        self.config_name = config_name
+        self.items: Sequence[tuple[AnnotationAllSourceFiles, str | None]] = []
+
+    def __getitem__(self, index: int) -> tuple[AnnotationAllSourceFiles, str | None]:
+        """Return item at index."""
         return self.items[index]
 
-    def __len__(self):
+    def __len__(self) -> int:
+        """Return number of annotations."""
         return len(self.items)
 
 
-class SourceAnnotations(Sequence[tuple[Annotation, Optional[str]]]):
+class SourceAnnotations(Sequence[tuple[Annotation, str | None]]):
     """Iterable with source annotations to include in export."""
 
-    def __init__(self, config_name: str, source_file: Optional[str] = None, _headers: bool = False):
+    def __init__(self, config_name: str, source_file: str | None = None, _headers: bool = False) -> None:
+        """Initialize class.
+
+        Args:
+            config_name: Name of the config key.
+            source_file: Name of source file.
+            _headers: If True, read headers instead of source structure.
+        """
         self.config_name = config_name
         self.raw_list = None
-        self.annotations: Sequence[tuple[Annotation, Optional[str]]] = []
+        self.annotations: Sequence[tuple[Annotation, str | None]] = []
         self.source_file = source_file
         self.initialized = False
         self.headers = _headers
 
-    def _initialize(self):
+    def _initialize(self) -> None:
+        """Populate class with data."""
         assert self.source_file, "SourceAnnotation is missing source_file"
 
         # If raw_list is an empty list, don't add any source annotations automatically
@@ -874,12 +1394,14 @@ class SourceAnnotations(Sequence[tuple[Annotation, Optional[str]]]):
         ]
         self.initialized = True
 
-    def __getitem__(self, index: int):
+    def __getitem__(self, index: int) -> tuple[Annotation, str | None]:
+        """Return item at index."""
         if not self.initialized:
             self._initialize()
         return self.annotations[index]
 
-    def __len__(self):
+    def __len__(self) -> int:
+        """Return number of annotations."""
         if not self.initialized:
             self._initialize()
         return len(self.annotations)
@@ -888,22 +1410,36 @@ class SourceAnnotations(Sequence[tuple[Annotation, Optional[str]]]):
 class HeaderAnnotations(SourceAnnotations):
     """Iterable with header annotations to include in export."""
 
-    def __init__(self, config_name: str, source_file: Optional[str] = None):
+    def __init__(self, config_name: str, source_file: str | None = None) -> None:
+        """Initialize class.
+
+        Args:
+            config_name: Name of the config key.
+            source_file: Name of source file.
+        """
         super().__init__(config_name, source_file, _headers=True)
 
 
-class SourceAnnotationsAllSourceFiles(Sequence[tuple[AnnotationAllSourceFiles, Optional[str]]]):
+class SourceAnnotationsAllSourceFiles(Sequence[tuple[AnnotationAllSourceFiles, str | None]]):
     """Iterable with source annotations to include in export."""
 
-    def __init__(self, config_name: str, source_files: Iterable[str] = (), headers: bool = False):
+    def __init__(self, config_name: str, source_files: Iterable[str] = (), headers: bool = False) -> None:
+        """Initialize class.
+
+        Args:
+            config_name: Name of the config key.
+            source_files: List of source files.
+            headers: If True, read headers instead of source structure.
+        """
         self.config_name = config_name
         self.raw_list = None
-        self.annotations: Sequence[tuple[AnnotationAllSourceFiles, Optional[str]]] = []
+        self.annotations: Sequence[tuple[AnnotationAllSourceFiles, str | None]] = []
         self.source_files = source_files
         self.initialized = False
         self.headers = headers
 
-    def _initialize(self):
+    def _initialize(self) -> None:
+        """Populate class with data."""
         assert self.source_files, "SourceAnnotationsAllSourceFiles is missing source_files"
 
         # If raw_list is an empty list, don't add any source annotations automatically
@@ -927,12 +1463,14 @@ class SourceAnnotationsAllSourceFiles(Sequence[tuple[AnnotationAllSourceFiles, O
         ]
         self.initialized = True
 
-    def __getitem__(self, index: int):
+    def __getitem__(self, index: int) -> tuple[AnnotationAllSourceFiles, str | None]:
+        """Return item at index."""
         if not self.initialized:
             self._initialize()
         return self.annotations[index]
 
-    def __len__(self):
+    def __len__(self) -> int:
+        """Return number of annotations."""
         if not self.initialized:
             self._initialize()
         return len(self.annotations)
@@ -941,7 +1479,13 @@ class SourceAnnotationsAllSourceFiles(Sequence[tuple[AnnotationAllSourceFiles, O
 class HeaderAnnotationsAllSourceFiles(SourceAnnotationsAllSourceFiles):
     """Iterable with header annotations to include in export."""
 
-    def __init__(self, config_name: str, source_files: Iterable[str] = ()):
+    def __init__(self, config_name: str, source_files: Iterable[str] = ()) -> None:
+        """Initialize class.
+
+        Args:
+            config_name: Name of the config key.
+            source_files: List of source files (internal use only).
+        """
         super().__init__(config_name, source_files, headers=True)
 
 
@@ -952,7 +1496,7 @@ class Language(str):
 class SourceStructureParser(ABC):
     """Abstract class that should be implemented by an importer's structure parser."""
 
-    def __init__(self, source_dir: pathlib.Path):
+    def __init__(self, source_dir: pathlib.Path) -> None:
         """Initialize class.
 
         Args:
@@ -966,7 +1510,7 @@ class SourceStructureParser(ABC):
         self.annotations = None
 
     @staticmethod
-    def setup():
+    def setup() -> dict:
         """Return a list of wizard dictionaries with questions needed for setting up the class.
 
         Answers to the questions will automatically be saved to self.answers.

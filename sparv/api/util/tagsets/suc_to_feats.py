@@ -38,8 +38,17 @@ MSD_TO_FEATS = {
 }
 
 
-def suc_to_feats(pos, msd, delim="."):
-    """Convert SUC MSD tags into UCoNNL feature list."""
+def suc_to_feats(pos: str, msd: str, delim: str = ".") -> list[str]:
+    """Convert SUC MSD tags into UCoNNL feature list.
+
+    Args:
+        pos: The part-of-speech tag.
+        msd: The MSD tag.
+        delim: The delimiter used in the MSD tag.
+
+    Returns:
+        A list of UCoNNL features.
+    """
     non_mapping_msds_for_debug = []
     feats = []
     msd = [i for i in msd.split(delim) if i != "-"]
@@ -62,6 +71,14 @@ def suc_to_feats(pos, msd, delim="."):
     return sorted(feats)
 
 
-def _findfeat(feats, to_find):
-    """Check if 'to_find' is a feature (key) in 'feats'."""
+def _findfeat(feats: list[str], to_find: str) -> bool:
+    """Check if 'to_find' is a feature (key) in 'feats'.
+
+    Args:
+        feats: List of features.
+        to_find: Feature to find.
+
+    Returns:
+        True if 'to_find' is a feature in 'feats'.
+    """
     return any(f"{to_find}=" in feat for feat in feats)
