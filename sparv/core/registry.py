@@ -28,9 +28,9 @@ from sparv.api.classes import (
     Wildcard,
 )
 from sparv.core import config as sparv_config
-from sparv.core import paths
 from sparv.core.console import console
 from sparv.core.misc import SparvErrorMessage
+from sparv.core.paths import paths
 
 modules_path = f"sparv.{paths.modules_dir}"
 core_modules_path = f"sparv.{paths.core_modules_dir}"

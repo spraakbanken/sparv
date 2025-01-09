@@ -9,7 +9,8 @@ import logging
 import sys
 
 from sparv.api.classes import Annotation, AnnotationData, Config, Output, OutputData, SourceFilename
-from sparv.core import log_handler, paths, registry
+from sparv.core import log_handler, registry
+from sparv.core.paths import paths
 
 
 def main(argv: list[str] | None = None, log_level: str = "info") -> None:

@@ -26,9 +26,10 @@ from rich.table import Table
 from rich.text import Text
 from snakemake import logger
 
-from sparv.core import io, paths
+from sparv.core import io
 from sparv.core.console import console
 from sparv.core.misc import SparvErrorMessage
+from sparv.core.paths import paths
 
 LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 LOG_FORMAT_DEBUG = "%(asctime)s - %(name)s (%(process)d) - %(levelname)s - %(message)s"

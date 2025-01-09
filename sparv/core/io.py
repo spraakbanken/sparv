@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any
 
 from sparv.api.classes import BaseAnnotation, BaseOutput
-from sparv.core import paths
+from sparv.core.paths import paths
 from sparv.core.misc import SparvErrorMessage, get_logger
 
 logger = get_logger(__name__)

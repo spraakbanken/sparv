@@ -7,8 +7,9 @@ import traceback
 
 from importlib_metadata import entry_points
 
-from sparv.core import io, log_handler, paths, registry
+from sparv.core import io, log_handler, registry
 from sparv.core.misc import SparvErrorMessage
+from sparv.core.paths import paths
 
 custom_name = "custom"
 plugin_name = "plugin"

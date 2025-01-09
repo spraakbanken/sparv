@@ -11,7 +11,7 @@ import subprocess
 import xml.etree.ElementTree as etree
 from typing import Optional
 
-from sparv.core import paths
+from sparv.core.paths import paths
 from sparv.core.console import console
 
 GOLD_PREFIX = "gold_"

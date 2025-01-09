@@ -15,8 +15,9 @@ from questionary import prompt
 
 from sparv.api import SourceStructureParser, Wildcard
 from sparv.api.util.misc import dump_yaml
-from sparv.core import config, paths, registry, snake_utils
+from sparv.core import config, registry, snake_utils
 from sparv.core.console import console
+from sparv.core.paths import paths
 
 questionary.prompts.common.SELECTED_POINTER = "\u276f"
 

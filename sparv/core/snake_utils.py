@@ -45,8 +45,9 @@ from sparv.api.classes import (
     Text,
 )
 from sparv.core import config as sparv_config
-from sparv.core import io, log_handler, paths, registry
+from sparv.core import io, log_handler, registry
 from sparv.core.console import console
+from sparv.core.paths import paths
 
 
 class SnakeStorage:

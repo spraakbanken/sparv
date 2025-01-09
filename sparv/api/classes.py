@@ -14,7 +14,7 @@ from typing import Any, Callable, Optional, Union
 import sparv.core
 from sparv.core import io
 from sparv.core.misc import get_logger, parse_annotation_list
-from sparv.core.paths import models_dir
+from sparv.core.paths import paths
 
 logger = get_logger(__name__)
 
@@ -676,10 +676,10 @@ class Model(Base):
         """Get model path."""
         return_path = pathlib.Path(self.name)
         # Return as is if path is absolute, models dir is already included, or if relative path to a file that exists
-        if return_path.is_absolute() or models_dir in return_path.parents or return_path.is_file():
+        if return_path.is_absolute() or paths.models_dir in return_path.parents or return_path.is_file():
             return return_path
         else:
-            return models_dir / return_path
+            return paths.models_dir / return_path
 
     def write(self, data):
         """Write arbitrary string data to models directory."""

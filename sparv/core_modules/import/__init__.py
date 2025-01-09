@@ -3,7 +3,8 @@
 import os
 
 from sparv.api import Config, wizard
-from sparv.core import paths, registry
+from sparv.core import registry
+from sparv.core.paths import paths
 
 __config__ = [
     Config("import.text_annotation", description="Annotation representing a text", datatype=str),

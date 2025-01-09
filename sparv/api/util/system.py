@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Optional, Union
 
 from sparv.api import SparvErrorMessage, get_logger
-from sparv.core import paths
+from sparv.core.paths import paths
 
 logger = get_logger(__name__)
 
