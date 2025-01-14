@@ -1,7 +1,6 @@
 """Util functions for installations on remote servers."""
 from __future__ import annotations
 
-import os
 import shlex
 import subprocess
 from collections.abc import Iterable
@@ -46,14 +45,15 @@ def install_mysql(host: str | None, db_name: str, sqlfile: Path | str | list[Pat
         db_name: Name of the database.
         sqlfile: Path to a SQL file, or list of paths.
     """
-    if isinstance(sqlfile, str):
+    if isinstance(sqlfile, (str, Path)):
         sqlfile = [sqlfile]
+    sqlfile = [Path(f) for f in sqlfile]
     file_total = len(sqlfile)
 
     for file_count, f in enumerate(sqlfile):
-        if not os.path.exists(f):
+        if not f.exists():
             logger.error("Missing SQL file: %s", f)
-        elif os.path.getsize(f) < 10:
+        elif f.stat().st_size < 10:
             logger.info("Skipping empty file: %s (%d/%d)", f, file_count + 1, file_total)
         else:
             logger.info("Installing MySQL database: %s, source: %s (%d/%d)", db_name, f, file_count + 1, file_total)

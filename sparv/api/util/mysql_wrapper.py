@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import operator
-import os
 from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
@@ -54,10 +53,10 @@ class MySQL:
                 self.arguments += ["-p", password]
         self.host = host
         self.encoding = encoding
-        self.output = output
+        self.output = Path(output) if output else None
         self.first_output = True
-        if self.output and not append and os.path.exists(self.output):
-            os.remove(self.output)
+        if self.output and not append and self.output.exists():
+            self.output.unlink()
 
     def execute(self, sql: str, *args: Any) -> None:
         """Execute a SQL statement or add it to the output file.
@@ -72,7 +71,7 @@ class MySQL:
             self.first_output = False
         if self.output:
             # Write SQL statement to file
-            with open(self.output, "a", encoding=self.encoding) as outfile:
+            with self.output.open("a", encoding=self.encoding) as outfile:
                 outfile.write(sql + "\n")
         else:
             # Execute SQL statement
@@ -121,7 +120,7 @@ class MySQL:
         if indexes:
             for index in indexes:
                 if isinstance(index, str):
-                    index = index.split()
+                    index = index.split()  # noqa: PLW2901
                 sqlcolumns += [f"INDEX {_atom('-'.join(index))} ({_atomseq(index)})"]
         if constraints:
             for constraint in constraints:
@@ -314,8 +313,7 @@ def _value(val: str | int | float | None) -> str:
         return "NULL"
     if isinstance(val, str):
         return f"'{_escape(val)}'"
-    else:
-        return f"{val}"
+    return f"{val}"
 
 
 def _valueseq(vals: Iterable[str | int | float]) -> str:

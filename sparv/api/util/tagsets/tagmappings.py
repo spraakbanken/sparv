@@ -41,6 +41,7 @@ saldo_to_granska: 1-many mapping between Saldo and Granska-ish
 saldo_to_parole: 1-many mapping between Saldo and Parole
 saldo_to_saldo: 1-many identity mapping of Saldo tags
 """
+# ruff: noqa: E241
 from __future__ import annotations
 
 import re

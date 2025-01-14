@@ -5,7 +5,6 @@ from __future__ import annotations
 import datetime
 import logging
 import logging.handlers
-import os
 import pickle
 import re
 import socketserver
@@ -36,9 +35,15 @@ LOG_FORMAT_DEBUG = "%(asctime)s - %(name)s (%(process)d) - %(levelname)s - %(mes
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 TIME_FORMAT = "%H:%M:%S"
 
-# Variables set by setup_logging()
-current_file = None
-current_job = None
+
+class CurrentProgress:
+    """Class to store current file and job for logging progress.
+
+    These are set by setup_logging() and used by _log_progress().
+    """
+    current_file = None
+    current_job = None
+
 
 # Add internal logging level used for non-logging-related communication from child processes to log handler
 INTERNAL = 100
@@ -46,15 +51,22 @@ logging.addLevelName(INTERNAL, "INTERNAL")
 
 
 def _log_progress(
-    self: logging.Logger,
-    progress: int | None = None,
-    advance: int | None = None,
-    total: int | None = None
+    self: logging.Logger, progress: int | None = None, advance: int | None = None, total: int | None = None
 ) -> None:
     """Log progress of task."""
     if self.isEnabledFor(INTERNAL):
-        self._log(INTERNAL, "progress", (), extra={"progress": progress, "advance": advance, "total": total,
-                                                   "job": current_job, "file": current_file})
+        self._log(
+            INTERNAL,
+            "progress",
+            (),
+            extra={
+                "progress": progress,
+                "advance": advance,
+                "total": total,
+                "job": CurrentProgress.current_job,
+                "file": CurrentProgress.current_file,
+            },
+        )
 
 
 # Add progress function to logger
@@ -99,9 +111,10 @@ class LogRecordStreamHandler(socketserver.StreamRequestHandler):
 
     def handle(self) -> None:
         """Handle multiple requests - each expected to be a 4-byte length followed by the LogRecord in pickle format."""
+        data_length_bytes = 4
         while True:
-            chunk = self.connection.recv(4)
-            if len(chunk) < 4:
+            chunk = self.connection.recv(data_length_bytes)
+            if len(chunk) < data_length_bytes:
                 break
             slen = struct.unpack(">L", chunk)[0]
             chunk = self.connection.recv(slen)
@@ -144,7 +157,7 @@ class FileHandlerWithDirCreation(logging.FileHandler):
     def emit(self, record: logging.LogRecord) -> None:
         """Emit a record and create necessary directories if needed."""
         if self.stream is None:
-            os.makedirs(os.path.dirname(self.baseFilename), exist_ok=True)
+            Path(self.baseFilename).parent.mkdir(parents=True, exist_ok=True)
         super().emit(record)
 
 
@@ -379,7 +392,7 @@ class LogHandler:
         internal_filter = InternalFilter()
         progress_internal_filter = ProgressInternalFilter()
 
-        # Set logger to use the lowest selected log level, but never higher than warning (we still want to count warnings)
+        # Set logger to the lowest selected log level, but not higher than warning (we still want to count warnings)
         self.logger.setLevel(
             min(
                 logging.WARNING, getattr(logging, self.log_level.upper()), getattr(logging, self.log_file_level.upper())
@@ -411,7 +424,7 @@ class LogHandler:
 
         # File logger
         self.log_filename = f"{datetime.datetime.now().strftime('%Y-%m-%d_%H.%M.%S.%f')}.log"
-        file_handler = FileHandlerWithDirCreation(os.path.join(paths.log_dir, self.log_filename), mode="w",
+        file_handler = FileHandlerWithDirCreation(paths.log_dir / self.log_filename, mode="w",
                                                   encoding="UTF-8", delay=True)
         file_handler.setLevel(self.log_file_level.upper())
         file_handler.addFilter(progress_internal_filter)
@@ -545,8 +558,7 @@ class LogHandler:
             errmsg = []
             missing_annotations = []
             missing_other = []
-            for f in files.splitlines():
-                f = Path(f)
+            for f in map(Path, files.splitlines()):
                 if paths.work_dir in f.parents:
                     # If the missing file is within the Sparv workdir, it is probably an annotation
                     f_rel = f.relative_to(paths.work_dir)
@@ -559,11 +571,13 @@ class LogHandler:
                     missing_other.append(str(f))
             if missing_annotations:
                 errmsg = [
-                    "The following input annotation{} {} missing:\n"
-                    " • {}\n".format(
+                    "The following input annotation{} {} missing:\n • {}\n".format(
                         "s" if len(missing_annotations) > 1 else "",
                         "are" if len(missing_annotations) > 1 else "is",
-                        "\n • ".join(":".join(ann) if len(ann) == 2 else ann[0] for ann in missing_annotations)
+                        "\n • ".join(
+                            ":".join(ann) if len(ann) == 2 else ann[0]  # noqa: PLR2004
+                            for ann in missing_annotations
+                        ),
                     )
                 ]
             if missing_other:
@@ -594,10 +608,9 @@ class LogHandler:
                 self.jobs[job.replace("::", ":")] = int(count)
             self.jobs_max_len = max(map(len, self.jobs))
 
-            if self.use_progressbar and not self.bar_started:
-                # Get number of jobs and start progress bar
-                if total_jobs.isdigit():
-                    self.start_bar(int(total_jobs))
+            # Get number of jobs and start progress bar
+            if self.use_progressbar and not self.bar_started and total_jobs.isdigit():
+                self.start_bar(int(total_jobs))
 
         elif level == "progress":
             if self.use_progressbar:
@@ -610,7 +623,7 @@ class LogHandler:
                 percentage = (100 * msg["done"]) // msg["total"]
                 if percentage > self.last_percentage:
                     self.last_percentage = percentage
-                    self.logger.log(PROGRESS, f"{percentage}%")
+                    self.logger.log(PROGRESS, f"{percentage}%")  # noqa: G004
 
             if msg["done"] == msg["total"]:
                 self.stop()
@@ -802,7 +815,7 @@ class LogHandler:
                 # Errors from modules have already been logged to both stdout and the log file
                 self.error(
                     "Job execution failed. See log messages above or "
-                    f"{os.path.join(paths.log_dir, self.log_filename)} for details.")
+                    f"{paths.log_dir / self.log_filename} for details.")
             else:
                 # Errors from modules have already been logged to stdout
                 self.error("Job execution failed. See log messages above for details.")
@@ -862,7 +875,7 @@ class LogHandler:
                     )
                 self.warning(
                     f"{spacer}Job execution finished but {' and '.join(problems)} occurred. See log messages "
-                    f"above or {os.path.join(paths.log_dir, self.log_filename)} for details."
+                    f"above or {paths.log_dir / self.log_filename} for details."
                 )
             elif self.dry_run:
                 console.print("The following tasks were scheduled but not run:")
@@ -913,6 +926,5 @@ def setup_logging(
     socket_logger.setLevel(log_level)
     socket_handler = logging.handlers.SocketHandler(*log_server)
     socket_logger.addHandler(socket_handler)
-    global current_file, current_job
-    current_file = file
-    current_job = job
+    CurrentProgress.current_file = file
+    CurrentProgress.current_job = job

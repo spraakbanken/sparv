@@ -1,11 +1,12 @@
 """Util functions for corpus export."""
+from __future__ import annotations
 
 import re
 import xml.etree.ElementTree as etree
 from collections import OrderedDict, defaultdict
 from copy import deepcopy
 from itertools import combinations
-from typing import Any, Optional, Union
+from typing import Any
 
 from sparv.api import (
     Annotation,
@@ -28,11 +29,11 @@ logger = get_logger(__name__)
 
 
 def gather_annotations(annotations: list[Annotation],
-                       export_names,
+                       export_names: dict[str, str],
                        header_annotations=None,
-                       source_file: Optional[str] = None,
+                       source_file: str | None = None,
                        flatten: bool = True,
-                       split_overlaps: bool = False):
+                       split_overlaps: bool = False) -> tuple[list[tuple], dict[str, str]]:
     """Calculate the span hierarchy and the annotation_dict containing all annotation elements and attributes.
 
     Args:
@@ -284,20 +285,18 @@ def calculate_element_hierarchy(source_file, spans_list):
 
 
 def get_annotation_names(
-    annotations: Union[
-        ExportAnnotations,
-        ExportAnnotationsAllSourceFiles,
-        list[tuple[Union[Annotation, AnnotationAllSourceFiles], Optional[str]]],
-    ],
-    source_annotations: Union[SourceAnnotations, SourceAnnotationsAllSourceFiles] = None,
-    source_file: Optional[str] = None,
-    token_name: Optional[str] = None,
-    remove_namespaces=False,
-    keep_struct_names=False,
-    sparv_namespace: Optional[str] = None,
-    source_namespace: Optional[str] = None,
-    xml_mode: Optional[bool] = False,
-) -> tuple[list[Union[Annotation, AnnotationAllSourceFiles]], list[str], dict[str, str]]:
+    annotations: ExportAnnotations
+    | ExportAnnotationsAllSourceFiles
+    | list[tuple[Annotation | AnnotationAllSourceFiles, str | None]],
+    source_annotations: SourceAnnotations | SourceAnnotationsAllSourceFiles = None,
+    source_file: str | None = None,
+    token_name: str | None = None,
+    remove_namespaces: bool = False,
+    keep_struct_names: bool = False,
+    sparv_namespace: str | None = None,
+    source_namespace: str | None = None,
+    xml_mode: bool | None = False,
+) -> tuple[list[Annotation | AnnotationAllSourceFiles], list[str], dict[str, str]]:
     """Get a list of annotations, token attributes and a dictionary for renamed annotations.
 
     Args:
@@ -337,7 +336,7 @@ def get_annotation_names(
 
 
 def get_header_names(
-    header_annotations: Optional[HeaderAnnotations],
+    header_annotations: HeaderAnnotations | None,
     xml_namespaces: dict[str, str]
 ):
     """Get a list of header annotations and a dictionary for renamed annotations."""
@@ -356,15 +355,15 @@ def _remove_duplicates(annotation_tuples):
     return list(new_annotations.items())
 
 
-def _create_export_names(annotations: list[tuple[Union[Annotation, AnnotationAllSourceFiles], Any]],
-                         token_name: Optional[str],
+def _create_export_names(annotations: list[tuple[Annotation | AnnotationAllSourceFiles, Any]],
+                         token_name: str | None,
                          remove_namespaces: bool,
                          keep_struct_names: bool,
-                         source_annotations: list[tuple[Union[Annotation, AnnotationAllSourceFiles], Any]] = [],
-                         sparv_namespace: Optional[str] = None,
-                         source_namespace: Optional[str] = None,
-                         xml_namespaces: Optional[dict] = None,
-                         xml_mode: Optional[bool] = False) -> dict[str, str]:
+                         source_annotations: list[tuple[Annotation | AnnotationAllSourceFiles, Any]] = [],
+                         sparv_namespace: str | None = None,
+                         source_namespace: str | None = None,
+                         xml_namespaces: dict | None = None,
+                         xml_mode: bool | None = False) -> dict[str, str]:
     """Create dictionary for renamed annotations."""
     if remove_namespaces:
         def shorten(annotation):
@@ -468,10 +467,10 @@ def _get_xml_tagname(tag, xml_namespaces, xml_mode=False):
 
 
 def _add_global_namespaces(export_names: dict,
-                           annotations: list[tuple[Union[Annotation, AnnotationAllSourceFiles], Any]],
+                           annotations: list[tuple[Annotation | AnnotationAllSourceFiles, Any]],
                            source_annotations: list,
-                           sparv_namespace: Optional[str] = None,
-                           source_namespace: Optional[str] = None):
+                           sparv_namespace: str | None = None,
+                           source_namespace: str | None = None):
     """Add sparv_namespace and source_namespace to export names."""
     source_annotation_names = [a.name for a, _ in source_annotations]
 

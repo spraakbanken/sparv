@@ -15,8 +15,8 @@ from rich.prompt import Confirm
 
 from sparv import __version__
 from sparv.api.util.misc import dump_yaml
-from sparv.core.paths import paths
 from sparv.core.console import console
+from sparv.core.paths import paths
 
 VERSION_FILE = "version"
 

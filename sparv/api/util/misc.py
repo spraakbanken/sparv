@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import pathlib
+import pickle
 import unicodedata
 from collections.abc import Generator, Iterable
 from typing import Any
@@ -10,7 +11,7 @@ import yaml
 
 from sparv.api import get_logger
 from sparv.api.classes import Model
-from sparv.core.misc import parse_annotation_list  # noqa
+from sparv.core.misc import parse_annotation_list  # noqa: F401 - Imported to make available through the API
 
 logger = get_logger(__name__)
 
@@ -202,11 +203,10 @@ class PickledLexicon:
 
     def __init__(self, picklefile: pathlib.Path | Model, verbose: bool = True) -> None:
         """Read lexicon from picklefile."""
-        import pickle
         picklefile_path: pathlib.Path = picklefile.path if isinstance(picklefile, Model) else picklefile
         if verbose:
             logger.info("Reading lexicon: %s", picklefile)
-        with open(picklefile_path, "rb") as f:
+        with picklefile_path.open("rb") as f:
             self.lexicon = pickle.load(f)
         if verbose:
             logger.info("OK, read %d words", len(self.lexicon))

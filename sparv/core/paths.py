@@ -45,7 +45,7 @@ class SparvPaths:
         # Corpus relative paths
         self.corpus_dir = Path(os.environ.get("CORPUS_DIR", ""))
         self.work_dir = Path("sparv-workdir")
-        self.log_dir = "logs"
+        self.log_dir = Path("logs")
         self.source_dir = "source"
         self.export_dir = Path("export")
         self.config_file = "config.yaml"

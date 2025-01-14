@@ -402,7 +402,7 @@ def build_json_schema(config_structure: dict) -> dict:
 
                     for combination in combinations:
                         if no_cond:
-                            combination = (NO_COND, *combination)
+                            combination = (NO_COND, *combination)  # noqa: PLW2901
 
                         child_obj = Object(additional_properties=False, description=description)
 

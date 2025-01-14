@@ -5,6 +5,7 @@ import sys
 from pathlib import Path
 
 import rich
+import rich.box
 from importlib_metadata import Distribution, entry_points
 from rich.table import Table
 

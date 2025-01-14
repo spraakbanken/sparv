@@ -1,26 +1,23 @@
 """Main Sparv executable."""
 # ruff: noqa: PLC0415, T201
+from __future__ import annotations
 
 import argparse
 import sys
 from pathlib import Path
+from typing import Any
 
 # PYTHON_ARGCOMPLETE_OK
 import argcomplete
 
 from sparv import __version__
 
-# Check Python version
-if sys.version_info < (3, 9, 0):
-    print("Python 3.9 or newer is required.")
-    sys.exit(1)
-
 
 class CustomArgumentParser(argparse.ArgumentParser):
     """ArgumentParser with custom help message and better handling of misspelled commands."""
 
-    def __init__(self, *args, **kwargs):
-        """Init parser."""
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Initialize parser."""
         no_help = kwargs.pop("no_help", False)
         # Don't add default help message
         kwargs["add_help"] = False
@@ -30,8 +27,8 @@ class CustomArgumentParser(argparse.ArgumentParser):
             self.add_argument("-h", "--help", action="help", help="Show this help message and exit")
 
     @staticmethod
-    def _check_value(action, value):
-        """Check if command is valid, and if not, try to guess what the user meant."""
+    def _check_value(action: argparse.Action, value: Any) -> None:
+        """Check if command is valid, and if not, try to guess what the user meant."""  # noqa: DOC501
         if action.choices is not None and value not in action.choices:
             # Check for possible misspelling
             import difflib
@@ -47,7 +44,7 @@ class CustomArgumentParser(argparse.ArgumentParser):
 class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
     """Custom help formatter for argparse, silencing subparser lists."""
 
-    def _format_action(self, action):
+    def _format_action(self, action: argparse.Action) -> str:
         result = super()._format_action(action)
         if isinstance(action, argparse._SubParsersAction):
             return ""
@@ -57,44 +54,50 @@ class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
 class Completer:
     """Reads and returns cached autocompletion data."""
 
-    def __init__(self, completion_type):
+    def __init__(self, completion_type: str) -> None:
+        """Initialize completer."""
         self.type = completion_type
 
-    def __call__(self, parsed_args, **kwargs):
-        # Read config file to find corpus language
+    def __call__(self, parsed_args: argparse.Namespace, **_kwargs: Any) -> dict[str, str]:
+        """Return dictionary of completions."""
+        # Abort if no config file in current directory
         config_file = Path(parsed_args.dir or Path.cwd(), "config.yaml")
-        cache_data = {}
+        if not config_file.is_file():
+            return {}
 
-        if config_file.is_file():
-            import appdirs
-            import yaml
-            try:
-                from yaml import CSafeLoader as SafeLoader
-            except ImportError:
-                from yaml import SafeLoader
+        # Abort if no cache is found
+        import appdirs
+        cache_file = Path(appdirs.user_config_dir("sparv"), "autocomplete")
+        if not cache_file.is_file():
+            return {}
 
-            with open(config_file, encoding="utf-8") as f:
-                data = yaml.load(f, Loader=SafeLoader)
-            language = data.get("metadata", {}).get("language")
+        import pickle
 
-            cache_file = Path(appdirs.user_config_dir("sparv"), "autocomplete")
+        import yaml
+        try:
+            from yaml import CSafeLoader as SafeLoader
+        except ImportError:
+            from yaml import SafeLoader
 
-            if cache_file.is_file():
-                import pickle
-                try:
-                    with open(cache_file, "rb") as cache:
-                        cache_data = pickle.load(cache)
-                        if not language:
-                            language = cache_data.get("default_language")
-                        cache_data = cache_data.get(language, {})
-                except EOFError:  # Cache placeholder created but not yet populated
-                    pass
+        # Get corpus language from config file
+        with config_file.open(encoding="utf-8") as f:
+            data = yaml.load(f, Loader=SafeLoader)
+        language = data.get("metadata", {}).get("language")
 
-            # run-rule includes everything
-            if self.type == "annotate":
-                return {v: t[v] for t in cache_data.values() for v in t}
+        try:
+            with cache_file.open("rb") as cache:
+                cache_data = pickle.load(cache)
+                if not language:
+                    language = cache_data.get("default_language")
+                cache_data = cache_data.get(language, {})
+        except EOFError:  # Cache placeholder created but not yet populated
+            pass
 
-            return cache_data.get(self.type, [])
+        # run-rule includes everything
+        if self.type == "annotate":
+            return {v: t[v] for t in cache_data.values() for v in t}
+
+        return cache_data.get(self.type, [])
 
 
 class SortedCompletionFinder(argcomplete.CompletionFinder):
@@ -103,13 +106,21 @@ class SortedCompletionFinder(argcomplete.CompletionFinder):
     We use this instead of letting bash sort the completions, to sort flags separately.
     """
 
-    def filter_completions(self, completions: list):
+    def filter_completions(self, completions: list) -> list:
+        """Sort completions and return them.
+
+        Args:
+            completions: List of completions.
+
+        Returns:
+            Sorted list of completions.
+        """
         completions = super().filter_completions(completions)
         completions.sort()
         return completions
 
 
-def main():
+def main() -> None:
     """Run Sparv Pipeline (main entry point for Sparv)."""
     # Set up command line arguments
     parser = CustomArgumentParser(prog="sparv",
@@ -121,7 +132,7 @@ def main():
     parser.add_argument("-d", "--dir", help="Specify corpus directory")
 
     # Help messages for subparsers
-    help = {
+    help = {  # noqa: A001
         "run": "Annotate a corpus and generate export files",
         "install": "Install a corpus",
         "uninstall": "Uninstall a corpus",
@@ -480,7 +491,8 @@ def main():
 
     snakemake_args = {
         "workdir": args.dir,
-        "rerun_triggers": ["mtime", "input"],  # Rerun based on file modification times and changes to the set of input files
+        "rerun_triggers": ["mtime", "input"],  # Rerun based on file modification times and changes to
+                                               # the set of input files
         "force_incomplete": True  # Always rerun incomplete files
     }
     config = {"run_by_sparv": True}

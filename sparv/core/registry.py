@@ -7,7 +7,7 @@ import importlib
 import inspect
 import pkgutil
 import re
-from collections import defaultdict, UserDict
+from collections import UserDict, defaultdict
 from collections.abc import Container
 from enum import Enum
 from types import ModuleType
@@ -144,7 +144,10 @@ def find_modules(no_import: bool = False, find_custom: bool = False) -> list:
 
     module_names = []
 
-    for full_path, path, include in ((core_modules_full_path, core_modules_path, False), (modules_full_path, modules_path, True)):
+    for full_path, path, include in (
+        (core_modules_full_path, core_modules_path, False),
+        (modules_full_path, modules_path, True),
+    ):
         found_modules = pkgutil.iter_modules([str(full_path)])
         for module in found_modules:
             if include:
@@ -172,7 +175,7 @@ def find_modules(no_import: bool = False, find_custom: bool = False) -> list:
                     spec.loader.exec_module(m)
                 except Exception as e:
                     raise SparvErrorMessage(f"Module '{module_name}' cannot be imported due to an error in file "
-                                            f"'{module_path}': {e}")
+                                            f"'{module_path}': {e}") from None
                 add_module_to_registry(m, module_name)
 
     # Search for installed plugins
@@ -241,7 +244,9 @@ def add_module_to_registry(module: ModuleType, module_name: str, skip_language_c
     for a in _potential_annotators[module_name]:
         if not a["description"]:
             console.print(
-                f"[red]WARNING:[/] {a['type'].name.capitalize()} '{module_name}:{a['name'] or a['function'].__name__}' has no description."
+                "[red]WARNING:[/] "
+                f"{a['type'].name.capitalize()} '{module_name}:{a['name'] or a['function'].__name__}' has no "
+                "description."
             )
         # Set annotator language to same as module, unless overridden
         if hasattr(module, "__language__") and not a["language"]:
@@ -636,11 +641,15 @@ def _add_to_registry(annotator: dict, skip_language_check: bool = False) -> None
         for c in annotator["config"]:
             handle_config(c, module_name, rule_name, annotator["language"])
 
-    # Handle text annotation for selected importer
-    if annotator["type"] == Annotator.importer and rule_name == sparv_config.get("import.importer"):
-        if annotator["text_annotation"] and not sparv_config.get("classes.text"):
-            sparv_config.set_value("import.text_annotation", annotator["text_annotation"])
-            sparv_config.handle_text_annotation()
+    # Handle default text annotation for the selected importer if it's not set manually in the config
+    if (
+        annotator["type"] == Annotator.importer
+        and rule_name == sparv_config.get("import.importer")
+        and annotator["text_annotation"]
+        and not sparv_config.get("classes.text")
+    ):
+        sparv_config.set_value("import.text_annotation", annotator["text_annotation"])
+        sparv_config.handle_text_annotation()
 
     has_marker = False  # Needed by installers and uninstallers
 
@@ -718,7 +727,9 @@ def _add_to_registry(annotator: dict, skip_language_check: bool = False) -> None
                                 "uninstallers.")
 
     if f_name in modules[module_name].functions:
-        console.print(f"Annotator function '{f_name}' collides with other function with same name in module '{module_name}'.")
+        console.print(
+            f"Annotator function '{f_name}' collides with other function with same name in module '{module_name}'."
+        )
     else:
         del annotator["module_name"]
         del annotator["name"]
@@ -731,7 +742,7 @@ def find_implicit_classes() -> None:
     for class_source in ("module_classes", "config_classes"):
         for cls, anns in annotation_classes[class_source].items():
             if not isinstance(anns, list):
-                anns = [anns]
+                anns = [anns]  # noqa: PLW2901
             for ann in anns:
                 annotation_to_class[ann].add(cls)
                 annotation_to_class[expand_variables(ann)[0]].add(cls)
@@ -782,7 +793,7 @@ def handle_config(
             langcodes.append(langcode)
             suffixes.append(suffix)
         suffixes = set(suffixes)
-        if len(suffixes) == 1 and next(iter(suffixes)) == "":
+        if len(suffixes) == 1 and not next(iter(suffixes)):
             suffixes = []
         cfg.conditions.append(Config("metadata.language", datatype=str, choices=langcodes))
         if suffixes:
@@ -859,10 +870,10 @@ def expand_variables(string: str, rule_name: str | None = None, is_annotation: b
     # Split if list of alternatives
     strings = string.split(", ") if is_annotation else [string]
 
-    for i, string in enumerate(strings):
+    for i, s in enumerate(strings):
         # Convert config keys to config values
         while True:
-            cfgs = find_config_variables(string, True)
+            cfgs = find_config_variables(s, True)
             if not cfgs:
                 break
             for cfg in cfgs:
@@ -870,7 +881,7 @@ def expand_variables(string: str, rule_name: str | None = None, is_annotation: b
                 if rule_name:
                     sparv_config.add_config_usage(cfg.group(1), rule_name)
                 if cfg_value is not None:
-                    string = string.replace(cfg.group(), cfg_value)
+                    s = s.replace(cfg.group(), cfg_value)  # noqa: PLW2901
                 else:
                     rest.append(cfg.group()[1:-1])
                     break
@@ -879,11 +890,11 @@ def expand_variables(string: str, rule_name: str | None = None, is_annotation: b
                 continue
             break
 
-        strings[i] = string
+        strings[i] = s
 
     if is_annotation:
-        # Split if list of alternatives
-        strings = [s for s in string.split(", ") for string in strings]
+        # Split if list of alternatives (again, since config variables may have been expanded into lists)
+        strings = [s2 for s in strings for s2 in s.split(", ")]
 
     def expand_classes(s: str, parents: set[str]) -> tuple[str | None, str | None]:
         classes = find_classes(s, True)
@@ -907,9 +918,9 @@ def expand_variables(string: str, rule_name: str | None = None, is_annotation: b
                 return s, cls.group()
         return s, None
 
-    for string in strings:
+    for s in strings:
         # Convert class names to real annotations
-        string, unknown = expand_classes(string, set())
+        s, unknown = expand_classes(s, set())  # noqa: PLW2901
         if unknown:
             rest.append(unknown)
 
@@ -917,12 +928,12 @@ def expand_variables(string: str, rule_name: str | None = None, is_annotation: b
         # or referred to by a class in the config. As a fallback use the last annotation.
         if (
             is_annotation
-            and len(strings) > 1
-            and (string in explicit_annotations or string in annotation_classes["config_classes"].values())
+            and len(s) > 1
+            and (s in explicit_annotations or s in annotation_classes["config_classes"].values())
         ):
             break
 
-    return string, rest
+    return s, rest
 
 
 def get_type_hint_type(type_hint: Any) -> tuple[type, bool, bool]:

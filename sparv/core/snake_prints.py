@@ -9,8 +9,10 @@ from rich.markup import escape
 from rich.padding import Padding
 from rich.panel import Panel
 from rich.rule import Rule
+from rich.syntax import Syntax
 from rich.table import Table
 
+from sparv.api.util.misc import dump_yaml
 from sparv.core import config, registry, snake_utils
 from sparv.core.console import console
 
@@ -21,9 +23,6 @@ def prettyprint_yaml(in_dict: dict) -> None:
     Args:
         in_dict: Dictionary to print.
     """
-    from rich.syntax import Syntax
-
-    from sparv.api.util.misc import dump_yaml
     yaml_str = dump_yaml(in_dict, resolve_alias=True, sort_keys=True)
     # Print syntax highlighted
     console.print(Syntax(yaml_str, "yaml", background_color="default"))
@@ -108,11 +107,11 @@ def print_modules_info(
     }
 
     def quoted_representer(dumper: yaml.Dumper, data: str) -> yaml.ScalarNode:
-        """Surround YAML strings with quotes, and escape them for Rich."""
+        """Surround YAML strings with quotes, and escape them for Rich."""  # noqa: DOC201
         return dumper.represent_scalar("tag:yaml.org,2002:str", escape(data), style="'")
 
     def tuple_representer(dumper: yaml.Dumper, data: tuple) -> yaml.SequenceNode:
-        """Handle tuples when dumping YAML."""
+        """Handle tuples when dumping YAML."""  # noqa: DOC201
         return dumper.represent_sequence("tag:yaml.org,2002:seq", data)
 
     yaml.add_representer(str, quoted_representer)

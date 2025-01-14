@@ -67,7 +67,7 @@ def parse_annotation_list(annotation_names: Iterable[str] | None, all_annotation
     Returns:
         List of tuples with annotation names and export names.
     """
-    from sparv.api import Annotation
+    from sparv.api import Annotation  # noqa: PLC0415 - Avoid circular import
 
     if all_annotations is None:
         all_annotations = []

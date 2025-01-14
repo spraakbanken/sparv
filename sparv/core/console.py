@@ -1,6 +1,6 @@
 """Provide a Console instance for pretty printing."""
 from rich.console import Console
-from rich.themes import Theme
+from rich.theme import Theme
 
 # Remove some automatic highlighting from default theme, to improve our log output
 _theme = Theme(

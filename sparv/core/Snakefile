@@ -31,6 +31,7 @@ selected_targets = config.get("targets", [])  # Explicitly selected rule names
 # Dynamic Creation of Snakemake Rules
 # ==============================================================================
 
+
 def make_rules(config_missing: bool) -> None:
     """Load all Sparv modules and create Snakemake rules.
 
@@ -45,12 +46,11 @@ def make_rules(config_missing: bool) -> None:
         except ConnectionRefusedError:
             raise SparvErrorMessage("Could not connect to the socket '{}'".format(config["socket"]))
 
-
     # Create rules for all available annotation functions
     for module_name in registry.modules:
         for f_name, f in registry.modules[module_name].functions.items():
             make_rule(module_name, f_name, f, config_missing)
-    
+
     # Create custom rules
     for custom_rule_obj in sparv_config.get("custom_annotations", []):
         module_name, f_name = custom_rule_obj["annotator"].split(":")
@@ -211,7 +211,6 @@ def update_autocompletion_cache():
                     pickle.dump(current_cache, cache_out)
             except:
                 pass
-
 
 # Init the storage for some essential variables involving all rules
 snake_storage = snake_utils.SnakeStorage()

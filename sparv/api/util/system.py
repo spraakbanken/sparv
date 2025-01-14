@@ -39,7 +39,7 @@ def clear_directory(path: str | Path) -> None:
         path: The path to the directory.
     """
     shutil.rmtree(path, ignore_errors=True)
-    os.makedirs(path, exist_ok=True)
+    Path(path).mkdir(parents=True, exist_ok=True)
 
 
 def call_java(
@@ -125,7 +125,6 @@ def call_binary(
     Raises:
         OSError: If an error occurs while calling the binary.
     """
-    from subprocess import PIPE, Popen
     assert isinstance(arguments, (list, tuple))
     assert isinstance(stdin, (str, list, tuple))
 
@@ -142,25 +141,28 @@ def call_binary(
     if encoding is not None and isinstance(stdin, str):
         stdin = stdin.encode(encoding)
     logger.info("CALL: %s", " ".join(str(c) for c in command) if not raw_command else command)
-    command = Popen(command, shell=use_shell,
-                    stdin=PIPE, stdout=PIPE,
-                    stderr=(None if verbose else PIPE),
-                    close_fds=False)
+    command = subprocess.Popen(
+        command,
+        shell=use_shell,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=(None if verbose else subprocess.PIPE),
+        close_fds=False,
+    )
     if return_command:
         return command
-    else:
-        stdout, stderr = command.communicate(stdin)
-        if not allow_error and command.returncode:
-            if stdout:
-                logger.info(stdout.decode())
-            if stderr:
-                logger.warning(stderr.decode())
-            raise OSError(f"{binary} returned error code {command.returncode:d}")
-        if encoding:
-            stdout = stdout.decode(encoding)
-            if stderr:
-                stderr = stderr.decode(encoding)
-        return stdout, stderr
+    stdout, stderr = command.communicate(stdin)
+    if not allow_error and command.returncode:
+        if stdout:
+            logger.info(stdout.decode())
+        if stderr:
+            logger.warning(stderr.decode())
+        raise OSError(f"{binary} returned error code {command.returncode:d}")
+    if encoding:
+        stdout = stdout.decode(encoding)
+        if stderr:
+            stderr = stderr.decode(encoding)
+    return stdout, stderr
 
 
 def find_binary(
@@ -235,10 +237,10 @@ def rsync(local: str | Path, host: str | None, remote: str | Path) -> None:
         host: The remote host to transfer to. Set to None to transfer locally.
         remote: The destination path (file or directory).
     """
-    assert local and remote, "Both 'local' and 'remote' must be set."
-    remote_dir = os.path.dirname(remote)
+    assert local and remote, "Both 'local' and 'remote' must be set."  # noqa: PT018
+    remote_dir = os.path.dirname(remote)  # noqa: PTH120 - pathlib doesn't handle ending slash
 
-    if os.path.isdir(local):
+    if Path(local).is_dir():
         logger.info("Copying directory: %s => %s%s", local, host + ":" if host else "", remote)
         args = ["--recursive", "--delete", f"{local}/"]
     else:
@@ -281,5 +283,5 @@ def gpus() -> list[int] | None:
         memory_info = subprocess.check_output(cmd).decode().splitlines()[1:]
         memory = sorted(((int(free.split()[0]), i) for i, free in enumerate(memory_info)), reverse=True)
         return [i[1] for i in memory]
-    except:
+    except:  # noqa: E722
         return None

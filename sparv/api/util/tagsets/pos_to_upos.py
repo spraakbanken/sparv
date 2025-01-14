@@ -37,11 +37,10 @@ def pos_to_upos(pos: str, lang: str, tagset: str) -> str:
     Returns:
         UPOS tag.
     """
-    if (lang, tagset) in CONVERTERS:
-        lang_convert = CONVERTERS[(lang, tagset)]
-        return lang_convert(pos)
-    else:
+    if (lang, tagset) not in CONVERTERS:
         return ""
+    lang_convert = CONVERTERS[lang, tagset]
+    return lang_convert(pos)
 
 
 ################################################################################
@@ -359,7 +358,7 @@ def _nld_treetagger_convert(pos: str) -> str:
         "pun": "PUNCT",
         "ver": "VERB"
     }
-    if len(pos) == 2 and pos.startswith("$."):
+    if pos == "$.":
         return "PUNCT"
     elif pos == "pronadv":
         return "ADV"  # pronomial adverb
@@ -407,6 +406,7 @@ def _lat_treetagger_convert(pos: str) -> str:
         return pos_dict.get(pos.split(":")[0], FALLBACK)
     else:
         return pos_dict.get(pos, FALLBACK)
+
 
 def _pol_national_corpus_of_polish_convert(pos: str) -> str:
     """Convert National Corpus of Polish tags to UPOS.
@@ -500,6 +500,7 @@ def _ron_multext_convert(pos: str) -> str:
     else:
         return pos_dict.get(pos[0], FALLBACK)
 
+
 def _slk_slovak_national_corpus_convert(pos: str) -> str:
     """Convert Slovak National Corpus tags to UPOS.
 
@@ -539,6 +540,7 @@ def _slk_slovak_national_corpus_convert(pos: str) -> str:
         return pos_dict.get(pos, FALLBACK)
     else:
         return pos_dict.get(pos[0], FALLBACK)
+
 
 def _deu_stts_convert(pos: str) -> str:
     """Convert STTS tags to UPOS.

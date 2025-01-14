@@ -109,8 +109,9 @@ def receive_data(sock: socket.socket) -> Any:
         Unpickled data.
     """
     # Get data length
-    buf_length = recvall(sock, 4)
-    if not buf_length or len(buf_length) < 4:
+    data_length_bytes = 4
+    buf_length = recvall(sock, data_length_bytes)
+    if not buf_length or len(buf_length) < data_length_bytes:
         return None
     length, = struct.unpack(">I", buf_length)
 
@@ -303,7 +304,7 @@ def worker(
             if result is False:
                 stop_event.set()
                 return
-        except:
+        except:  # noqa: E722
             log.exception("Error during handling")
         client_sock.close()
 

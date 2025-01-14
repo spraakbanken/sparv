@@ -84,7 +84,7 @@ def read_yaml(yaml_file: str | Path) -> dict:
     return data or {}
 
 
-def load_config(config_file: str | None, config_dict: dict | None = None) -> None:
+def load_config(config_file: str | Path | None, config_dict: dict | None = None) -> None:
     """Load both default config and corpus config and merge into one config structure.
 
     Args:

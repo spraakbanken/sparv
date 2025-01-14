@@ -14,8 +14,8 @@ from pathlib import Path
 from typing import Any
 
 from sparv.api.classes import BaseAnnotation, BaseOutput
-from sparv.core.paths import paths
 from sparv.core.misc import SparvErrorMessage, get_logger
+from sparv.core.paths import paths
 
 logger = get_logger(__name__)
 
@@ -88,7 +88,7 @@ def write_annotation(
         for value, (_, annotation_name) in zip(values, spans):
             annotation_values[annotation_name].append(value)
 
-        for annotation_name in annotation_values:
+        for annotation_name in annotation_values:  # noqa: PLC0206
             _write_single_annotation(source_file, join_annotation(annotation_name, elem_attrs[annotation_name]),
                                      annotation_values[annotation_name], annotation.root)
 

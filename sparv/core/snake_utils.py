@@ -84,7 +84,11 @@ class SnakeStorage:
 
     @property
     def source_files(self) -> list[str]:
-        """Get list of all available source files."""
+        """Return list of all available source files.
+
+        Raises:
+            SparvErrorMessage: If the importer setting is empty or if the importer is not found.
+        """
         if self._source_files is None:
             if not sparv_config.get("import.importer"):
                 raise SparvErrorMessage("The config variable 'import.importer' must not be empty.", "sparv")
@@ -212,9 +216,9 @@ def rule_helper(rule: RuleStorage, config: dict, storage: SnakeStorage, config_m
                         source_ann, source_attr = BaseAnnotation(ann).split()
                         if not source_attr:
                             renames[ann] = target
-                            ann = target
+                            ann = target  # noqa: PLW2901
                         else:
-                            ann = io.join_annotation(renames.get(source_ann, source_ann), target)
+                            ann = io.join_annotation(renames.get(source_ann, source_ann), target)  # noqa: PLW2901
                     annotations_.add(ann)
 
                 for element in annotations_:
@@ -323,11 +327,16 @@ def rule_helper(rule: RuleStorage, config: dict, storage: SnakeStorage, config_m
                 if not isinstance(output, BaseOutput):
                     if not output:
                         return False
-                    output = param_type(output)
-                elif rule.annotator and not output.description and not rule.module_name.startswith(f"{registry.custom_name}."):
+                    output = param_type(output)  # noqa: PLW2901
+                elif (
+                    rule.annotator
+                    and not output.description
+                    and not rule.module_name.startswith(f"{registry.custom_name}.")
+                ):
                     console.print(
                         "[red]WARNING:[/] "
-                        f"Annotation '{output.name}' created by {rule.type} '{rule.full_name}' is missing a description."
+                        f"Annotation '{output.name}' created by {rule.type} '{rule.full_name}' is missing a "
+                        "description."
                     )
                 if custom_suffix:
                     # Add suffix to output annotation name
@@ -384,7 +393,7 @@ def rule_helper(rule: RuleStorage, config: dict, storage: SnakeStorage, config_m
                 if not isinstance(annotation, BaseAnnotation):
                     if not annotation:
                         return False
-                    annotation = param_type(annotation)
+                    annotation = param_type(annotation)  # noqa: PLW2901
                 rule.configs.update(registry.find_config_variables(annotation.name))
                 rule.classes.update(registry.find_classes(annotation.name))
                 missing_configs = annotation.expand_variables(rule.full_name)
@@ -503,7 +512,7 @@ def rule_helper(rule: RuleStorage, config: dict, storage: SnakeStorage, config_m
                 model_param = []
                 for model in param_value:
                     if not isinstance(model, Model):
-                        model = Model(model)
+                        model = Model(model)  # noqa: PLW2901
                     rule.configs.update(registry.find_config_variables(model.name))
                     rule.classes.update(registry.find_classes(model.name))
                     rule.missing_config.update(model.expand_variables(rule.full_name))
@@ -685,9 +694,10 @@ def check_ruleorder(storage: SnakeStorage) -> set[tuple[RuleStorage, RuleStorage
     for rules, common_outputs in ruleorder_pairs:
         rule1 = rules[0].full_name
         rule2 = rules[1].full_name
-        common_outputs = ", ".join(map(str, common_outputs))
-        print_sparv_warning(f"The annotators {rule1} and {rule2} have common outputs ({common_outputs}). "
-                            "Please make sure to set their 'order' arguments to different values.")
+        print_sparv_warning(
+            f"The annotators {rule1} and {rule2} have common outputs ({', '.join(map(str, common_outputs))}). "
+            "Please make sure to set their 'order' arguments to different values."
+        )
 
     return ordered_rules
 
@@ -730,7 +740,7 @@ def get_parameters(rule_params: RuleStorage) -> Callable:
                 param.source_file = file
             else:
                 if not isinstance(param, (list, tuple)):
-                    param = [param]
+                    param = [param]  # noqa: PLW2901
                 for p in param:
                     if isinstance(p, (Annotation, AnnotationData, Output, OutputData, Text)):
                         p.source_file = file
@@ -863,10 +873,7 @@ def get_file_value(wildcards: snakemake.io.Wildcards, annotator: bool) -> str | 
     """
     file = None
     if hasattr(wildcards, "file"):
-        if annotator:
-            file = wildcards.file[len(str(paths.work_dir)) + 1:]
-        else:
-            file = wildcards.file
+        file = str(Path(wildcards.file).relative_to(paths.work_dir)) if annotator else wildcards.file
     return file
 
 
