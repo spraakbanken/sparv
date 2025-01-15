@@ -11,7 +11,7 @@ import urllib.request
 import zipfile
 from abc import ABC, abstractmethod
 from collections.abc import Iterable, Iterator, Sequence
-from typing import Any, Callable
+from typing import Any, Callable, Union  # Union still needed in some cases for Python 3.9 compatibility
 
 import sparv.core
 from sparv.core import io
@@ -1283,7 +1283,7 @@ class ExportInput(str):
         self.all_files = all_files
 
 
-class ExportAnnotations(Sequence[tuple[Annotation, str | None]]):
+class ExportAnnotations(Sequence[tuple[Annotation, Union[str, None]]]):
     """Iterable with annotations to include in export."""
 
     # If is_input = False the annotations won't be added to the rule's input.
@@ -1330,7 +1330,7 @@ class ExportAnnotationNames(ExportAnnotations):
         super().__init__(config_name)
 
 
-class ExportAnnotationsAllSourceFiles(Sequence[tuple[AnnotationAllSourceFiles, str | None]]):
+class ExportAnnotationsAllSourceFiles(Sequence[tuple[AnnotationAllSourceFiles, Union[str, None]]]):
     """List of annotations to include in export."""
 
     # Always true for ExportAnnotationsAllSourceFiles
@@ -1354,7 +1354,7 @@ class ExportAnnotationsAllSourceFiles(Sequence[tuple[AnnotationAllSourceFiles, s
         return len(self.items)
 
 
-class SourceAnnotations(Sequence[tuple[Annotation, str | None]]):
+class SourceAnnotations(Sequence[tuple[Annotation, Union[str, None]]]):
     """Iterable with source annotations to include in export."""
 
     def __init__(self, config_name: str, source_file: str | None = None, _headers: bool = False) -> None:
@@ -1420,7 +1420,7 @@ class HeaderAnnotations(SourceAnnotations):
         super().__init__(config_name, source_file, _headers=True)
 
 
-class SourceAnnotationsAllSourceFiles(Sequence[tuple[AnnotationAllSourceFiles, str | None]]):
+class SourceAnnotationsAllSourceFiles(Sequence[tuple[AnnotationAllSourceFiles, Union[str, None]]]):
     """Iterable with source annotations to include in export."""
 
     def __init__(self, config_name: str, source_files: Iterable[str] = (), headers: bool = False) -> None:
