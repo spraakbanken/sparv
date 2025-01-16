@@ -1,4 +1,4 @@
-id: swe-dependency-malt-treebank
+id: sbx-swe-dependency-malt-treebank
 name:
   swe: Dependensparsning med MaltParser
   eng: Dependency parsing with MaltParser
@@ -35,7 +35,9 @@ standard_reference: |-
 other_references:
   - "Maltparser: https://www.maltparser.org/download.html"
   - 'https://aclanthology.org/2021.nodalida-main.20/'
-tool: "Maltparser"
+tool:
+  name: Maltparser
+  url: "https://www.maltparser.org/"
 model: "[Swemalt](https://www.maltparser.org/mco/swedish_parser/swemalt.html)"
 trained_on: "[Svensk trädbank (the TalbankenSTB part)](https://spraakbanken.gu.se/resurser/sv-treebank)"
 tagset: "[MambaDep](https://svn.spraakdata.gu.se/sb-arkiv/pub/mamba.html)"

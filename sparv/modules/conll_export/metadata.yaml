@@ -1,4 +1,4 @@
-id: export-conllu
+id: sbx-swe-export-conllu
 name:
   swe: CoNLL-U-export
   eng: CoNLL-U export

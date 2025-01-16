@@ -5,7 +5,6 @@ language_codes:
   - swe
 keywords: []
 other_references: []
-tool: ''
 model: ''
 trained_on: ''
 tagset: ''
@@ -13,7 +12,7 @@ evaluation_results: ''
 created: 2018-03-28
 updated: 2018-03-28
 ---
-id: swe-readability-sparv-lix
+id: sbx-swe-readability-sparv-lix
 parent: readability-parent
 name:
   swe: Annotering av läsbarhetsindex (LIX) för texter
@@ -76,7 +75,7 @@ description:
     average word count per sentence and ratio of long words (exceeding six letters). The value is calculated as O / M +
     L x 100 / O, where O = word count, M = sentence count and L = long word count.
 ---
-id: swe-readability-sparv-nk
+id: sbx-swe-readability-sparv-nk
 parent: readability-parent
 name:
   swe: Annotering av Nominalkvot (NK) för texter
@@ -137,7 +136,7 @@ description:
     dividing this by the number of verbs, adverbs and pronouns. A high nominal ratio suggests a high density of
     information, which can also mean that the text is difficult to read.
 ---
-id: swe-readability-sparv-ovix
+id: sbx-swe-readability-sparv-ovix
 parent: readability-parent
 name:
   swe: Annotering av Ordvariationsindex (OVIX) för texter

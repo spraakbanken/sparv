@@ -4,7 +4,9 @@ abstract: true
 keywords: []
 standard_reference: "Bird, Steven, Edward Loper and Ewan Klein (2009), Natural Language Processing with Python. O’Reilly Media Inc."
 other_references: []
-tool: "NLTK"
+tool:
+  name: NLTK
+  url: "https://www.nltk.org/"
 model: ''
 trained_on: ''
 tagset: ''
@@ -17,7 +19,7 @@ description:
 created: 2010-12-15
 updated: 2021-05-07
 ---
-id: tokenization-sparv-linebreaks
+id: sbx-mul-tokenization-sparv-linebreaks
 parent: segment-nltk-parent
 name:
   swe: Radbrytningstokenisering
@@ -44,7 +46,7 @@ example_extra: |-
     token_segmenter: linebreaks
   ```
 ---
-id: sentence-sparv-linebreaks
+id: sbx-mul-sentence-sparv-linebreaks
 parent: segment-nltk-parent
 name:
   swe: Radbrytningssegmentering, meningar
@@ -80,7 +82,7 @@ example_extra: |-
     sentence_segmenter: linebreaks
   ```
 ---
-id: paragraph-sparv-linebreaks
+id: sbx-mul-paragraph-sparv-linebreaks
 parent: segment-nltk-parent
 name:
   swe: Radbrytningssegmentering, stycken
@@ -120,7 +122,7 @@ example_extra: |-
     paragraph_segmenter: linebreaks
   ```
 ---
-id: tokenization-sparv-blanklines
+id: sbx-mul-tokenization-sparv-blanklines
 parent: segment-nltk-parent
 name:
   swe: Tomradstokenisering
@@ -147,7 +149,7 @@ example_extra: |-
     token_segmenter: blanklines
   ```
 ---
-id: sentence-sparv-blanklines
+id: sbx-mul-sentence-sparv-blanklines
 parent: segment-nltk-parent
 name:
   swe: Tomradssegmentering, meningar
@@ -183,7 +185,7 @@ example_extra: |-
     sentence_segmenter: blanklines
   ```
 ---
-id: paragraph-sparv-blanklines
+id: sbx-mul-paragraph-sparv-blanklines
 parent: segment-nltk-parent
 name:
   swe: Tomradssegmentering, stycken
@@ -223,7 +225,7 @@ example_extra: |-
     paragraph_segmenter: blanklines
   ```
 ---
-id: tokenization-sparv-whitespace
+id: sbx-mul-tokenization-sparv-whitespace
 parent: segment-nltk-parent
 name:
   swe: Blankteckentokenisering
@@ -250,7 +252,7 @@ example_extra: |-
     token_segmenter: whitespace
   ```
 ---
-id: sentence-sparv-whitespace
+id: sbx-mul-sentence-sparv-whitespace
 parent: segment-nltk-parent
 name:
   swe: Blankteckensegmentering, meningar
@@ -286,7 +288,7 @@ example_extra: |-
     sentence_segmenter: whitespace
   ```
 ---
-id: paragraph-sparv-whitespace
+id: sbx-mul-paragraph-sparv-whitespace
 parent: segment-nltk-parent
 name:
   swe: Blankteckensegmentering, stycken
@@ -326,7 +328,7 @@ example_extra: |-
     paragraph_segmenter: whitespace
   ```
 ---
-id: swe-tokenization-sparv-betterword
+id: sbx-swe-tokenization-sparv-betterword
 parent: segment-nltk-parent
 name:
   swe: Svensk tokenisering
@@ -366,7 +368,7 @@ description:
     tokenizer for other languages.
 updated: 2021-05-07
 ---
-id: swe-sentence-punkt-storsuc
+id: sbx-swe-sentence-punkt-storsuc
 parent: segment-nltk-parent
 name:
   swe: Svensk meningssegmentering
@@ -413,7 +415,7 @@ description:
     is, however, possible to configure the sentence segmenter for other languages.
 updated: 2021-09-02
 ---
-id: sentence-punkt
+id: sbx-mul-sentence-punctuation
 parent: segment-nltk-parent
 name:
   swe: Meningssegmentering utifrån skiljetecken

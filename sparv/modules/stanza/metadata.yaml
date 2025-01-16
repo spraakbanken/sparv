@@ -4,7 +4,11 @@ language_codes:
   - swe
 keywords:
   - stanza
-tool: "Stanza"
+tool:
+  name: "Stanza"
+  url: "https://stanfordnlp.github.io/stanza/"
+licences:
+  tool: "Apache License 2.0"
 trained_on: "[SUC3](https://spraakbanken.gu.se/resurser/suc3), [TalbankenSBX](https://spraakbanken.gu.se/resurser/talbanken), [SIC2](https://spraakbanken.gu.se/resurser/sic2)"
 other_references:
   - "Stanza: Peng Qi, Yuhao Zhang, Yuhui Zhang, Jason Bolton and Christopher D. Manning. 2020"
@@ -27,7 +31,7 @@ intended_uses:
 created: 2020-12-07
 updated: 2022-08-10
 ---
-id: swe-pos-stanza-stanzamorph
+id: sbx-swe-pos-stanza-stanzamorph
 parent: stanza-parent-swe
 name:
   swe: SUC-ordklasstaggning med Stanza
@@ -55,7 +59,7 @@ description:
     Currently (in 2024), this is the default analysis for Swedish in Språkbanken's analysis platform
     [Sparv](https://spraakbanken.gu.se/sparv).
 ---
-id: swe-msd-stanza-stanzamorph-suc3
+id: sbx-swe-msd-stanza-stanzamorph-suc3
 parent: stanza-parent-swe
 name:
   swe: Morfosyntaktisk SUC-taggning med Stanza
@@ -86,7 +90,7 @@ description:
     Currently (in 2024), this is the default analysis for Swedish in Språkbanken's analysis platform
     [Sparv](https://spraakbanken.gu.se/sparv).
 ---
-id: swe-msd-stanza-stanzamorph-ufeats
+id: sbx-swe-msd-stanza-stanzamorph-ufeats
 parent: stanza-parent-swe
 name:
   swe: Morfologisk analys för svenska baserad på Stanza
@@ -120,7 +124,7 @@ description:
   eng: |-
     This analysis uses universal features, defined as part of the Universal Dependencies standard.
 ---
-id: swe-lemmatization-stanza-stanzalem
+id: sbx-swe-lemmatization-stanza-stanzalem
 parent: stanza-parent-swe
 name:
   swe: SUC3-grundformanalys med Stanza
@@ -154,7 +158,7 @@ description:
     compatible with SALDO-style lemmas. This model's advantage is that it can be used to lemmatize any token, including
     out-of-vocabulary tokens.
 ---
-id: swe-dependency-stanza-stanzasynt
+id: sbx-swe-dependency-stanza-stanzasynt
 parent: stanza-parent-swe
 name:
   swe: Dependensparsning med Stanza
@@ -194,7 +198,6 @@ language_codes:
 keywords:
   - stanza
 standard_reference: ''
-tool: "Stanza"
 trained_on: ''
 other_references:
   - "Stanza: Peng Qi, Yuhao Zhang, Yuhui Zhang, Jason Bolton and Christopher D. Manning. 2020"
@@ -204,7 +207,7 @@ model: Stanza standard model for English (https://stanfordnlp.github.io/stanza/m
 created: 2022-08-10
 updated: 2022-08-10
 ---
-id: eng-pos-stanza
+id: sbx-eng-pos-stanza
 parent: stanza-parent-eng
 name:
   swe: Ordklasstaggning med Stanza för engelska
@@ -231,7 +234,7 @@ example_extra: |-
     language: eng
   ```
 ---
-id: eng-sentence-stanza
+id: sbx-eng-sentence-stanza
 parent: stanza-parent-eng
 name:
   swe: Meningssegmentering för engelska med Stanza
@@ -273,7 +276,7 @@ example_extra: |-
     language: eng
   ```
 ---
-id: eng-tokenization-stanza
+id: sbx-eng-tokenization-stanza
 parent: stanza-parent-eng
 name:
   swe: Tokenisering för engelska med Stanza
@@ -302,7 +305,7 @@ example_extra: |-
     token: stanza.token
   ```
 ---
-id: eng-lemmatization-stanza
+id: sbx-eng-lemmatization-stanza
 parent: stanza-parent-eng
 name:
   swe: Lemmatisering för engelska med Stanza
@@ -331,7 +334,7 @@ example_extra: |-
     language: eng
   ```
 ---
-id: eng-dependency-stanza
+id: sbx-eng-dependency-stanza
 parent: stanza-parent-eng
 name:
   swe: Dependensparsning för engelska med Stanza
@@ -363,7 +366,7 @@ example_extra: |-
     language: eng
   ```
 ---
-id: eng-namedentity-stanza
+id: sbx-eng-namedentity-stanza
 parent: stanza-parent-eng
 name:
   swe: Namnigenkänning för engelska med Stanza
@@ -415,7 +418,7 @@ description:
     Named entity recognition (NER) enables the detection of named entities (e.g. personal names, organizations,
     geographical locations) in the text.
 ---
-id: eng-pos-stanza-upos
+id: sbx-eng-pos-stanza-upos
 parent: stanza-parent-eng
 name:
   swe: UD-Ordklasstaggning med Stanza för engelska
@@ -442,7 +445,7 @@ example_extra: |-
     language: eng
   ```
 ---
-id: eng-msd-stanza-ufeats
+id: sbx-eng-msd-stanza-ufeats
 parent: stanza-parent-eng
 name:
   swe: Morfologisk analys för engelska baserad på Stanza

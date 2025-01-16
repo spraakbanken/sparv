@@ -6,7 +6,6 @@ keywords: []
 example_extra: ''
 standard_reference: ''
 other_references: []
-tool: ''
 model: ''
 trained_on: ''
 tagset: ''
@@ -16,7 +15,7 @@ description:
   swe: ''
 updated: 2023-11-06
 ---
-id: export-xml-pretty
+id: sbx-zxx-export-xml-pretty
 parent: xml-export-parent
 name:
   swe: XML-export, finformaterad
@@ -192,7 +191,7 @@ example_output: |-
   ```
 created: 2011-09-05
 ---
-id: export-xml-preserved
+id: sbx-zxx-export-xml-preserved
 parent: xml-export-parent
 name:
   swe: XML-export, bevarat format
@@ -215,7 +214,7 @@ example_output: |-
   ```
 created: 2016-05-31
 ---
-id: export-xml-scrambled
+id: sbx-zxx-export-xml-scrambled
 parent: xml-export-parent
 name:
   swe: XML-export, omkastad

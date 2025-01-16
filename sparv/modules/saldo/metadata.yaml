@@ -4,13 +4,12 @@ language_codes:
   - swe
 standard_reference: "[Borin/Forsberg/Lönngren 2013: SALDO: a touch of yin to WordNet's yang](http://dx.doi.org/10.1007/s10579-013-9233-4)"
 other_references: []
-tool: "Sparv"
 model: "[SALDO's morphology](https://spraakbanken.gu.se/resurser/saldom)"
 trained_on: ''
 tagset: ''
 evaluation_results: ''
 ---
-id: swe-lemmatization-sparv-saldo
+id: sbx-swe-lemmatization-sparv-saldo
 parent: saldo-parent
 name:
   swe: Annotering av SALDO-grundformer
@@ -44,7 +43,7 @@ description:
 created: 2010-12-15
 updated: 2018-03-28
 ---
-id: swe-lemgram-sparv-saldo
+id: sbx-swe-lemgram-sparv-saldo
 parent: saldo-parent
 name:
   swe: Annotering av SALDO-lemgram
@@ -77,7 +76,7 @@ description:
 created: 2010-12-15
 updated: 2018-03-28
 ---
-id: swe-sense-sparv-saldo
+id: sbx-swe-sense-sparv-saldo
 parent: saldo-parent
 name:
   swe: Annotering av SALDO-identifierare
@@ -107,7 +106,7 @@ description:
 created: 2010-12-15
 updated: 2018-03-28
 ---
-id: swe-compound-sparv-saldolemgram
+id: sbx-swe-compound-sparv-saldolemgram
 parent: saldo-parent
 name:
   swe: Sammansättningsanalys med hjälp av SALDO-lemgram
@@ -148,7 +147,7 @@ description:
 created: 2018-03-28
 updated: 2020-07-09
 ---
-id: swe-compound-sparv-saldowords
+id: sbx-swe-compound-sparv-saldowords
 parent: saldo-parent
 name:
   swe: Sammansättningsanalys med hjälp av SALDO-ordformer
@@ -189,7 +188,7 @@ description:
 created: 2018-03-28
 updated: 2020-07-09
 ---
-id: swe-lemmatization-sparv-saldo2
+id: sbx-swe-lemmatization-sparv-saldo2
 parent: saldo-parent
 name:
   swe: Annotering av SALDO-grundformer (utökade)

@@ -1,4 +1,4 @@
-id: swe-namedentity-swener
+id: sbx-swe-namedentity-swener
 name:
   swe: Namnigenkänning med HFST-SweNER
   eng: Named entity recognition with HFST-SweNER
@@ -57,7 +57,11 @@ standard_reference: |-
 other_references:
   - "[Dimitrios Kokkinakis. 2004. Reducing the effect of name explosion](https://demo.spraakbanken.gu.se/svedk/pbl/kokkinakisBNER.pdf)"
   - "Download HFST-SweNER: https://www.kielipankki.fi/download/HFST-SweNER/"
-tool: "HFST-SweNER"
+tool:
+  name: "HFST-SweNER"
+  url: "https://www.kielipankki.fi/download/HFST-SweNER/"
+licences:
+  tool: CC-BY
 model: "Included in the tool"
 trained_on: ''
 tagset: "[Named entity tags from hfst-SweNER](https://svn.spraakdata.gu.se/sb-arkiv/pub/swener-tags.html)"

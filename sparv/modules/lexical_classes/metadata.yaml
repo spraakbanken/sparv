@@ -4,7 +4,6 @@ language_codes:
   - swe
 keywords: []
 abstract: true
-tool: ''
 trained_on: |-
     Reference corpora for relative frequencies: [Göteborgsposten 2008](https://spraakbanken.gu.se/resurser/gp2008), [SUC
     3.0](https://spraakbanken.gu.se/resurser/suc3), [Bonniersromaner I
@@ -21,7 +20,7 @@ other_references:
 tagset: "[Blingbring](https://spraakbanken.gu.se/resurser/blingbring)"
 model: "[Blingbring frequency model](https://github.com/spraakbanken/sparv-models/blob/master/lexical_classes/blingbring.freq.gp2008%2Bsuc3%2Bromi.pickle)"
 ---
-id: swe-lexical_classes_token-sparv-blingbring
+id: sbx-swe-lexical_classes_token-sparv-blingbring
 parent: blingbring-parent
 name:
   swe: Lexikala klasser från Blingbring, tokennivå
@@ -65,7 +64,7 @@ description:
     versions of Blingbring.
 created: 2017-09-05
 ---
-id: swe-lexical_classes_text-sparv-blingbring
+id: sbx-swe-lexical_classes_text-sparv-blingbring
 parent: blingbring-parent
 name:
   swe: Lexikala klasser från Blingbring, textnivå
@@ -148,7 +147,7 @@ other_references:
 tagset: "[Swedish FrameNet (SweFN)](https://spraakbanken.gu.se/resurser/swefn)"
 model: "[Frequency model](https://github.com/spraakbanken/sparv-models/blob/master/lexical_classes/swefn.freq.gp2008%2Bsuc3%2Bromi.pickle)"
 ---
-id: swe-lexical_classes_token-sparv-swefn
+id: sbx-swe-lexical_classes_token-sparv-swefn
 parent: swefn-parent
 name:
   swe: Lexikala klasser från SweFN, tokennivå
@@ -186,7 +185,7 @@ description:
     classes.
 created: 2017-09-21
 ---
-id: swe-lexical_classes_text-sparv-swefn
+id: sbx-swe-lexical_classes_text-sparv-swefn
 parent: swefn-parent
 name:
   swe: Lexikala klasser från SweFN, textnivå

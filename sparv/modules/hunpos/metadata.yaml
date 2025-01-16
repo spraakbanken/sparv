@@ -5,12 +5,16 @@ language_codes:
 standard_reference: ''
 other_references:
   - "Hunpos: https://code.google.com/archive/p/hunpos/"
-tool: "Hunpos"
+tool:
+  name: Hunpos
+  url: "https://code.google.com/archive/p/hunpos/"
+licences:
+  tool: BSD-3-Clause
 trained_on: "[SUC3](https://spraakbanken.gu.se/resurser/suc3)"
 tagset: "[SUC3](https://spraakbanken.gu.se/korp/markup/msdtags.html)"
 evaluation_results: ''
 ---
-id: swe-pos-hunpos-suc3
+id: sbx-swe-pos-hunpos-suc3
 parent: hunpos-parent
 name:
   swe: SUC-ordklasstaggning med Hunpos
@@ -42,7 +46,7 @@ description:
 created: 2010-12-15
 updated: 2018-05-28
 ---
-id: swe-msd-hunpos-suc3
+id: sbx-swe-msd-hunpos-suc3
 parent: hunpos-parent
 name:
   swe: Morfosyntaktisk SUC-taggning med Hunpos
@@ -74,7 +78,7 @@ description:
 created: 2010-12-15
 updated: 2018-05-28
 ---
-id: swe-pos-hunpos-suc3-1800
+id: sbx-swe-pos-hunpos-suc3-1800
 parent: hunpos-parent
 name:
   swe: SUC-ordklasstaggning med Hunpos för 1800-talssvenska
@@ -124,7 +128,7 @@ description:
 created: 2012-10-23
 updated: 2015-09-11
 ---
-id: swe-msd-hunpos-suc3-1800
+id: sbx-swe-msd-hunpos-suc3-1800
 parent: hunpos-parent
 name:
   swe: Morfosyntaktisk SUC-taggning med Hunpos för 1800-talssvenska

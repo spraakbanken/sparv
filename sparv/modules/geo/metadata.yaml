@@ -6,7 +6,6 @@ language_codes:
 keywords: []
 standard_reference: ''
 other_references: []
-tool: ''
 model: "[GeoNames](https://www.geonames.org/)"
 trained_on: ''
 tagset: ''
@@ -14,7 +13,7 @@ evaluation_results: ''
 created: 2018-05-28
 updated: 2022-05-18
 ---
-id: swe-geotagcontext-sparv
+id: sbx-swe-geotagcontext-sparv
 parent: geo-parent
 name:
   swe: Geotaggning av platsnamn från kontext
@@ -67,7 +66,7 @@ description:
     the [GeoNames database](https://www.geonames.org/). This annotation can be applied to any text chunk, e.g. texts,
     paragraphs, sentences or tokens.
 ---
-id: swe-geotagmetadata-sparv
+id: sbx-swe-geotagmetadata-sparv
 parent: geo-parent
 name:
   swe: Geotagging av platsnamn från metadata
