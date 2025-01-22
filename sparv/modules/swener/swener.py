@@ -1,4 +1,5 @@
 """Named entity tagging with SweNER."""
+from __future__ import annotations
 
 import re
 import xml.etree.ElementTree as etree
@@ -28,7 +29,7 @@ def annotate(out_ne: Output = Output("swener.ne", cls="named_entity", descriptio
              sentence: Annotation = Annotation("<sentence>"),
              token: Annotation = Annotation("<token>"),
              binary: Binary = Binary("[swener.binary]"),
-             process_dict=None):
+             process_dict: dict | None = None):
     """Tag named entities using HFST-SweNER.
 
     SweNER is either run in an already started process defined in

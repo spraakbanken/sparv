@@ -1,4 +1,5 @@
 """Dependency parsing using MaltParser."""
+from __future__ import annotations
 
 import re
 
@@ -60,7 +61,7 @@ def annotate(maltjar: Binary = Binary("[malt.jar]"),
              sentence: Annotation = Annotation("<sentence>"),
              token: Annotation = Annotation("<token>"),
              encoding: str = util.constants.UTF8,
-             process_dict=None):
+             process_dict: dict | None = None):
     """
     Run the malt parser, in an already started process defined in process_dict, or start a new process (default).
 

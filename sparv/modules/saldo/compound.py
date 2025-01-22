@@ -1,4 +1,5 @@
 """Compound analysis."""
+from __future__ import annotations
 
 import itertools
 import operator
@@ -81,7 +82,7 @@ def annotate(out_complemgrams: Output = Output("<token>:saldo.complemgram",
              compdelim: str = util.constants.COMPSEP,
              affix: str = util.constants.AFFIX,
              cutoff: bool = True,
-             preloaded_models=None):
+             preloaded_models: tuple | None = None):
     """Divide compound words into prefix(es) and suffix.
 
     - out_complemgram is the resulting annotation file for compound lemgrams
