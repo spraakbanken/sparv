@@ -82,7 +82,7 @@ def lemgram_sql(corpus: Corpus = Corpus(),
     logger.progress(total=len(source_files) + 1)
 
     for file in source_files:
-        for lg in lemgram.read(file):
+        for lg in lemgram(file).read():
             for value in lg.split("|"):
                 if value and ":" not in value:
                     result[value] += 1

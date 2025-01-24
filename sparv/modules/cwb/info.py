@@ -80,10 +80,10 @@ def info_date(source_files: AllSourceFilenames = AllSourceFilenames(),
     last_date = None
 
     for file in source_files:
-        from_dates = sorted((int(x[0]), x[1]) for x in datefrom.read_attributes(file, (datefrom, timefrom)) if x[0])
+        from_dates = sorted((int(x[0]), x[1]) for x in datefrom(file).read_attributes((datefrom, timefrom)) if x[0])
         if from_dates and (first_date is None or from_dates[0] < first_date):
             first_date = from_dates[0]
-        to_dates = sorted((int(x[0]), x[1]) for x in dateto.read_attributes(file, (dateto, timeto)) if x[0])
+        to_dates = sorted((int(x[0]), x[1]) for x in dateto(file).read_attributes((dateto, timeto)) if x[0])
         if to_dates and (last_date is None or to_dates[-1] > last_date):
             last_date = to_dates[-1]
 

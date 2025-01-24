@@ -419,7 +419,7 @@ def wordpicture_sql(
             head_rel_count = defaultdict(int)   # Frequency of (head, rel)
             dep_rel_count = defaultdict(int)    # Frequency of (rel, dep)
 
-        wordpicture_data = wordpicture.read(file)
+        wordpicture_data = wordpicture(file).read()
 
         for triple in wordpicture_data.splitlines():
             head, headpos, rel, dep, deppos, extra, sid, refh, refd, bfhead, bfdep, wfhead, wfdep = triple.split("\t")

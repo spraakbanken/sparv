@@ -90,11 +90,12 @@ def timespan_sql_with_dateinfo(corpus: Corpus = Corpus(),
     datetimespans = defaultdict(int)
 
     for file in source_files:
-        text_tokens, orphans = datefrom.get_children(file, token)
+        file_datefrom = datefrom(file)
+        text_tokens, orphans = file_datefrom.get_children(token)
         if orphans:
             datespans[("0" * 8, "0" * 8)] += len(orphans)
             datetimespans[("0" * 14, "0" * 14)] += len(orphans)
-        dateinfo = datefrom.read_attributes(file, (datefrom, dateto, timefrom, timeto))
+        dateinfo = file_datefrom.read_attributes((datefrom, dateto, timefrom, timeto))
         for text in text_tokens:
             d = next(dateinfo)
             datespans[(d[0].zfill(8), d[1].zfill(8))] += len(text)
@@ -132,7 +133,7 @@ def timespan_sql_no_dateinfo(corpus: Corpus = Corpus(),
     token_count = 0
 
     for file in source_files:
-        token_count += token.get_size(file)
+        token_count += token(file).get_size()
 
     rows_date = [{
         "corpus": corpus_name,

@@ -48,8 +48,8 @@ def file_id(out: OutputDataAllSourceFiles = OutputDataAllSourceFiles("misc.filei
 
     if add:
         for file in source_files:
-            if out.exists(file):
-                used_ids.add(out.read(file))
+            if outdata := out(file).exists():
+                used_ids.add(outdata.read())
                 files_with_ids.add(file)
 
     for file in source_files:
@@ -58,7 +58,7 @@ def file_id(out: OutputDataAllSourceFiles = OutputDataAllSourceFiles("misc.filei
         _reset_id(file, numfiles)
         new_id = _make_id(prefix, used_ids)
         used_ids.add(new_id)
-        out.write(new_id, file)
+        out(file).write(new_id)
         logger.progress()
 
 

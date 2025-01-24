@@ -74,16 +74,16 @@ def freq_list(source_files: AllSourceFilenames = AllSourceFilenames(),
         # Get values for struct annotations (per token)
         struct_values = []
         for struct_annotation in struct_annotations:
-            token_parents = token.get_parents(source_file, struct_annotation)
+            token_parents = token(source_file).get_parents(struct_annotation)
             try:
-                struct_annot_list = list(struct_annotation.read(source_file))
+                struct_annot_list = list(struct_annotation(source_file).read())
                 struct_values.append([struct_annot_list[p] if p is not None else "" for p in token_parents])
             # Handle cases where some source files are missing structural source annotations
             except FileNotFoundError:
                 struct_values.append(["" for _ in token_parents])
 
         # Create tuples with annotations for each token and count frequencies
-        tokens = word.read_attributes(source_file, token_annotations)
+        tokens = word(source_file).read_attributes(token_annotations)
         for n, token_annotations_tuple in enumerate(tokens):
             structs_tuple = tuple(struct[n] for struct in struct_values)
             freq_dict[token_annotations_tuple + structs_tuple] += 1
