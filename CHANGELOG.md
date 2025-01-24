@@ -26,6 +26,11 @@
 - Removed the `indent_xml` utility function, as ElementTree now supports XML indentation natively since Python 3.9.
 - Sparv now prints a warning message if a module, annotator, or output annotation is missing a description.
 - Sparv now prints a warning message if an annotator has parameters without type hints.
+- Instances of `AnnotationAllSourceFiles`, `AnnotationDataAllSourceFiles`, `OutputAllSourceFiles`, and
+  `OutputDataAllSourceFiles` can now be called with a source file name to get the respective non-all-source-files
+  instance. This is now the recommended way to use these classes, and the previous methods will be removed in a future
+  major release.
+  
 
 ### Fixed
 

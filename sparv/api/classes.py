@@ -631,9 +631,6 @@ class AnnotationAllSourceFiles(CommonAnnotationMixin, CommonAllSourceFilesMixin,
     def __call__(self, source_file: str) -> Annotation:
         """Get an Annotation instance for the specified source file.
 
-        This enables the use of certain convenience methods that are not available on the AnnotationAllSourceFiles
-        class.
-
         Args:
             source_file: Source file for the annotation.
 
@@ -773,6 +770,17 @@ class AnnotationDataAllSourceFiles(CommonAllSourceFilesMixin, BaseAnnotation):
         """
         super().__init__(name)
 
+    def __call__(self, source_file: str) -> AnnotationData:
+        """Get an AnnotationData instance for the specified source file.
+
+        Args:
+            source_file: Source file for the annotation.
+
+        Returns:
+            An AnnotationData instance for the specified source file.
+        """
+        return AnnotationData(self.name, source_file)
+
     def read(self, source_file: str) -> Iterator[str]:
         """Read arbitrary string data from annotation file.
 
@@ -880,6 +888,17 @@ class OutputAllSourceFiles(CommonAllSourceFilesMixin, BaseOutput):
         """
         super().__init__(name, cls, description=description)
 
+    def __call__(self, source_file: str) -> Output:
+        """Get an AnnotationData instance for the specified source file.
+
+        Args:
+            source_file: Source file for the annotation.
+
+        Returns:
+            An Output instance for the specified source file.
+        """
+        return Output(self.name, source_file=source_file)
+
     def write(self, values: list, source_file: str) -> None:
         """Write an annotation to file. Existing annotation will be overwritten.
 
@@ -931,6 +950,17 @@ class OutputDataAllSourceFiles(CommonAllSourceFilesMixin, BaseOutput):
             description: Description of the annotation.
         """
         super().__init__(name, cls, description=description)
+
+    def __call__(self, source_file: str) -> OutputData:
+        """Get an OutputData instance for the specified source file.
+
+        Args:
+            source_file: Source file for the annotation.
+
+        Returns:
+            An OutputData instance for the specified source file.
+        """
+        return OutputData(self.name, source_file=source_file)
 
     def read(self, source_file: str) -> Any:
         """Read arbitrary string data from annotation file.

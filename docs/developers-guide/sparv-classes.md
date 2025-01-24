@@ -53,8 +53,10 @@ annotation is needed as input for a function, e.g. `Annotation("<token:word>")`.
 
 
 ## AnnotationAllSourceFiles
-Regular annotation but the source filename must be specified for all actions. Use as input to an annotator function to
-require the specified annotation for every source file in the corpus.
+Like [`Annotation`](#annotation), this class represents a regular annotation, but is used as input to an annotator
+to require the specified annotation for *every source file* in the corpus.
+By calling an instance of this class with a source file name as an argument, you can get an instance of `Annotation`
+for that source file.
 
 **Arguments:**
 
@@ -67,6 +69,10 @@ require the specified annotation for every source file in the corpus.
 - `attribute_name`: Get attribute name (excluding name of annotation).
 
 **Methods:**
+
+> [!NOTE]
+> All methods of this class are deprecated and will be removed in a future version of Sparv. Instead, create an
+> instance of `Annotation` by passing a source file name as an argument, and use the methods of the `Annotation` class.
 
 - `split()`: Split name into annotation name and attribute.
 - `exists(source_file: str)`: Return True if annotation file exists.
@@ -147,9 +153,10 @@ This class represents an annotation holding arbitrary data, i.e. data that is no
 
 
 ## AnnotationDataAllSourceFiles
-Like [`AnnotationData`](#annotationdata), this class is used for annotations holding arbitrary data but the source file
-must be specified for all actions. Use as input to an annotator to require the specified annotation for every source
-file in the corpus.
+Like [`AnnotationData`](#annotationdata), this class is used for annotations holding arbitrary data, but is used as
+input to an annotator to require the specified annotation for *every source file* in the corpus.
+By calling an instance of this class with a source file name as an argument, you can get an instance of `AnnotationData`
+for that source file.
 
 **Arguments:**
 
@@ -161,6 +168,11 @@ file in the corpus.
 - `attribute_name`: Get attribute name (excluding name of annotation)
 
 **Methods:**
+
+> [!NOTE]
+> All methods of this class are deprecated and will be removed in a future version of Sparv. Instead, create an
+> instance of `AnnotationData` by passing a source file name as an argument, and use the methods of the `AnnotationData`
+> class.
 
 - `split()`: Split name into annotation name and attribute.
 - `exists(source_file: str)`: Return True if annotation file exists.
@@ -379,8 +391,10 @@ Regular annotation or attribute used as output (e.g. of an annotator function).
 
 
 ## OutputAllSourceFiles
-Similar to [`Output`](#output) this class represents a regular annotation or attribute used as output, but the source
-file must be specified for all actions.
+Similar to [`Output`](#output) this class represents a regular annotation or attribute used as output, but is used as
+output for an annotator when output should be produced for *every source file* in the corpus.
+By calling an instance of this class with a source file name as an argument, you can get an instance of `Output` for
+that source file.
 
 **Arguments**:
 - `name`: The name of the annotation.
@@ -388,6 +402,10 @@ file must be specified for all actions.
 - `description`: An optional description.
 
 **Methods:**
+
+> [!NOTE]
+> All methods of this class are deprecated and will be removed in a future version of Sparv. Instead, create an
+> instance of `Output` by passing a source file name as an argument, and use the methods of the `Output` class.
 
 - `split()`: Split name into annotation name and attribute.
 - `write(values, source_file: str)`: Write an annotation to file.
@@ -431,8 +449,10 @@ is used as output.
 
 
 ## OutputDataAllSourceFiles
-Like [`OutputData`](#outputdata), this class is used for annotations holding arbitrary data and that is used as output,
-but the source file must be specified for all actions.
+Like [`OutputData`](#outputdata), this class is used for output annotations holding arbitrary data, but
+is used when output should be produced for *every source file* in the corpus.
+By calling an instance of this class with a source file name as an argument, you can get an instance of `OutputData`
+for that source file.
 
 **Arguments**:
 - `name`: The name of the annotation.
@@ -440,6 +460,10 @@ but the source file must be specified for all actions.
 - `description`: An optional description.
 
 **Methods:**
+
+> [!NOTE]
+> All methods of this class are deprecated and will be removed in a future version of Sparv. Instead, create an
+> instance of `OutputData` by passing a source file name as an argument, and use the methods of the `OutputData` class.
 
 - `split()`: Split name into annotation name and attribute.
 - `write(value, source_file: str)`: Write arbitrary corpus level string data to annotation file.
