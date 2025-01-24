@@ -493,33 +493,6 @@ class Annotation(CommonAnnotationMixin, CommonMixin, BaseAnnotation):
         """
         return self._get_children(self.source_file, child, orphan_alert)
 
-    def __truediv__(self, child: BaseAnnotation) -> Iterator[Iterator]:
-        """Get values of children of this annotation, without orphans.
-
-        This is a convenience method equivalent to get_child_values(child).
-
-        Args:
-            child: Child annotation.
-
-        Returns:
-            An iterator with one element for each parent. Each element is an iterator of values in the child annotation.
-        """
-        return self._get_child_values(self.source_file, child, append_orphans=False)
-
-    def __floordiv__(self, child: BaseAnnotation) -> Iterator[Iterator]:
-        """Get values of children of this annotation, with orphans appended at the end.
-
-        This is a convenience method equivalent to get_child_values(child, append_orphans=True).
-
-        Args:
-            child: Child annotation.
-
-        Returns:
-            An iterator with one element for each parent. Each element is an iterator of values in the child annotation.
-            The last element is an iterator of orphans.
-        """
-        return self._get_child_values(self.source_file, child, append_orphans=True)
-
     def get_child_values(
             self, child: BaseAnnotation, append_orphans: bool = False, orphan_alert: bool = False
         ) -> Iterator[Iterator]:
