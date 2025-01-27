@@ -12,7 +12,6 @@
 - Sparv now respects the `JAVA_HOME` environment variable.
 - Added autocomplete instructions for `zsh`.
 - Added 'misc:fake_text_headtail' annotator.
-- You can now use `from __future__ import annotations` in Sparv modules.
 
 ### Changed
 

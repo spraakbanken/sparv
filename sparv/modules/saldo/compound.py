@@ -1,12 +1,11 @@
 """Compound analysis."""
-from __future__ import annotations
-
 import itertools
 import operator
 import pathlib
 import pickle
 import re
 import time
+from typing import Optional
 import xml.etree.ElementTree as etree
 from functools import reduce
 
@@ -82,7 +81,7 @@ def annotate(out_complemgrams: Output = Output("<token>:saldo.complemgram",
              compdelim: str = util.constants.COMPSEP,
              affix: str = util.constants.AFFIX,
              cutoff: bool = True,
-             preloaded_models: tuple | None = None):
+             preloaded_models: Optional[tuple] = None):
     """Divide compound words into prefix(es) and suffix.
 
     - out_complemgram is the resulting annotation file for compound lemgrams

@@ -1,5 +1,5 @@
 """Sentiment annotation per token using SenSALDO."""
-from __future__ import annotations
+from typing import Optional
 
 from sparv.api import Annotation, Config, Model, ModelOutput, Output, annotator, get_logger, modelbuilder, util
 
@@ -19,7 +19,7 @@ def annotate(sense: Annotation = Annotation("<token:sense>"),
              out_scores: Output = Output("<token>:sensaldo.sentiment_score", description="SenSALDO sentiment score"),
              out_labels: Output = Output("<token>:sensaldo.sentiment_label", description="SenSALDO sentiment label"),
              model: Model = Model("[sensaldo.model]"),
-             lexicon: util.misc.PickledLexicon | None = None):
+             lexicon: Optional[util.misc.PickledLexicon] = None):
     """Assign sentiment values to tokens based on their sense annotation.
 
     When more than one sense is possible, calulate a weighted mean.

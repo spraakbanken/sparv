@@ -1,5 +1,5 @@
 """Annotate words with lexical classes from Blingbring or SweFN."""
-from __future__ import annotations
+from typing import Optional
 
 from sparv.api import Annotation, Config, Model, Output, annotator, get_logger, util
 from sparv.api.util.constants import AFFIX, DELIM, SCORESEP
@@ -23,7 +23,7 @@ def blingbring_words(out: Output = Output("<token>:lexical_classes.blingbring",
                      delimiter: str = DELIM,
                      affix: str = AFFIX,
                      scoresep: str = SCORESEP,
-                     lexicon: util.misc.PickledLexicon | None = None):
+                     lexicon: Optional[util.misc.PickledLexicon] = None):
     """Blingbring specific wrapper for annotate_words. See annotate_words for more info."""
     # pos_limit="NN VB JJ AB" | None
 
@@ -62,7 +62,7 @@ def swefn_words(out: Output = Output("<token>:lexical_classes.swefn",
                 delimiter: str = DELIM,
                 affix: str = AFFIX,
                 scoresep: str = SCORESEP,
-                lexicon: util.misc.PickledLexicon | None = None):
+                lexicon: Optional[util.misc.PickledLexicon] = None):
     """Swefn specific wrapper for annotate_words. See annotate_words for more info."""
 
     # SweFN annotation function

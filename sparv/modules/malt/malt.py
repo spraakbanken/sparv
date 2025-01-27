@@ -1,7 +1,6 @@
 """Dependency parsing using MaltParser."""
-from __future__ import annotations
-
 import re
+from typing import Optional
 
 from sparv.api import Annotation, Binary, Config, Model, ModelOutput, Output, annotator, get_logger, modelbuilder, util
 
@@ -61,7 +60,7 @@ def annotate(maltjar: Binary = Binary("[malt.jar]"),
              sentence: Annotation = Annotation("<sentence>"),
              token: Annotation = Annotation("<token>"),
              encoding: str = util.constants.UTF8,
-             process_dict: dict | None = None):
+             process_dict: Optional[dict] = None):
     """
     Run the malt parser, in an already started process defined in process_dict, or start a new process (default).
 

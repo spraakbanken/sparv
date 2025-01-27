@@ -109,6 +109,7 @@ preview = true
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]  # Pyflakes: unused-import
+"sparv/modules/*.py" = ["FA100", "UP045"]  # For Python 3.9 compatibility in modules
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
