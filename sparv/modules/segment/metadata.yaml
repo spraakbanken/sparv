@@ -368,7 +368,7 @@ description:
     tokenizer for other languages.
 updated: 2021-05-07
 ---
-id: sbx-swe-sentence-punkt-storsuc
+id: sbx-swe-sentence-punkt-sparv-storsuc
 parent: segment-nltk-parent
 name:
   swe: Svensk meningssegmentering
@@ -415,7 +415,7 @@ description:
     is, however, possible to configure the sentence segmenter for other languages.
 updated: 2021-09-02
 ---
-id: sbx-mul-sentence-punctuation
+id: sbx-mul-sentence-sparv-punctuation
 parent: segment-nltk-parent
 name:
   swe: Meningssegmentering utifrån skiljetecken
