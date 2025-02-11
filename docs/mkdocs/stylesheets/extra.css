@@ -1,3 +1,10 @@
+/* Limit the maximum font size, as the largest default size is a bit too big */
+@media screen and (min-width: 125em) {
+    html {
+        font-size: 137.5%
+    }
+}
+
 /* Section headings in navigation */
 .md-nav__item--section>.md-nav__link {
     font-weight: 700;
@@ -5,7 +12,9 @@
 }
 
 /* Headers */
-.md-typeset h1, .md-typeset h2, .md-typeset h3, .md-typeset h4, .md-typeset h5, .md-typeset h6 {
+.md-typeset h1,
+.md-typeset h2,
+.md-typeset h3 {
     font-weight: 500;
 }
 
@@ -19,4 +28,15 @@
 .intro-logo {
     width: 200px;
     transform: scaleX(-1);
+}
+
+/* Fade out highlighted text after a specified duration */
+@keyframes fade {
+    100% {
+        background-color: transparent;
+    }
+}
+
+.md-typeset mark[data-md-highlight] {
+    animation: fade 20s forwards;
 }

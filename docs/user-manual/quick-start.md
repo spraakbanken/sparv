@@ -2,11 +2,11 @@
 
 This guide will help you get started with Sparv in just a few minutes, and walk you through the process of annotating
 your first corpus. For a more detailed [installation guide](installation-and-setup.md) and
-user manual, please refer to the full documentation.
+user manual, please refer to the other sections of this documentation.
 
-> [!INFO]
-> Sparv is a command line application, and just like the
-> [2004 Steven Spielberg movie](https://www.imdb.com/title/tt0362227/), this quick start guide takes place in a
+> [!NOTE]
+>
+> Sparv is a command line application and all interaction in this quick start guide takes place in a
 > [terminal](https://en.wikipedia.org/wiki/Terminal_emulator).
 >
 > This guide should work both in a Unix-like environment and the Windows command line.
@@ -30,7 +30,7 @@ python3 -m pip install --user pipx
 python3 -m pipx ensurepath
 ```
 
-Once pipx is installed, run the following command to install the Sparv Pipeline:
+Once pipx is installed, run the following command to install Sparv:
 
 ```sh
 pipx install sparv-pipeline

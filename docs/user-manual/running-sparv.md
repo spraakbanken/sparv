@@ -1,32 +1,56 @@
 # Running Sparv
 
-This section provides an overview of the key commands in Sparv, and describes the basic process of creating and
-annotating a corpus. For more detailed information about some of the topics mentioned here, refer to respective sections
-in the user manual.
+This section contains a guide to running Sparv on the corpus you have prepared according to the instructions in the
+previous sections. It also provides an overview of all the key commands available in Sparv.
 
-## The Structure of a Corpus Directory
+> [!NOTE]
+>
+> Sparv is a command line application, and all interactions with Sparv are done through the terminal.
 
-Sparv is a command line tool, meant to be run from inside a *corpus directory*. A corpus directory is a directory that
-contains a corpus configuration file (`config.yaml`) and a directory with source files. The [configuration
-file](corpus-configuration.md) specifies the desired annotations, export formats, and other processing instructions for
-Sparv. The source files are the documents to be annotated, in a format that Sparv can process, such as XML or plain
-text.
+## Annotating Your Corpus with Sparv
 
-A typical corpus directory structure might look like this:
+Before running Sparv, make sure you have set up your corpus configuration file and placed your source files in the
+source directory, as described in the previous sections.
+
+Once you have prepared your corpus, you can start the annotation process by running the `sparv run` command from inside
+the corpus directory. This command initiates the annotation process and generates all the output formats specified in
+your corpus configuration file. If no output formats are specified, Sparv will use the default export format, which is
+the pretty-printed XML format.
+
+Once the annotation process is complete, the generated output files will be stored in an `export` directory within your
+corpus directory. The directory structure of your corpus should look something like this:
 
 ```text
 my_corpus/
 ├── config.yaml
-└── source
-   ├── document1.xml
-   ├── document2.xml
-   └── document3.xml
+├── export
+│  └── xml_export.pretty
+│     ├── document1_export.xml
+│     ├── document2_export.xml
+│     └── document3_export.xml
+├── source
+│  ├── document1.xml
+│  ├── document2.xml
+│  └── document3.xml
+└── sparv-workdir
+   └── ...
 ```
 
-If you're trying Sparv for the first time, we recommend downloading and test-running some of the [example
-corpora](https://github.com/spraakbanken/sparv-pipeline/releases/latest/download/example_corpora.zip).
+The `sparv-workdir` directory contains intermediate files used by Sparv during the annotation process. This directory is
+managed by Sparv and should not be manually modified.
 
-## Sparv Command Line Interface
+Keeping the `sparv-workdir` directory allows Sparv to re-run only the necessary parts of the annotation process when
+changes are made to your source files. If you update a model or any other dependency, Sparv will re-run only the
+annotations that depend on the updated model, including any subsequent annotations that rely on those initial
+annotations. This dependency tracking mechanism ensures that you only re-run the affected parts of the annotation
+process, rather than starting from scratch.
+
+However, if you make changes to your *corpus configuration file*, you will need to perform a clean run for the changes
+to take effect. Use the `sparv clean --all` command to remove intermediate files and output directories. If you only
+changed the list of annotations or export formats, running `sparv clean --export` to remove the `export` directory is
+sufficient.
+
+## Sparv Command Line Interface Overview
 
 Running `sparv` without any arguments will display all the available Sparv commands:
 
@@ -47,7 +71,7 @@ Show annotation info:
    classes          List available annotation classes
    languages        List supported languages
 
-Setting up the Sparv Pipeline:
+Setting up Sparv:
    setup            Set up the Sparv data directory
    plugins          Manage Sparv plugins
    wizard           Run config wizard to create a corpus config
@@ -56,7 +80,6 @@ Setting up the Sparv Pipeline:
 Advanced commands:
    run-rule         Run specified rule(s) for creating annotations
    create-file      Create specified file(s)
-   run-module       Run annotator module independently
    preload          Preload annotators and models
    autocomplete     Enable tab completion in bash/zsh
    schema           Print a JSON schema for the Sparv config format
@@ -72,18 +95,20 @@ All of the following commands should be run from inside a corpus directory.
 
 ### `sparv run`
 
-To annotate a corpus, run `sparv run` from inside the corpus directory. This command initiates the annotation process
-and generates all the output formats (or *exports*) specified under `export.default` in your config file. Alternatively,
-you can specify a particular export format, for example, `sparv run csv_export:csv`. To see all available output formats
-for your corpus, use `sparv run -l`. The generated output files will be stored in an `export` directory within your
-corpus directory.
+`sparv run` is the primary command for annotating a corpus. It initiates the annotation process and generates all the
+output formats (or *exports*) specified under `export.default` in your config file. Alternatively, you can specify a
+particular export format, for example, `sparv run csv_export:csv`. To see all available output formats for your corpus,
+use `sparv run -l`. The generated output files will be stored in an `export` directory within your corpus directory.
+
+By using the `-j` flag, you can specify the number of parallel processes to use during the annotation process. For
+example, `sparv run -j 4` will run the annotation process with four parallel processes. The default value is 1.
 
 ### `sparv install`
 
-Installing a corpus involves deploying it either locally or on a remote server. Sparv supports the
-deployment of compressed XML exports, CWB data files, and SQL data. When you run `sparv install`, Sparv checks if all
-necessary annotations are present. If any annotations are missing, Sparv will create them for you, so you don't need to
-annotate the corpus beforehand. To see the available installation options, use `sparv install -l`.
+Installing a corpus involves deploying it either locally or on a remote server. Sparv natively supports the deployment
+of compressed XML exports, CWB data files, and SQL data. When you run `sparv install`, Sparv checks if all necessary
+annotations are present. If any annotations are missing, Sparv will create them for you, so you don't necessarily need
+to annotate the corpus beforehand. To see the available installation options, use `sparv install -l`.
 
 ### `sparv clean`
 
@@ -102,17 +127,17 @@ commands will differ depending on the corpus language configured in the corpus c
 
 The `sparv modules` command lists all available modules and annotations for the language specified in the corpus
 configuration file. This command is useful for finding the names of annotations you want to include in your corpus
-configuration, and available configurations for each module.
+configuration, and available options for each module.
 
 ### `sparv presets`
 
-This command lists all annotation presets available for the current language. For more details, see the [annotation
-presets section](corpus-configuration.md#annotation-presets).
+This command lists all annotation presets available for the current language. For more details, see the [Annotation
+Presets section](corpus-configuration.md#annotation-presets).
 
 ### `sparv classes`
 
-Lists all available annotation classes for the current language. For more information, refer to the [annotation classes
-section](corpus-configuration.md#annotation-classes).
+This command lists all available annotation classes for the current language. For more information, refer to the
+[Annotation Classes section](corpus-configuration.md#annotation-classes).
 
 ### `sparv languages`
 
@@ -127,17 +152,23 @@ Displays the complete configuration for your corpus, including all default value
 
 ### `sparv files`
 
-This command lists all available source files in your corpus.
+This command displays a list of all source files available in your corpus. The files are shown without their extensions,
+which is also the format used when referencing specific files for annotation with the `--file` argument in the `run`
+command.
 
-## Setting Up the Sparv Pipeline
+## Setting Up Sparv
 
-**`sparv setup`** and **`sparv build-models`:** These commands are detailed in the [Setting Up Sparv
-section](installation-and-setup.md#setting-up-sparv).
+### `sparv setup` and `sparv build-models`
+
+These commands are used to set up the Sparv data directory and download and build the Sparv models, respectively. They
+are detailed in the [Setting Up Sparv section](installation-and-setup.md#setting-up-sparv).
 
 ## Advanced Commands
 
-**`sparv run-rule`** and **`sparv create-file`:** These commands allow you to run specific annotation rules or create
-specific files. You can provide multiple arguments to these commands.
+### `sparv run-rule` and `sparv create-file`
+
+These commands allow you to run specific annotation processors or create specific files. They are mostly useful for
+debugging and testing. You can provide multiple arguments to these commands.
 
 Example of running the Stanza annotations (part-of-speech tagging and dependency parsing) for all input files:
 
@@ -151,18 +182,12 @@ Example of creating the part-of-speech annotation for the input file `document1`
 sparv create-file sparv-workdir/document1/segment.token/stanza.pos
 ```
 
-**`sparv run-module`:** This command allows you to run an annotator module independently, which is useful for debugging.
-You need to specify the module, the function to run, and all required arguments. For example, to run the Hunpos MSD
-tagging module on the input file `document1`, you could use the following command:
+### `sparv preload`
 
-```sh
-sparv run-module hunpos msdtag --out segment.token:hunpos.msd --word segment.token:misc.word --sentence segment.sentence --binary hunpos-tag --model hunpos/suc3_suc-tags_default-setting_utf8.model --morphtable hunpos/saldo_suc-tags.morphtable --patterns hunpos/suc.patterns --encoding UTF-8 --source_file document1
-```
-
-**`sparv preload`:** This command preloads annotators, their models, and related binaries to speed up the annotation
-process. This is particularly useful when working with multiple smaller source files, as it prevents the need to load
-models repeatedly for each file. Note that not all annotators support preloading; use the `--list` argument to see which
-annotators are supported.
+This command preloads annotators, their models, and related binaries to speed up the annotation process. This is
+particularly useful when working with multiple smaller source files, as it prevents the need to load models repeatedly
+for each file. Note that not all annotators support preloading; use the `--list` argument to see which annotators are
+supported.
 
 The Sparv preloader can be run from any directory containing a `config.yaml` file. While this file follows the same
 format as corpus configuration files, it doesn't need to be tied to a specific corpus. The only requirement is a

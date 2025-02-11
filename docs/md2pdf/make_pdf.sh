@@ -4,30 +4,12 @@
 # Script for creating PDFs from markdown
 # Requires markdown, latex and Python pandocfilters
 
-USER_MANUAL_FILES="
-../user-manual/quick-start.md
-../user-manual/installation-and-setup.md
-../user-manual/running-sparv.md
-../user-manual/requirements-for-source-files.md
-../user-manual/corpus-configuration.md
-../user-manual/available-analyses.md
-"
+USER_MANUAL_FILES=$(grep -P 'user-manual/.*\.md' ../mkdocs.yml -o | grep -v 'intro\.md' | sed 's/^/..\//')
 
-DEVELOPERS_GUIDE_FILES="
-../developers-guide/general-concepts.md
-../developers-guide/writing-sparv-plugins.md
-../developers-guide/sparv-decorators.md
-../developers-guide/sparv-classes.md
-../developers-guide/config-parameters.md
-../developers-guide/wildcards.md
-../developers-guide/utilities.md
-"
+DEVELOPERS_GUIDE_FILES=$(grep -P 'developers-guide/.*\.md' ../mkdocs.yml -o | sed 's/^/..\//')
 
 # Get version number from sparv/__init__.py
-line=$(grep -F "__version__" ../../sparv/__init__.py) # Find version number
-version=${line#"__version__ = \""} # Remove prefix
-SPARV_VERSION=${version%"\""} # Remove suffix
-
+SPARV_VERSION=$(grep -P '(?<=__version__ = ").+(?=")' -o ../../sparv/__init__.py)
 
 function make_pandoc {
     # Convert markdown to latex/pdf:
@@ -52,7 +34,7 @@ function make_document {
 
     HEADER="
 ---
-title: Sparv Pipeline $SPARV_VERSION - $3
+title: Sparv $SPARV_VERSION - $3
 author: |
   | Språkbanken Text
   | Institutionen för svenska, flerspråkighet och språkteknologi

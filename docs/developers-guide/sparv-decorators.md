@@ -1,6 +1,6 @@
 # Sparv Processors
 
-The Sparv Pipeline is made up of a series of processors, each of which performs a specific task. These processors are
+Sparv is made up of a series of processors, each of which performs a specific task. These processors are
 implemented as Python functions that are decorated with one of the Sparv decorators. The decorators are used to
 register the functions within the Sparv pipeline and to provide metadata about the function, such as its description,
 inputs, outputs, and configuration options. The input and output annotations of the functions are used to build a

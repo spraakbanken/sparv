@@ -28,6 +28,7 @@
 - Dropped support for Python 3.8.
 - The internal data format (in the `sparv-workdir` directory) has been changed for performance reasons. You will need to
   run `sparv clean` before running Sparv on any existing corpora using the old data format.
+- Updated documentation with a fresh new look!
 - The parameters `append` and `allow_newline` have been removed from the Sparv class methods to simplify the code.
   `append` was never used, and newlines are now preserved by default.
 - `xml_export:compressed` and `xml_export:compressed_scrambled` no longer need to first create uncompressed combined
@@ -213,17 +214,17 @@
 - Empty corpus config files are treated as missing config files.
 - Moved CWB corpus installer from `korp` module into `cwb` module.
   This lead to some name changes of variables used in the corpus config:
-    - `korp.remote_cwb_datadir` is now called `cwb.remote_data_dir`
-    - `korp.remote_cwb_registry` is now called `cwb.remote_registry_dir`
-    - `korp.remote_host` has been split into `korp.remote_host` (host for SQL files) and `cwb.remote_host` (host for CWB
+  - `korp.remote_cwb_datadir` is now called `cwb.remote_data_dir`
+  - `korp.remote_cwb_registry` is now called `cwb.remote_registry_dir`
+  - `korp.remote_host` has been split into `korp.remote_host` (host for SQL files) and `cwb.remote_host` (host for CWB
        files)
-    - install target `korp:install_corpus` has been renamed and split into `cwb:install_corpus` and
+  - install target `korp:install_corpus` has been renamed and split into `cwb:install_corpus` and
       `cwb:install_corpus_scrambled`
 - Renamed the following stats exports:
-    `stats_export:freq_list` is now called `stats_export:sbx_freq_list`
-    `stats_export:freq_list_simple` is now called `stats_export:sbx_freq_list_simple`
-    `stats_export:install_freq_list` is now called `stats_export:install_sbx_freq_list`
-    `stats_export:freq_list_fsv` is now called `stats_export:sbx_freq_list_fsv`
+  - `stats_export:freq_list` is now called `stats_export:sbx_freq_list`
+  - `stats_export:freq_list_simple` is now called `stats_export:sbx_freq_list_simple`
+  - `stats_export:install_freq_list` is now called `stats_export:install_sbx_freq_list`
+  - `stats_export:freq_list_fsv` is now called `stats_export:sbx_freq_list_fsv`
 - Now incrementally compresses bz2 files in compressed XML export to avoid memory problems with large files.
 - Corpus source files are now called "source files" instead of "documents". Consequently, the `--doc/-d` flag has been
   renamed to `--file/-f`.

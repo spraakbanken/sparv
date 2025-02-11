@@ -1,7 +1,7 @@
-# Språkbanken's Sparv Pipeline
+# Sparv – Språkbanken's Analysis Platform
 
 ![](../images/sparv_detailed.png){ align=right .intro-logo }
-The Sparv Pipeline is a powerful command line tool designed for annotating text with a wide range of linguistic
+Sparv is a powerful command line tool designed for annotating text with a wide range of linguistic
 annotations. Developed by [Språkbanken Text](https://spraakbanken.gu.se/), Sparv provides a comprehensive solution for
 text analysis, supporting various source formats, annotations, and export formats.
 
@@ -13,9 +13,6 @@ annotations as needed.
 While Sparv is primarily designed for Swedish text, it can also be used for other languages. Writing plugins to
 integrate third-party tools that support other languages is straightforward, making Sparv a flexible solution for
 multilingual text analysis.
-
-With Sparv, you can streamline your text annotation process with a single command, making it an efficient and versatile
-tool for linguistic research and text analysis.
 
 The [source code](https://github.com/spraakbanken/sparv-pipeline) is available under the [MIT
 license](https://opensource.org/licenses/MIT). If you have any questions, problems or suggestions please contact

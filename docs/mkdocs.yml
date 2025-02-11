@@ -1,4 +1,4 @@
-site_name: Sparv Pipeline
+site_name: Sparv
 site_url: https://spraakbanken.gu.se/sparv/
 repo_url: https://github.com/spraakbanken/sparv-pipeline
 docs_dir: mkdocs
@@ -7,7 +7,7 @@ docs_dir: mkdocs
 theme:
   name: material
   palette:
-    primary: green # green
+    primary: green
     accent: deep orange
   font:
     text: Source Sans 3
@@ -46,9 +46,10 @@ nav:
     - Introduction: user-manual/intro.md
     - Quick Start: user-manual/quick-start.md
     - Installation and Setup: user-manual/installation-and-setup.md
-    - Running Sparv: user-manual/running-sparv.md
-    - Requirements for Source Files: user-manual/requirements-for-source-files.md
+    - Sparv Concepts: user-manual/concepts.md
+    - Preparing Your Corpus: user-manual/preparing-your-corpus.md
     - Corpus Configuration: user-manual/corpus-configuration.md
+    - Running Sparv: user-manual/running-sparv.md
     - Available analyses: user-manual/available-analyses.md
     - Using Sparv as a Library: user-manual/using-sparv-as-a-library.md
   - Developer's Guide:

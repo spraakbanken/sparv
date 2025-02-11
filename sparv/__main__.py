@@ -175,7 +175,7 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
                 "automatically the first time they are needed."
             )
         },
-        "run-module": "Run annotator module independently",
+        "run-module": "Run annotator module independently (experimental)",
         "run-rule": "Run specified rule(s) for creating annotations",
         "create-file": {
             "short": "Create specified file(s)",
@@ -214,7 +214,7 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
         "Advanced commands:",
         f"   run-rule         {help['run-rule']}",
         f"   create-file      {help['create-file']['short']}",
-        f"   run-module       {help['run-module']}",
+        # f"   run-module       {help['run-module']}",
         f"   preload          {help['preload']}",
         f"   autocomplete     {help['autocomplete']}",
         f"   schema           {help['schema']}",

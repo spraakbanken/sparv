@@ -1,6 +1,5 @@
 # Writing Sparv Plugins
-
-The Sparv Pipeline consists of various processors such as importers, annotators, and exporters, contained in so-called
+Sparv consists of various processors such as importers, annotators, and exporters, contained in so-called
 modules. While many modules come with the main Sparv package, none are mandatory to use, and you can easily extend the
 pipeline with your own modules using plugins. A plugin is simply a Sparv module that is not part of the main package.
 Writing a plugin is the recommended way to add a new module to Sparv.
@@ -37,7 +36,7 @@ them if you plan to publish your plugin.
 
 ## pyproject.toml
 
-The `pyproject.toml` file is required to install a plugin and connect it to the Sparv Pipeline. Here is a minimal
+The `pyproject.toml` file is required to install a plugin and connect it to Sparv. Here is a minimal
 example (taken from the [Sparv plugin template](https://github.com/spraakbanken/sparv-plugin-template)):
 
 ```toml

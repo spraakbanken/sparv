@@ -7,7 +7,7 @@ import json
 import re
 from collections import defaultdict
 from collections.abc import Sequence
-from typing import Any as AnyType
+from typing import Any as AnyType, Callable, Iterable
 
 import typing_inspect
 
@@ -49,7 +49,7 @@ class String(BaseProperty):
     def __init__(
         self,
         pattern: str | None = None,
-        choices: list[str] | None = None,
+        choices: Iterable[str] | Callable | None = None,
         min_len: int | None = None,
         max_len: int | None = None,
         allow_null: bool = False,
@@ -59,7 +59,7 @@ class String(BaseProperty):
 
         Args:
             pattern: A regex pattern.
-            choices: A list of possible choices.
+            choices: An iterable of possible choices, or a function that returns such an iterable.
             min_len: The minimum length of the string.
             max_len: The maximum length of the string.
             allow_null: If null values are allowed.

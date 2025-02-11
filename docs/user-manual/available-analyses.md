@@ -1,20 +1,21 @@
 # Available Analyses
 
-This section provides an overview of some of the built-in analyses available within the Sparv Pipeline and the Sparv
-plugins developed by Språkbanken. Note that this is not an exhaustive list of available annotations but rather a summary
-of the linguistic analyses. Technical annotations (e.g., automatic assignment of IDs or calculation of whitespace
-information) are not included here.
+This section provides an overview of some of the built-in analyses available within Sparv and the Sparv plugins
+developed by Språkbanken. Note that this is not an exhaustive list of available annotations but rather a summary of the
+linguistic analyses. Technical annotations (e.g., automatic assignment of IDs or calculation of whitespace information)
+are not included here. For a complete list of analyses, refer to the output of the `sparv modules` command.
 
 > [!NOTE]
+>
 > **Annotations** refer to the names of the annotations as they appear in the corpus config file under the
 > `export.annotations` section (learn more in the [corpus configuration
 > section](corpus-configuration.md#export-options)). Please note that the annotations usually have shorter names in the
 > corpus exports.
 >
-> **Annotators** are the names of the annotation functions (including their module names) used to produce the
-> annotations. These can be executed directly with the `sparv run-rule [annotator]` command. However, this is generally
-> unnecessary, as they are automatically executed when running the `sparv run` command if their corresponding annotations
-> are included in the corpus config file.
+> **Annotators** are the names of the functions (including their module names) used to produce the annotations. These
+> can be executed directly with the `sparv run-rule [annotator]` command. However, this is generally unnecessary, as
+> they are automatically executed when running the `sparv run` command if their corresponding annotations are included
+> in the corpus config file.
 
 ## Analyses for contemporary Swedish
 

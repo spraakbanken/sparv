@@ -1008,18 +1008,18 @@ class OutputMarker(OutputCommonData):
 
 
 class Text:
-    """Corpus text."""
+    """Represents the text content of a source file."""
 
     def __init__(self, source_file: str | None = None) -> None:
         """Initialize class.
 
         Args:
-            source_file: Source file for the annotation.
+            source_file: Name of the source file.
         """
         self.source_file = source_file
 
     def read(self) -> str:
-        """Get corpus text.
+        """Get the text content of the source file.
 
         Returns:
             The corpus text.
@@ -1027,10 +1027,10 @@ class Text:
         return io.read_data(self.source_file, io.TEXT_FILE)
 
     def write(self, text: str) -> None:
-        """Write text to the designated file of a corpus.
+        """Write text to a file, overwriting any existing content.
 
         Args:
-            text: The text to write.
+            text: The text to write. Should be a unicode string.
         """
         io.write_data(self.source_file, io.TEXT_FILE, text)
 
@@ -1235,13 +1235,13 @@ class Wildcard(str):
 
 
 class Model(Base):
-    """Path to model file."""
+    """Path to a model file."""
 
     def __init__(self, name: str) -> None:
         """Initialize class.
 
         Args:
-            name: Name of the model file
+            name: The path of the model file.
         """
         super().__init__(name)
 
@@ -1264,14 +1264,14 @@ class Model(Base):
             The path to the model file.
         """
         return_path = pathlib.Path(self.name)
-        # Return as is if path is absolute, models dir is already included, or if relative path to a file that exists
+        # Return as is, if path is absolute, models dir is already included, or if relative path to a file that exists
         if return_path.is_absolute() or paths.models_dir in return_path.parents or return_path.is_file():
             return return_path
         else:
             return paths.models_dir / return_path
 
     def write(self, data: str) -> None:
-        """Write arbitrary string data to models directory.
+        """Write arbitrary string data to the model file.
 
         Args:
             data: The data to write.
@@ -1284,7 +1284,7 @@ class Model(Base):
         logger.info("Wrote %d bytes: %s", len(data), self.name)
 
     def read(self) -> str:
-        """Read arbitrary string data from file in models directory.
+        """Read arbitrary string data from the model file.
 
         Returns:
             The data of the model.
@@ -1294,7 +1294,7 @@ class Model(Base):
         return data
 
     def write_pickle(self, data: Any, protocol: int = -1) -> None:
-        """Dump arbitrary data to pickle file in models directory.
+        """Dump arbitrary data to the model file in pickle format.
 
         Args:
             data: The data to write.
@@ -1308,7 +1308,7 @@ class Model(Base):
         logger.info("Wrote %d bytes: %s", len(data), self.name)
 
     def read_pickle(self) -> Any:
-        """Read pickled data from file in models directory.
+        """Read pickled data from model file.
 
         Returns:
             The data of the model.
@@ -1319,7 +1319,7 @@ class Model(Base):
         return data
 
     def download(self, url: str) -> None:
-        """Download file from URL and save to models directory.
+        """Download file from URL and save to the model path.
 
         Args:
             url: URL to download from.
@@ -1337,14 +1337,14 @@ class Model(Base):
             raise e
 
     def unzip(self) -> None:
-        """Unzip zip file inside models directory."""
+        """Unzip zip file in same directory as the model file."""
         out_dir = self.path.parent
         with zipfile.ZipFile(self.path) as z:
             z.extractall(out_dir)
         logger.info("Successfully unzipped %s", self.name)
 
     def ungzip(self, out: str) -> None:
-        """Unzip gzip file inside modeldir.
+        """Unzip gzip file in same directory as the model file.
 
         Args:
             out: Path to output file.

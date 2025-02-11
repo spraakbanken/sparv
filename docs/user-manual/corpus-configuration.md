@@ -1,6 +1,6 @@
 # Corpus Configuration
 
-To annotate a corpus with Sparv, you need to create a _corpus configuration file_. This file, written in
+To process a corpus with Sparv, you need to create a *corpus configuration file*. This file, written in
 [YAML](https://docs.ansible.com/ansible/latest/reference_appendices/YAMLSyntax.html), provides essential information
 about your corpus and instructs Sparv on how to process it. The [corpus config wizard](#corpus-config-wizard) can assist
 you in generating this file. Alternatively, you can refer to the [example
@@ -37,7 +37,7 @@ export:
 Running `sparv schema` will generate a JSON schema that in many text editors can be used to validate your config file as
 you are creating it. In some editors, this schema also enables autocompletion for configuration options.
 
-### Corpus Config Wizard
+## Corpus Config Wizard
 
 The corpus config wizard is a tool that helps you create a config file by guiding you through questions about your
 corpus and desired annotations. Run `sparv wizard` to start the tool. If a config file already exists in the directory,
@@ -47,7 +47,7 @@ The wizard is a helpful starting point for creating a config file but does not c
 However, you can of course manually edit a wizard-generated config file to add advanced configurations, such as
 [custom annotations](#custom-annotations) or [headers](#headers).
 
-### Default Values
+## Default Values
 
 Some configuration variables, like `metadata`, `classes`, `import`, `export`, and `custom_annotations`, are general and
 used across multiple Sparv modules. Others are specific to individual annotation modules (e.g., `hunpos.binary`
@@ -96,29 +96,31 @@ The `import` section of your corpus config provides Sparv with details about you
 - `import.source_dir`: Specifies the location of your input files and defaults to `source`. Sparv will search this
   directory recursively for valid files to process.
 
-- `import.importer`: Defines which importer Sparv should use when processing your files, based on their format. For XML
-  files, use `xml_import:parse` (the default setting), and for plain text files, use `text_import:parse`. Run
-  `sparv modules` to see what other importers are available.
+- `import.importer`: Defines which importer Sparv should use when processing your files. Which importer you should use
+    depends on the format of your source files.  For XML files, use `xml_import:parse` (the default setting), and for
+  plain text files, use `text_import:parse`. Run `sparv modules` to see what other importers are available.
 
-- `import.text_annotation`: Identifies the existing annotation representing _one text_. Any automatic text-level
-  annotations will be attached to this annotation. For XML files, this corresponds to an XML element; for plain text,
-  a default `text` root annotation is created automatically, so no further configuration is needed.
+- `import.text_annotation`: Identifies the existing annotation representing *one text*. Any automatic text-level
+  annotations will be attached to this annotation. For XML files, this corresponds to an XML element in your source
+  files; for plain text, a default `text` root annotation is created automatically, so no further configuration is
+  needed.
 
-    > [!NOTE]
-    > This setting automatically sets the `text` [class](#annotation-classes). If you want to use an automatic
-    > annotation as the text annotation, you should not use this setting, and instead set the `text` class directly.
+    !!! note
+        This setting automatically sets the `text` [class](#annotation-classes). If you want to use an automatic
+        annotation as the text annotation, you should not use this setting, and instead set the `text` class directly.
 
 - `import.encoding`: Specifies the source file encoding, with a default of UTF-8.
 
-- `import.normalize`: Normalizes Unicode symbols in the input, using any of the following forms: 'NFC', 'NFKC', 'NFD',
-  or 'NFKD'. Defaults to `NFC`.
+- `import.normalize`: Normalizes Unicode symbols in the input, using any of the following forms: `NFC`, `NFKC`, `NFD`,
+  or `NFKD`. Defaults to `NFC`.
 
-- `import.keep_control_chars`: Set to `True` to retain control characters in the text. Generally, this should remain
-  disabled to avoid potential issues.
+- `import.keep_control_chars`: Set to `true` to retain control characters in the text. Generally, this should remain
+  disabled (the default setting) to avoid potential issues.
 
 Each importer may have additional options. Use `sparv modules --importers` to view these. For instance, the XML importer
 offers options to skip the content of specific elements and provides fine-grained control over XML header imports. For
-more details about XML-specific options, run `sparv modules xml_import`.
+more details about XML-specific options, run `sparv modules xml_import`. See also the section on [headers](#headers)
+and [XML namespaces](#xml-namespaces) further down.
 
 ## Export Options
 
@@ -127,18 +129,16 @@ contain.
 
 ### Annotations from the Source Data
 
-The `export.source_annotations` option allows you to select which elements and attributes from your source
-files should be included in the output (only applicable if your input is XML). By default, all elements and attributes
-are retained.
+The `export.source_annotations` option allows you to select which existing annotations in your source files should be
+included in the output (only applicable if your input is in a format that supports structured data, such as XML). By
+default, all existing annotations, such as XML elements and attributes, are included in the output.
 
-- To exclude all source annotations, set this option to `[]`. Note that this may cause XML export errors, as the root
-  element must be specified as a source annotation.
-  
-- If specifying elements here, ensure the root element (i.e., the element that encompasses all other elements and text
-  content) is included for each input file. Omitting the root element will result in invalid XML output, preventing
-  Sparv from generating XML files.
+- When specifying elements using this option, ensure the root element (i.e., the element that encompasses all other
+  elements and text content) is included. Omitting the root element will result in invalid XML output, preventing Sparv
+  from generating XML files.
 
-For non-XML outputs, you do not need to configure this option.
+- To exclude all source annotations, set this option to `[]`. Note that this may cause XML export errors, as a root
+  element is required.
 
 You can rename elements and attributes present in your input data. For example, if your files contain elements like
 `<article name="Scandinavian Furniture" date="2020-09-28">` and you want them to appear as `<text title="Scandinavian
@@ -152,8 +152,8 @@ export:
         - ...
 ```
 
-The dots (`...`) in the example above refer to all remaining elements and attributes in your input data. Without using
-the dots, the "date" attribute in the example would be lost.
+The ellipsis (`...`) in the example above represents all other elements and attributes in your input data that are not
+explicitly listed. Omitting the ellipsis would result in the "date" attribute being excluded from the output.
 
 If you want to keep most of the markup of your input data but exclude some elements or attributes, you can use the `not`
 keyword:
@@ -164,13 +164,15 @@ export:
         - not date
 ```
 
-In the example above, this would result in the following output: `<article name="Scandinavian Furniture">`.
+In the example above, this configuration would produce the following output: `<article name="Scandinavian Furniture">`.
+If `source_annotations` contains *only* annotations prefixed with `not`, all other annotations are automatically
+included by default, without needing to use the ellipsis described above.
 
 ### Automatic Annotations Generated by Sparv
 
 The `export.annotations` option specifies the list of automatic annotations that Sparv should generate and include in
-the output. To see the available annotations, run `sparv modules --annotators`. Some annotations use curly brackets,
-such as `{annotation}:misc.id`, indicating a wildcard that must be replaced with a specific value in the
+the output. To see which annotations are available, run `sparv modules --annotators`. Some annotations use curly
+brackets, such as `{annotation}:misc.id`, indicating a wildcard that must be replaced with a specific value in the
 `export.annotations` list (e.g., `<sentence>:misc.id`). You may also use [annotation presets](#annotation-presets).
 
 If you need to produce multiple output formats with different annotations, you can override the
@@ -202,6 +204,9 @@ Several export options relate to the naming of annotations and attributes. You c
 Sparv with a custom prefix using the `export.sparv_namespace` option. Similarly, you can add a prefix to all annotations
 and attributes from your source files using the `export.source_namespace` option.
 
+> [!NOTE]
+> Despite the name of the options, these are not real XML namespaces but merely prefixes added to annotation names.
+
 The `export.remove_module_namespaces` option is `true` by default, meaning module name prefixes are removed during
 export. Turning this option off will result in output like:
 
@@ -218,9 +223,10 @@ instead of the more compact:
 ### Scrambling and Anonymisation
 
 The `export.scramble_on` setting is used by all export formats that support scrambling. It controls which annotation
-your corpus will be scrambled on. Typical settings are `export.scramble_on: <sentence>` or `export.scramble_on:
-<paragraph>`. For example, setting this to `<paragraph>` would lead to all paragraphs being randomly shuffled in the
-export, while the sentences and tokens within the paragraphs keep their original order.
+your corpus will be scrambled on (by default, no scrambling is performed). Typical settings are `export.scramble_on:
+<sentence>` or `export.scramble_on: <paragraph>`. For example, setting this to `<paragraph>` would lead to all
+paragraphs being randomly shuffled in the export, while the sentences and tokens within the paragraphs keep their
+original order.
 
 The `export.word` option defines the strings to be output as tokens in the export. By default, this is set to
 `<token:word>`. A useful application for this setting is anonymisation of texts. If you want to produce XML containing
@@ -321,7 +327,8 @@ consists of the namespace prefix followed by a `+`, and then the tag or attribut
 the element `<sparv:myelement xmlns:sparv="https://spraakbanken.gu.se/verktyg/sparv">` would be `sparv+myelement`.
 
 If you prefer to remove namespaces during import, set `xml_import.remove_namespaces` to `true` in the corpus
-configuration. Be cautious, as this may lead to collisions with attributes that contain namespaces in the source data.
+configuration. Be cautious, as this may lead to collisions between attributes with the same name but different
+namespaces.
 
 ## Annotation Classes
 
@@ -330,8 +337,8 @@ Annotation classes allow you to refer to annotations without specifying the modu
 respectively.
 
 These classes simplify dependency management between modules and enhance the pipeline's flexibility. For instance, a
-part-of-speech tagger that requires tokenized text as input doesn't need to know which tokenizer was used; it simply
-requests `<token>`.
+part-of-speech tagger that requires tokenized text as input probably doesn't care which tokenizer produced the tokens,
+so it can simply request `<token>` as input.
 
 As a user, you can also benefit from annotation classes. In most parts of the config file where annotations are
 referenced, you can use classes instead. To see the available classes, run the command `sparv classes`. Classes are
@@ -370,10 +377,10 @@ export:
         - <token>:malt.dephead_ref
 ```
 
-Another instance where you might need to redefine classes is when your corpus data includes annotations (such as
-sentences or tokens) that should be used as input for annotators. For instance, if you have manually segmented sentences
-and enclosed each sentence in an `<s>` element, you can bypass Sparv's automatic sentence segmentation by setting the
-sentence class to this element:
+Another instance where you might need to explicitly redefine classes is when your source files include annotations (such
+as sentences or tokens) that should be used as input for annotators. For instance, if you have manually segmented
+sentences and enclosed each sentence in an `<s>` element, you can bypass Sparv's automatic sentence segmentation by
+setting the sentence class to this element:
 
 ```yaml
 classes:
@@ -384,9 +391,17 @@ xml_import:
         - s
 ```
 
+This works because annotators requiring sentence annotations as input rely on the `<sentence>` class, rather than being
+tied to a specific module's sentence annotation.
+
 > [!ATTENTION]
-> Ensure that Sparv recognizes `s` as an annotation imported from your corpus data. This is achieved by
-> listing `s` under `xml_import.elements`, as shown in the example above.
+>
+> To be able to use annotations from your source data as input for annotators, Sparv first needs to be informed about
+> their existence. For XML data, this is achieved by listing the relevant elements in the `xml_import.elements` section
+> of your configuration file, as shown in the example above.
+>
+> Note that only annotations intended as input for annotators need to be listed in `xml_import.elements`, not when
+> merely passing them through to the output.
 
 ## Annotation Presets
 
@@ -417,7 +432,7 @@ annotations and combine different presets as needed.
 
 Sparv comes with a set of default presets. To see which presets are available for your corpus and the annotations they
 include, run the `sparv presets` command. Presets are defined in YAML files located in the [Sparv data
-directory](installation-and-setup.md#setting-up-sparv) under `config/presets`. You can also add your own presets by
+directory](installation-and-setup.md#setting-up-sparv) under `config/presets`. You can add your own presets by
 adding YAML files to this directory.
 
 It is possible to exclude specific annotations from a preset using the `not` keyword. In the following example, all

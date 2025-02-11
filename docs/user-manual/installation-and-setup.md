@@ -1,6 +1,6 @@
 # Installation and Setup
 
-This section walks you through setting up the Sparv Pipeline on your computer, including any additional software you may
+This section walks you through setting up Sparv on your computer, including any additional software you may
 need to fully utilize Sparv's analysis features.
 
 ## Prerequisites
@@ -25,7 +25,7 @@ python3 -m pip install --user pipx
 python3 -m pipx ensurepath
 ```
 
-Then, install the Sparv Pipeline:
+Then, install Sparv:
 
 ```sh
 pipx install sparv-pipeline
@@ -74,7 +74,7 @@ sparv build-models --all --language swe
 
 ## Installing Additional Third-party Software
 
-The Sparv Pipeline can be used together with several plugins and third-party software. The installation of the software
+Sparv can be used together with several plugins and third-party software. The installation of the software
 listed below is optional and depends on the analyses you wish to perform with Sparv. Please note that different licenses
 may apply to different software.
 
@@ -91,7 +91,7 @@ software is installed correctly, Sparv will automatically download and install t
 |**Dependencies**                  |[Java](https://www.java.com/en/download/)|
 
 [Sparv wsd](https://github.com/spraakbanken/sparv-wsd) is developed by Språkbanken and is licensed under the same terms
-as the Sparv Pipeline. To use it within the Sparv Pipeline, simply download the `saldowsd.jar` file from the provided
+as Sparv. To use it within Sparv, simply download the `saldowsd.jar` file from the provided
 GitHub link and place it in the `bin/wsd` directory inside your [Sparv data directory](#setting-up-sparv).
 
 ### hfst-SweNER

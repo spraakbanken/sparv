@@ -1,6 +1,6 @@
-# Språkbanken's Sparv Pipeline
+# Sparv – Språkbanken's Analysis Platform
 
-The Sparv Pipeline is a text analysis tool run from the command line. The documentation can be found here:
+Sparv is a text analysis tool run from the command line. The documentation can be found here:
 https://spraakbanken.gu.se/sparv.
 
 Check the [changelog](CHANGELOG.md) to see what's new!
@@ -24,7 +24,7 @@ Sparv is available on [PyPI](https://pypi.org/project/sparv-pipeline/) and can b
 We recommend using pipx, which will install Sparv in an isolated environment while still making it available to be run
 from anywhere.
 
-```
+```sh
 python3 -m pip install --user pipx
 python3 -m pipx ensurepath
 pipx install sparv-pipeline
@@ -32,7 +32,7 @@ pipx install sparv-pipeline
 
 Now you should be ready to run the Sparv command! Try it by typing `sparv --help`.
 
-The Sparv Pipeline can be used together with several plugins and third-party software. Please check the [Sparv user
+Sparv can be used together with several plugins and third-party software. Please check the [Sparv user
 manual](https://spraakbanken.gu.se/sparv/#/user-manual/installation-and-setup) for more details!
 
 ## Running tests
@@ -47,7 +47,7 @@ fetch` in order to update the corpus and annotation files.
 
 Install the dependencies, including the dev dependencies. We recommend that you first set up a virtual environment:
 
-```
+```sh
 python3 -m venv venv
 source venv/bin/activate
 pip install -e .[dev]
