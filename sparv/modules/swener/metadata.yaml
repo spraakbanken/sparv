@@ -57,12 +57,10 @@ standard_reference: |-
 other_references:
   - "[Dimitrios Kokkinakis. 2004. Reducing the effect of name explosion](https://demo.spraakbanken.gu.se/svedk/pbl/kokkinakisBNER.pdf)"
   - "Download HFST-SweNER: https://www.kielipankki.fi/download/HFST-SweNER/"
-tool:
-  name: "HFST-SweNER"
-  url: "https://www.kielipankki.fi/download/HFST-SweNER/"
-licences:
-  tool: CC-BY
-model: "Included in the tool"
+tools:
+  - name: "HFST-SweNER"
+    url: "https://www.kielipankki.fi/download/HFST-SweNER/"
+    license: CC-BY
 trained_on: ''
 tagset: "[Named entity tags from hfst-SweNER](https://svn.spraakdata.gu.se/sb-arkiv/pub/swener-tags.html)"
 evaluation_results: "f-score between 91.33% to 27.48%, depending on the named entity category"

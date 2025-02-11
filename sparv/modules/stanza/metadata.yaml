@@ -1,14 +1,13 @@
-id: stanza-parent-swe
+id: stanza-swe-parent
 abstract: true
 language_codes:
   - swe
 keywords:
   - stanza
-tool:
-  name: "Stanza"
-  url: "https://stanfordnlp.github.io/stanza/"
-licences:
-  tool: "Apache License 2.0"
+tools:
+  - name: "Stanza"
+    url: "https://stanfordnlp.github.io/stanza/"
+    license: "Apache License 2.0"
 trained_on: "[SUC3](https://spraakbanken.gu.se/resurser/suc3), [TalbankenSBX](https://spraakbanken.gu.se/resurser/talbanken), [SIC2](https://spraakbanken.gu.se/resurser/sic2)"
 other_references:
   - "Stanza: Peng Qi, Yuhao Zhang, Yuhui Zhang, Jason Bolton and Christopher D. Manning. 2020"
@@ -32,7 +31,7 @@ created: 2020-12-07
 updated: 2022-08-10
 ---
 id: sbx-swe-pos-stanza-stanzamorph
-parent: stanza-parent-swe
+parent: stanza-swe-parent
 name:
   swe: SUC-ordklasstaggning med Stanza
   eng: SUC part-of-speech tagging with Stanza
@@ -60,7 +59,7 @@ description:
     [Sparv](https://spraakbanken.gu.se/sparv).
 ---
 id: sbx-swe-msd-stanza-stanzamorph-suc3
-parent: stanza-parent-swe
+parent: stanza-swe-parent
 name:
   swe: Morfosyntaktisk SUC-taggning med Stanza
   eng: Tagging of morphological features (SUC) by Stanza
@@ -80,7 +79,10 @@ example_output: |-
   <token msd="NN.UTR.SIN.IND.NOM">korpus</token>
   <token msd="MAD">.</token>
   ```
-model: "[Stanzamorph](https://spraakbanken.gu.se/resurser/stanzamorph)"
+models:
+  - name: Stanzamorph
+    url: https://spraakbanken.gu.se/resurser/stanzamorph
+    license: CC BY 4.0
 description:
   eng: |-
     This annotation contains morphosyntactic features in addition to part-of-speech tags.
@@ -91,7 +93,7 @@ description:
     [Sparv](https://spraakbanken.gu.se/sparv).
 ---
 id: sbx-swe-msd-stanza-stanzamorph-ufeats
-parent: stanza-parent-swe
+parent: stanza-swe-parent
 name:
   swe: Morfologisk analys för svenska baserad på Stanza
   eng: Stanza-based morphological analysis for Swedish
@@ -115,7 +117,10 @@ other_references:
   - "Stanza: A Python Natural Language Processing Toolkit for Many Human Languages. In Association for Computational Linguistics (ACL) System Demonstrations. 2020"
   - "TalbankenSBX: https://spraakbanken.gu.se/en/blog/20200609-the-five-lives-of-talbanken"
   - "SIC2: https://spraakbanken.gu.se/en/resources/sic2"
-model: "[Stanzamorph](https://spraakbanken.gu.se/resurser/stanzamorph)"
+models:
+  - name: Stanzamorph
+    url: https://spraakbanken.gu.se/resurser/stanzamorph
+    license: CC BY 4.0
 tagset: "[UD](https://universaldependencies.org/u/feat/index.html)"
 evaluation_results: ''
 description:
@@ -125,7 +130,7 @@ description:
     This analysis uses universal features, defined as part of the Universal Dependencies standard.
 ---
 id: sbx-swe-lemmatization-stanza-stanzalem
-parent: stanza-parent-swe
+parent: stanza-swe-parent
 name:
   swe: SUC3-grundformanalys med Stanza
   eng: SUC3-citation form analysis with Stanza
@@ -148,18 +153,21 @@ other_references:
   - "Stanza: Peng Qi, Yuhao Zhang, Yuhui Zhang, Jason Bolton and Christopher D. Manning. 2020"
   - "Stanza: A Python Natural Language Processing Toolkit for Many Human Languages. In Association for Computational Linguistics (ACL) System Demonstrations. 2020"
   - "SUC3: https://spraakbanken.gu.se/en/resources/suc3"
-model: "[Stanzalem](https://spraakbanken.gu.se/resurser/stanzalem)"
+models:
+  - name: Stanzalem
+    url: https://spraakbanken.gu.se/resurser/stanzalem
+    license: CC BY 4.0
 trained_on: "[SUC3](https://spraakbanken.gu.se/resurser/suc3)"
 evaluation_results: Accuracy = 0.99
 description:
   eng: |-  
-    In 2020, the Stanza tool was trained and tested the SUC3 corpus in order to create a high-quality analysis.
+    In 2020, the Stanza tool was trained and tested on the SUC3 corpus in order to create a high-quality analysis.
     Currently (in 2024), this analysis is available in Sparv, but it is not provided by default, since it is not fully
     compatible with SALDO-style lemmas. This model's advantage is that it can be used to lemmatize any token, including
     out-of-vocabulary tokens.
 ---
 id: sbx-swe-dependency-stanza-stanzasynt
-parent: stanza-parent-swe
+parent: stanza-swe-parent
 name:
   swe: Dependensparsning med Stanza
   eng: Dependency parsing with Stanza
@@ -180,7 +188,10 @@ example_output: |-
   <token dephead_ref="3" deprel="SP" ref="5">korpus</token>
   <token dephead_ref="3" deprel="IP" ref="6">.</token>
   ```
-model: "[Stanzasynt](https://spraakbanken.gu.se/resurser/stanzasynt)"
+models:
+  - name: Stanzasynt
+    url: https://spraakbanken.gu.se/resurser/stanzasynt
+    license: CC BY 4.0
 trained_on: "[TalbankenSBX](https://spraakbanken.gu.se/resurser/talbanken)"
 tagset: "[MambaDep](https://svn.spraakdata.gu.se/sb-arkiv/pub/mamba.html)"
 evaluation_results: |-
@@ -191,10 +202,14 @@ description:
     In 2020, the Stanza tool was trained and tested on TalbankenSBX (following MambaDep-style annotation) in order to
     create a high-quality analysis. Currently (in 2024), this is the default analysis for Swedish in Sparv
 ---
-id: stanza-parent-eng
+id: stanza-eng-parent
 abstract: true
 language_codes:
   - eng
+tools:
+  - name: "Stanza"
+    url: "https://stanfordnlp.github.io/stanza/"
+    license: "Apache License 2.0"
 keywords:
   - stanza
 standard_reference: ''
@@ -203,12 +218,14 @@ other_references:
   - "Stanza: Peng Qi, Yuhao Zhang, Yuhui Zhang, Jason Bolton and Christopher D. Manning. 2020"
   - "Stanza: A Python Natural Language Processing Toolkit for Many Human Languages. In Association for Computational Linguistics (ACL) System Demonstrations. 2020"
 evaluation_results: ''
-model: Stanza standard model for English (https://stanfordnlp.github.io/stanza/models.html)
+models:
+  - name: Stanza standard model for English
+    url: https://stanfordnlp.github.io/stanza/models.html
 created: 2022-08-10
 updated: 2022-08-10
 ---
 id: sbx-eng-pos-stanza
-parent: stanza-parent-eng
+parent: stanza-eng-parent
 name:
   swe: Ordklasstaggning med Stanza för engelska
   eng: Part-of-speech tagging with Stanza for English
@@ -235,7 +252,7 @@ example_extra: |-
   ```
 ---
 id: sbx-eng-sentence-stanza
-parent: stanza-parent-eng
+parent: stanza-eng-parent
 name:
   swe: Meningssegmentering för engelska med Stanza
   eng: Sentence segmentation for English with Stanza
@@ -277,7 +294,7 @@ example_extra: |-
   ```
 ---
 id: sbx-eng-tokenization-stanza
-parent: stanza-parent-eng
+parent: stanza-eng-parent
 name:
   swe: Tokenisering för engelska med Stanza
   eng: Tokenization for English with Stanza
@@ -306,7 +323,7 @@ example_extra: |-
   ```
 ---
 id: sbx-eng-lemmatization-stanza
-parent: stanza-parent-eng
+parent: stanza-eng-parent
 name:
   swe: Lemmatisering för engelska med Stanza
   eng: Lemmatization for English with Stanza
@@ -335,7 +352,7 @@ example_extra: |-
   ```
 ---
 id: sbx-eng-dependency-stanza
-parent: stanza-parent-eng
+parent: stanza-eng-parent
 name:
   swe: Dependensparsning för engelska med Stanza
   eng: Dependency parsing for English with Stanza
@@ -367,7 +384,7 @@ example_extra: |-
   ```
 ---
 id: sbx-eng-namedentity-stanza
-parent: stanza-parent-eng
+parent: stanza-eng-parent
 name:
   swe: Namnigenkänning för engelska med Stanza
   eng: Named entity recognition for English with Stanza
@@ -419,7 +436,7 @@ description:
     geographical locations) in the text.
 ---
 id: sbx-eng-pos-stanza-upos
-parent: stanza-parent-eng
+parent: stanza-eng-parent
 name:
   swe: UD-Ordklasstaggning med Stanza för engelska
   eng: UD part-of-speech tagging with Stanza for English
@@ -446,7 +463,7 @@ example_extra: |-
   ```
 ---
 id: sbx-eng-msd-stanza-ufeats
-parent: stanza-parent-eng
+parent: stanza-eng-parent
 name:
   swe: Morfologisk analys för engelska baserad på Stanza
   eng: Stanza-based morphological analysis for English

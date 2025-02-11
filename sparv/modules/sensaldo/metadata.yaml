@@ -49,7 +49,9 @@ standard_reference: 'http://www.lrec-conf.org/proceedings/lrec2018/summaries/857
 other_references:
   - http://www.lrec-conf.org/proceedings/lrec2018/summaries/846.html
   - https://gup.ub.gu.se/publication/264721?lang=sv
-model: "[Sensaldo](https://spraakbanken.gu.se/resurser/sensaldo)"
+models:
+  - name: Sensaldo
+    url: "https://spraakbanken.gu.se/resurser/sensaldo"
 trained_on: ''
 tagset: ''
 evaluation_results: ''

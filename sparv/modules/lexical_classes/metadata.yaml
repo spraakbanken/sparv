@@ -18,7 +18,9 @@ standard_reference: "[Lars Borin, Luis Nieto Piña, Richard Johansson (2015): He
 other_references:
   - "[Lars Borin, Jens Allwood, Gerard de Melo (2014): Bring vs. MTRoget: Evaluating automatic thesaurus translation, in Proceedings of LREC 2014, May 26-31, 2014 Reykjavik, Iceland](https://gup.ub.gu.se/publication/198549)"
 tagset: "[Blingbring](https://spraakbanken.gu.se/resurser/blingbring)"
-model: "[Blingbring frequency model](https://github.com/spraakbanken/sparv-models/blob/master/lexical_classes/blingbring.freq.gp2008%2Bsuc3%2Bromi.pickle)"
+models:
+  - name: Blingbring frequency model
+    url: "https://github.com/spraakbanken/sparv-models/blob/master/lexical_classes/blingbring.freq.gp2008%2Bsuc3%2Bromi.pickle"
 ---
 id: sbx-swe-lexical_classes_token-sparv-blingbring
 parent: blingbring-parent
@@ -145,7 +147,9 @@ standard_reference: "[Dana Dannélls, Lars Borin, Karin Friberg Heppin (2021): T
 other_references:
   - "Dana Dannélls, Lars Borin, Karin Friberg Heppin (2021): The Swedish FrameNet++ Harmonization, integration, method development and practical language technology applications. John Benjamins: Amsterdam, Philadelphia. ISBN 978 90 272 5848 9."
 tagset: "[Swedish FrameNet (SweFN)](https://spraakbanken.gu.se/resurser/swefn)"
-model: "[Frequency model](https://github.com/spraakbanken/sparv-models/blob/master/lexical_classes/swefn.freq.gp2008%2Bsuc3%2Bromi.pickle)"
+models:
+  - name: Frequency model
+    url: "https://github.com/spraakbanken/sparv-models/blob/master/lexical_classes/swefn.freq.gp2008%2Bsuc3%2Bromi.pickle"
 ---
 id: sbx-swe-lexical_classes_token-sparv-swefn
 parent: swefn-parent

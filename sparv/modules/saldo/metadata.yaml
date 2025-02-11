@@ -4,7 +4,9 @@ language_codes:
   - swe
 standard_reference: "[Borin/Forsberg/Lönngren 2013: SALDO: a touch of yin to WordNet's yang](http://dx.doi.org/10.1007/s10579-013-9233-4)"
 other_references: []
-model: "[SALDO's morphology](https://spraakbanken.gu.se/resurser/saldom)"
+models:
+  - name: SALDO's morphology
+    url: "https://spraakbanken.gu.se/resurser/saldom"
 trained_on: ''
 tagset: ''
 evaluation_results: ''

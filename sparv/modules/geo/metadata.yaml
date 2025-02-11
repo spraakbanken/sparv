@@ -6,7 +6,9 @@ language_codes:
 keywords: []
 standard_reference: ''
 other_references: []
-model: "[GeoNames](https://www.geonames.org/)"
+models:
+  - name: GeoNames
+    url: "https://www.geonames.org/"
 trained_on: ''
 tagset: ''
 evaluation_results: ''

@@ -45,7 +45,6 @@ example_output: |-
   ```
 standard_reference: ''
 other_references: []
-model: "Method has no model"
 trained_on: "[TalbankenSBX](https://spraakbanken.gu.se/resurser/talbanken)"
 tagset: "See description below"
 evaluation_results: ''

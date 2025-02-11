@@ -1,13 +1,11 @@
-
 id: segment-nltk-parent
 abstract: true
 keywords: []
 standard_reference: "Bird, Steven, Edward Loper and Ewan Klein (2009), Natural Language Processing with Python. O’Reilly Media Inc."
 other_references: []
-tool:
-  name: NLTK
-  url: "https://www.nltk.org/"
-model: ''
+tools:
+  - name: NLTK
+    url: "https://www.nltk.org/"
 trained_on: ''
 tagset: ''
 evaluation_results: ''
@@ -351,9 +349,10 @@ example_output: |-
   <token>.</token>
   ```
 standard_reference: ''
-model: |-
-  - [bettertokenizer.sv](https://raw.githubusercontent.com/spraakbanken/sparv-models/master/segment/bettertokenizer.sv)
-  - bettertokenizer.sv.saldo-tokens
+models:
+  - name: bettertokenizer.sv
+    url: "https://raw.githubusercontent.com/spraakbanken/sparv-models/master/segment/bettertokenizer.sv"
+  - name: bettertokenizer.sv.saldo-tokens
 trained_on: "[SALDOs morphology](https://spraakbanken.gu.se/resurser/saldom)"
 description:
   swe: |-
@@ -368,7 +367,7 @@ description:
     tokenizer for other languages.
 updated: 2021-05-07
 ---
-id: sbx-swe-sentence-punkt-sparv-storsuc
+id: sbx-swe-sentence-sparv-storsuc
 parent: segment-nltk-parent
 name:
   swe: Svensk meningssegmentering
@@ -399,7 +398,9 @@ example_output: |-
     <token>.</token>
   </sentence>
   ```
-model: "[punkt-nltk-svenska.pickle](https://github.com/spraakbanken/sparv-models/blob/master/segment/punkt-nltk-svenska.pickle?raw=true)"
+models:
+  - name: punkt-nltk-svenska.pickle
+    url: "https://github.com/spraakbanken/sparv-models/blob/master/segment/punkt-nltk-svenska.pickle?raw=true"
 trained_on: "[StorSUC](https://spraakbanken.gu.se/resurser/storsuc)"
 description:
   swe: |-
