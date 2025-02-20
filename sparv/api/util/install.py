@@ -59,11 +59,11 @@ def install_mysql(host: str | None, db_name: str, sqlfile: Path | str | list[Pat
             logger.info("Installing MySQL database: %s, source: %s (%d/%d)", db_name, f, file_count + 1, file_total)
             if not host:
                 subprocess.check_call(
-                    f"cat {shlex.quote(f)} | mysql {shlex.quote(db_name)}", shell=True
+                    f"cat {shlex.quote(str(f))} | mysql {shlex.quote(db_name)}", shell=True
                 )
             else:
                 subprocess.check_call(
-                    f"cat {shlex.quote(f)} | ssh {shlex.quote(host)} {shlex.quote(f'mysql {db_name}')}", shell=True
+                    f"cat {shlex.quote(str(f))} | ssh {shlex.quote(host)} {shlex.quote(f'mysql {db_name}')}", shell=True
                 )
 
 
