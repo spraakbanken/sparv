@@ -53,7 +53,7 @@ def print_modules_summary(snake_storage: snake_utils.SnakeStorage, json_output: 
             modules_data[module_type][module_name] = {"description": description}
 
     if json_output:
-        console.print(json.dumps(modules_data, indent=4, sort_keys=True))
+        console.print(json.dumps(modules_data, indent=4, sort_keys=True), soft_wrap=True)
     else:
         console.print()
         table = Table(title="Available modules", box=box.SIMPLE, show_header=False, title_justify="left")
@@ -264,7 +264,7 @@ def print_modules_info(
             if invalid_functions:
                 modules_data["UNKNOWN_FUNCTIONS"] = list(invalid_functions)
 
-        console.print(json.dumps(modules_data, indent=4))
+        console.print(json.dumps(modules_data, indent=4), soft_wrap=True)
     else:
         _print_modules(modules_data)
         if invalid_modules:
