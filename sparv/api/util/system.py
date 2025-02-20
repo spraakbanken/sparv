@@ -273,15 +273,40 @@ def remove_path(path: str | Path, host: str | None = None) -> None:
             shutil.rmtree(p)
 
 
-def gpus() -> list[int] | None:
-    """Return a list of available GPUs, sorted by free memory in descending order.
+def gpus(reorder: bool = True) -> list[int] | None:
+    """Get a list of available GPUs, sorted by free memory in descending order.
 
-    Returns None on failure.
+    Only works for NVIDIA GPUs, and requires the `nvidia-smi` utility to be installed.
+
+    If `reorder` is `True` (default), the GPUs are renumbered according to the order specified in the environment
+    variable `CUDA_VISIBLE_DEVICES`. For example, if `CUDA_VISIBLE_DEVICES=1,0`, and the GPUs with most free memory are
+    0, 1, the function will return `[1, 0]`.
+
+    This is needed for PyTorch, which uses the GPU indices as specified in `CUDA_VISIBLE_DEVICES`, not the actual GPU
+    indices. In the example above, PyTorch would consider GPU 1 as GPU 0 and GPU 0 as GPU 1.
+
+    Args:
+        reorder: Whether to renumber the GPUs according to the order in the environment variable
+            `CUDA_VISIBLE_DEVICES`.
+
+    Returns:
+        A list of GPU indices, or None if no GPUs are available or if the nvidia-smi command failed.
     """
     try:
-        cmd = ["nvidia-smi", "--query-gpu=memory.free", "--format=csv"]
+        cmd = ["nvidia-smi", "--query-gpu=index,memory.free", "--format=csv"]
         memory_info = subprocess.check_output(cmd).decode().splitlines()[1:]
-        memory = sorted(((int(free.split()[0]), i) for i, free in enumerate(memory_info)), reverse=True)
-        return [i[1] for i in memory]
-    except:  # noqa: E722
+        # Sort by free memory in descending order
+        gpus = sorted(
+            ((int(free_mem.split()[0]), int(index)) for index, free_mem in (line.split(",") for line in memory_info)),
+            reverse=True,
+        )
+        gpus = [gpu[1] for gpu in gpus]
+        if reorder:
+            cuda_visible_devices = os.environ.get("CUDA_VISIBLE_DEVICES")
+            if cuda_visible_devices:
+                cuda_visible_devices = [int(i) for i in cuda_visible_devices.split(",")]
+                # Reorder GPUs according to CUDA_VISIBLE_DEVICES
+                gpus = [cuda_visible_devices.index(gpu) for gpu in gpus if gpu in cuda_visible_devices]
+        return gpus
+    except Exception:
         return None

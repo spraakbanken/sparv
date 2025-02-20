@@ -278,7 +278,7 @@ if not config_missing and selected_targets and not snake_storage.source_files:
         raise SparvErrorMessage("No source files available!")
 
 # Sort GPUs visible to modules by available memory
-gpus = util.system.gpus()
+gpus = util.system.gpus(reorder=False)
 if gpus:
     os.environ["CUDA_VISIBLE_DEVICES"] = ",".join(map(str, gpus))
 

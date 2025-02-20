@@ -200,7 +200,14 @@ Search for the binary for a program. Returns the path to binary, or `None` if no
 ### gpus()
 Returns a list of available GPUs, ordered by free memory in descending order. Returns `None` if it fails.
 Currently only works for NVIDIA GPUs, and requires the `nvidia-smi` utility to be installed.
-Takes no arguments.
+
+**Arguments:**
+
+- `reorder`: If `True` (default), the GPUs are renumbered according to the order specified in the environment
+    variable `CUDA_VISIBLE_DEVICES`. For example, if `CUDA_VISIBLE_DEVICES=1,0`, and the GPUs with most free memory are
+    0, 1, the function will return `[1, 0]`. This is needed for PyTorch, which uses the GPU indices as specified in
+    `CUDA_VISIBLE_DEVICES`, not the actual GPU indices. In the previous example, PyTorch would consider GPU 1 as GPU 0
+    and GPU 0 as GPU 1.
 
 
 ### kill_process()

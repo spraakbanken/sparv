@@ -29,7 +29,6 @@
   `OutputDataAllSourceFiles` can now be called with a source file name to get the respective non-all-source-files
   instance. This is now the recommended way to use these classes, and the previous methods will be removed in a future
   major release.
-  
 
 ### Fixed
 
@@ -38,6 +37,7 @@
 - Fixed config validation for `korp.context` and `korp.within`.
 - Fixed crash when removing namespaces from attributes in `xml_import:parse`.
 - Fixed tab autocompletion not working with Python 3.12.
+- Fixed `util.system.gpus()` when used with PyTorch's `torch.cuda.set_device()`.
 
 ## [5.2.0] - 2023-12-07
 
