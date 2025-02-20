@@ -60,7 +60,7 @@ def text_headtail(text: Text = Text(),
     head_text = None
 
     corpus_text = text.read()
-    chunk = list(chunk.read())
+    chunk = list(chunk.read_spans())
 
     for i, span in enumerate(chunk):
         if head_text:
@@ -71,8 +71,8 @@ def text_headtail(text: Text = Text(),
             head_text = None
 
         if i < len(chunk) - 1:
-            tail_start = span[1][0]
-            tail_end = chunk[i + 1][0][0]
+            tail_start = span[1]
+            tail_end = chunk[i + 1][0]
             tail_text = corpus_text[tail_start:tail_end]
 
             try:
