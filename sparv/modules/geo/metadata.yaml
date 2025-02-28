@@ -1,0 +1,118 @@
+id: geo-parent
+abstract: true
+task: geotagging
+language_codes:
+  - swe
+keywords: []
+standard_reference: ''
+other_references: []
+models:
+  - name: GeoNames
+    url: "https://www.geonames.org/"
+trained_on: ''
+tagset: ''
+evaluation_results: ''
+created: 2018-05-28
+updated: 2022-05-18
+---
+id: sbx-swe-geotagcontext-sparv
+parent: geo-parent
+name:
+  swe: Geotaggning av platsnamn från kontext
+  eng: Geotagging of place names from context
+short_description:
+  swe: Annotering av texter med platsinformation, baserad på platser som finns i texten
+  eng: Annotate text chunks with location data, based on locations contained within the text
+annotations:
+  - <text>:geo.geo_context
+  - <paragraph>:geo.geo_context
+  - <sentence>:geo.geo_context
+example_output: |-
+  ```xml
+  <text geo_context="|Göteborg;SE;57.70716;11.96679|Torslanda;SE;57.72432;11.77013|">
+    <paragraph geo_context="|Torslanda;SE;57.72432;11.77013|Göteborg;SE;57.70716;11.96679|">
+      <sentence geo_context="|Göteborg;SE;57.70716;11.96679|Torslanda;SE;57.72432;11.77013|">
+        <token>Varje</token>
+        <token>tisdag</token>
+        <token>kommer</token>
+        <token>en</token>
+        <token>leverans</token>
+        <token>av</token>
+        <token>lådor</token>
+        <token>med</token>
+        <token>matsvinn</token>
+        <token>från</token>
+        <token>Ica</token>
+        <token>Maxi</token>
+        <token>i</token>
+        <token>Torslanda</token>
+        <token>till</token>
+        <token>förskolan</token>
+        <token>i</token>
+        <token>Göteborg</token>
+        <token>.</token>
+      </sentence>
+    </paragraph>
+  </text>
+  ```
+description:
+  swe: |-
+    Texter berikas med platsnamn (och deras geografiska koordinater) som finns i dem. Detta är baserat på platsnamn som
+    hittats genom namnigenkänning med [SweNer](https://spraakbanken.gu.se/analyser/swe-namedentity-swener). Geografiska
+    koordinater letas upp i [GeoNames-databasen](https://www.geonames.org/). Denna annotation kan användas på valfria
+    textspann såsom text, stycke, mening eller token.
+  eng: |-
+    Text chunks are enriched with place names (and their geographic coordinates) occurring within them. This is based on
+    the place names found by the named entity tagger
+    [SweNer](https://spraakbanken.gu.se/en/analyses/swe-namedentity-swener). Geographical coordinates are looked up in
+    the [GeoNames database](https://www.geonames.org/). This annotation can be applied to any text chunk, e.g. texts,
+    paragraphs, sentences or tokens.
+---
+id: sbx-swe-geotagmetadata-sparv
+parent: geo-parent
+name:
+  swe: Geotagging av platsnamn från metadata
+  eng: Geotagging of place names from metadata
+short_description:
+  swe: Annotering av texter med platsinformation, baserad på platser som finns i texten
+  eng: Annotate text chunks with location data, based on metadata containing location names
+annotations:
+  - <text>:geo.geo_metadata
+example_output: |-
+  ```xml
+  <text author_location="Göteborg" geo_metadata="|Göteborg;SE;57.70716;11.96679|">
+    <token>Det</token>
+    <token>var</token>
+    <token>då</token>
+    <token>änna</token>
+    <token>bösigt</token>
+    <token>i</token>
+    <token>bamban</token>
+    <token>!</token>
+  </text>
+  ```
+example_extra: |-
+  In order to use this annotation you need to tell Sparv where to look for the geographic metadata. If, for example,
+  your corpus looks like this:
+  ```xml
+  <text author_location="Göteborg">Det var då änna bösigt i bamban!</text>
+  ```
+  and you would like to use `author_location` as input for your annotation you need to add the following setting to your
+  Sparv corpus configuration file:
+  ```yaml
+  geo:
+    metadata_source: text:author_location
+  ```
+description:
+  swe: |-
+    Texter berikas med platsnamn (och deras geografiska koordinater) som finns i dess metadata. Detta är baserat på
+    platsnamn som hittats genom namnigenkänning med
+    [SweNer](https://spraakbanken.gu.se/analyser/swe-namedentity-swener). Geografiska koordinater letas upp i
+    [GeoNames-databasen](https://www.geonames.org/). Denna annotation kan användas på valfria textspann och valfria
+    attribut som innehåller platsnamn.
+  eng: |-
+    Text chunks are enriched with place names (and their geographic coordinates) occurring within them. This is based on
+    the place names found by the named entity tagger
+    [SweNer](https://spraakbanken.gu.se/en/analyses/swe-namedentity-swener). Geographical coordinates are looked up in
+    the [GeoNames database](https://www.geonames.org/). This annotation can be applied to any text chunk and any
+    attribute containing place names.

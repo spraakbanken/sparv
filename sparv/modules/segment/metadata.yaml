@@ -1,0 +1,463 @@
+id: segment-nltk-parent
+abstract: true
+keywords: []
+standard_reference: "Bird, Steven, Edward Loper and Ewan Klein (2009), Natural Language Processing with Python. O’Reilly Media Inc."
+other_references: []
+tools:
+  - name: NLTK
+    url: "https://www.nltk.org/"
+trained_on: ''
+tagset: ''
+evaluation_results: ''
+description:
+  swe: |-
+    Dokumentationen för NLTKs RegexpTokenizer finns [här](https://www.nltk.org/api/nltk.tokenize.regexp.html#nltk.tokenize.regexp.RegexpTokenizer).
+  eng: |-
+    The documentation for NLTK's RegexpTokenizer can be found [here](https://www.nltk.org/api/nltk.tokenize.regexp.html#nltk.tokenize.regexp.RegexpTokenizer).
+created: 2010-12-15
+updated: 2021-05-07
+---
+id: sbx-mul-tokenization-sparv-linebreaks
+parent: segment-nltk-parent
+name:
+  swe: Radbrytningstokenisering
+  eng: Linebreaks tokenization
+short_description:
+  swe: Tokeniserar text utifrån radbrytningar med hjälp av NLTKs RegexpTokenizer
+  eng: Tokenizes text into tokens by linebreaks using the RegexpTokenizer from NLTK
+task: tokenization
+annotations:
+  - segment.token
+example_output: |-
+  ```xml
+  <token>Det</token>
+  <token>här</token>
+  <token>är</token>
+  <token>en</token>
+  <token>korpus</token>
+  <token>.</token>
+  ```
+example_extra: |-
+  In order to use this tokenizer you need to add the following setting to your Sparv corpus configuration file:
+  ```yaml
+  segment:
+    token_segmenter: linebreaks
+  ```
+---
+id: sbx-mul-sentence-sparv-linebreaks
+parent: segment-nltk-parent
+name:
+  swe: Radbrytningssegmentering, meningar
+  eng: Linebreaks sentence segmentation
+short_description:
+  swe: Segmenterar text i meningar utifrån radbrytningar med hjälp av NLTKs RegexpTokenizer
+  eng: Segments text into sentences by linebreaks using the RegexpTokenizer from NLTK
+task: sentence segmentation
+annotations:
+  - segment.sentence
+example_output: |-
+  ```xml
+  <sentence>
+    <token>Det</token>
+    <token>här</token>
+    <token>är</token>
+    <token>en</token>
+    <token>korpus</token>
+    <token>.</token>
+  </sentence>
+  <sentence>
+    <token>Den</token>
+    <token>har</token>
+    <token>flera</token>
+    <token>meningar</token>
+    <token>.</token>
+  </sentence>
+  ```
+example_extra: |-
+  In order to use this sentence segmenter you need to add the following setting to your Sparv corpus configuration file:
+  ```yaml
+  segment:
+    sentence_segmenter: linebreaks
+  ```
+---
+id: sbx-mul-paragraph-sparv-linebreaks
+parent: segment-nltk-parent
+name:
+  swe: Radbrytningssegmentering, stycken
+  eng: Linebreaks paragraph segmentation
+short_description:
+  swe: Segmenterar text i stycken utifrån radbrytningar med hjälp av NLTKs RegexpTokenizer
+  eng: Segments text into paragraphs by linebreaks using the RegexpTokenizer from NLTK
+task: paragraph segmentation
+annotations:
+  - segment.paragraph
+example_output: |-
+  ```xml
+  <paragraph>
+    <sentence>
+      <token>Det</token>
+      <token>här</token>
+      <token>är</token>
+      <token>en</token>
+      <token>korpus</token>
+      <token>.</token>
+    </sentence>
+  </paragraph>
+  <paragraph>
+    <sentence>
+      <token>Den</token>
+      <token>har</token>
+      <token>flera</token>
+      <token>stycken</token>
+      <token>.</token>
+    </sentence>
+  </paragraph>
+  ```
+example_extra: |-
+  In order to use this paragraph segmenter you need to add the following setting to your Sparv corpus configuration file:
+  ```yaml
+  segment:
+    paragraph_segmenter: linebreaks
+  ```
+---
+id: sbx-mul-tokenization-sparv-blanklines
+parent: segment-nltk-parent
+name:
+  swe: Tomradstokenisering
+  eng: Blanklines tokenization
+short_description:
+  swe: Tokeniserar text utifrån tomma rader med hjälp av NLTKs RegexpTokenizer
+  eng: Tokenizes text into tokens by blank lines using the RegexpTokenizer from NLTK
+task: tokenization
+annotations:
+  - segment.token
+example_output: |-
+  ```xml
+  <token>Det</token>
+  <token>här</token>
+  <token>är</token>
+  <token>en</token>
+  <token>korpus</token>
+  <token>.</token>
+  ```
+example_extra: |-
+  In order to use this tokenizer you need to add the following setting to your Sparv corpus configuration file:
+  ```yaml
+  segment:
+    token_segmenter: blanklines
+  ```
+---
+id: sbx-mul-sentence-sparv-blanklines
+parent: segment-nltk-parent
+name:
+  swe: Tomradssegmentering, meningar
+  eng: Blanklines sentence segmentation
+short_description:
+  swe: Segmenterar text i meningar utifrån tomma rader med hjälp av NLTKs RegexpTokenizer
+  eng: Segments text into sentences by blank lines using the RegexpTokenizer from NLTK
+task: tokenization
+annotations:
+  - segment.sentence
+example_output: |-
+  ```xml
+  <sentence>
+    <token>Det</token>
+    <token>här</token>
+    <token>är</token>
+    <token>en</token>
+    <token>korpus</token>
+    <token>.</token>
+  </sentence>
+  <sentence>
+    <token>Den</token>
+    <token>har</token>
+    <token>flera</token>
+    <token>meningar</token>
+    <token>.</token>
+  </sentence>
+  ```
+example_extra: |-
+  In order to use this sentence segmenter you need to add the following setting to your Sparv corpus configuration file:
+  ```yaml
+  segment:
+    sentence_segmenter: blanklines
+  ```
+---
+id: sbx-mul-paragraph-sparv-blanklines
+parent: segment-nltk-parent
+name:
+  swe: Tomradssegmentering, stycken
+  eng: Blanklines paragraph segmentation
+short_description:
+  swe: Segmenterar text i stycken utifrån tomma rader med hjälp av NLTKs RegexpTokenizer
+  eng: Segments text into paragraphs by blank lines using the RegexpTokenizer from NLTK
+task: tokenization
+annotations:
+  - segment.paragraph
+example_output: |-
+  ```xml
+  <paragraph>
+    <sentence>
+      <token>Det</token>
+      <token>här</token>
+      <token>är</token>
+      <token>en</token>
+      <token>korpus</token>
+      <token>.</token>
+    </sentence>
+  </paragraph>
+  <paragraph>
+    <sentence>
+      <token>Den</token>
+      <token>har</token>
+      <token>flera</token>
+      <token>stycken</token>
+      <token>.</token>
+    </sentence>
+  </paragraph>
+  ```
+example_extra: |-
+  In order to use this paragraph segmenter you need to add the following setting to your Sparv corpus configuration file:
+  ```yaml
+  segment:
+    paragraph_segmenter: blanklines
+  ```
+---
+id: sbx-mul-tokenization-sparv-whitespace
+parent: segment-nltk-parent
+name:
+  swe: Blankteckentokenisering
+  eng: Blankspace tokenization
+short_description:
+  swe: Tokeniserar text utifrån blanktecken med hjälp av NLTKs RegexpTokenizer
+  eng: Tokenizes text into tokens by whitespaces using the RegexpTokenizer from NLTK
+task: tokenization
+annotations:
+  - segment.token
+example_output: |-
+  ```xml
+  <token>Det</token>
+  <token>här</token>
+  <token>är</token>
+  <token>en</token>
+  <token>korpus</token>
+  <token>.</token>
+  ```
+example_extra: |-
+  In order to use this tokenizer you need to add the following setting to your Sparv corpus configuration file:
+  ```yaml
+  segment:
+    token_segmenter: whitespace
+  ```
+---
+id: sbx-mul-sentence-sparv-whitespace
+parent: segment-nltk-parent
+name:
+  swe: Blankteckensegmentering, meningar
+  eng: Blankspace sentence segmentation
+short_description:
+  swe: Segmenterar text i meningar utifrån blanktecken med hjälp av NLTKs RegexpTokenizer
+  eng: Segments text into sentences by whitespaces using the RegexpTokenizer from NLTK
+task: sentence segmentation
+annotations:
+  - segment.sentence
+example_output: |-
+  ```xml
+  <sentence>
+    <token>Det</token>
+    <token>här</token>
+    <token>är</token>
+    <token>en</token>
+    <token>korpus</token>
+    <token>.</token>
+  </sentence>
+  <sentence>
+    <token>Den</token>
+    <token>har</token>
+    <token>flera</token>
+    <token>meningar</token>
+    <token>.</token>
+  </sentence>
+  ```
+example_extra: |-
+  In order to use this sentence segmenter you need to add the following setting to your Sparv corpus configuration file:
+  ```yaml
+  segment:
+    sentence_segmenter: whitespace
+  ```
+---
+id: sbx-mul-paragraph-sparv-whitespace
+parent: segment-nltk-parent
+name:
+  swe: Blankteckensegmentering, stycken
+  eng: Blankspace paragraph segmentation
+short_description:
+  swe: Segmenterar text i stycken utifrån blanktecken med hjälp av NLTKs RegexpTokenizer
+  eng: Segments text into paragraphs by whitespaces using the RegexpTokenizer from NLTK
+task: paragraph segmentation
+annotations:
+  - segment.paragraph
+example_output: |-
+  ```xml
+  <paragraph>
+    <sentence>
+      <token>Det</token>
+      <token>här</token>
+      <token>är</token>
+      <token>en</token>
+      <token>korpus</token>
+      <token>.</token>
+    </sentence>
+  </paragraph>
+  <paragraph>
+    <sentence>
+      <token>Den</token>
+      <token>har</token>
+      <token>flera</token>
+      <token>stycken</token>
+      <token>.</token>
+    </sentence>
+  </paragraph>
+  ```
+example_extra: |-
+  In order to use this paragraph segmenter you need to add the following setting to your Sparv corpus configuration file:
+  ```yaml
+  segment:
+    paragraph_segmenter: whitespace
+  ```
+---
+id: sbx-swe-tokenization-sparv-betterword
+parent: segment-nltk-parent
+name:
+  swe: Svensk tokenisering
+  eng: Swedish tokenization
+short_description:
+  swe: Tokeniserar text, specialanpassad för svenska
+  eng: Tokenizes text, custom-made for Swedish
+language_codes:
+  - swe
+task: tokenization
+annotations:
+  - segment.token
+example_output: |-
+  ```xml
+  <token>Det</token>
+  <token>här</token>
+  <token>är</token>
+  <token>en</token>
+  <token>korpus</token>
+  <token>.</token>
+  ```
+standard_reference: ''
+models:
+  - name: bettertokenizer.sv
+    url: "https://raw.githubusercontent.com/spraakbanken/sparv-models/master/segment/bettertokenizer.sv"
+  - name: bettertokenizer.sv.saldo-tokens
+trained_on: "[SALDOs morphology](https://spraakbanken.gu.se/resurser/saldom)"
+description:
+  swe: |-
+    Tokeniseringen är ursprungligen baserad på NLTKs PunktWordTokenizer (som inte längre tillhandahålls av NLTK). Sparvs
+    version är specialanpassad för svenska och använder en ordlista samt en konfigurationsfil med reguljära uttryck, en
+    lista över vanliga förkortningar, en lista över ord som innehåller specialtecken med mera. Det är dock möjligt att
+    konfigurera tokeniseraren för andra språk.
+  eng: |-
+    The tokenizer is initially based on NLTK's PunktWordTokenizer (which is no longer exposed by NLTK). Sparv's version
+    is custom-made for Swedish using a wordlist and a configuration file with regular expressions, a list of common
+    abbreviations, a list of words containing special characters etc. It is, however, possible to configure the
+    tokenizer for other languages.
+updated: 2021-05-07
+---
+id: sbx-swe-sentence-sparv-storsuc
+parent: segment-nltk-parent
+name:
+  swe: Svensk meningssegmentering
+  eng: Swedish sentence segmentation
+short_description:
+  swe: Meningssegmenterar text, specialanpassad för svenska
+  eng: Segments text into sentences, custom-made for Swedish
+language_codes:
+  - swe
+task: sentence segmentation
+annotations:
+  - segment.sentence
+example_output: |-
+  ```xml
+  <sentence>
+    <token>Det</token>
+    <token>här</token>
+    <token>är</token>
+    <token>en</token>
+    <token>korpus</token>
+    <token>.</token>
+  </sentence>
+  <sentence>
+    <token>Den</token>
+    <token>har</token>
+    <token>flera</token>
+    <token>meningar</token>
+    <token>.</token>
+  </sentence>
+  ```
+models:
+  - name: punkt-nltk-svenska.pickle
+    url: "https://github.com/spraakbanken/sparv-models/blob/master/segment/punkt-nltk-svenska.pickle?raw=true"
+trained_on: "[StorSUC](https://spraakbanken.gu.se/resurser/storsuc)"
+description:
+  swe: |-
+    Meningssegmenteraren är baserad på NLTKs
+    [PunktWordTokenizer](https://www.nltk.org/api/nltk.tokenize.PunktSentenceTokenizer.html). Sparvs version är
+    specialanpassad för svenska genom att använda en modell byggd på
+    [StorSUC](https://spraakbanken.gu.se/resurser/storsuc). Det är dock möjligt att konfigurera meningssegmenteraren för
+    andra språk.
+  eng: |-
+    The sentence segmenter is based on NLTK's
+    [PunktWordTokenizer](https://www.nltk.org/api/nltk.tokenize.PunktSentenceTokenizer.html). Sparv's version is
+    custom-made for Swedish by supplying a model built on [StorSUC](https://spraakbanken.gu.se/en/resources/storsuc). It
+    is, however, possible to configure the sentence segmenter for other languages.
+updated: 2021-09-02
+---
+id: sbx-mul-sentence-sparv-punctuation
+parent: segment-nltk-parent
+name:
+  swe: Meningssegmentering utifrån skiljetecken
+  eng: Sentence segmentation by punctuation
+short_description:
+  swe: Segmenterar text i meningar utifrån skiljetecken med hjälp av NLTKs RegexpTokenizer
+  eng: Segments text into sentences by punctuation marks using the RegexpTokenizer from NLTK
+task: sentence segmentation
+annotations:
+  - segment.sentence
+example_output: |-
+  ```xml
+  <sentence>
+    <token>Det</token>
+    <token>här</token>
+    <token>är</token>
+    <token>en</token>
+    <token>korpus</token>
+    <token>.</token>
+  </sentence>
+  <sentence>
+    <token>Den</token>
+    <token>har</token>
+    <token>flera</token>
+    <token>meningar</token>
+    <token>.</token>
+  </sentence>
+  ```
+example_extra: |-
+  In order to use this sentence segmenter you need to add the following setting to your Sparv corpus configuration file:
+  ```yaml
+  segment:
+    sentence_segmenter: punctuation
+  ```
+description:
+  swe: |-
+    En mycket enkel meningssegmenterare som separerar meningar vid varje .!? oavsett sammanhang. Meningssegmenteraren är
+    baserad på NLTK
+    [RegexpTokenizer](https://www.nltk.org/api/nltk.tokenize.regexp.html#nltk.tokenize.regexp.RegexpTokenizer).
+  eng: |-
+    A very simple sentence tokenizer, separating sentences on every .!? no matter the context. The sentence segmenter is
+    based on NLTK's
+    [RegexpTokenizer](https://www.nltk.org/api/nltk.tokenize.regexp.html#nltk.tokenize.regexp.RegexpTokenizer).
+updated: 2021-09-21

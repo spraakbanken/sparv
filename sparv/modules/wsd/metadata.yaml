@@ -1,0 +1,65 @@
+id: sbx-swe-sense-sparv
+name:
+  swe: Betydelsedisambiguering med hjälp av SALDO ID:n
+  eng: Sense disambiguation of SALDO identifiers
+short_description:
+  swe: Ordbetydelsedisambiguering baserad på annotering i SALDO
+  eng: Word sense disambiguation based on SALDO annotation
+task: sense disambiguation
+language_codes:
+  - swe
+keywords:
+  - saldo
+annotations:
+  - <token>:wsd.sense
+example_output: |-
+  ```xml
+  <token sense="|den..2:-1.000|">Det</token>
+  <token sense="|finna..1:0.497|finnas..1:0.472|finna..2:0.031|">finns</token>
+  <token sense="|den..1:-1.000|en..2:-1.000|">en</token>
+  <token sense="|fil..4:0.661|fil..5:0.194|fil..1:0.104|fil..2:0.040|fil..3:0.001|">fil</token>
+  <token sense="|i..2:-1.000|">i</token>
+  <token sense="|katalog..1:-1.000|">katalogen</token>
+  <token sense="|på..1:-1.000|">på</token>
+  <token sense="|den..1:-1.000|den..2:-1.000|en..2:-1.000|">den</token>
+  <token sense="|extern..1:-1.000|">externa</token>
+  <token sense="|hårddisk..1:-1.000|">hårddisken</token>
+  <token sense="|">.</token>
+  <token sense="|man..1:-1.000|">Man</token>
+  <token sense="|kunna..1:0.666|kunna..4:0.147|kunna..3:0.110|kunna..2:0.077|">kan</token>
+  <token sense="|använda..1:-1.000|">använda</token>
+  <token sense="|den..1:-1.000|en..2:-1.000|">en</token>
+  <token sense="|fil..2:0.573|fil..4:0.213|fil..1:0.130|fil..5:0.084|fil..3:0.001|">fil</token>
+  <token sense="|för..1:-1.000|för..5:-1.000|för..6:-1.000|för..7:-1.000|för..9:-1.000|">för</token>
+  <token sense="|att..1:-1.000|">att</token>
+  <token sense="|slipa..2:0.832|slipa..1:0.168|">slipa</token>
+  <token sense="|kant..1:-1.000|">kanterna</token>
+  <token sense="|på..1:-1.000|">på</token>
+  <token sense="|bräda..1:0.787|bräde..1:0.213|">brädan</token>
+  <token sense="|">.</token>
+  ```
+standard_reference: 'https://aclanthology.org/N15-1164.pdf'
+other_references:
+  - https://github.com/spraakbanken/sparv-wsd/blob/master/README.pdf
+  - "Sparv wsd: https://github.com/spraakbanken/sparv-wsd"
+tools:
+  - name: Sparv wsd
+    url: https://github.com/spraakbanken/sparv-wsd
+    license: MIT License
+models:
+  - name: ALL_512_128_w10_A2_140403_ctx1.bin
+    url: https://github.com/spraakbanken/sparv-wsd/blob/master/models/scouse/ALL_512_128_w10_A2_140403_ctx1.bin
+  - name: lem_cbow0_s512_w10_NEW2_ctx.bin
+    url: https://github.com/spraakbanken/sparv-wsd/blob/master/models/scouse/lem_cbow0_s512_w10_NEW2_ctx.bin
+trained_on: 'SALDO from May 2014 (SCOUSE model)'
+tagset: ''
+evaluation_results: |-
+    Using lemma embeddings:  
+    precision: 0.569 recall: 0.292 f-measure: 0.386
+
+    Using sense embeddings:  
+    precision: 0.667 recall: 0.332 f-measure: 0.443
+
+    More information: https://aclanthology.org/N15-1164.pdf
+created: 2018-05-28
+updated: 2022-05-13

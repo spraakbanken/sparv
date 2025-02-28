@@ -1,0 +1,203 @@
+id: readability-parent
+abstract: true
+task: readability measures
+language_codes:
+  - swe
+keywords: []
+other_references: []
+trained_on: ''
+tagset: ''
+evaluation_results: ''
+created: 2018-03-28
+updated: 2018-03-28
+---
+id: sbx-swe-readability-sparv-lix
+parent: readability-parent
+name:
+  swe: Annotering av läsbarhetsindex (LIX) för texter
+  eng: Annotation of readability index (LIX) for text chunks
+short_description:
+  swe: Annotering av svenska texter med LIX-värden som indikerar hur lätt eller svår en text är att läsa
+  eng: Annotation of Swedish texts with LIX values which indicate the difficulty of the texts 
+standard_reference: "[Björnsson (1968)](https://libris.kb.se/bib/8079176)"
+annotations:
+  - <text>:readability.lix
+example_output: |-
+  ```xml
+  <text lix="6.00">
+    <token>Det</token>
+    <token>här</token>
+    <token>är</token>
+    <token>en</token>
+    <token>enkel</token>
+    <token>mening</token>
+    <token>.</token>
+  </text>
+  <text lix="44.81">
+    <token>LIX</token>
+    <token>(</token>
+    <token>Björnsson</token>
+    <token>,</token>
+    <token>1968</token>
+    <token>)</token>
+    <token>är</token>
+    <token>ett</token>
+    <token>läsbarhetsvärde</token>
+    <token>beräknat</token>
+    <token>på</token>
+    <token>genomsnittligt</token>
+    <token>antal</token>
+    <token>ord</token>
+    <token>per</token>
+    <token>mening</token>
+    <token>och</token>
+    <token>andel</token>
+    <token>långa</token>
+    <token>ord</token>
+    <token>(</token>
+    <token>över</token>
+    <token>sex</token>
+    <token>bokstäver</token>
+    <token>långa</token>
+    <token>)</token>
+    <token>.</token>
+  </text>
+  ```
+description:
+  swe: |-
+    Läsbarhetsindex (LIX) ([Björnsson (1968)](https://libris.kb.se/bib/8079176)) kan användas för att få en uppfattning
+    om hur lätt eller svår en text är att läsa. LIX är baserat på medeltalet ord per mening och andelen långa ord (ord
+    med fler än 6 bokstäver) uttryckt i procent. Värdet beräknas som O / M + L x 100 / O, där O = antal ord i texten, M
+    = antal meningar och L = antal långa ord.
+  eng: |-
+    LIX (läsbarhetsindex) ([Björnsson (1968)](https://libris.kb.se/bib/8079176)) is a readability measure based on
+    average word count per sentence and ratio of long words (exceeding six letters). The value is calculated as O / M +
+    L x 100 / O, where O = word count, M = sentence count and L = long word count.
+---
+id: sbx-swe-readability-sparv-nk
+parent: readability-parent
+name:
+  swe: Annotering av Nominalkvot (NK) för texter
+  eng: Annotation of nominal ratios for text chunks
+short_description:
+  swe: Annotering av svenska texter med NK-värden som indikerar hur lätt eller svår en text är att läsa
+  eng: Annotation of Swedish texts with nominal ratios which indicate the difficulty of the texts
+annotations:
+  - <text>:readability.nk
+example_output: |-
+  ```xml
+  <text nk="0.33">
+    <token>Det</token>
+    <token>här</token>
+    <token>är</token>
+    <token>en</token>
+    <token>enkel</token>
+    <token>mening</token>
+    <token>.</token>
+  </text>
+  <text nk="5.50">
+    <token>LIX</token>
+    <token>(</token>
+    <token>Björnsson</token>
+    <token>,</token>
+    <token>1968</token>
+    <token>)</token>
+    <token>är</token>
+    <token>ett</token>
+    <token>läsbarhetsvärde</token>
+    <token>beräknat</token>
+    <token>på</token>
+    <token>genomsnittligt</token>
+    <token>antal</token>
+    <token>ord</token>
+    <token>per</token>
+    <token>mening</token>
+    <token>och</token>
+    <token>andel</token>
+    <token>långa</token>
+    <token>ord</token>
+    <token>(</token>
+    <token>över</token>
+    <token>sex</token>
+    <token>bokstäver</token>
+    <token>långa</token>
+    <token>)</token>
+    <token>.</token>
+  </text>
+  ```
+description:
+  swe: |-
+    Nominalkvot är ett läsbarhetsvärde som beräknas genom att man summerar antalet particip, substantiv och
+    prepositioner och delar detta på antalet verb, adverb och pronomen. Ett högt nominalvärde tyder på en
+    informationstät text, vilket också kan innebära att den är mer svårläst.
+  eng: |-
+    Nominal ratio is a readability measure calculated by adding the number of participles, nouns and prepositions, and
+    dividing this by the number of verbs, adverbs and pronouns. A high nominal ratio suggests a high density of
+    information, which can also mean that the text is difficult to read.
+---
+id: sbx-swe-readability-sparv-ovix
+parent: readability-parent
+name:
+  swe: Annotering av Ordvariationsindex (OVIX) för texter
+  eng: Annotation of OVIX values for text chunks
+short_description:
+  swe: Annotering av svenska texter med OVIX-värden som indikerar hur lätt eller svår en text är att läsa
+  eng: Annotation of Swedish texts with OVIX values which indicate the difficulty of the texts
+annotations:
+  - <text>:readability.ovix
+example_output: |-
+  ```xml
+  <text ovix="inf">
+    <token>Det</token>
+    <token>här</token>
+    <token>är</token>
+    <token>en</token>
+    <token>enkel</token>
+    <token>mening</token>
+    <token>.</token>
+  </text>
+  <text ovix="94.13">
+    <token>LIX</token>
+    <token>(</token>
+    <token>Björnsson</token>
+    <token>,</token>
+    <token>1968</token>
+    <token>)</token>
+    <token>är</token>
+    <token>ett</token>
+    <token>läsbarhetsvärde</token>
+    <token>beräknat</token>
+    <token>på</token>
+    <token>genomsnittligt</token>
+    <token>antal</token>
+    <token>ord</token>
+    <token>per</token>
+    <token>mening</token>
+    <token>och</token>
+    <token>andel</token>
+    <token>långa</token>
+    <token>ord</token>
+    <token>(</token>
+    <token>över</token>
+    <token>sex</token>
+    <token>bokstäver</token>
+    <token>långa</token>
+    <token>)</token>
+    <token>.</token>
+  </text>
+  ```
+description:
+  swe: |-
+    OVIX är ett läsbarhetsvärde som baseras på andelen ord som endast förekommer en gång i texten.
+
+    OVIX räknas ut med formeln log(tokens) / log(2 - (log(types) / log(tokens)))
+
+    Ett högt värde betyder i princip att läsaren ofta introduceras för nya ord. Å andra sidan kan ett lågt värde
+    indikera en monoton text.
+  eng: |-
+    OVIX (ordvariationsindex) is a readability measure based on how many words occur only once in the text chunk.
+
+    OVIX is calculated as log(tokens) / log(2 - (log(types) / log(tokens)))
+
+    A high value can be interpreted as frequently introducing new words to the reader. On the other hand, a low value
+    may indicate a monotonous text.

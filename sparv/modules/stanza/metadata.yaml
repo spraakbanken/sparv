@@ -1,0 +1,490 @@
+id: stanza-swe-parent
+abstract: true
+language_codes:
+  - swe
+keywords:
+  - stanza
+tools:
+  - name: "Stanza"
+    url: "https://stanfordnlp.github.io/stanza/"
+    license: "Apache License 2.0"
+trained_on: "[SUC3](https://spraakbanken.gu.se/resurser/suc3), [TalbankenSBX](https://spraakbanken.gu.se/resurser/talbanken), [SIC2](https://spraakbanken.gu.se/resurser/sic2)"
+other_references:
+  - "Stanza: Peng Qi, Yuhao Zhang, Yuhui Zhang, Jason Bolton and Christopher D. Manning. 2020"
+  - "Stanza: A Python Natural Language Processing Toolkit for Many Human Languages. In Association for Computational Linguistics (ACL) System Demonstrations. 2020"
+  - "SUC3: https://spraakbanken.gu.se/en/resources/suc3"
+  - "TalbankenSBX: https://spraakbanken.gu.se/en/blog/20200609-the-five-lives-of-talbanken"
+  - "SIC2: https://spraakbanken.gu.se/en/resources/sic2"
+tagset: "[SUC3](https://spraakbanken.gu.se/korp/markup/msdtags.html)"
+evaluation_results: |-
+  For a model trained on SUC3 and validated on a part of TalbankenSBX_dev the results are as follows:  
+  tested on Talbanken SBX_test: exact match = 0.97; POS = 0.98; msd = 0.99  
+  tested on SIC2: exact match = 0.92; POS = 0.93; msd = 0.96  
+  More info: https://spraakbanken.gu.se/en/resources/flair/evaluating-pos-tagging
+caveats:
+  swe: ''
+  eng: ''
+intended_uses:
+  swe: ''
+  eng: ''
+created: 2020-12-07
+updated: 2022-08-10
+---
+id: sbx-swe-pos-stanza-stanzamorph
+parent: stanza-swe-parent
+name:
+  swe: SUC-ordklasstaggning med Stanza
+  eng: SUC part-of-speech tagging with Stanza
+short_description:
+  swe: Annotering av SUC-ordklasser med Stanza för svenska
+  eng: Swedish part-of-speech annotation with SUC tags by Stanza
+task: part-of-speech tagging
+standard_reference: 'https://aclanthology.org/2021.nodalida-main.20/'
+annotations:
+  - <token>:stanza.pos
+example_output: |-
+  ```xml
+  <token pos="PN">Det</token>
+  <token pos="AB">här</token>
+  <token pos="VB">är</token>
+  <token pos="DT">en</token>
+  <token pos="NN">korpus</token>
+  <token pos="MAD">.</token>
+  ```
+description:
+  eng: |-
+    In 2020, the Stanza tool was trained and tested on a set of gold-standard
+    Swedish corpora (following SUC3-style annotation) in order to create a high-quality analysis.
+    Currently (in 2024), this is the default analysis for Swedish in Språkbanken's analysis platform
+    [Sparv](https://spraakbanken.gu.se/sparv).
+---
+id: sbx-swe-msd-stanza-stanzamorph-suc3
+parent: stanza-swe-parent
+name:
+  swe: Morfosyntaktisk SUC-taggning med Stanza
+  eng: Tagging of morphological features (SUC) by Stanza
+short_description:
+  swe: Annotering av morfosyntaktiska deskriptorer (SUC) med Stanza för svenska
+  eng: Annotation of morphological features (SUC) by Stanza for Swedish
+task: morphosyntactic tagging
+standard_reference: 'https://aclanthology.org/2021.nodalida-main.20/'
+annotations:
+  - <token>:stanza.msd
+example_output: |-
+  ```xml
+  <token msd="PN.NEU.SIN.DEF.SUB+OBJ">Det</token>
+  <token msd="AB">här</token>
+  <token msd="VB.PRS.AKT">är</token>
+  <token msd="DT.UTR.SIN.IND">en</token>
+  <token msd="NN.UTR.SIN.IND.NOM">korpus</token>
+  <token msd="MAD">.</token>
+  ```
+models:
+  - name: Stanzamorph
+    url: https://spraakbanken.gu.se/resurser/stanzamorph
+    license: CC BY 4.0
+description:
+  eng: |-
+    This annotation contains morphosyntactic features in addition to part-of-speech tags.
+ 
+    In 2020, the Stanza tool was trained and tested on a set of gold-standard
+    Swedish corpora (following SUC3-style annotation) in order to create a high-quality analysis.
+    Currently (in 2024), this is the default analysis for Swedish in Språkbanken's analysis platform
+    [Sparv](https://spraakbanken.gu.se/sparv).
+---
+id: sbx-swe-msd-stanza-stanzamorph-ufeats
+parent: stanza-swe-parent
+name:
+  swe: Morfologisk analys för svenska baserad på Stanza
+  eng: Stanza-based morphological analysis for Swedish
+short_description:
+  swe: Morfologisk analys för svenska med universal features (UD) baserad på Stanza
+  eng: Stanza-based morphological analysis for Swedish, using universal features (UD)
+task: morphosyntactic tagging
+annotations:
+  - <token>:stanza.ufeats
+example_output: |-
+  ```xml
+  <token ufeats="|Case=Acc,Nom|Definite=Def|Gender=Neut|Number=Sing|">Det</token>
+  <token ufeats="|">här</token>
+  <token ufeats="|Mood=Ind|Tense=Pres|VerbForm=Fin|Voice=Act|">är</token>
+  <token ufeats="|Definite=Ind|Gender=Com|Number=Sing|">en</token>
+  <token ufeats="|Case=Nom|Definite=Ind|Gender=Com|Number=Sing|">korpus</token>
+  <token ufeats="|">.</token>
+  ```
+other_references:
+  - "Stanza: Peng Qi, Yuhao Zhang, Yuhui Zhang, Jason Bolton and Christopher D. Manning. 2020"
+  - "Stanza: A Python Natural Language Processing Toolkit for Many Human Languages. In Association for Computational Linguistics (ACL) System Demonstrations. 2020"
+  - "TalbankenSBX: https://spraakbanken.gu.se/en/blog/20200609-the-five-lives-of-talbanken"
+  - "SIC2: https://spraakbanken.gu.se/en/resources/sic2"
+models:
+  - name: Stanzamorph
+    url: https://spraakbanken.gu.se/resurser/stanzamorph
+    license: CC BY 4.0
+tagset: "[UD](https://universaldependencies.org/u/feat/index.html)"
+evaluation_results: ''
+description:
+  swe: |-
+    Denna analys använder universal features som ingår i standarden Universal Dependencies.
+  eng: |-
+    This analysis uses universal features, defined as part of the Universal Dependencies standard.
+---
+id: sbx-swe-lemmatization-stanza-stanzalem
+parent: stanza-swe-parent
+name:
+  swe: SUC3-grundformanalys med Stanza
+  eng: SUC3-citation form analysis with Stanza
+short_description:
+  swe: Annotering av grundformer (lemman) med Stanza för svenska tränat på SUC3
+  eng: Swedish citation form analysis (base forms, lemmas) by Stanza, trained on SUC3
+task: lemmatization
+annotations:
+  - <token>:stanza.baseform
+example_output: |-
+  ```xml
+  <token baseform="det">Det</token>
+  <token baseform="här">här</token>
+  <token baseform="vara">är</token>
+  <token baseform="en">en</token>
+  <token baseform="korpus">korpus</token>
+  <token baseform=".">.</token>
+  ```
+other_references:
+  - "Stanza: Peng Qi, Yuhao Zhang, Yuhui Zhang, Jason Bolton and Christopher D. Manning. 2020"
+  - "Stanza: A Python Natural Language Processing Toolkit for Many Human Languages. In Association for Computational Linguistics (ACL) System Demonstrations. 2020"
+  - "SUC3: https://spraakbanken.gu.se/en/resources/suc3"
+models:
+  - name: Stanzalem
+    url: https://spraakbanken.gu.se/resurser/stanzalem
+    license: CC BY 4.0
+trained_on: "[SUC3](https://spraakbanken.gu.se/resurser/suc3)"
+evaluation_results: Accuracy = 0.99
+description:
+  eng: |-  
+    In 2020, the Stanza tool was trained and tested on the SUC3 corpus in order to create a high-quality analysis.
+    Currently (in 2024), this analysis is available in Sparv, but it is not provided by default, since it is not fully
+    compatible with SALDO-style lemmas. This model's advantage is that it can be used to lemmatize any token, including
+    out-of-vocabulary tokens.
+---
+id: sbx-swe-dependency-stanza-stanzasynt
+parent: stanza-swe-parent
+name:
+  swe: Dependensparsning med Stanza
+  eng: Dependency parsing with Stanza
+short_description:
+  swe: Svensk dependensparsning tränad på Svensk trädbank med Stanza
+  eng: Swedish dependency parsing with Stanza trained on Sweedish treebank
+task: dependency parsing
+annotations:
+  - <token>:stanza.dephead_ref
+  - <token>:stanza.deprel
+  - <token>:stanza.ref
+example_output: |-
+  ```xml
+  <token dephead_ref="3" deprel="SS" ref="1">Det</token>
+  <token dephead_ref="1" deprel="HD" ref="2">här</token>
+  <token deprel="ROOT" ref="3">är</token>
+  <token dephead_ref="5" deprel="DT" ref="4">en</token>
+  <token dephead_ref="3" deprel="SP" ref="5">korpus</token>
+  <token dephead_ref="3" deprel="IP" ref="6">.</token>
+  ```
+models:
+  - name: Stanzasynt
+    url: https://spraakbanken.gu.se/resurser/stanzasynt
+    license: CC BY 4.0
+trained_on: "[TalbankenSBX](https://spraakbanken.gu.se/resurser/talbanken)"
+tagset: "[MambaDep](https://svn.spraakdata.gu.se/sb-arkiv/pub/mamba.html)"
+evaluation_results: |-
+    A model trained on TalbankenSBX_train and validated on TalbankenSBX_dev yields Labelled Attachment Score of 84.48 on
+    TalbankenSBX_test.
+description:
+  eng: |-
+    In 2020, the Stanza tool was trained and tested on TalbankenSBX (following MambaDep-style annotation) in order to
+    create a high-quality analysis. Currently (in 2024), this is the default analysis for Swedish in Sparv
+---
+id: stanza-eng-parent
+abstract: true
+language_codes:
+  - eng
+tools:
+  - name: "Stanza"
+    url: "https://stanfordnlp.github.io/stanza/"
+    license: "Apache License 2.0"
+keywords:
+  - stanza
+standard_reference: ''
+trained_on: ''
+other_references:
+  - "Stanza: Peng Qi, Yuhao Zhang, Yuhui Zhang, Jason Bolton and Christopher D. Manning. 2020"
+  - "Stanza: A Python Natural Language Processing Toolkit for Many Human Languages. In Association for Computational Linguistics (ACL) System Demonstrations. 2020"
+evaluation_results: ''
+models:
+  - name: Stanza standard model for English
+    url: https://stanfordnlp.github.io/stanza/models.html
+created: 2022-08-10
+updated: 2022-08-10
+---
+id: sbx-eng-pos-stanza
+parent: stanza-eng-parent
+name:
+  swe: Ordklasstaggning med Stanza för engelska
+  eng: Part-of-speech tagging with Stanza for English
+short_description:
+  swe: Annotering av ordklasser (Penn Treebank-taggar) med Stanzas standardmodell för engelska
+  eng: Part-of-speech annotation with Penn Treebank tags with Stanza's standard model for English
+task: part-of-speech tagging
+tagset: "[Penn Treebank tagset](https://www.ling.upenn.edu/courses/Fall_2003/ling001/penn_treebank_pos.html)"
+annotations:
+  - <token>:stanza.pos
+example_output: |-
+  ```xml
+  <token pos="DT">This</token>
+  <token pos="VBZ">is</token>
+  <token pos="DT">a</token>
+  <token pos="NN">corpus</token>
+  <token pos=".">.</token>
+  ```
+example_extra: |-
+  In order to use this annotation you need to add the following setting to your Sparv corpus configuration file:
+  ```yaml
+  metadata:
+    language: eng
+  ```
+---
+id: sbx-eng-sentence-stanza
+parent: stanza-eng-parent
+name:
+  swe: Meningssegmentering för engelska med Stanza
+  eng: Sentence segmentation for English with Stanza
+short_description:
+  swe: Meningssegmentering med Stanzas standardmodell för engelska
+  eng: Sentence segmentation with Stanza's standard model for English
+task: sentence segmentation
+annotations:
+  - stanza.sentence
+example_output: |-
+  ```xml
+  <sentence>
+    <token>This</token>
+    <token>is</token>
+    <token>a</token>
+    <token>corpus</token>
+    <token>.</token>
+  </sentence>
+  <sentence>
+    <token>It</token>
+    <token>contains</token>
+    <token>multiple</token>
+    <token>sentences</token>
+    <token>.</token>
+  </sentence>
+  <sentence>
+    <token>Here</token>
+    <token>comes</token>
+    <token>another</token>
+    <token>sentence</token>
+    <token>.</token>
+  </sentence>
+  ```
+example_extra: |-
+  In order to use this annotation you need to add the following setting to your Sparv corpus configuration file:
+  ```yaml
+  metadata:
+    language: eng
+  ```
+---
+id: sbx-eng-tokenization-stanza
+parent: stanza-eng-parent
+name:
+  swe: Tokenisering för engelska med Stanza
+  eng: Tokenization for English with Stanza
+short_description:
+  swe: Tokenisering med Stanzas standardmodell för engelska
+  eng: Tokenization with Stanza's standard model for English
+task: tokenization
+annotations:
+  - stanza.token
+example_output: |-
+  ```xml
+  <token>This</token>
+  <token>is</token>
+  <token>a</token>
+  <token>corpus</token>
+  <token>.</token>
+  ```
+example_extra: |-
+  In order to use this annotation you need to add the following settings to your Sparv corpus configuration file:
+  ```yaml
+  metadata:
+    language: eng
+
+  classes:
+    token: stanza.token
+  ```
+---
+id: sbx-eng-lemmatization-stanza
+parent: stanza-eng-parent
+name:
+  swe: Lemmatisering för engelska med Stanza
+  eng: Lemmatization for English with Stanza
+short_description:
+  swe: Lemmatisering med Stanzas standardmodell för engelska
+  eng: Lemmatization with Stanza's standard model for English
+task: lemmatization
+annotations:
+  - <token>:stanza.baseform
+example_output: |-
+  ```xml
+  <token baseform="this">This</token>
+  <token baseform="be">is</token>
+  <token baseform="a">a</token>
+  <token baseform="corpus">corpus</token>
+  <token baseform="contain">containing</token>
+  <token baseform="some">some</token>
+  <token baseform="word">words</token>
+  <token baseform=".">.</token>
+  ```
+example_extra: |-
+  In order to use this annotation you need to add the following setting to your Sparv corpus configuration file:
+  ```yaml
+  metadata:
+    language: eng
+  ```
+---
+id: sbx-eng-dependency-stanza
+parent: stanza-eng-parent
+name:
+  swe: Dependensparsning för engelska med Stanza
+  eng: Dependency parsing for English with Stanza
+short_description:
+  swe: Dependensparsning med Stanzas standardmodell för engelska
+  eng: Dependency parsing with Stanza's standard model for English
+task: dependency parsing
+tagset: "[UD](https://universaldependencies.org/en/dep/)"
+annotations:
+  - <token>:stanza.ref
+  - <token>:stanza.dephead_ref
+  - <token>:stanza.deprel
+example_output: |-
+  ```xml
+  <token dephead_ref="4" deprel="nsubj" ref="1">This</token>
+  <token dephead_ref="4" deprel="cop" ref="2">is</token>
+  <token dephead_ref="4" deprel="det" ref="3">a</token>
+  <token deprel="root" ref="4">corpus</token>
+  <token dephead_ref="4" deprel="acl" ref="5">containing</token>
+  <token dephead_ref="7" deprel="det" ref="6">some</token>
+  <token dephead_ref="5" deprel="obj" ref="7">words</token>
+  <token dephead_ref="4" deprel="punct" ref="8">.</token>
+  ```
+example_extra: |-
+  In order to use this annotation you need to add the following setting to your Sparv corpus configuration file:
+  ```yaml
+  metadata:
+    language: eng
+  ```
+---
+id: sbx-eng-namedentity-stanza
+parent: stanza-eng-parent
+name:
+  swe: Namnigenkänning för engelska med Stanza
+  eng: Named entity recognition for English with Stanza
+short_description:
+  swe: Namnigenkänning (NER) med Stanzas standardmodell för engelska
+  eng: Named entity recognition with Stanza's standard model for English
+task: named entity recognition
+annotations:
+  - stanza.ne
+  - stanza.ne:stanza.ne_type
+example_output: |-
+  ```xml
+  <token>The</token>
+  <ne ne_type="NORP">
+    <token>Swedish</token>
+  </ne>
+  <token>chemist</token>
+  <ne ne_type="PERSON">
+    <token>Alfred</token>
+    <token>Bernhard</token>
+    <token>Nobel</token>
+  </ne>
+  <token>was</token>
+  <token>born</token>
+  <token>on</token>
+  <ne ne_type="DATE">
+    <token>21</token>
+    <token>October</token>
+    <token>1833</token>
+  </ne>
+  <token>in</token>
+  <ne ne_type="GPE">
+    <token>Stockholm</token>
+  </ne>
+  <token>.</token>
+  ```
+example_extra: |-
+  In order to use this annotation you need to add the following setting to your Sparv corpus configuration file:
+  ```yaml
+  metadata:
+    language: eng
+  ```
+description:
+  swe: |-
+    Namnigenkänning (NER) gör det möjligt att märka upp namnentiteter (som t.ex. personnamn, organisationer, ortnamn) i
+    texten.
+  eng: |-
+    Named entity recognition (NER) enables the detection of named entities (e.g. personal names, organizations,
+    geographical locations) in the text.
+---
+id: sbx-eng-pos-stanza-upos
+parent: stanza-eng-parent
+name:
+  swe: UD-Ordklasstaggning med Stanza för engelska
+  eng: UD part-of-speech tagging with Stanza for English
+short_description:
+  swe: Annotering av UD-ordklasser (universal dependencies) med Stanzas standardmodell för engelska
+  eng: Part-of-speech annotation with UD (universal dependency) tags with Stanza's standard model for English
+task: part-of-speech tagging
+tagset: "[UD](https://universaldependencies.org/u/pos/)"
+annotations:
+  - <token>:stanza.upos
+example_output: |-
+  ```xml
+  <token upos="PRON">This</token>
+  <token upos="AUX">is</token>
+  <token upos="DET">a</token>
+  <token upos="NOUN">corpus</token>
+  <token upos="PUNCT">.</token>
+  ```
+example_extra: |-
+  In order to use this annotation you need to add the following setting to your Sparv corpus configuration file:
+  ```yaml
+  metadata:
+    language: eng
+  ```
+---
+id: sbx-eng-msd-stanza-ufeats
+parent: stanza-eng-parent
+name:
+  swe: Morfologisk analys för engelska baserad på Stanza
+  eng: Stanza-based morphological analysis for English
+short_description:
+  swe: Morfologisk analys för engelska med universal features (UD) baserad på Stanza
+  eng: Stanza-based morphological analysis for English, using universal features (UD)
+task: morphosyntactic tagging
+tagset: "[UD](https://universaldependencies.org/u/feat/index.html)"
+annotations:
+  - <token>:stanza.ufeats
+example_output: |-
+  ```xml
+  <token ufeats="Number=Sing|PronType=Dem">This</token>
+  <token ufeats="Mood=Ind|Number=Sing|Person=3|Tense=Pres|VerbForm=Fin">is</token>
+  <token ufeats="Definite=Ind|PronType=Art">a</token>
+  <token ufeats="Number=Sing">corpus</token>
+  <token>.</token>
+  ```
+example_extra: |-
+  In order to use this annotation you need to add the following setting to your Sparv corpus configuration file:
+  ```yaml
+  metadata:
+    language: eng
+  ```

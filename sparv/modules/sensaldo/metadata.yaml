@@ -1,0 +1,66 @@
+id: sbx-swe-sentiment-sparv-sensaldo
+name:
+  swe: Sentimentanalys per token med SenSALDO
+  eng: Sentiment analysis per token using SenSALDO
+short_description:
+  swe: Sentimentanalys via uppslag i SenSALDO-lexikonet
+  eng: Sentiment analysis via lookup in SenSALDO
+task: sentiment analysis
+language_codes:
+  - swe
+keywords: []
+annotations:
+  - <token>:sensaldo.sentiment_label
+  - <token>:sensaldo.sentiment_score
+example_output: |-
+  ```xml
+  <token sentiment_label="neutral" sentiment_score="0">Otroligt</token>
+  <token sentiment_label="negative" sentiment_score="-1">dåligt</token>
+  <token>!</token>
+  <token>Hemsidan</token>
+  <token sentiment_label="neutral" sentiment_score="0">är</token>
+  <token sentiment_label="neutral" sentiment_score="0">helt</token>
+  <token>fejk</token>
+  <token>och</token>
+  <token sentiment_label="neutral" sentiment_score="0">säljer</token>
+  <token>för</token>
+  <token sentiment_label="negative" sentiment_score="-1">dyra</token>
+  <token sentiment_label="neutral" sentiment_score="0">pengar</token>
+  <token>.</token>
+  <token>Den</token>
+  <token>här</token>
+  <token sentiment_label="neutral" sentiment_score="0">produkten</token>
+  <token sentiment_label="neutral" sentiment_score="0">är</token>
+  <token sentiment_label="positive" sentiment_score="1">jättebra</token>
+  <token>,</token>
+  <token>jag</token>
+  <token sentiment_label="neutral" sentiment_score="0">kan</token>
+  <token>verkligen</token>
+  <token sentiment_label="positive" sentiment_score="1">rekommendera</token>
+  <token>den</token>
+  <token>då</token>
+  <token>jag</token>
+  <token sentiment_label="neutral" sentiment_score="0">är</token>
+  <token sentiment_label="neutral" sentiment_score="0">väldigt</token>
+  <token sentiment_label="positive" sentiment_score="1">nöjd</token>
+  <token>!</token>
+  ```
+standard_reference: 'http://www.lrec-conf.org/proceedings/lrec2018/summaries/857.html'
+other_references:
+  - http://www.lrec-conf.org/proceedings/lrec2018/summaries/846.html
+  - https://gup.ub.gu.se/publication/264721?lang=sv
+models:
+  - name: Sensaldo
+    url: "https://spraakbanken.gu.se/resurser/sensaldo"
+trained_on: ''
+tagset: ''
+evaluation_results: ''
+description:
+  swe: |-
+    Token berikas med sentiment-värden genom uppslag av deras SALDO-ID:n i
+    [Sensaldo](https://spraakbanken.gu.se/resurser/sensaldo).
+  eng: |-
+    Tokens and their SALDO IDs are looked up in [Sensaldo](https://spraakbanken.gu.se/resurser/sensaldo) in order to
+    enrich them with sentiments.
+created: 2018-03-28
+updated: 2018-03-28
