@@ -6,7 +6,7 @@ import subprocess
 from collections.abc import Iterable
 from pathlib import Path
 
-from sparv.api import get_logger
+from sparv.api import SparvErrorMessage, get_logger
 from sparv.api.util import system
 
 logger = get_logger(__name__)
@@ -73,3 +73,46 @@ def install_mysql_dump(host: str, db_name: str, tables: str | Iterable[str]) -> 
         tables = tables.split()
     logger.info("Copying MySQL database: %s, tables: %s", db_name, ", ".join(tables))
     subprocess.check_call(f'mysqldump {db_name} {" ".join(tables)} | ssh {host} "mysql {db_name}"', shell=True)
+
+
+def install_svn(source_file: str | Path, svn_url: str) -> None:
+    """Check in a file to a SVN repository.
+
+    If the file is already in the repository, it will be deleted and added again.
+
+    Args:
+        source_file: The file to check in.
+        svn_url: The URL to the SVN repository.
+
+    Raises:
+        SparvErrorMessage: If the source file does not exist, if svn_url is not set if it is not possible to list or
+            delete the file in the SVN repository, or if it is not possible to import the file to the SVN repository.
+    """
+    source_file = Path(source_file)
+    if not source_file.exists():
+        raise SparvErrorMessage(f"Source file does not exist: {source_file}",
+                                module="api.util.install", function="install_svn")
+
+    # Check if svn_url is set
+    if not svn_url:
+        raise SparvErrorMessage("No SVN URL specified", module="api.util.install", function="install_svn")
+
+    # Check if file exists in SVN repository and delete it (existing files cannot be updated in SVN)
+    try:
+        result = subprocess.run(["svn", "ls", svn_url], capture_output=True, text=True, check=False)
+        if result.returncode == 0:
+            logger.info("File exists in SVN repository, updating: %s", svn_url)
+            subprocess.check_call(["svn", "delete", svn_url, "-m", "Deleting file with Sparv in order to update"])
+    except subprocess.CalledProcessError as e:
+        raise SparvErrorMessage(
+            f"Failed to list or delete file in SVN repository: {e}", module="api.util.install", function="install_svn"
+        ) from e
+
+    # Import file to SVN
+    try:
+        logger.info("Importing file to SVN: %s", svn_url)
+        subprocess.check_call(["svn", "import", str(source_file), svn_url, "-m", "Adding file with Sparv"])
+    except subprocess.CalledProcessError as e:
+        raise SparvErrorMessage(
+            f"Failed to import file to SVN repository: {e}", module="api.util.install", function="install_svn"
+        ) from e

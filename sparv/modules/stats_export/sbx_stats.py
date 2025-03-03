@@ -13,6 +13,7 @@ from sparv.api import (
     MarkerOptional,
     Output,
     OutputMarker,
+    SparvErrorMessage,
     annotator,
     exporter,
     get_logger,
@@ -231,10 +232,15 @@ def install_sbx_freq_list(
     marker: OutputMarker = OutputMarker("stats_export.install_sbx_freq_list_marker"),
     uninstall_marker: MarkerOptional = MarkerOptional("stats_export.uninstall_sbx_freq_list_marker"),
     host: Optional[str] = Config("stats_export.remote_host"),
-    target_dir: str = Config("stats_export.remote_dir")
+    target_dir: Optional[str] = Config("stats_export.remote_dir")
 ):
-    """Install frequency list on server by rsyncing."""
-    util.install.install_path(freq_list, host, target_dir)
+    """Install frequency list on server by rsyncing, or install to an SVN repository."""
+    if not host and not target_dir:
+        raise SparvErrorMessage("Either remote host or target directory must be specified.")
+    if host and host.startswith("svn+"):
+        util.install.install_svn(freq_list, host)
+    else:
+        util.install.install_path(freq_list, host, target_dir)
     uninstall_marker.remove()
     marker.write()
 
@@ -246,10 +252,15 @@ def install_sbx_freq_list_date(
     marker: OutputMarker = OutputMarker("stats_export.install_sbx_freq_list_date_marker"),
     uninstall_marker: MarkerOptional = MarkerOptional("stats_export.uninstall_sbx_freq_list_date_marker"),
     host: Optional[str] = Config("stats_export.remote_host"),
-    target_dir: str = Config("stats_export.remote_dir")
+    target_dir: Optional[str] = Config("stats_export.remote_dir")
 ):
-    """Install frequency list on server by rsyncing."""
-    util.install.install_path(freq_list, host, target_dir)
+    """Install frequency list with dates on server by rsyncing, or install to an SVN repository."""
+    if not host and not target_dir:
+        raise SparvErrorMessage("Either remote host or target directory must be specified.")
+    if host and host.startswith("svn+"):
+        util.install.install_svn(freq_list, host)
+    else:
+        util.install.install_path(freq_list, host, target_dir)
     uninstall_marker.remove()
     marker.write()
 

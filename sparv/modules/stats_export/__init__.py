@@ -19,6 +19,10 @@ __config__ = [
         description="The minimum frequency a word must have in order to be included in the result",
         datatype=int,
     ),
-    Config("stats_export.remote_host", description="Remote host to install to", datatype=str),
+    Config(
+        "stats_export.remote_host",
+        description="Remote host or SVN repository (prefixed with 'svn+') to install to",
+        datatype=str,
+    ),
     Config("stats_export.remote_dir", description="Path on remote host to install to", datatype=str),
 ]
