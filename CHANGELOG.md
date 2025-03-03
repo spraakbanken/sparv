@@ -38,6 +38,7 @@
 - Fixed crash when removing namespaces from attributes in `xml_import:parse`.
 - Fixed tab autocompletion not working with Python 3.12.
 - Fixed `util.system.gpus()` when used with PyTorch's `torch.cuda.set_device()`.
+- Fixed bug in `stats_export` which caused it to crash sometimes.
 
 ## [5.2.0] - 2023-12-07
 

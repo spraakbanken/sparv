@@ -65,7 +65,9 @@ def freq_list(source_files: AllSourceFilenames = AllSourceFilenames(),
         remove_namespaces=remove_namespaces, sparv_namespace=sparv_namespace, source_namespace=source_namespace)
 
     # Get all token and struct annotations (except the span annotations)
-    token_annotations = [a for a in annotation_list if a.attribute_name in token_attributes]
+    token_annotations = [
+        a for a in annotation_list if a.annotation_name == token.name and a.attribute_name in token_attributes
+    ]
     struct_annotations = [a for a in annotation_list if ":" in a.name and a.attribute_name not in token_attributes]
 
     # Calculate token frequencies
