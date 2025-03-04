@@ -25,4 +25,11 @@ __config__ = [
         datatype=str,
     ),
     Config("stats_export.remote_dir", description="Path on remote host to install to", datatype=str),
+    Config(
+        "stats_export.compression",
+        default="zip",
+        description="Compression method to use",
+        datatype=str,
+        choices=["zip", "bz2"],
+    ),
 ]

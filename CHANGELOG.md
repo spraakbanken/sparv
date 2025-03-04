@@ -12,6 +12,7 @@
 - Sparv now respects the `JAVA_HOME` environment variable.
 - Added autocomplete instructions for `zsh`.
 - Added 'misc:fake_text_headtail' annotator.
+- Added compressed versions of the SBX frequency list exports.
 
 ### Changed
 
