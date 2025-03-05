@@ -116,3 +116,26 @@ def install_svn(source_file: str | Path, svn_url: str) -> None:
         raise SparvErrorMessage(
             f"Failed to import file to SVN repository: {e}", module="api.util.install", function="install_svn"
         ) from e
+
+
+def uninstall_svn(svn_url: str) -> None:
+    """Delete a file from a SVN repository.
+
+    Args:
+        svn_url: The URL to the SVN repository.
+
+    Raises:
+        SparvErrorMessage: If svn_url is not set or if it is not possible to delete the file in the SVN repository.
+    """
+    # Check if svn_url is set
+    if not svn_url:
+        raise SparvErrorMessage("No SVN URL specified", module="api.util.install", function="uninstall_svn")
+
+    # Delete file from SVN
+    try:
+        logger.info("Deleting file from SVN: %s", svn_url)
+        subprocess.check_call(["svn", "delete", svn_url, "-m", "Deleting file with Sparv"])
+    except subprocess.CalledProcessError as e:
+        raise SparvErrorMessage(
+            f"Failed to delete file in SVN repository: {e}", module="api.util.install", function="uninstall_svn"
+        ) from e

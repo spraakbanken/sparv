@@ -1,5 +1,5 @@
 """SBX specific annotation and export functions related to the stats export."""
-import os
+from pathlib import Path
 from typing import Optional
 
 from sparv.api import (
@@ -334,8 +334,19 @@ def install_sbx_freq_list(
     uninstall_marker: MarkerOptional = MarkerOptional("stats_export.uninstall_sbx_freq_list_marker"),
     host: Optional[str] = Config("stats_export.remote_host"),
     target_dir: Optional[str] = Config("stats_export.remote_dir")
-):
-    """Install frequency list on server by rsyncing, or install to an SVN repository."""
+) -> None:
+    """Install frequency list on server by rsyncing, or install to an SVN repository.
+
+    Args:
+        freq_list: Path to frequency list.
+        marker: Output marker.
+        uninstall_marker: Uninstall marker.
+        host: Remote host.
+        target_dir: Remote directory.
+
+    Raises:
+        SparvErrorMessage: If neither host nor target directory is specified.
+    """
     if not host and not target_dir:
         raise SparvErrorMessage("Either remote host or target directory must be specified.")
     if host and host.startswith("svn+"):
@@ -358,8 +369,19 @@ def install_sbx_freq_list_compressed(
     uninstall_marker: MarkerOptional = MarkerOptional("stats_export.uninstall_sbx_freq_list_compressed_marker"),
     host: Optional[str] = Config("stats_export.remote_host"),
     target_dir: Optional[str] = Config("stats_export.remote_dir"),
-):
-    """Install compressed frequency list on server by rsyncing, or install to an SVN repository."""
+) -> None:
+    """Install compressed frequency list on server by rsyncing, or install to an SVN repository.
+
+    Args:
+        freq_list: Path to frequency list.
+        marker: Output marker.
+        uninstall_marker: Uninstall marker.
+        host: Remote host.
+        target_dir: Remote directory.
+
+    Raises:
+        SparvErrorMessage: If neither host nor target directory is specified.
+    """
     if not host and not target_dir:
         raise SparvErrorMessage("Either remote host or target directory must be specified.")
     if host and host.startswith("svn+"):
@@ -378,8 +400,19 @@ def install_sbx_freq_list_date(
     uninstall_marker: MarkerOptional = MarkerOptional("stats_export.uninstall_sbx_freq_list_date_marker"),
     host: Optional[str] = Config("stats_export.remote_host"),
     target_dir: Optional[str] = Config("stats_export.remote_dir")
-):
-    """Install frequency list with dates on server by rsyncing, or install to an SVN repository."""
+) -> None:
+    """Install frequency list with dates on server by rsyncing, or install to an SVN repository.
+
+    Args:
+        freq_list: Path to frequency list.
+        marker: Output marker.
+        uninstall_marker: Uninstall marker.
+        host: Remote host.
+        target_dir: Remote directory.
+
+    Raises:
+        SparvErrorMessage: If neither host nor target directory is specified.
+    """
     if not host and not target_dir:
         raise SparvErrorMessage("Either remote host or target directory must be specified.")
     if host and host.startswith("svn+"):
@@ -402,8 +435,19 @@ def install_sbx_freq_list_date_compressed(
     uninstall_marker: MarkerOptional = MarkerOptional("stats_export.uninstall_sbx_freq_list_date_compressed_marker"),
     host: Optional[str] = Config("stats_export.remote_host"),
     target_dir: Optional[str] = Config("stats_export.remote_dir"),
-):
-    """Install compressed frequency list with dates on server by rsyncing, or install to an SVN repository."""
+) -> None:
+    """Install compressed frequency list with dates on server by rsyncing, or install to an SVN repository.
+
+    Args:
+        freq_list: Path to frequency list.
+        marker: Output marker.
+        uninstall_marker: Uninstall marker.
+        host: Remote host.
+        target_dir: Remote directory.
+
+    Raises:
+        SparvErrorMessage: If neither host nor target directory is specified.
+    """
     if not host and not target_dir:
         raise SparvErrorMessage("Either remote host or target directory must be specified.")
     if host and host.startswith("svn+"):
@@ -420,12 +464,29 @@ def uninstall_sbx_freq_list(
     marker: OutputMarker = OutputMarker("stats_export.uninstall_sbx_freq_list_marker"),
     install_marker: MarkerOptional = MarkerOptional("stats_export.install_sbx_freq_list_marker"),
     host: Optional[str] = Config("stats_export.remote_host"),
-    remote_dir: str = Config("stats_export.remote_dir")
-):
-    """Uninstall SBX word frequency list."""
-    remote_file = os.path.join(remote_dir, f"stats_{corpus_id}.csv")
-    logger.info("Removing SBX word frequency file %s%s", host + ":" if host else "", remote_file)
-    util.install.uninstall_path(remote_file, host)
+    remote_dir: Optional[str] = Config("stats_export.remote_dir")
+) -> None:
+    """Uninstall SBX word frequency list.
+
+    Args:
+        corpus_id: The corpus ID.
+        marker: Output marker.
+        install_marker: Install marker.
+        host: Remote host.
+        remote_dir: Remote directory.
+
+    Raises:
+        SparvErrorMessage: If neither host nor remote directory is specified.
+    """
+    if not host and not remote_dir:
+        raise SparvErrorMessage("Either remote host or remote directory must be specified.")
+    if host and host.startswith("svn+"):
+        util.install.uninstall_svn(host)
+    else:
+        remote_dir = remote_dir or ""
+        remote_file = Path(remote_dir) / f"stats_{corpus_id}.csv"
+        logger.info("Removing SBX word frequency file %s%s", host + ":" if host else "", remote_file)
+        util.install.uninstall_path(remote_file, host)
     install_marker.remove()
     marker.write()
 
@@ -436,13 +497,31 @@ def uninstall_sbx_freq_list_compressed(
     marker: OutputMarker = OutputMarker("stats_export.uninstall_sbx_freq_list_compressed_marker"),
     install_marker: MarkerOptional = MarkerOptional("stats_export.install_sbx_freq_list_compressed_marker"),
     host: Optional[str] = Config("stats_export.remote_host"),
-    remote_dir: str = Config("stats_export.remote_dir"),
+    remote_dir: Optional[str] = Config("stats_export.remote_dir"),
     compression: str = Config("stats_export.compression"),
-):
-    """Uninstall compressed SBX word frequency list."""
-    remote_file = os.path.join(remote_dir, f"stats_{corpus_id}.csv.{compression}")
-    logger.info("Removing SBX word frequency file %s%s", host + ":" if host else "", remote_file)
-    util.install.uninstall_path(remote_file, host)
+) -> None:
+    """Uninstall compressed SBX word frequency list.
+
+    Args:
+        corpus_id: The corpus ID.
+        marker: Output marker.
+        install_marker: Install marker.
+        host: Remote host.
+        remote_dir: Remote directory.
+        compression: The compression method used.
+
+    Raises:
+        SparvErrorMessage: If neither host nor remote directory is specified.
+    """
+    if not host and not remote_dir:
+        raise SparvErrorMessage("Either remote host or remote directory must be specified.")
+    if host and host.startswith("svn+"):
+        util.install.uninstall_svn(host)
+    else:
+        remote_dir = remote_dir or ""
+        remote_file = Path(remote_dir) / f"stats_{corpus_id}.csv.{compression}"
+        logger.info("Removing SBX word frequency file %s%s", host + ":" if host else "", remote_file)
+        util.install.uninstall_path(remote_file, host)
     install_marker.remove()
     marker.write()
 
@@ -453,12 +532,29 @@ def uninstall_sbx_freq_list_date(
     marker: OutputMarker = OutputMarker("stats_export.uninstall_sbx_freq_list_date_marker"),
     install_marker: MarkerOptional = MarkerOptional("stats_export.install_sbx_freq_list_date_marker"),
     host: Optional[str] = Config("stats_export.remote_host"),
-    remote_dir: str = Config("stats_export.remote_dir")
-):
-    """Uninstall SBX word frequency list with dates."""
-    remote_file = os.path.join(remote_dir, f"stats_{corpus_id}.csv")
-    logger.info("Removing SBX word frequency with dates file %s%s", host + ":" if host else "", remote_file)
-    util.install.uninstall_path(remote_file, host)
+    remote_dir: Optional[str] = Config("stats_export.remote_dir")
+) -> None:
+    """Uninstall SBX word frequency list with dates.
+
+    Args:
+        corpus_id: The corpus ID.
+        marker: Output marker.
+        install_marker: Install marker.
+        host: Remote host.
+        remote_dir: Remote directory.
+
+    Raises:
+        SparvErrorMessage: If neither host nor remote directory is specified.
+    """
+    if not host and not remote_dir:
+        raise SparvErrorMessage("Either remote host or remote directory must be specified.")
+    if host and host.startswith("svn+"):
+        util.install.uninstall_svn(host)
+    else:
+        remote_dir = remote_dir or ""
+        remote_file = Path(remote_dir) / f"stats_{corpus_id}.csv"
+        logger.info("Removing SBX word frequency with dates file %s%s", host + ":" if host else "", remote_file)
+        util.install.uninstall_path(remote_file, host)
     install_marker.remove()
     marker.write()
 
@@ -469,12 +565,30 @@ def uninstall_sbx_freq_list_date_compressed(
     marker: OutputMarker = OutputMarker("stats_export.uninstall_sbx_freq_list_date_compressed_marker"),
     install_marker: MarkerOptional = MarkerOptional("stats_export.install_sbx_freq_list_date_compressed_marker"),
     host: Optional[str] = Config("stats_export.remote_host"),
-    remote_dir: str = Config("stats_export.remote_dir"),
+    remote_dir: Optional[str] = Config("stats_export.remote_dir"),
     compression: str = Config("stats_export.compression"),
-):
-    """Uninstall compressed SBX word frequency list with dates."""
-    remote_file = os.path.join(remote_dir, f"stats_{corpus_id}.csv.{compression}")
-    logger.info("Removing SBX word frequency with dates file %s%s", host + ":" if host else "", remote_file)
-    util.install.uninstall_path(remote_file, host)
+) -> None:
+    """Uninstall compressed SBX word frequency list with dates.
+
+    Args:
+        corpus_id: The corpus ID.
+        marker: Output marker.
+        install_marker: Install marker.
+        host: Remote host.
+        remote_dir: Remote directory.
+        compression: The compression method used.
+
+    Raises:
+        SparvErrorMessage: If neither host nor remote directory is specified.
+    """
+    if not host and not remote_dir:
+        raise SparvErrorMessage("Either remote host or remote directory must be specified.")
+    if host and host.startswith("svn+"):
+        util.install.uninstall_svn(host)
+    else:
+        remote_dir = remote_dir or ""
+        remote_file = Path(remote_dir) / f"stats_{corpus_id}.csv.{compression}"
+        logger.info("Removing SBX word frequency with dates file %s%s", host + ":" if host else "", remote_file)
+        util.install.uninstall_path(remote_file, host)
     install_marker.remove()
     marker.write()

@@ -13,6 +13,8 @@
 - Added autocomplete instructions for `zsh`.
 - Added 'misc:fake_text_headtail' annotator.
 - Added compressed versions of the SBX frequency list exports.
+- Added utility functions: `util.install.install_svn` and `util.install.uninstall_svn` for adding files to or removing
+  them from an SVN repository.
 
 ### Changed
 
