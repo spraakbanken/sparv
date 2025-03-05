@@ -31,7 +31,7 @@ jobs:
       # Load cached venv if cache exists
       - name: Load cached venv
         id: cached-dependencies
-        uses: actions/cache@v3.2.3
+        uses: actions/cache@v3
         with:
           path: venv
           key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/pyproject.toml') }}-${{ hashFiles('.github/workflows/ci.yml') }}
