@@ -116,7 +116,7 @@ def sbx_freq_list(
               out=out, sparv_namespace="", source_namespace="", delimiter=delimiter, cutoff=cutoff)
 
 
-@exporter("Corpus word frequency list (compressed)", language=["swe"])
+@exporter("Corpus word frequency list (compressed)", language=["swe"], order=1)
 def sbx_freq_list_compressed(
     stats_file: ExportInput = ExportInput("stats_export.frequency_list_sbx/stats_[metadata.id].csv"),
     out_file: Export = Export("stats_export.frequency_list_sbx/stats_[metadata.id].csv.[stats_export.compression]"),
