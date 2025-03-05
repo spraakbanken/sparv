@@ -15,6 +15,8 @@
 - Added compressed versions of the SBX frequency list exports.
 - Added utility functions: `util.install.install_svn` and `util.install.uninstall_svn` for adding files to or removing
   them from an SVN repository.
+- Added utility functions: `util.install.install_git` and `util.install.uninstall_git` for adding files to or removing
+  them from a local Git repository.
 
 ### Changed
 

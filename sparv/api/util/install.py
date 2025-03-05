@@ -139,3 +139,66 @@ def uninstall_svn(svn_url: str) -> None:
         raise SparvErrorMessage(
             f"Failed to delete file in SVN repository: {e}", module="api.util.install", function="uninstall_svn"
         ) from e
+
+
+def install_git(source_file: str | Path, repo_path: str | Path) -> None:
+    """Copy a file to a local Git repository and make a commit.
+
+    Args:
+        source_file: The file to copy.
+        repo_path: The path to the local Git repository.
+
+    Raises:
+        SparvErrorMessage: If the source file does not exist, if repo_path is not set, or if it is not possible to add
+        the file to the Git repository.
+    """
+    source_file = Path(source_file)
+    repo_path = Path(repo_path)
+
+    # Check if source file and repo path exist
+    if not source_file.exists():
+        raise SparvErrorMessage(f"Source file does not exist: {source_file}", module="api.util.install",
+                                function="install_git")
+    if not repo_path.exists():
+        raise SparvErrorMessage("Local Git repository path does not exist", module="api.util.install",
+                                function="install_git")
+
+    # Copy the file to the local Git repository
+    target_file = repo_path / source_file.name
+    target_file.write_bytes(source_file.read_bytes())
+
+    # Add file to Git and commit
+    try:
+        logger.info("Adding file to local Git repository: %s", repo_path)
+        subprocess.check_call(["git", "-C", str(repo_path), "add", str(target_file)])
+        subprocess.check_call(["git", "-C", str(repo_path), "commit", "-m", "Adding file with Sparv"])
+    except subprocess.CalledProcessError as e:
+        raise SparvErrorMessage(
+            f"Failed to add file to local Git repository: {e}", module="api.util.install", function="install_git"
+        ) from e
+
+
+def uninstall_git(file_path: str | Path) -> None:
+    """Remove a file from a local Git repository and make a commit.
+
+    Args:
+        file_path: The path to file to remove.
+
+    Raises:
+        SparvErrorMessage: If repo_path is not set, if the file does not exist in the Git repository, or if it is not
+        possible to remove the file from the Git repository.
+    """
+    file_path = Path(file_path)
+    if not file_path.exists():
+        raise SparvErrorMessage(f"File does not exist in Git repository: {file_path}", module="api.util.install",
+                                function="uninstall_git")
+
+    # Remove file from Git and commit
+    try:
+        logger.info("Removing file from local Git repository: %s", file_path)
+        subprocess.check_call(["git", "-C", str(file_path.parent), "rm", str(file_path.name)])
+        subprocess.check_call(["git", "-C", str(file_path.parent), "commit", "-m", "Removing file with Sparv"])
+    except subprocess.CalledProcessError as e:
+        raise SparvErrorMessage(
+            f"Failed to remove file from local Git repository: {e}", module="api.util.install", function="uninstall_git"
+        ) from e
