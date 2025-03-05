@@ -350,7 +350,8 @@ def install_sbx_freq_list(
     if not host and not target_dir:
         raise SparvErrorMessage("Either remote host or target directory must be specified.")
     if host and host.startswith("svn+"):
-        util.install.install_svn(freq_list, host)
+        url = host.rstrip("/") + "/" + Path(freq_list).name
+        util.install.install_svn(freq_list, url, remove_existing=True)
     else:
         util.install.install_path(freq_list, host, target_dir)
     uninstall_marker.remove()
@@ -385,7 +386,8 @@ def install_sbx_freq_list_compressed(
     if not host and not target_dir:
         raise SparvErrorMessage("Either remote host or target directory must be specified.")
     if host and host.startswith("svn+"):
-        util.install.install_svn(freq_list, host)
+        url = host.rstrip("/") + "/" + Path(freq_list).name
+        util.install.install_svn(freq_list, url, remove_existing=True)
     else:
         util.install.install_path(freq_list, host, target_dir)
     uninstall_marker.remove()
@@ -416,7 +418,8 @@ def install_sbx_freq_list_date(
     if not host and not target_dir:
         raise SparvErrorMessage("Either remote host or target directory must be specified.")
     if host and host.startswith("svn+"):
-        util.install.install_svn(freq_list, host)
+        url = host.rstrip("/") + "/" + Path(freq_list).name
+        util.install.install_svn(freq_list, url, remove_existing=True)
     else:
         util.install.install_path(freq_list, host, target_dir)
     uninstall_marker.remove()
@@ -451,7 +454,8 @@ def install_sbx_freq_list_date_compressed(
     if not host and not target_dir:
         raise SparvErrorMessage("Either remote host or target directory must be specified.")
     if host and host.startswith("svn+"):
-        util.install.install_svn(freq_list, host)
+        url = host.rstrip("/") + "/" + Path(freq_list).name
+        util.install.install_svn(freq_list, url, remove_existing=True)
     else:
         util.install.install_path(freq_list, host, target_dir)
     uninstall_marker.remove()
@@ -480,11 +484,14 @@ def uninstall_sbx_freq_list(
     """
     if not host and not remote_dir:
         raise SparvErrorMessage("Either remote host or remote directory must be specified.")
+
+    uninstall_file = Path(f"stats_{corpus_id}.csv")
     if host and host.startswith("svn+"):
-        util.install.uninstall_svn(host)
+        url = host.rstrip("/") + "/" + uninstall_file
+        util.install.uninstall_svn(url)
     else:
         remote_dir = remote_dir or ""
-        remote_file = Path(remote_dir) / f"stats_{corpus_id}.csv"
+        remote_file = Path(remote_dir) / uninstall_file
         logger.info("Removing SBX word frequency file %s%s", host + ":" if host else "", remote_file)
         util.install.uninstall_path(remote_file, host)
     install_marker.remove()
@@ -515,11 +522,14 @@ def uninstall_sbx_freq_list_compressed(
     """
     if not host and not remote_dir:
         raise SparvErrorMessage("Either remote host or remote directory must be specified.")
+
+    uninstall_file = Path(f"stats_{corpus_id}.csv.{compression}")
     if host and host.startswith("svn+"):
-        util.install.uninstall_svn(host)
+        url = host.rstrip("/") + "/" + uninstall_file
+        util.install.uninstall_svn(url)
     else:
         remote_dir = remote_dir or ""
-        remote_file = Path(remote_dir) / f"stats_{corpus_id}.csv.{compression}"
+        remote_file = Path(remote_dir) / uninstall_file
         logger.info("Removing SBX word frequency file %s%s", host + ":" if host else "", remote_file)
         util.install.uninstall_path(remote_file, host)
     install_marker.remove()
@@ -548,11 +558,14 @@ def uninstall_sbx_freq_list_date(
     """
     if not host and not remote_dir:
         raise SparvErrorMessage("Either remote host or remote directory must be specified.")
+
+    uninstall_file = Path(f"stats_{corpus_id}.csv")
     if host and host.startswith("svn+"):
-        util.install.uninstall_svn(host)
+        url = host.rstrip("/") + "/" + uninstall_file
+        util.install.uninstall_svn(url)
     else:
         remote_dir = remote_dir or ""
-        remote_file = Path(remote_dir) / f"stats_{corpus_id}.csv"
+        remote_file = Path(remote_dir) / uninstall_file
         logger.info("Removing SBX word frequency with dates file %s%s", host + ":" if host else "", remote_file)
         util.install.uninstall_path(remote_file, host)
     install_marker.remove()
@@ -583,11 +596,14 @@ def uninstall_sbx_freq_list_date_compressed(
     """
     if not host and not remote_dir:
         raise SparvErrorMessage("Either remote host or remote directory must be specified.")
+
+    uninstall_file = Path(f"stats_{corpus_id}.csv.{compression}")
     if host and host.startswith("svn+"):
-        util.install.uninstall_svn(host)
+        url = host.rstrip("/") + "/" + uninstall_file
+        util.install.uninstall_svn(url)
     else:
         remote_dir = remote_dir or ""
-        remote_file = Path(remote_dir) / f"stats_{corpus_id}.csv.{compression}"
+        remote_file = Path(remote_dir) / uninstall_file
         logger.info("Removing SBX word frequency with dates file %s%s", host + ":" if host else "", remote_file)
         util.install.uninstall_path(remote_file, host)
     install_marker.remove()

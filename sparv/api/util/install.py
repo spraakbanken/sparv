@@ -75,18 +75,21 @@ def install_mysql_dump(host: str, db_name: str, tables: str | Iterable[str]) -> 
     subprocess.check_call(f'mysqldump {db_name} {" ".join(tables)} | ssh {host} "mysql {db_name}"', shell=True)
 
 
-def install_svn(source_file: str | Path, svn_url: str) -> None:
+def install_svn(source_file: str | Path, svn_url: str, remove_existing: bool = False) -> None:
     """Check in a file to a SVN repository.
 
     If the file is already in the repository, it will be deleted and added again.
 
     Args:
         source_file: The file to check in.
-        svn_url: The URL to the SVN repository.
+        svn_url: The URL to the SVN repository, including the path to the file.
+        remove_existing: If False, this function can only be used to add new files to the repository. If True, existing
+            files will be deleted before the import.
 
     Raises:
-        SparvErrorMessage: If the source file does not exist, if svn_url is not set if it is not possible to list or
-            delete the file in the SVN repository, or if it is not possible to import the file to the SVN repository.
+        SparvErrorMessage: If the source_file does not exist, if svn_url is not set, if it is not possible to list or
+            delete the file in the SVN repository, if remove_existing is set to False and source_file already exists in
+            the repository, or if it is not possible to import the file to the SVN repository.
     """
     source_file = Path(source_file)
     if not source_file.exists():
@@ -97,10 +100,17 @@ def install_svn(source_file: str | Path, svn_url: str) -> None:
     if not svn_url:
         raise SparvErrorMessage("No SVN URL specified", module="api.util.install", function="install_svn")
 
+    svn_url = svn_url.removeprefix("svn+")
+
     # Check if file exists in SVN repository and delete it (existing files cannot be updated in SVN)
     try:
         result = subprocess.run(["svn", "ls", svn_url], capture_output=True, text=True, check=False)
         if result.returncode == 0:
+            if remove_existing is False:
+                raise SparvErrorMessage(
+                    f"File already exists in SVN repository: {svn_url}", module="api.util.install",
+                    function="install_svn"
+                )
             logger.info("File exists in SVN repository, updating: %s", svn_url)
             subprocess.check_call(["svn", "delete", svn_url, "-m", "Deleting file with Sparv in order to update"])
     except subprocess.CalledProcessError as e:
@@ -122,7 +132,7 @@ def uninstall_svn(svn_url: str) -> None:
     """Delete a file from a SVN repository.
 
     Args:
-        svn_url: The URL to the SVN repository.
+        svn_url: The URL to the SVN repository including the name of the file to remove.
 
     Raises:
         SparvErrorMessage: If svn_url is not set or if it is not possible to delete the file in the SVN repository.
@@ -130,6 +140,8 @@ def uninstall_svn(svn_url: str) -> None:
     # Check if svn_url is set
     if not svn_url:
         raise SparvErrorMessage("No SVN URL specified", module="api.util.install", function="uninstall_svn")
+
+    svn_url = svn_url.removeprefix("svn+")
 
     # Delete file from SVN
     try:
