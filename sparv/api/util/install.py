@@ -91,6 +91,7 @@ def install_svn(source_file: str | Path, svn_url: str, remove_existing: bool = F
             delete the file in the SVN repository, if remove_existing is set to False and source_file already exists in
             the repository, or if it is not possible to import the file to the SVN repository.
     """
+    # Check if source file exists
     source_file = Path(source_file)
     if not source_file.exists():
         raise SparvErrorMessage(f"Source file does not exist: {source_file}",
@@ -104,28 +105,20 @@ def install_svn(source_file: str | Path, svn_url: str, remove_existing: bool = F
 
     # Check if file exists in SVN repository and delete it (existing files cannot be updated in SVN)
     try:
-        result = subprocess.run(["svn", "ls", svn_url], capture_output=True, text=True, check=False)
-        if result.returncode == 0:
+        returncode = system.call_svn("ls", svn_url)
+        if returncode == 0:
             if remove_existing is False:
                 raise SparvErrorMessage(
                     f"File already exists in SVN repository: {svn_url}", module="api.util.install",
                     function="install_svn"
                 )
             logger.info("File exists in SVN repository, updating: %s", svn_url)
-            subprocess.check_call(["svn", "delete", svn_url, "-m", "Deleting file with Sparv in order to update"])
-    except subprocess.CalledProcessError as e:
-        raise SparvErrorMessage(
-            f"Failed to list or delete file in SVN repository: {e}", module="api.util.install", function="install_svn"
-        ) from e
+            system.call_svn("delete", svn_url)
+    except FileNotFoundError:
+        logger.info("File does not exist in SVN repository, adding: %s", svn_url)
 
     # Import file to SVN
-    try:
-        logger.info("Importing file to SVN: %s", svn_url)
-        subprocess.check_call(["svn", "import", str(source_file), svn_url, "-m", "Adding file with Sparv"])
-    except subprocess.CalledProcessError as e:
-        raise SparvErrorMessage(
-            f"Failed to import file to SVN repository: {e}", module="api.util.install", function="install_svn"
-        ) from e
+    system.call_svn("import", str(source_file), svn_url)
 
 
 def uninstall_svn(svn_url: str) -> None:
@@ -135,7 +128,7 @@ def uninstall_svn(svn_url: str) -> None:
         svn_url: The URL to the SVN repository including the name of the file to remove.
 
     Raises:
-        SparvErrorMessage: If svn_url is not set or if it is not possible to delete the file in the SVN repository.
+        SparvErrorMessage: If svn_url is not set, or if deletion fails.
     """
     # Check if svn_url is set
     if not svn_url:
@@ -144,13 +137,7 @@ def uninstall_svn(svn_url: str) -> None:
     svn_url = svn_url.removeprefix("svn+")
 
     # Delete file from SVN
-    try:
-        logger.info("Deleting file from SVN: %s", svn_url)
-        subprocess.check_call(["svn", "delete", svn_url, "-m", "Deleting file with Sparv"])
-    except subprocess.CalledProcessError as e:
-        raise SparvErrorMessage(
-            f"Failed to delete file in SVN repository: {e}", module="api.util.install", function="uninstall_svn"
-        ) from e
+    system.call_svn("delete", svn_url)
 
 
 def install_git(source_file: str | Path, repo_path: str | Path) -> None:

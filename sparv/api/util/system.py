@@ -310,3 +310,58 @@ def gpus(reorder: bool = True) -> list[int] | None:
         return gpus
     except Exception:
         return None
+
+
+def call_svn(command: str, *args: str) -> int:
+    """Call an SVN command.
+
+    Will try to authenticate with SVN_USERNAME and SVN_PASSWORD environment variables if set.
+
+    Args:
+        command: The SVN command to call.
+        *args: Additional arguments for the SVN command.
+
+    Returns:
+        int: The return code from the command.
+
+    Raises:
+        SparvErrorMessage: If the SVN command fails.
+        FileNotFoundError: If the file is not found in SVN.
+    """
+    cmd = ["svn", command, *args, "--non-interactive"]
+
+    svn_username = os.environ.get("SVN_USERNAME", "")
+    svn_password = os.environ.get("SVN_PASSWORD", "")
+    if svn_username:
+        cmd.extend(["--username", svn_username])
+    if svn_username and svn_password:
+        cmd.extend(["--password", svn_password])
+
+    messages = {
+        "delete": "Deleting file with Sparv",
+        "import": "Adding file with Sparv"
+    }
+    message = messages.get(command, "")
+    if message:
+        cmd.extend(["-m", message])
+
+    # Remove password from cmd before logging
+    if "--password" in cmd:
+        cmd_no_password = cmd.copy()
+        cmd_no_password[cmd_no_password.index("--password") + 1] = "********"
+    logger.info("Running SVN command: %s", " ".join(cmd_no_password))
+
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+    except subprocess.CalledProcessError as e:
+        if "E215004" in e.stderr:
+            raise SparvErrorMessage(
+                "SVN authentication failed. Please set SVN_USERNAME and SVN_PASSWORD environment variables.",
+                module="api.util.system", function="call_svn"
+            ) from e
+        if "E200009" in e.stderr:
+            raise FileNotFoundError("File not found. Please check the file path and try again.") from e
+        raise SparvErrorMessage(f"Command returned exit status {e.returncode}", module="api.util.system",
+                                function="call_svn") from e
+
+    return result.returncode
