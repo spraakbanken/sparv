@@ -218,7 +218,13 @@ def print_modules_info(
                                     elif cfg_datatype is list or typing_inspect.get_origin(cfg_datatype) is list:
                                         args = typing_inspect.get_args(cfg_datatype)
                                         if args:
-                                            datatypes.append(f"list[{args[0].__name__}]")
+                                            if typing_inspect.is_union_type(args[0]):
+                                                args_inner = typing_inspect.get_args(args[0])
+                                                datatypes.append(
+                                                    f"list[{' | '.join(a.__name__ for a in args_inner)}]"
+                                                )
+                                            else:
+                                                datatypes.append(f"list[{args[0].__name__}]")
                                         else:
                                             datatypes.append("list")
                                     else:
@@ -398,7 +404,7 @@ def _print_modules(modules_data: dict) -> None:
                             inner_table.add_column(justify="left", style="i dim")
                             inner_table.add_row(
                                 f"type{'s' if len(config_info['datatype']) > 1 else ''}:",
-                                f"{', '.join(config_info['datatype'])}"
+                                f"{escape(' | '.join(config_info['datatype']))}"
                             )
 
                             presentation = {
