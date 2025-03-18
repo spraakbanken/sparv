@@ -452,3 +452,30 @@ def best_from_set(out: Output,
                              key=operator.itemgetter(0), reverse=True)
         out_annotation.append(values[0][1] if values else "")
     out.write(out_annotation)
+
+
+@annotator(
+    "Extract metadata from filename of source file using a regular expression\n\n"
+    "The regular expression should contain one group, which will be extracted as metadata. The metadata will by "
+    "default be assigned to the text annotation.",
+)
+def metadata_from_filename(
+    out: Output,
+    pattern: str,
+    text: Annotation = Annotation("<text>"),
+    source_file: SourceFilename = SourceFilename(),
+) -> None:
+    """Extract metadata from the filename of the source file using a regular expression.
+
+    Args:
+        out: Output annotation.
+        pattern: Regular expression pattern.
+        text: Text annotation.
+        source_file: Source filename.
+    """
+    match = re.search(pattern, source_file)
+    if match:
+        metadata = match.group(1)
+        out.write([metadata] * text.get_size())
+    else:
+        out.write([""] * text.get_size())

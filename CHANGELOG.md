@@ -18,6 +18,7 @@
   `SVN_PASSWORD`).
 - Added utility functions: `util.install.install_git` and `util.install.uninstall_git` for adding files to or removing
   them from a local Git repository.
+- Added `misc:metadata_from_filename` annotator, to extract metadata from filenames.
 
 ### Changed
 
