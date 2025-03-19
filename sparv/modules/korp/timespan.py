@@ -133,7 +133,7 @@ def timespan_sql_no_dateinfo(corpus: Corpus = Corpus(),
     token_count = 0
 
     for file in source_files:
-        token_count += token(file).get_size()
+        token_count += token(file).size
 
     rows_date = [{
         "corpus": corpus_name,

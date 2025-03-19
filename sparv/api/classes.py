@@ -543,6 +543,17 @@ class Annotation(CommonAnnotationMixin, CommonMixin, BaseAnnotation):
     def get_size(self) -> int:
         """Get number of values.
 
+        NB: This method is deprecated and will be removed in future versions. Use the size property instead.
+
+        Returns:
+            The number of values in the annotation.
+        """
+        return self._get_size(self.source_file)
+
+    @property
+    def size(self) -> int:
+        """Get number of values.
+
         Returns:
             The number of values in the annotation.
         """

@@ -26,6 +26,7 @@ annotation is needed as input for a function, e.g. `Annotation("<token:word>")`.
 - `has_attribute`: Return True if the annotation has an attribute.
 - `annotation_name`: Get annotation name (excluding name of any attribute).
 - `attribute_name`: Get attribute name (excluding name of annotation).
+- `size`: Number of values in the annotation.
 
 **Methods:**
 
@@ -49,7 +50,8 @@ annotation is needed as input for a function, e.g. `Annotation("<token:word>")`.
 - `read_parents_and_children(parent, child)`: Read parent and child annotations. Reorder them according to span
   position, but keep original index information.
 - `create_empty_attribute()`: Return a list filled with None of the same size as this annotation.
-- `get_size()`: Get the number of values.
+- `get_size()`: Get the number of values. **Note:** This method is deprecated and will be removed in a future version of
+  Sparv. Use the `size` property instead.
 
 
 ## AnnotationAllSourceFiles
