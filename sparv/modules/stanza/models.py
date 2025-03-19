@@ -37,7 +37,7 @@ def stanza_resources_file(resources_file: ModelOutput = ModelOutput("stanza/swe/
 def stanza_pretrain_model(_model: ModelOutput = ModelOutput("stanza/swe/sv_talbanken.pretrain.pt")):
     """Download and unzip the Stanza pretrain (embeddings) model."""
     zip_model = Model("stanza/swe/stanza_pretrain.zip")
-    zip_model.download("https://svn.spraakdata.gu.se/sb-arkiv/!svn/bc/230835/pub/stanza/stanza_pretrain.zip")
+    zip_model.download("https://svn.spraakdata.gu.se/sb-arkiv/!svn/bc/246558/pub/stanza/stanza_pretrain.zip")
     zip_model.unzip()
     zip_model.remove()
 
