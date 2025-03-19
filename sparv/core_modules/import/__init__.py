@@ -9,7 +9,17 @@ from sparv.core.paths import paths
 __config__ = [
     Config("import.text_annotation", description="Annotation representing a text", datatype=str),
     Config("import.source_dir", paths.source_dir, description="Directory containing corpus source files", datatype=str),
-    Config("import.importer", description="Name of importer to use", datatype=str),
+    Config(
+        "import.importer",
+        description="Importer to use",
+        datatype=str,
+        choices=lambda: [
+            f"{module_name}:{f_name}"
+            for module_name in registry.modules
+            for f_name, annotator in registry.modules[module_name].functions.items()
+            if annotator["type"] == registry.Annotator.importer
+        ],
+    ),
     Config("import.keep_control_chars", False, description="Set to True to keep control characters", datatype=bool),
     Config(
         "import.normalize",
