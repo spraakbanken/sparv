@@ -50,6 +50,7 @@ nav:
     - Requirements for Source Files: user-manual/requirements-for-source-files.md
     - Corpus Configuration: user-manual/corpus-configuration.md
     - Available analyses: user-manual/available-analyses.md
+    - Using Sparv as a Library: user-manual/using-sparv-as-a-library.md
   - Developer's Guide:
     - General Concepts: developers-guide/general-concepts.md
     - Writing Sparv Plugins: developers-guide/writing-sparv-plugins.md

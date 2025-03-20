@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import queue
 import sys
 from pathlib import Path
 from typing import Any
@@ -120,8 +121,24 @@ class SortedCompletionFinder(argcomplete.CompletionFinder):
         return completions
 
 
-def main() -> None:
-    """Run Sparv Pipeline (main entry point for Sparv)."""
+def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) -> bool:
+    """Run Sparv Pipeline (main entry point for Sparv).
+
+    If argv is None, the command line arguments are read from sys.argv.
+
+    Args:
+        argv: List of command line arguments.
+        log_queue: Queue for storing log messages.
+
+    Returns:
+        True if the command was successful, False otherwise.
+    """
+    if argv:
+        sys.argv = ["sparv", *argv]
+        json_log = True
+    else:
+        json_log = False
+
     # Set up command line arguments
     parser = CustomArgumentParser(prog="sparv",
                                   description="Sparv Pipeline",
@@ -379,7 +396,7 @@ def main() -> None:
     # Backward compatibility
     if len(sys.argv) > 1 and sys.argv[1] == "make":
         print("No rule to make target")
-        sys.exit(1)
+        return False
 
     # Handle autocompletion
     SortedCompletionFinder()(parser)
@@ -391,7 +408,7 @@ def main() -> None:
     if args.command == "run-module":
         from sparv.core import run
         run.main(unknown_args, log_level=args.log)
-        sys.exit()
+        return True
     elif args.command == "autocomplete":
         if args.enable or args.enable_old:
             import appdirs
@@ -421,7 +438,7 @@ def main() -> None:
                 "part of the Sparv pipeline (e.g. 'sparv run') has been run at least once since enabling "
                 "autocompletion."
             )
-        sys.exit(0)
+        return True
     else:
         import snakemake
         from snakemake.logging import logger
@@ -436,30 +453,30 @@ def main() -> None:
         if not paths.get_data_path():
             print(f"The path to Sparv's data directory needs to be configured, either by running 'sparv setup' or by "
                   f"setting the environment variable '{paths.data_dir_env}'.")
-            sys.exit(1)
+            return False
 
         # Check if Sparv data dir is outdated (or not properly set up yet)
         version_check = setup.check_sparv_version()
         if version_check is None:
             print("The Sparv data directory has been configured but not yet set up completely. Run 'sparv setup' to "
                   "complete the process.")
-            sys.exit(1)
+            return False
         elif not version_check:
             print("Sparv has been updated and Sparv's data directory may need to be upgraded. Please run the "
                   "'sparv setup' command.")
-            sys.exit(1)
+            return False
 
     if args.command == "setup":
         if args.reset:
             setup.reset()
         else:
             setup.run(args.dir)
-        sys.exit(0)
+        return True
     elif args.command == "wizard":
         from sparv.core.wizard import Wizard
         wizard = Wizard()
         wizard.run()
-        sys.exit(0)
+        return True
     elif args.command == "plugins":
         from sparv.core import plugins
         if args.plugins_command == "install":
@@ -470,24 +487,24 @@ def main() -> None:
             plugins.list_installed_plugins(args.verbose)
         elif args.plugins_command is None:
             plugins.list_installed_plugins()
-        sys.exit(0)
+        return True
 
     # Check that a corpus config file is available in the working dir
     try:
         config_exists = Path(args.dir or Path.cwd(), paths.config_file).is_file()
     except PermissionError as e:
         print(f"{e.strerror}: {e.filename!r}")
-        sys.exit(1)
+        return False
 
     if args.command not in {"autocomplete", "build-models", "languages", "schema"}:
         if not config_exists:
             print(f"No config file ({paths.config_file}) found in working directory.")
-            sys.exit(1)
+            return False
     # For the 'build-models' command there needs to be a config file or a language parameter
     elif args.command == "build-models" and not config_exists and not args.language:
         print("Models are built for a specific language. Please provide one with the --language param or run this "
               f"from a directory that has a config file ({paths.config_file}).")
-        sys.exit(1)
+        return False
 
     snakemake_args = {
         "workdir": args.dir,
@@ -499,7 +516,6 @@ def main() -> None:
     simple_target = False
     log_level = ""
     log_file_level = ""
-    json_log = False
     simple_mode = False
     stats = False
     pass_through = False
@@ -614,7 +630,7 @@ def main() -> None:
 
         log_level = args.log or "warning"
         log_file_level = args.log_to_file or "warning"
-        json_log = args.json_log
+        json_log = json_log or args.json_log
         simple_mode = args.simple
         socket = args.socket
 
@@ -623,7 +639,7 @@ def main() -> None:
             socket_path = Path(socket).resolve()
             if not socket_path.is_socket():
                 print(f"Socket file '{socket}' doesn't exist or isn't a socket.")
-                sys.exit(1)
+                return False
             socket = str(socket_path)
 
         config.update({"debug": args.debug,
@@ -651,19 +667,21 @@ def main() -> None:
         dry_run=dry_run,
         keep_going=keep_going,
         json=json_log,
+        log_queue=log_queue,
     )
     snakemake_args["log_handler"] = [progress.log_handler]
 
     config["log_server"] = progress.log_server
 
     # Run Snakemake
-    success = snakemake.snakemake(paths.sparv_path / "core" / "Snakefile", config=config, **snakemake_args)
+    success: bool = snakemake.snakemake(paths.sparv_path / "core" / "Snakefile", config=config, **snakemake_args)
 
     progress.stop()
     progress.cleanup()
 
-    sys.exit(0 if success else 1)
+    return success
 
 
 if __name__ == "__main__":
-    main()
+    success = main()
+    sys.exit(0 if success else 1)

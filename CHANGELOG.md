@@ -21,6 +21,7 @@
 - Added `misc:metadata_from_filename` annotator, to extract metadata from filenames.
 - Added `size` property to the `Annotation` class, replacing the `get_size()` method which will be removed in a future
   version of Sparv.
+- Sparv can now be used as a library by importing the `sparv` package.
 
 ### Changed
 
