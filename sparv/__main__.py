@@ -409,7 +409,7 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
         from sparv.core import run
         run.main(unknown_args, log_level=args.log)
         return True
-    elif args.command == "autocomplete":
+    if args.command == "autocomplete":
         if args.enable or args.enable_old:
             import appdirs
             try:
@@ -439,14 +439,13 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
                 "autocompletion."
             )
         return True
-    else:
-        import snakemake
-        from snakemake.logging import logger
-        from snakemake.utils import available_cpu_count
+    import snakemake
+    from snakemake.logging import logger
+    from snakemake.utils import available_cpu_count
 
-        from sparv.core import log_handler, setup
-        from sparv.core.paths import paths
-        args = parser.parse_args()
+    from sparv.core import log_handler, setup
+    from sparv.core.paths import paths
+    args = parser.parse_args()
 
     if args.command != "setup":
         # Make sure that Sparv data dir is set
@@ -461,7 +460,7 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
             print("The Sparv data directory has been configured but not yet set up completely. Run 'sparv setup' to "
                   "complete the process.")
             return False
-        elif not version_check:
+        if not version_check:
             print("Sparv has been updated and Sparv's data directory may need to be upgraded. Please run the "
                   "'sparv setup' command.")
             return False
@@ -472,12 +471,12 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
         else:
             setup.run(args.dir)
         return True
-    elif args.command == "wizard":
+    if args.command == "wizard":
         from sparv.core.wizard import Wizard
         wizard = Wizard()
         wizard.run()
         return True
-    elif args.command == "plugins":
+    if args.command == "plugins":
         from sparv.core import plugins
         if args.plugins_command == "install":
             plugins.install_plugin(args.plugin, editable=args.editable, verbose=args.verbose)

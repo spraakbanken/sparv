@@ -108,7 +108,10 @@ missing_annotations_msg = (
 
 
 class LogRecordStreamHandler(socketserver.StreamRequestHandler):
-    """Handler for streaming logging requests."""
+    """Handler for streaming logging requests.
+
+    This handler receives logging records from a TCP socket and logs them using the Sparv logger.
+    """
 
     def handle(self) -> None:
         """Handle multiple requests - each expected to be a 4-byte length followed by the LogRecord in pickle format."""
@@ -195,7 +198,10 @@ class ProgressInternalFilter(logging.Filter):
 
 
 class InternalLogHandler(logging.Handler):
-    """Handler for internal log messages."""
+    """Handler for internal log messages.
+
+    Used to update the progress bar and collect export directories.
+    """
 
     def __init__(self, export_dirs_list: set, progress_: progress.Progress, jobs: OrderedDict, job_ids: dict) -> None:
         """Initialize handler.
@@ -545,35 +551,35 @@ class LogHandler:
         """
         def missing_config_message(source: str) -> None:
             """Create error message when config variables are missing."""
-            _variables = messages["missing_configs"][source]
-            _message = "The following config variable{} need{} to be set:\n • {}".format(
-                *("s", "") if len(_variables) > 1 else ("", "s"),
-                "\n • ".join(_variables))
-            self.messages["error"].append((source, _message))
+            variables = messages["missing_configs"][source]
+            message = "The following config variable{} need{} to be set:\n • {}".format(
+                *("s", "") if len(variables) > 1 else ("", "s"),
+                "\n • ".join(variables))
+            self.messages["error"].append((source, message))
 
         def missing_binary_message(source: str) -> None:
             """Create error message when binaries are missing."""
-            _binaries = messages["missing_binaries"][source]
-            _message = "The following executable{} {} needed but could not be found:\n • {}".format(
-                *("s", "are") if len(_binaries) > 1 else ("", "is"),
-                "\n • ".join(_binaries))
-            self.messages["error"].append((source, _message))
+            binaries = messages["missing_binaries"][source]
+            message = "The following executable{} {} needed but could not be found:\n • {}".format(
+                *("s", "are") if len(binaries) > 1 else ("", "is"),
+                "\n • ".join(binaries))
+            self.messages["error"].append((source, message))
 
         def missing_class_message(source: str, classes: list[str] | None = None) -> None:
             """Create error message when class variables are missing."""
-            _variables = messages["missing_classes"][source] or classes
-            _message = "The following class{} need{} to be set:\n • {}".format(
-                *("es", "") if len(_variables) > 1 else ("", "s"),
-                "\n • ".join(_variables))
+            variables = messages["missing_classes"][source] or classes
+            message = "The following class{} need{} to be set:\n • {}".format(
+                *("es", "") if len(variables) > 1 else ("", "s"),
+                "\n • ".join(variables))
 
-            if "text" in _variables:
-                _message += (
+            if "text" in variables:
+                message += (
                     "\n\nNote: The 'text' class can also be set using the configuration variable "
                     "'import.text_annotation', but only if it refers to an annotation from the "
                     "source files."
                 )
 
-            self.messages["error"].append((source, _message))
+            self.messages["error"].append((source, message))
 
         def missing_annotations_or_files(source: str, files: str) -> None:
             """Create error message when annotations or other files are missing."""
@@ -934,6 +940,8 @@ def setup_logging(
     job: str | None = None
 ) -> None:
     """Set up logging with socket handler.
+
+    This is used to send log messages from child processes (e.g. Sparv modules) to the main process over a socket.
 
     Args:
         log_server: Tuple with host and port for logging server.

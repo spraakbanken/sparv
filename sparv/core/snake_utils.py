@@ -728,11 +728,11 @@ def get_parameters(rule_params: RuleStorage) -> Callable:
     def get_params(wildcards: snakemake.io.Wildcards) -> dict:
         file = get_file_value(wildcards, rule_params.annotator)
         # We need to make a copy of the parameters, since the rule might be used for multiple source files
-        _parameters = copy.deepcopy(rule_params.parameters)
-        _parameters.update({name: SourceFilename(file) for name in rule_params.file_parameters})
+        parameters = copy.deepcopy(rule_params.parameters)
+        parameters.update({name: SourceFilename(file) for name in rule_params.file_parameters})
 
         # Add source filename to annotation and output parameters
-        for param in _parameters.values():
+        for param in parameters.values():
             if isinstance(param, (ExportAnnotations, ExportAnnotationNames)):
                 for p in param:
                     p[0].source_file = file
@@ -747,20 +747,20 @@ def get_parameters(rule_params: RuleStorage) -> Callable:
 
         # Replace {file} wildcard in parameters
         for name in rule_params.file_annotations:
-            if isinstance(_parameters[name], Base):
-                _parameters[name].name = _parameters[name].name.replace("{file}", file)
+            if isinstance(parameters[name], Base):
+                parameters[name].name = parameters[name].name.replace("{file}", file)
             else:
-                _parameters[name] = _parameters[name].replace("{file}", file)
+                parameters[name] = parameters[name].replace("{file}", file)
 
         # Replace wildcards (other than {file}) in parameters
         for name in rule_params.wildcard_annotations:
-            wcs = re.finditer(r"(?!{file}){([^}]+)}", str(_parameters[name]))
+            wcs = re.finditer(r"(?!{file}){([^}]+)}", str(parameters[name]))
             for wc in wcs:
-                if isinstance(_parameters[name], Base):
-                    _parameters[name].name = _parameters[name].name.replace(wc.group(), wildcards.get(wc.group(1)))
+                if isinstance(parameters[name], Base):
+                    parameters[name].name = parameters[name].name.replace(wc.group(), wildcards.get(wc.group(1)))
                 else:
-                    _parameters[name] = _parameters[name].replace(wc.group(), wildcards.get(wc.group(1)))
-        return _parameters
+                    parameters[name] = parameters[name].replace(wc.group(), wildcards.get(wc.group(1)))
+        return parameters
     return get_params
 
 

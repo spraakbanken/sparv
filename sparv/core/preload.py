@@ -220,10 +220,10 @@ def handle(client_sock: socket.socket, annotators: dict[str, Preloader]) -> bool
     if isinstance(data, str):
         if data == STOP:
             return False
-        elif data == INFO:
+        if data == INFO:
             send_data(client_sock, {k: v.params for k, v in annotators.items()})
             return None
-        elif data == PING:
+        if data == PING:
             try:
                 send_data(client_sock, PONG)
             except BrokenPipeError:

@@ -30,6 +30,8 @@ class SparvErrorMessage(Exception):  # noqa: N818
 def get_logger(name: str) -> logging.Logger:
     """Get a logger that is a child of 'sparv.modules'.
 
+    Logging in Sparv modules should always be done using the logger returned by this function.
+
     Args:
         name: Name of the logger.
 
