@@ -1,6 +1,20 @@
 """Word sense disambiguation based on SALDO annotation."""
 
-from sparv.api import Annotation, Binary, Config, Model, ModelOutput, Output, annotator, get_logger, modelbuilder, util
+import re
+
+from sparv.api import (
+    Annotation,
+    Binary,
+    Config,
+    Model,
+    ModelOutput,
+    Output,
+    SourceFilename,
+    annotator,
+    get_logger,
+    modelbuilder,
+    util,
+)
 
 logger = get_logger(__name__)
 
@@ -31,6 +45,7 @@ def annotate(wsdjar: Binary = Binary("[wsd.jar]"),
              token: Annotation = Annotation("<token>"),
              prob_format: str = Config("wsd.prob_format"),
              default_prob: float = Config("wsd.default_prob"),
+             source_file: SourceFilename = SourceFilename(),
              encoding: str = util.constants.UTF8):
     """Run the word sense disambiguation tool (saldowsd.jar) to add probabilities to the saldo annotation.
 
@@ -62,7 +77,7 @@ def annotate(wsdjar: Binary = Binary("[wsd.jar]"),
 
     # Construct input and send to WSD
     stdin = build_input(sentences, word_annotation, ref_annotation, lemgram_annotation, saldo_annotation,
-                        pos_annotation)
+                        pos_annotation, source_file)
 
     if encoding:
         stdin = stdin.encode(encoding)
@@ -113,13 +128,18 @@ def wsd_start(wsdjar, sense_model, context_model, encoding):
     return util.system.call_java(wsdjar, wsd_args, options=java_opts, encoding=encoding, return_command=True)
 
 
-def build_input(sentences, word_annotation, ref_annotation, lemgram_annotation, saldo_annotation, pos_annotation):
+def build_input(sentences, word_annotation, ref_annotation, lemgram_annotation, saldo_annotation, pos_annotation, source_file):
     """Construct tab-separated input for WSD."""
     rows = []
     for sentence in sentences:
         for token_index in sentence:
             mwe = False
             word = word_annotation[token_index]
+            if re.search(r"\s", word):
+                logger.warning(
+                    "Found whitespace in token %r in source file %r; replacing with underscore.", word, source_file
+                )
+                word = re.sub(r"\s", "_", word)
             ref = ref_annotation[token_index]
             pos = pos_annotation[token_index].lower()
             saldo = saldo_annotation[token_index].strip(util.constants.AFFIX) if saldo_annotation[

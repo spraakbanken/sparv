@@ -49,6 +49,7 @@
 - Fixed tab autocompletion not working with Python 3.12.
 - Fixed `util.system.gpus()` when used with PyTorch's `torch.cuda.set_device()`.
 - Fixed bug in `stats_export` which caused it to crash sometimes.
+- Better handling of whitespace in tokens in the `cwb` and `wsd` modules.
 
 ## [5.2.0] - 2023-12-07
 

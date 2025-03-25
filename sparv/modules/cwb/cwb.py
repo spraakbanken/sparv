@@ -84,7 +84,7 @@ def vrt(source_file: SourceFilename = SourceFilename(),
     span_positions, annotation_dict = util.export.gather_annotations(annotation_list, export_names,
                                                                      source_file=source_file)
     vrt_data = create_vrt(span_positions, token.name, word_annotation, all_token_attributes, annotation_dict,
-                          export_names)
+                          export_names, source_file)
 
     # Write result to file
     with open(out, "w", encoding="utf-8") as f:
@@ -147,7 +147,7 @@ def vrt_scrambled(source_file: SourceFilename = SourceFilename(),
     logger.progress()
     # Make vrt format
     vrt_data = create_vrt(new_span_positions, token.name, word_annotation, all_token_attributes, annotation_dict,
-                          export_names)
+                          export_names, source_file)
     logger.progress()
     # Create export dir
     os.makedirs(os.path.dirname(out), exist_ok=True)
@@ -368,14 +368,15 @@ def cwb_align(corpus, other, link, aligndir="annotations/align", bin_path="",
 ################################################################################
 
 
-def create_vrt(span_positions, token_name: str, word_annotation, token_attributes, annotation_dict, export_names):
+def create_vrt(span_positions, token_name: str, word_annotation, token_attributes, annotation_dict, export_names,
+               source_file):
     """Go through span_positions and create vrt, line by line."""
     vrt_lines = []
     for _pos, instruction, span in span_positions:
         # Create token line
         if span.name == token_name and instruction == "open":
             vrt_lines.append(make_token_line(word_annotation[span.index], token_name, token_attributes, annotation_dict,
-                                             span.index))
+                                             span.index, source_file))
 
         # Create line with structural annotation
         elif span.name != token_name:
@@ -406,12 +407,21 @@ def make_attr_str(annotation, annotation_dict, export_names, index):
     return " ".join(attrs)
 
 
-def make_token_line(word, token, token_attributes, annotation_dict, index):
+def make_token_line(word, token, token_attributes, annotation_dict, index, source_file):
     """Create a string with the token and its annotations.
 
     Whitespace and / need to be replaced for CQP parsing to work. / is only allowed in the word itself.
     """
-    line = [word.replace(" ", "_").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")]
+    # Warn if the word contains whitespace/newlines
+    if re.search(r"\s", word):
+        logger.warning(
+            "Found whitespace in token %r in source file %r. To avoid issues in CWB, all whitespace will be replaced "
+            "with underscores.",
+            word,
+            source_file,
+        )
+
+    line = [word.replace(" ", "_").replace("\n", "_").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")]
     for attr in token_attributes:
         if attr not in annotation_dict[token]:
             attr_str = util.constants.UNDEF
