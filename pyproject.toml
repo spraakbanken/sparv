@@ -28,6 +28,7 @@ dependencies = [
     "PyYAML==6.0.2",
     "questionary==1.10.0",
     "rich==13.9.4",
+    "rich-argparse==1.7.0",
     "snakemake==7.32.3",
     "stanza==1.10.1",
     "torch>=1.9.1",              # Used by Stanza; see https://github.com/spraakbanken/sparv-pipeline/issues/82

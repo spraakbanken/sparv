@@ -10,6 +10,7 @@ from typing import Any
 
 # PYTHON_ARGCOMPLETE_OK
 import argcomplete
+from rich_argparse import RawDescriptionRichHelpFormatter, RichHelpFormatter
 
 from sparv import __version__
 
@@ -42,14 +43,20 @@ class CustomArgumentParser(argparse.ArgumentParser):
             raise argparse.ArgumentError(action, message)
 
 
-class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
-    """Custom help formatter for argparse, silencing subparser lists."""
+# Add highlights for our custom description
+RawDescriptionRichHelpFormatter.highlights.extend((r"\n   (?P<args>\S+)", r"\n(?P<groups>.+:)\n"))
 
-    def _format_action(self, action: argparse.Action) -> str:
-        result = super()._format_action(action)
+
+class CustomHelpFormatter(RawDescriptionRichHelpFormatter):
+    """Custom help formatter for argparse, silencing subparser lists.
+
+    We have our own hardcoded list of subparsers in the description, so we don't want argparse to list them again.
+    """
+
+    def _rich_format_action(self, action):
         if isinstance(action, argparse._SubParsersAction):
             return ""
-        return result
+        return super()._rich_format_action(action)
 
 
 class Completer:
@@ -227,37 +234,49 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
     subparsers.required = True
 
     # Annotate
-    run_parser = subparsers.add_parser("run", help=help["run"], description=help["run"])
+    run_parser = subparsers.add_parser(
+        "run", help=help["run"], description=help["run"], formatter_class=RichHelpFormatter
+    )
     run_parser.add_argument(
         "output", nargs="*", default=[], help="The type of output format to generate",
     ).completer = Completer("export")
     run_parser.add_argument("-l", "--list", action="store_true", help="List available output formats")
 
-    install_parser = subparsers.add_parser("install", help=help["install"], description=help["install"])
+    install_parser = subparsers.add_parser(
+        "install", help=help["install"], description=help["install"], formatter_class=RichHelpFormatter
+    )
     install_parser.add_argument(
         "type", nargs="*", default=[], help="The type of installation to perform"
     ).completer = Completer("install")
     install_parser.add_argument("-l", "--list", action="store_true", help="List installations to be made")
 
-    uninstall_parser = subparsers.add_parser("uninstall", help=help["uninstall"], description=help["uninstall"])
+    uninstall_parser = subparsers.add_parser(
+        "uninstall", help=help["uninstall"], description=help["uninstall"], formatter_class=RichHelpFormatter
+    )
     uninstall_parser.add_argument(
         "type", nargs="*", default=[], help="The type of uninstallation to perform"
     ).completer = Completer("uninstall")
     uninstall_parser.add_argument("-l", "--list", action="store_true", help="List uninstallations to be made")
 
-    clean_parser = subparsers.add_parser("clean", help=help["clean"]["short"], description=help["clean"]["long"])
+    clean_parser = subparsers.add_parser(
+        "clean", help=help["clean"]["short"], description=help["clean"]["long"], formatter_class=RichHelpFormatter
+    )
     clean_parser.add_argument("-e", "--export", action="store_true", help="Remove export directory")
     clean_parser.add_argument("-l", "--logs", action="store_true", help="Remove logs directory")
     clean_parser.add_argument("-a", "--all", action="store_true", help="Remove workdir, export and logs directories")
 
     # Inspect
-    config_parser = subparsers.add_parser("config", help=help["config"], description=help["config"])
+    config_parser = subparsers.add_parser(
+        "config", help=help["config"], description=help["config"], formatter_class=RichHelpFormatter
+    )
     config_parser.add_argument("options", nargs="*", default=[], help="Specific options(s) in config to display")
 
-    subparsers.add_parser("files", help=help["files"], description=help["files"])
+    subparsers.add_parser("files", help=help["files"], description=help["files"], formatter_class=RichHelpFormatter)
 
     # Annotation info
-    modules_parser = subparsers.add_parser("modules", help=help["modules"], description=help["modules"])
+    modules_parser = subparsers.add_parser(
+        "modules", help=help["modules"], description=help["modules"], formatter_class=RichHelpFormatter
+    )
     modules_parser.add_argument("--annotators", action="store_true", help="List info for annotators")
     modules_parser.add_argument("--importers", action="store_true", help="List info for importers")
     modules_parser.add_argument("--exporters", action="store_true", help="List info for exporters")
@@ -267,19 +286,28 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
     modules_parser.add_argument("--json", action="store_true", help="Print output in JSON format")
     modules_parser.add_argument("names", nargs="*", default=[], help="Specific module(s) or annotator(s) to display")
 
-    subparsers.add_parser("presets", help=help["presets"], description=help["presets"])
-    subparsers.add_parser("classes", help=help["classes"], description=help["classes"])
-    subparsers.add_parser("languages", help=help["languages"], description=help["languages"])
+    subparsers.add_parser(
+        "presets", help=help["presets"], description=help["presets"], formatter_class=RichHelpFormatter
+    )
+    subparsers.add_parser(
+        "classes", help=help["classes"], description=help["classes"], formatter_class=RichHelpFormatter
+    )
+    subparsers.add_parser(
+        "languages", help=help["languages"], description=help["languages"], formatter_class=RichHelpFormatter
+    )
 
     # Setup
-    setup_parser = subparsers.add_parser("setup", help=help["setup"]["short"], description=help["setup"]["long"])
+    setup_parser = subparsers.add_parser(
+        "setup", help=help["setup"]["short"], description=help["setup"]["long"], formatter_class=RichHelpFormatter
+    )
     setup_parser.add_argument("-d", "--dir", help="Directory to use as Sparv data directory")
     setup_parser.add_argument("--reset", action="store_true", help="Reset data directory setting.")
 
     models_parser = subparsers.add_parser(
         "build-models",
         help=help["build-models"]["short"],
-        description=help["build-models"]["long"]
+        description=help["build-models"]["long"],
+        formatter_class=RichHelpFormatter
     )
     models_parser.add_argument(
         "model", nargs="*", default=[], help="The model(s) to be built"
@@ -288,19 +316,30 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
     models_parser.add_argument("--language", help="Language (ISO 639-3) if different from current corpus language")
     models_parser.add_argument("--all", action="store_true", help="Build all models for the current language")
 
-    subparsers.add_parser("wizard", help=help["wizard"], description=help["wizard"])
+    wizard_parser = subparsers.add_parser(
+        "wizard",
+        help=help["wizard"],
+        description=help["wizard"],
+        formatter_class=RichHelpFormatter
+    )
 
     # Advanced commands
     runmodule = subparsers.add_parser(
         "run-module",
         no_help=True,
         help=help["run-module"],
-        description=help["run-module"]
+        description=help["run-module"],
+        formatter_class=RichHelpFormatter
     )
     runmodule.add_argument("--log", metavar="LOGLEVEL", help="Set the log level (default: 'info')", default="info",
                            choices=["debug", "info", "warning", "error", "critical"])
 
-    runrule_parser = subparsers.add_parser("run-rule", help=help["run-rule"], description=help["run-rule"])
+    runrule_parser = subparsers.add_parser(
+        "run-rule",
+        help=help["run-rule"],
+        description=help["run-rule"],
+        formatter_class=RichHelpFormatter
+    )
     runrule_parser.add_argument("targets", nargs="*", default=["list"],
                                 help="Annotation(s) to create").completer = Completer("annotate")
     runrule_parser.add_argument("-l", "--list", action="store_true", help="List available rules")
@@ -311,13 +350,19 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
     createfile_parser = subparsers.add_parser(
         "create-file",
         help=help["create-file"]["short"],
-        description=help["create-file"]["long"]
+        description=help["create-file"]["long"],
+        formatter_class=RichHelpFormatter
     )
     createfile_parser.add_argument("targets", nargs="*", default=["list"], help="File(s) to create")
     createfile_parser.add_argument("-l", "--list", action="store_true", help="List available files that can be created")
     createfile_parser.add_argument("--force", action="store_true", help="Force recreation of target")
 
-    preloader_parser = subparsers.add_parser("preload", help=help["preload"], description=help["preload"])
+    preloader_parser = subparsers.add_parser(
+        "preload",
+        help=help["preload"],
+        description=help["preload"],
+        formatter_class=RichHelpFormatter
+    )
     preloader_parser.add_argument("preload_command", nargs="?", default="start", choices=["start", "stop"])
     preloader_parser.add_argument("--socket", default="sparv.socket", help="Path to socket file")
     preloader_parser.add_argument("-j", "--processes", help="Number of processes to use", default=1, type=int)
@@ -326,17 +371,28 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
     autocomplete_parser = subparsers.add_parser(
         "autocomplete",
         help=help["autocomplete"],
-        description=help["autocomplete"]
+        description=help["autocomplete"],
+        formatter_class=RichHelpFormatter
     )
     autocomplete_parser.add_argument("--enable", action="store_true", help="Output script to be sourced in bash/zsh")
     autocomplete_parser.add_argument("--enable-old", action="store_true",
                                      help="Output script to be sourced in bash, for bash version 4.3 and below")
 
-    schema_parser = subparsers.add_parser("schema", help=help["schema"], description=help["schema"])
+    schema_parser = subparsers.add_parser(
+        "schema",
+        help=help["schema"],
+        description=help["schema"],
+        formatter_class=RichHelpFormatter
+    )
     schema_parser.add_argument("--compact", action="store_true", help="Don't indent output")
 
     # Plugins
-    plugins_parser = subparsers.add_parser("plugins", help=help["plugins"], description=help["plugins"])
+    plugins_parser = subparsers.add_parser(
+        "plugins",
+        help=help["plugins"],
+        description=help["plugins"],
+        formatter_class=RichHelpFormatter
+    )
     plugins_subparsers = plugins_parser.add_subparsers(
         dest="plugins_command",
         title="plugin commands",
@@ -344,7 +400,9 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
     )
 
     # Sub-command: install
-    plugins_install_parser = plugins_subparsers.add_parser("install", help="Install a Sparv plugin")
+    plugins_install_parser = plugins_subparsers.add_parser(
+        "install", help="Install a Sparv plugin", formatter_class=RichHelpFormatter
+    )
     plugins_install_parser.add_argument("plugin", help="The plugin to install (PyPI package name, URL or local path)")
     plugins_install_parser.add_argument(
         "-e",
@@ -355,11 +413,15 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
     plugins_install_parser.add_argument("-v", "--verbose", action="store_true", help="Show more details")
 
     # Sub-command: list
-    plugins_list_parser = plugins_subparsers.add_parser("list", help="List installed Sparv plugins")
+    plugins_list_parser = plugins_subparsers.add_parser(
+        "list", help="List installed Sparv plugins", formatter_class=RichHelpFormatter
+    )
     plugins_list_parser.add_argument("-v", "--verbose", action="store_true", help="Show more details")
 
     # Sub-command: uninstall
-    plugins_uninstall_parser = plugins_subparsers.add_parser("uninstall", help="Uninstall a Sparv plugin")
+    plugins_uninstall_parser = plugins_subparsers.add_parser(
+        "uninstall", help="Uninstall a Sparv plugin", formatter_class=RichHelpFormatter
+    )
     plugins_uninstall_parser.add_argument("plugin", help="The name of the plugin to uninstall")
     plugins_uninstall_parser.add_argument("-v", "--verbose", action="store_true", help="Show more details")
 
