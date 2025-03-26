@@ -129,7 +129,7 @@ class SortedCompletionFinder(argcomplete.CompletionFinder):
 
 
 def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) -> bool:
-    """Run Sparv Pipeline (main entry point for Sparv).
+    """Run Sparv (main entry point for Sparv).
 
     If argv is None, the command line arguments are read from sys.argv.
 
@@ -148,10 +148,10 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
 
     # Set up command line arguments
     parser = CustomArgumentParser(prog="sparv",
-                                  description="Sparv Pipeline",
+                                  description="Sparv",
                                   allow_abbrev=False,
                                   formatter_class=CustomHelpFormatter)
-    parser.add_argument("-v", "--version", action="version", version=f"Sparv Pipeline v{__version__}",
+    parser.add_argument("-v", "--version", action="version", version=f"Sparv v{__version__}",
                         help="Show Sparv's version number and exit")
     parser.add_argument("-d", "--dir", help="Specify corpus directory")
 
@@ -212,7 +212,7 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
         f"   classes          {help['classes']}",
         f"   languages        {help['languages']}",
         "",
-        "Setting up the Sparv Pipeline:",
+        "Setting up Sparv:",
         f"   setup            {help['setup']['short']}",
         f"   plugins          {help['plugins']}",
         f"   wizard           {help['wizard']}",
