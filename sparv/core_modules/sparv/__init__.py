@@ -9,6 +9,6 @@ __config__ = [
         default=compression,
         description="Compression to use for files in work-dir ('none', 'gzip', 'bzip2' or 'lzma'. Default: 'gzip')",
         datatype=str,
-        choices=("none", "gzip", "bzip2", "lzma")
+        choices=("none", "gzip", "bzip2", "lzma"),
     )
 ]

@@ -1,4 +1,5 @@
 """Main Sparv executable."""
+
 # ruff: noqa: PLC0415, T201
 from __future__ import annotations
 
@@ -34,6 +35,7 @@ class CustomArgumentParser(argparse.ArgumentParser):
         if action.choices is not None and value not in action.choices:
             # Check for possible misspelling
             import difflib
+
             close_matches = difflib.get_close_matches(value, action.choices, n=1)
             if close_matches:
                 message = f"unknown command: '{value}' - maybe you meant '{close_matches[0]}'"
@@ -75,6 +77,7 @@ class Completer:
 
         # Abort if no cache is found
         import appdirs
+
         cache_file = Path(appdirs.user_config_dir("sparv"), "autocomplete")
         if not cache_file.is_file():
             return {}
@@ -82,6 +85,7 @@ class Completer:
         import pickle
 
         import yaml
+
         try:
             from yaml import CSafeLoader as SafeLoader
         except ImportError:
@@ -147,12 +151,16 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
         json_log = False
 
     # Set up command line arguments
-    parser = CustomArgumentParser(prog="sparv",
-                                  description="Sparv",
-                                  allow_abbrev=False,
-                                  formatter_class=CustomHelpFormatter)
-    parser.add_argument("-v", "--version", action="version", version=f"Sparv v{__version__}",
-                        help="Show Sparv's version number and exit")
+    parser = CustomArgumentParser(
+        prog="sparv", description="Sparv", allow_abbrev=False, formatter_class=CustomHelpFormatter
+    )
+    parser.add_argument(
+        "-v",
+        "--version",
+        action="version",
+        version=f"Sparv v{__version__}",
+        help="Show Sparv's version number and exit",
+    )
     parser.add_argument("-d", "--dir", help="Specify corpus directory")
 
     # Help messages for subparsers
@@ -162,7 +170,7 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
         "uninstall": "Uninstall a corpus",
         "clean": {
             "short": "Remove output directories",
-            "long": "Remove output directories (by default only the sparv-workdir directory)"
+            "long": "Remove output directories (by default only the sparv-workdir directory)",
         },
         "config": "Display the corpus configuration",
         "files": "List available corpus source files that can be annotated by Sparv",
@@ -172,7 +180,7 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
         "languages": "List supported languages",
         "setup": {
             "short": "Set up the Sparv data directory",
-            "long": "Set up the Sparv data directory. Run without arguments for interactive setup."
+            "long": "Set up the Sparv data directory. Run without arguments for interactive setup.",
         },
         "wizard": "Run config wizard to create a corpus config",
         "build-models": {
@@ -180,13 +188,13 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
             "long": (
                 "Download and build the Sparv models. This is optional, as models will be downloaded and built "
                 "automatically the first time they are needed."
-            )
+            ),
         },
         "run-module": "Run annotator module independently (experimental)",
         "run-rule": "Run specified rule(s) for creating annotations",
         "create-file": {
             "short": "Create specified file(s)",
-            "long": "Create specified file(s). The full path must be supplied and wildcards must be replaced."
+            "long": "Create specified file(s). The full path must be supplied and wildcards must be replaced.",
         },
         "preload": "Preload annotators and models",
         "autocomplete": "Enable tab completion in bash/zsh",
@@ -227,10 +235,11 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
         f"   schema           {help['schema']}",
         "",
         "See 'sparv <command> -h' for help with a specific command",
-        "For full documentation, visit https://spraakbanken.gu.se/sparv/docs/"
+        "For full documentation, visit https://spraakbanken.gu.se/sparv/docs/",
     ]
-    subparsers = parser.add_subparsers(dest="command", title="commands", metavar="<command>",
-                                       description="\n".join(description))
+    subparsers = parser.add_subparsers(
+        dest="command", title="commands", metavar="<command>", description="\n".join(description)
+    )
     subparsers.required = True
 
     # Annotate
@@ -238,7 +247,10 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
         "run", help=help["run"], description=help["run"], formatter_class=RichHelpFormatter
     )
     run_parser.add_argument(
-        "output", nargs="*", default=[], help="The type of output format to generate",
+        "output",
+        nargs="*",
+        default=[],
+        help="The type of output format to generate",
     ).completer = Completer("export")
     run_parser.add_argument("-l", "--list", action="store_true", help="List available output formats")
 
@@ -307,20 +319,17 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
         "build-models",
         help=help["build-models"]["short"],
         description=help["build-models"]["long"],
-        formatter_class=RichHelpFormatter
+        formatter_class=RichHelpFormatter,
     )
-    models_parser.add_argument(
-        "model", nargs="*", default=[], help="The model(s) to be built"
-    ).completer = Completer("model")
+    models_parser.add_argument("model", nargs="*", default=[], help="The model(s) to be built").completer = Completer(
+        "model"
+    )
     models_parser.add_argument("-l", "--list", action="store_true", help="List available models")
     models_parser.add_argument("--language", help="Language (ISO 639-3) if different from current corpus language")
     models_parser.add_argument("--all", action="store_true", help="Build all models for the current language")
 
     wizard_parser = subparsers.add_parser(
-        "wizard",
-        help=help["wizard"],
-        description=help["wizard"],
-        formatter_class=RichHelpFormatter
+        "wizard", help=help["wizard"], description=help["wizard"], formatter_class=RichHelpFormatter
     )
 
     # Advanced commands
@@ -329,39 +338,44 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
         no_help=True,
         help=help["run-module"],
         description=help["run-module"],
-        formatter_class=RichHelpFormatter
+        formatter_class=RichHelpFormatter,
     )
-    runmodule.add_argument("--log", metavar="LOGLEVEL", help="Set the log level (default: 'info')", default="info",
-                           choices=["debug", "info", "warning", "error", "critical"])
+    runmodule.add_argument(
+        "--log",
+        metavar="LOGLEVEL",
+        help="Set the log level (default: 'info')",
+        default="info",
+        choices=["debug", "info", "warning", "error", "critical"],
+    )
 
     runrule_parser = subparsers.add_parser(
-        "run-rule",
-        help=help["run-rule"],
-        description=help["run-rule"],
-        formatter_class=RichHelpFormatter
+        "run-rule", help=help["run-rule"], description=help["run-rule"], formatter_class=RichHelpFormatter
     )
-    runrule_parser.add_argument("targets", nargs="*", default=["list"],
-                                help="Annotation(s) to create").completer = Completer("annotate")
+    runrule_parser.add_argument(
+        "targets", nargs="*", default=["list"], help="Annotation(s) to create"
+    ).completer = Completer("annotate")
     runrule_parser.add_argument("-l", "--list", action="store_true", help="List available rules")
-    runrule_parser.add_argument("-w", "--wildcards", nargs="*", metavar="WILDCARD",
-                                help="Supply values for wildcards using the format 'name=value'")
+    runrule_parser.add_argument(
+        "-w",
+        "--wildcards",
+        nargs="*",
+        metavar="WILDCARD",
+        help="Supply values for wildcards using the format 'name=value'",
+    )
     runrule_parser.add_argument("--force", action="store_true", help="Force recreation of target")
 
     createfile_parser = subparsers.add_parser(
         "create-file",
         help=help["create-file"]["short"],
         description=help["create-file"]["long"],
-        formatter_class=RichHelpFormatter
+        formatter_class=RichHelpFormatter,
     )
     createfile_parser.add_argument("targets", nargs="*", default=["list"], help="File(s) to create")
     createfile_parser.add_argument("-l", "--list", action="store_true", help="List available files that can be created")
     createfile_parser.add_argument("--force", action="store_true", help="Force recreation of target")
 
     preloader_parser = subparsers.add_parser(
-        "preload",
-        help=help["preload"],
-        description=help["preload"],
-        formatter_class=RichHelpFormatter
+        "preload", help=help["preload"], description=help["preload"], formatter_class=RichHelpFormatter
     )
     preloader_parser.add_argument("preload_command", nargs="?", default="start", choices=["start", "stop"])
     preloader_parser.add_argument("--socket", default="sparv.socket", help="Path to socket file")
@@ -369,34 +383,24 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
     preloader_parser.add_argument("-l", "--list", action="store_true", help="List annotators available for preloading")
 
     autocomplete_parser = subparsers.add_parser(
-        "autocomplete",
-        help=help["autocomplete"],
-        description=help["autocomplete"],
-        formatter_class=RichHelpFormatter
+        "autocomplete", help=help["autocomplete"], description=help["autocomplete"], formatter_class=RichHelpFormatter
     )
     autocomplete_parser.add_argument("--enable", action="store_true", help="Output script to be sourced in bash/zsh")
-    autocomplete_parser.add_argument("--enable-old", action="store_true",
-                                     help="Output script to be sourced in bash, for bash version 4.3 and below")
+    autocomplete_parser.add_argument(
+        "--enable-old", action="store_true", help="Output script to be sourced in bash, for bash version 4.3 and below"
+    )
 
     schema_parser = subparsers.add_parser(
-        "schema",
-        help=help["schema"],
-        description=help["schema"],
-        formatter_class=RichHelpFormatter
+        "schema", help=help["schema"], description=help["schema"], formatter_class=RichHelpFormatter
     )
     schema_parser.add_argument("--compact", action="store_true", help="Don't indent output")
 
     # Plugins
     plugins_parser = subparsers.add_parser(
-        "plugins",
-        help=help["plugins"],
-        description=help["plugins"],
-        formatter_class=RichHelpFormatter
+        "plugins", help=help["plugins"], description=help["plugins"], formatter_class=RichHelpFormatter
     )
     plugins_subparsers = plugins_parser.add_subparsers(
-        dest="plugins_command",
-        title="plugin commands",
-        metavar="<plugin_command>"
+        dest="plugins_command", title="plugin commands", metavar="<plugin_command>"
     )
 
     # Sub-command: install
@@ -408,7 +412,7 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
         "-e",
         "--editable",
         action="store_true",
-        help="Install the plugin in editable mode (only when installing from a local directory)"
+        help="Install the plugin in editable mode (only when installing from a local directory)",
     )
     plugins_install_parser.add_argument("-v", "--verbose", action="store_true", help="Show more details")
 
@@ -429,27 +433,47 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
     for subparser in [run_parser, runrule_parser]:
         subparser.add_argument("-f", "--file", nargs="+", default=[], help="Only annotate specified input file(s)")
     for subparser in [run_parser, runrule_parser, createfile_parser, models_parser, install_parser, uninstall_parser]:
-        subparser.add_argument("-n", "--dry-run", action="store_true",
-                               help="Print summary of tasks without running them")
-        subparser.add_argument("-j", "--cores", type=int, nargs="?", const=0, metavar="N",
-                               help="Use at most N cores in parallel; if N is omitted, use all available CPU cores",
-                               default=1)
-        subparser.add_argument("-k", "--keep-going", action="store_true",
-                               help="Keep going with independent tasks if a task fails")
-        subparser.add_argument("--log", metavar="LOGLEVEL", const="info",
-                               help="Set the log level (default: 'warning' if --log is not specified, "
-                                    "'info' if LOGLEVEL is not specified)",
-                               nargs="?", choices=["debug", "info", "warning", "error"])
-        subparser.add_argument("--log-to-file", metavar="LOGLEVEL", const="info",
-                               help="Set log level for logging to file (default: 'warning' if --log-to-file is not "
-                                    "specified, 'info' if LOGLEVEL is not specified)",
-                               nargs="?", choices=["debug", "info", "warning", "error"])
+        subparser.add_argument(
+            "-n", "--dry-run", action="store_true", help="Print summary of tasks without running them"
+        )
+        subparser.add_argument(
+            "-j",
+            "--cores",
+            type=int,
+            nargs="?",
+            const=0,
+            metavar="N",
+            help="Use at most N cores in parallel; if N is omitted, use all available CPU cores",
+            default=1,
+        )
+        subparser.add_argument(
+            "-k", "--keep-going", action="store_true", help="Keep going with independent tasks if a task fails"
+        )
+        subparser.add_argument(
+            "--log",
+            metavar="LOGLEVEL",
+            const="info",
+            help="Set the log level (default: 'warning' if --log is not specified, "
+            "'info' if LOGLEVEL is not specified)",
+            nargs="?",
+            choices=["debug", "info", "warning", "error"],
+        )
+        subparser.add_argument(
+            "--log-to-file",
+            metavar="LOGLEVEL",
+            const="info",
+            help="Set log level for logging to file (default: 'warning' if --log-to-file is not "
+            "specified, 'info' if LOGLEVEL is not specified)",
+            nargs="?",
+            choices=["debug", "info", "warning", "error"],
+        )
         subparser.add_argument("--stats", action="store_true", help="Show summary of time spent per annotator")
         subparser.add_argument("--json-log", action="store_true", help="Use JSON format for logging")
         subparser.add_argument("--debug", action="store_true", help="Show debug messages")
         subparser.add_argument("--socket", help="Path to socket file created by the 'preload' command")
-        subparser.add_argument("--force-preloader", action="store_true",
-                               help="Try to wait for preloader when it's busy")
+        subparser.add_argument(
+            "--force-preloader", action="store_true", help="Try to wait for preloader when it's busy"
+        )
         subparser.add_argument("--simple", action="store_true", help="Show less details while running")
 
     # Add extra arguments to 'run' that we want to come last
@@ -469,11 +493,13 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
     # The "run-module" command is handled by a separate script
     if args.command == "run-module":
         from sparv.core import run
+
         run.main(unknown_args, log_level=args.log)
         return True
     if args.command == "autocomplete":
         if args.enable or args.enable_old:
             import appdirs
+
             try:
                 # Create empty autocomplete cache if it doesn't exist
                 # The cache contents will only be populated if this file exists
@@ -507,24 +533,31 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
 
     from sparv.core import log_handler, setup
     from sparv.core.paths import paths
+
     args = parser.parse_args()
 
     if args.command != "setup":
         # Make sure that Sparv data dir is set
         if not paths.get_data_path():
-            print(f"The path to Sparv's data directory needs to be configured, either by running 'sparv setup' or by "
-                  f"setting the environment variable '{paths.data_dir_env}'.")
+            print(
+                f"The path to Sparv's data directory needs to be configured, either by running 'sparv setup' or by "
+                f"setting the environment variable '{paths.data_dir_env}'."
+            )
             return False
 
         # Check if Sparv data dir is outdated (or not properly set up yet)
         version_check = setup.check_sparv_version()
         if version_check is None:
-            print("The Sparv data directory has been configured but not yet set up completely. Run 'sparv setup' to "
-                  "complete the process.")
+            print(
+                "The Sparv data directory has been configured but not yet set up completely. Run 'sparv setup' to "
+                "complete the process."
+            )
             return False
         if not version_check:
-            print("Sparv has been updated and Sparv's data directory may need to be upgraded. Please run the "
-                  "'sparv setup' command.")
+            print(
+                "Sparv has been updated and Sparv's data directory may need to be upgraded. Please run the "
+                "'sparv setup' command."
+            )
             return False
 
     if args.command == "setup":
@@ -535,11 +568,13 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
         return True
     if args.command == "wizard":
         from sparv.core.wizard import Wizard
+
         wizard = Wizard()
         wizard.run()
         return True
     if args.command == "plugins":
         from sparv.core import plugins
+
         if args.plugins_command == "install":
             plugins.install_plugin(args.plugin, editable=args.editable, verbose=args.verbose)
         elif args.plugins_command == "uninstall":
@@ -563,15 +598,17 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
             return False
     # For the 'build-models' command there needs to be a config file or a language parameter
     elif args.command == "build-models" and not config_exists and not args.language:
-        print("Models are built for a specific language. Please provide one with the --language param or run this "
-              f"from a directory that has a config file ({paths.config_file}).")
+        print(
+            "Models are built for a specific language. Please provide one with the --language param or run this "
+            f"from a directory that has a config file ({paths.config_file})."
+        )
         return False
 
     snakemake_args = {
         "workdir": args.dir,
         "rerun_triggers": ["mtime", "input"],  # Rerun based on file modification times and changes to
-                                               # the set of input files
-        "force_incomplete": True  # Always rerun incomplete files
+        # the set of input files
+        "force_incomplete": True,  # Always rerun incomplete files
     }
     config = {"run_by_sparv": True}
     simple_target = False
@@ -619,12 +656,9 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
             cores = args.cores or available_cpu_count()
         except NotImplementedError:
             cores = 1
-        snakemake_args.update({
-            "dryrun": args.dry_run,
-            "cores": cores,
-            "keepgoing": args.keep_going,
-            "resources": {"threads": args.cores}
-        })
+        snakemake_args.update(
+            {"dryrun": args.dry_run, "cores": cores, "keepgoing": args.keep_going, "resources": {"threads": args.cores}}
+        )
         # Never show progress bar for list commands or dry run
         if args.list or args.dry_run:
             simple_target = True
@@ -703,14 +737,18 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
                 return False
             socket = str(socket_path)
 
-        config.update({"debug": args.debug,
-                       "file": vars(args).get("file", []),
-                       "log_level": log_level,
-                       "log_file_level": log_file_level,
-                       "socket": socket,
-                       "force_preloader": args.force_preloader,
-                       "targets": snakemake_args["targets"],
-                       "threads": args.cores})
+        config.update(
+            {
+                "debug": args.debug,
+                "file": vars(args).get("file", []),
+                "log_level": log_level,
+                "log_file_level": log_file_level,
+                "socket": socket,
+                "force_preloader": args.force_preloader,
+                "targets": snakemake_args["targets"],
+                "threads": args.cores,
+            }
+        )
 
     if simple_target:
         # Force Snakemake to use threads to prevent unnecessary processes for simple targets

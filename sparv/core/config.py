@@ -40,12 +40,12 @@ config_structure = {
     "custom_annotations": {"_source": "core", "_cfg": Config("custom_annotations", datatype=list)},
     "install": {
         "_source": "core",
-        "_cfg": Config("install", description="List of default installers to run", datatype=list)
+        "_cfg": Config("install", description="List of default installers to run", datatype=list),
     },
     PARENT: {"_source": "core", "_cfg": Config(PARENT, datatype=str)},
     MAX_THREADS: {"_source": "core", "_cfg": Config(MAX_THREADS, datatype=dict[str, int])},
     "preload": {"_source": "core", "_cfg": Config("preload", datatype=list)},
-    "uninstall": {"_source": "core", "_cfg": Config("uninstall", datatype=list)}
+    "uninstall": {"_source": "core", "_cfg": Config("uninstall", datatype=list)},
 }
 
 config_usage = defaultdict(set)  # For each config key, a list of annotators using that key
@@ -148,8 +148,9 @@ def load_config(config_file: str | Path | None, config_dict: dict | None = None)
         if key == PARENT:
             continue
         if not isinstance(config[key], (dict, list)):
-            raise SparvErrorMessage(f"The config section '{key}' could not be parsed.", module="sparv",
-                                    function="config")
+            raise SparvErrorMessage(
+                f"The config section '{key}' could not be parsed.", module="sparv", function="config"
+            )
 
 
 def _get(name: str, config_dict: dict | None = None) -> Any:
@@ -282,14 +283,7 @@ def add_to_structure(cfg: Config, annotator: str | None = None) -> None:
         cfg: Config object to add.
         annotator: Name of annotator using the config.
     """
-    set_value(
-        cfg.name,
-        {
-            "_cfg": cfg,
-            "_source": "module"
-        },
-        config_dict=config_structure
-    )
+    set_value(cfg.name, {"_cfg": cfg, "_source": "module"}, config_dict=config_structure)
 
     if annotator:
         add_config_usage(cfg.name, annotator)
@@ -343,8 +337,14 @@ def validate_module_config() -> None:
             annotators = config_usage[config_key]
             raise SparvErrorMessage(
                 "The annotator{} {} {} trying to access the config key '{}' which isn't declared anywhere.".format(
-                    "s" if len(annotators) > 1 else "", ", ".join(annotators),
-                    "are" if len(annotators) > 1 else "is", config_key), "sparv", "config") from None
+                    "s" if len(annotators) > 1 else "",
+                    ", ".join(annotators),
+                    "are" if len(annotators) > 1 else "is",
+                    config_key,
+                ),
+                "sparv",
+                "config",
+            ) from None
 
 
 def load_presets(lang: str, lang_variety: str | None) -> dict:
@@ -448,7 +448,9 @@ def handle_text_annotation() -> None:
     if get("classes.text") and text_ann and get("classes.text") != text_ann:
         raise SparvErrorMessage(
             "The config keys 'classes.text' and 'import.text_annotation' can't have different values.",
-            "sparv", "config")
+            "sparv",
+            "config",
+        )
 
     # If import.text_annotation is set, copy value to classes.text
     if text_ann:

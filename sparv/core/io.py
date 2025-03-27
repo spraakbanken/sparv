@@ -34,7 +34,7 @@ _compressed_open = {
     "none": open,
     "gzip": gzip.open,
     "bzip2": bz2.open,
-    "lzma": lzma.open
+    "lzma": lzma.open,
 }
 
 
@@ -58,11 +58,7 @@ def remove_annotation(annotation: BaseAnnotation, source_file: str | None = None
     annotation_path.unlink(missing_ok=True)
 
 
-def write_annotation(
-    source_file: str,
-    annotation: BaseOutput,
-    values: list
-) -> None:
+def write_annotation(source_file: str, annotation: BaseOutput, values: list) -> None:
     """Write an annotation to one or more files. The file is overwritten if it exists.
 
     Args:
@@ -78,8 +74,9 @@ def write_annotation(
     else:
         elem_attrs = dict(split_annotation(ann) for ann in annotations)
         # Handle multiple annotations used as one
-        assert all(
-            elem_attrs.values()), "Span annotations can not be written while treating multiple annotations as one."
+        assert all(elem_attrs.values()), (
+            "Span annotations can not be written while treating multiple annotations as one."
+        )
         # Get spans and associated names for annotations. We need this information to figure out which value goes to
         # which annotation.
         spans = read_annotation(source_file, annotation, with_annotation_name=True, spans=True)
@@ -89,8 +86,12 @@ def write_annotation(
             annotation_values[annotation_name].append(value)
 
         for annotation_name in annotation_values:  # noqa: PLC0206
-            _write_single_annotation(source_file, join_annotation(annotation_name, elem_attrs[annotation_name]),
-                                     annotation_values[annotation_name], annotation.root)
+            _write_single_annotation(
+                source_file,
+                join_annotation(annotation_name, elem_attrs[annotation_name]),
+                annotation_values[annotation_name],
+                annotation.root,
+            )
 
 
 def _write_single_annotation(source_file: str, annotation: str, values: list, root: Path) -> None:
@@ -152,10 +153,7 @@ def get_annotation_size(source_file: str, annotation: BaseAnnotation) -> int:
 
 
 def read_annotation_spans(
-    source_file: str,
-    annotation: BaseAnnotation,
-    decimals: bool = False,
-    with_annotation_name: bool = False
+    source_file: str, annotation: BaseAnnotation, decimals: bool = False, with_annotation_name: bool = False
 ) -> Iterator[tuple]:
     """Iterate over the spans of an annotation.
 
@@ -177,10 +175,7 @@ def read_annotation_spans(
 
 
 def read_annotation(
-    source_file: str,
-    annotation: BaseAnnotation,
-    with_annotation_name: bool = False,
-    spans: bool = False
+    source_file: str, annotation: BaseAnnotation, with_annotation_name: bool = False, spans: bool = False
 ) -> Iterator:
     """Yield each line from an annotation file.
 
@@ -202,25 +197,31 @@ def read_annotation(
         # Handle multiple annotations used as one
 
         # Make sure we don't have multiple attributes on the same annotation
-        assert len(annotations) == len(
-            {split_annotation(ann)[0] for ann in annotations}
-        ), "Reading multiple attributes on the same annotation is not allowed."
+        assert len(annotations) == len({split_annotation(ann)[0] for ann in annotations}), (
+            "Reading multiple attributes on the same annotation is not allowed."
+        )
 
         # Get iterators for all annotations
-        all_annotations = {split_annotation(ann)[0]: _read_single_annotation(source_file, ann, with_annotation_name,
-                                                                             spans, root)
-                           for ann in annotations}
+        all_annotations = {
+            split_annotation(ann)[0]: _read_single_annotation(source_file, ann, with_annotation_name, spans, root)
+            for ann in annotations
+        }
 
         # We need to read the annotation spans to be able to interleave the values in the correct order
-        for _, ann in heapq.merge(*[_read_single_annotation(source_file, split_annotation(ann)[0],
-                                                            with_annotation_name=True, spans=spans,
-                                                            root=root)
-                                    for ann in annotations]):
+        for _, ann in heapq.merge(
+            *[
+                _read_single_annotation(
+                    source_file, split_annotation(ann)[0], with_annotation_name=True, spans=spans, root=root
+                )
+                for ann in annotations
+            ]
+        ):
             yield next(all_annotations[ann])
 
 
-def read_annotation_attributes(source_file: str, annotations: list[BaseAnnotation] | tuple[BaseAnnotation, ...],
-                               with_annotation_name: bool = False) -> Iterator[tuple]:
+def read_annotation_attributes(
+    source_file: str, annotations: list[BaseAnnotation] | tuple[BaseAnnotation, ...], with_annotation_name: bool = False
+) -> Iterator[tuple]:
     """Yield tuples of multiple attributes on the same annotation.
 
     Args:
@@ -232,18 +233,14 @@ def read_annotation_attributes(source_file: str, annotations: list[BaseAnnotatio
         An iterator of tuples with the values of the attributes.
     """
     assert isinstance(annotations, (tuple, list)), "'annotations' argument must be tuple or list"
-    assert len({split_annotation(annotation)[0] for annotation in
-                annotations}) == 1, "All attributes need to be for the same annotation"
-    return zip(*[read_annotation(source_file, annotation, with_annotation_name)
-                 for annotation in annotations])
+    assert len({split_annotation(annotation)[0] for annotation in annotations}) == 1, (
+        "All attributes need to be for the same annotation"
+    )
+    return zip(*[read_annotation(source_file, annotation, with_annotation_name) for annotation in annotations])
 
 
 def _read_single_annotation(
-    source_file: str,
-    annotation: str,
-    with_annotation_name: bool,
-    spans: bool,
-    root: Path | None = None
+    source_file: str, annotation: str, with_annotation_name: bool, spans: bool, root: Path | None = None
 ) -> Iterator[Any]:
     """Read a single annotation file and yield each value, or the underlying text if the annotation has no attribute.
 
@@ -296,7 +293,7 @@ def write_data(source_file: str | None, name: BaseAnnotation | str, value: Any) 
             file_path.stat().st_size,
             source_file or "",
             "/" if source_file else "",
-            name.name if isinstance(name, BaseAnnotation) else name
+            name.name if isinstance(name, BaseAnnotation) else name,
         )
 
 
@@ -319,7 +316,7 @@ def read_data(source_file: str | None, name: BaseAnnotation | str) -> Any:
             file_path.stat().st_size,
             source_file or "",
             "/" if source_file else "",
-            name.name if isinstance(name, BaseAnnotation) else name
+            name.name if isinstance(name, BaseAnnotation) else name,
         )
     return data
 
@@ -352,8 +349,9 @@ def join_annotation(name: str, attribute: str | None) -> str:
     return ELEM_ATTR_DELIM.join((name, attribute)) if attribute else name
 
 
-def get_annotation_path(source_file: str | None, annotation: BaseAnnotation | str, root: Path | None = None,
-                        data: bool = False) -> Path:
+def get_annotation_path(
+    source_file: str | None, annotation: BaseAnnotation | str, root: Path | None = None, data: bool = False
+) -> Path:
     """Construct a path to an annotation file given a source filename and annotation.
 
     Args:
@@ -400,7 +398,7 @@ def write_annotation_file(file_path: Path, value: Any, is_data: bool = False) ->
             pickle.dump(value, f, protocol=pickle.HIGHEST_PROTOCOL)
         else:
             for i in range(0, len(value), chunk_size):
-                pickle.dump(value[i:i + chunk_size], f, protocol=pickle.HIGHEST_PROTOCOL)
+                pickle.dump(value[i : i + chunk_size], f, protocol=pickle.HIGHEST_PROTOCOL)
 
 
 def read_annotation_file(file_path: Path, is_data: bool = False) -> Iterator:
@@ -439,4 +437,5 @@ def read_annotation_file(file_path: Path, is_data: bool = False) -> Iterator:
             raise SparvErrorMessage(
                 f"Compression of workdir files is set to '{compression}', but '{file_path}' is in another "
                 "format. Use the configuration key 'sparv.compression' to set the correct compression or "
-                "use 'sparv clean' to start over with a clean workdir.") from None
+                "use 'sparv clean' to start over with a clean workdir."
+            ) from None

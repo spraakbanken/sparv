@@ -77,6 +77,7 @@ if use_preloader:
     import socket
 
     from sparv.core import preload
+
     sock = None
     try:
         if snakemake.params.force_preloader:
@@ -98,7 +99,7 @@ if use_preloader:
 if not use_preloader:
     # Import custom module
     if module_name.startswith(custom_name):
-        name = module_name[len(custom_name) + 1:]
+        name = module_name[len(custom_name) + 1 :]
         module_path = paths.corpus_dir.resolve() / f"{name}.py"
         spec = importlib.util.spec_from_file_location(module_name, module_path)
         module = importlib.util.module_from_spec(spec)
@@ -114,21 +115,23 @@ if not use_preloader:
                 module = entry_point.load()
             else:
                 exit_with_error_message(
-                    f"Couldn't load plugin '{module_name}'. Please make sure it was installed correctly.", "sparv")
+                    f"Couldn't load plugin '{module_name}'. Please make sure it was installed correctly.", "sparv"
+                )
     registry.add_module_to_registry(module, module_name, skip_language_check=True)
 
 # Get function name and parameters
 f_name = snakemake.params.f_name
 parameters = snakemake.params.parameters
 
-log_handler.setup_logging(snakemake.config["log_server"],
-                          log_level=snakemake.config["log_level"],
-                          log_file_level=snakemake.config["log_file_level"],
-                          file=snakemake.params.source_file,
-                          job=f"{module_name}:{f_name}")
+log_handler.setup_logging(
+    snakemake.config["log_server"],
+    log_level=snakemake.config["log_level"],
+    log_file_level=snakemake.config["log_file_level"],
+    file=snakemake.params.source_file,
+    job=f"{module_name}:{f_name}",
+)
 logger = logging.getLogger("sparv")
-logger.info("RUN: %s:%s(%s)", module_name, f_name, ", ".join(f"{i[0]}={i[1]!r}" for i in
-                                                             list(parameters.items())))
+logger.info("RUN: %s:%s(%s)", module_name, f_name, ", ".join(f"{i[0]}={i[1]!r}" for i in list(parameters.items())))
 
 # Redirect any prints to logging module
 old_stdout = sys.stdout
@@ -176,8 +179,9 @@ else:
         elif isinstance(response, BaseException):
             exit_with_error_message(str(response), f"sparv.modules.{module_name}")
         elif response is not True:
-            exit_with_error_message("An error occurred while using the Sparv preloader.",
-                                    f"sparv.modules.{module_name}")
+            exit_with_error_message(
+                "An error occurred while using the Sparv preloader.", f"sparv.modules.{module_name}"
+            )
     finally:
         sock.close()
         sys.stdout = old_stdout

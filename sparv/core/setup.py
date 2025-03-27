@@ -28,7 +28,7 @@ def check_sparv_version() -> bool | None:
         True if up to date, False if outdated, None if version file is missing.
     """
     data_dir = paths.get_data_path()
-    version_file = (data_dir / VERSION_FILE)
+    version_file = data_dir / VERSION_FILE
     if version_file.is_file():
         return version_file.read_text(encoding="utf-8") == __version__
     return None
@@ -99,11 +99,16 @@ def run(sparv_datadir: str | None = None) -> None:
             "Sparv needs a place to store its configuration files, language models and other data. "
             "After selecting the directory you want to use for this purpose, Sparv will populate it with a default "
             "config file and presets. Any existing files in the target directory will be backed up. Any previous "
-            "backups will be overwritten.")
-        console.print(Padding(
-            "[b]Tip:[/b] This process can also be completed non-interactively. Run 'sparv setup --help' for details. "
-            f"You may also override the data directory setting using the environment variable '{paths.data_dir_env}'.",
-            (1, 4)))
+            "backups will be overwritten."
+        )
+        console.print(
+            Padding(
+                "[b]Tip:[/b] This process can also be completed non-interactively. Run 'sparv setup --help' for "
+                "details. You may also override the data directory setting using the environment variable "
+                f"'{paths.data_dir_env}'.",
+                (1, 4),
+            )
+        )
 
         if using_env:
             try:
@@ -112,7 +117,8 @@ def run(sparv_datadir: str | None = None) -> None:
                     f"environment variable '{paths.data_dir_env}'. This variable takes precedence over any previous "
                     f"path set using this setup process. To change the path, either edit the environment variable, or "
                     f"delete the variable and rerun the setup command.\n"
-                    "Do you want to continue the setup process using the above path?")
+                    "Do you want to continue the setup process using the above path?"
+                )
             except KeyboardInterrupt:
                 console.print("\nSetup interrupted.")
                 sys.exit()
@@ -146,14 +152,13 @@ def run(sparv_datadir: str | None = None) -> None:
     except Exception:
         console.print(
             "\nAn error occurred while trying to create the directories. "
-            "Make sure the path you entered is correct, and that you have the necessary read/write permissions.")
+            "Make sure the path you entered is correct, and that you have the necessary read/write permissions."
+        )
         sys.exit(1)
 
     if not using_env:
         # Save data dir setting to config file
-        config_dict = {
-            "sparv_data": str(path)
-        }
+        config_dict = {"sparv_data": str(path)}
 
         paths.sparv_config_file.parent.mkdir(parents=True, exist_ok=True)
         with paths.sparv_config_file.open("w", encoding="utf-8") as f:

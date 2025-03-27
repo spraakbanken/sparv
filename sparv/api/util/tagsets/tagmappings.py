@@ -41,11 +41,11 @@ saldo_to_granska: 1-many mapping between Saldo and Granska-ish
 saldo_to_parole: 1-many mapping between Saldo and Parole
 saldo_to_saldo: 1-many identity mapping of Saldo tags
 """
+
 # ruff: noqa: E241
 from __future__ import annotations
 
 import re
-from typing import Union
 
 TAGSEP = "."
 
@@ -863,7 +863,7 @@ _saldo_tags = {
     "vbm pret_part indef sg u gen",
     "vbm pret_part indef sg u nom",
     "vbm sup aktiv",
-    "vbm sup s-form"
+    "vbm sup s-form",
 }
 
 # Mapping from SALDO POS tags (as found in lemgrams) to SUC POS tags
@@ -899,7 +899,7 @@ _saldo_pos_to_suc = {
     "nl": ["RG", "RO"],
     "nlm": ["RG", "RO"],
     "al": ["DT"],
-    "pma": ["PM"]
+    "pma": ["PM"],
 }
 
 _suc_to_parole = {
@@ -1245,26 +1245,27 @@ _granska_tags = set(_granska_to_parole)
 # saldo_to_suc and saldo_to_parole
 
 saldo_params_to_suc = {
-    "u":       "UTR",
-    "n":       "NEU",
-    "masc":    "MAS",
+    "u": "UTR",
+    "n": "NEU",
+    "masc": "MAS",
     "no_masc": "UTR+NEU",
-    "komp":    "KOM",
-    "super":   "SUV",
-    "pl":      "PLU",
-    "sg":      "SIN",
-    "indef":   "IND",
+    "komp": "KOM",
+    "super": "SUV",
+    "pl": "PLU",
+    "sg": "SIN",
+    "indef": "IND",
     "pres_part": "PCPRS",
     "pret_part": "PCPRT",
-    "imper":   "IMP",
-    "aktiv":   "AKT",
-    "s-form":  "SFO",
-    "ind":     "INDIKATIV",
-    "konj":    "KON",
-    "pres":    "PRS",
-    "pret":    "PRT",
+    "imper": "IMP",
+    "aktiv": "AKT",
+    "s-form": "SFO",
+    "ind": "INDIKATIV",
+    "konj": "KON",
+    "pres": "PRS",
+    "pret": "PRT",
 }
 
+# fmt: off
 # SALDO to SUC mapping
 _suc_tag_replacements = [
     (r"(IN|KN|PP)",                   r"\1"),
@@ -1272,8 +1273,8 @@ _suc_tag_replacements = [
     (r"(AB|KN|PP|VB)A",               r"\1 AN"),
     (r"[MS]XC",                       r"(NN|JJ|AB) .* SMS"),
 
-    (r"ABH? INVAR",                     r"(AB|PL|HA)"),
-    (r"ABH? (KOM|POS|SMS|SUV)",         r"AB \1"),
+    (r"ABH? INVAR",                   r"(AB|PL|HA)"),
+    (r"ABH? (KOM|POS|SMS|SUV)",       r"AB \1"),
 
     (r"AL PLU (DEF|IND)",             r"DT UTR+NEU PLU \1"),
     (r"AL SIN (UTR|NEU) (DEF|IND)",   r"DT \1 SIN \2"),
@@ -1332,6 +1333,7 @@ _suc_tag_replacements = [
     (r"PN C", r"PN"),
     (r"NL C", r"(RG|RO)"),
 ]
+# fmt: on
 
 
 def _make_saldo_to_suc(compound: bool = False) -> dict[str, set[str]]:
@@ -1512,7 +1514,7 @@ class Tags:
         """Initialize Tags class."""
         self.tags = {
             "granska_tags": _granska_tags,
-            "saldo_tags": _saldo_tags
+            "saldo_tags": _saldo_tags,
         }
 
     def __getitem__(self, item: str) -> dict:

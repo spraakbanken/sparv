@@ -7,7 +7,8 @@ import json
 import re
 from collections import defaultdict
 from collections.abc import Sequence
-from typing import Any as AnyType, Callable, Iterable
+from typing import Any as AnyType
+from typing import Callable, Iterable
 
 import typing_inspect
 
@@ -19,6 +20,7 @@ NO_COND = ((), ())
 
 class BaseProperty:
     """Base class for other types of properties."""
+
     def __init__(self, prop_type: str | None, allow_null: bool | None = False, **kwargs: AnyType) -> None:
         """Initialize the class.
 
@@ -27,14 +29,12 @@ class BaseProperty:
             allow_null: If null values are allowed.
             **kwargs: Additional keyword arguments.
         """
-        self.schema = {
-            "type": [prop_type, "null"] if allow_null else prop_type,
-            **kwargs
-        } if prop_type else kwargs
+        self.schema = {"type": [prop_type, "null"] if allow_null else prop_type, **kwargs} if prop_type else kwargs
 
 
 class Any(BaseProperty):
     """Class representing any type."""
+
     def __init__(self, **kwargs: AnyType) -> None:
         """Initialize the class.
 
@@ -46,6 +46,7 @@ class Any(BaseProperty):
 
 class String(BaseProperty):
     """Class representing a string."""
+
     def __init__(
         self,
         pattern: str | None = None,
@@ -53,7 +54,7 @@ class String(BaseProperty):
         min_len: int | None = None,
         max_len: int | None = None,
         allow_null: bool = False,
-        **kwargs: AnyType
+        **kwargs: AnyType,
     ) -> None:
         """Initialize the class.
 
@@ -80,12 +81,8 @@ class String(BaseProperty):
 
 class Integer(BaseProperty):
     """Class representing an integer."""
-    def __init__(
-        self,
-        min_value: int | None = None,
-        max_value: int | None = None,
-        **kwargs: AnyType
-    ) -> None:
+
+    def __init__(self, min_value: int | None = None, max_value: int | None = None, **kwargs: AnyType) -> None:
         """Initialize the class.
 
         Args:
@@ -102,12 +99,8 @@ class Integer(BaseProperty):
 
 class Number(BaseProperty):
     """Class representing either a float or an integer."""
-    def __init__(
-        self,
-        min_value: int | float | None,
-        max_value: int | float | None,
-        **kwargs: AnyType
-    ) -> None:
+
+    def __init__(self, min_value: int | float | None, max_value: int | float | None, **kwargs: AnyType) -> None:
         """Initialize the class.
 
         Args:
@@ -124,6 +117,7 @@ class Number(BaseProperty):
 
 class Boolean(BaseProperty):
     """Class representing a boolean."""
+
     def __init__(self, **kwargs: AnyType) -> None:
         """Initialize the class.
 
@@ -135,6 +129,7 @@ class Boolean(BaseProperty):
 
 class Null(BaseProperty):
     """Class representing a null value."""
+
     def __init__(self, **kwargs: AnyType) -> None:
         """Initialize the class.
 
@@ -146,10 +141,11 @@ class Null(BaseProperty):
 
 class Array(BaseProperty):
     """Class representing an array of values."""
+
     def __init__(
         self,
         items: type[String | Integer | Number | Boolean | Null | Any | Array | Object] | None = None,
-        **kwargs: AnyType
+        **kwargs: AnyType,
     ) -> None:
         """Initialize the class.
 
@@ -171,9 +167,9 @@ class Array(BaseProperty):
 
 class Object:
     """Class representing an object."""
+
     def __init__(
-        self, additional_properties: dict | bool = True, description: str | None = None,
-        **kwargs: AnyType
+        self, additional_properties: dict | bool = True, description: str | None = None, **kwargs: AnyType
     ) -> None:
         """Initialize the class.
 
@@ -230,7 +226,7 @@ class Object:
         name: str,
         prop_obj: list | String | Integer | Number | Object | Any,
         required: bool = False,
-        condition: tuple[tuple[Object, ...], tuple[Object, ...]] | None = None
+        condition: tuple[tuple[Object, ...], tuple[Object, ...]] | None = None,
     ) -> Object:
         """Add a property to the object.
 
@@ -277,10 +273,7 @@ class Object:
                 pos_conds, neg_conds = condition
                 if len(pos_conds) + len(neg_conds) > 1:
                     cond_schema = {
-                        "allOf": [c.schema for c in pos_conds if c is not None] + [
-                            {"not": c.schema}
-                            for c in neg_conds
-                        ]
+                        "allOf": [c.schema for c in pos_conds if c is not None] + [{"not": c.schema} for c in neg_conds]
                     }
                 else:
                     cond_schema = pos_conds[0].schema
@@ -288,9 +281,7 @@ class Object:
                 conditionals.append(
                     {
                         "if": cond_schema,
-                        "then": {
-                            "properties": {name: prop_obj.schema for name, prop_obj in self.allof[condition]}
-                        }
+                        "then": {"properties": {name: prop_obj.schema for name, prop_obj in self.allof[condition]}},
                     }
                 )
             self.obj_schema["allOf"] = conditionals
@@ -302,14 +293,16 @@ class JsonSchema(Object):
 
     def __init__(self) -> None:
         """Initialize the JSON schema."""
-        super().__init__(**{
-            "$schema": "https://json-schema.org/draft/2020-12/schema",
-            "$id": "https://spraakbanken.gu.se/sparv/schema.json",
-            "type": "object",
-            "properties": {},
-            "required": [],
-            "unevaluatedProperties": False
-        })
+        super().__init__(
+            **{
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "$id": "https://spraakbanken.gu.se/sparv/schema.json",
+                "type": "object",
+                "properties": {},
+                "required": [],
+                "unevaluatedProperties": False,
+            }
+        )
 
     def to_json(self) -> str:
         """Return the JSON schema as a string."""
@@ -333,7 +326,7 @@ def get_class_from_type(t: type) -> type:
         type(None): Null,
         list: Array,
         dict: Object,
-        None: Any
+        None: Any,
     }
     return types[t]
 
@@ -353,7 +346,7 @@ def build_json_schema(config_structure: dict) -> dict:
         structure: dict,
         parent_obj: Object | None = None,
         parent_name: str | None = None,
-        is_condition: bool | None = False
+        is_condition: bool | None = False,
     ) -> defaultdict[tuple[tuple[Object | None, ...], tuple[Object, ...]], list]:
         """Handle dictionary which will become an object in the JSON schema.
 
@@ -392,9 +385,7 @@ def build_json_schema(config_structure: dict) -> dict:
                     no_cond = children.get(NO_COND)
                     conds = [c for c in children if c != NO_COND]
                     combinations = list(
-                        itertools.chain.from_iterable(
-                            [itertools.combinations(conds, i + 1) for i in range(len(conds))]
-                        )
+                        itertools.chain.from_iterable([itertools.combinations(conds, i + 1) for i in range(len(conds))])
                     )
 
                     if no_cond:
@@ -422,9 +413,7 @@ def build_json_schema(config_structure: dict) -> dict:
                     prop, condition = handle_property(value["_cfg"])
                 except ValueError:
                     full_key = f"{parent_name}.{key}" if parent_name else key
-                    raise ValueError(
-                        f"Unsupported datatype for '{full_key}': '{value['_cfg'].datatype}'"
-                    ) from None
+                    raise ValueError(f"Unsupported datatype for '{full_key}': '{value['_cfg'].datatype}'") from None
 
                 conditionals[condition, ()].append((key, prop))
 
@@ -440,9 +429,7 @@ def build_json_schema(config_structure: dict) -> dict:
 
         return conditionals
 
-    def handle_property(
-        cfg: Config
-    ) -> tuple[BaseProperty | list[BaseProperty], tuple[Object, ...]]:
+    def handle_property(cfg: Config) -> tuple[BaseProperty | list[BaseProperty], tuple[Object, ...]]:
         """Handle a property and its conditions.
 
         Args:
@@ -474,24 +461,12 @@ def build_json_schema(config_structure: dict) -> dict:
         for cfg_datatype in cfg_datatypes:
             if cfg_datatype is str:
                 datatype = String(
-                    pattern=cfg.pattern,
-                    choices=cfg.choices,
-                    min_len=cfg.min_len,
-                    max_len=cfg.max_len,
-                    **kwargs
+                    pattern=cfg.pattern, choices=cfg.choices, min_len=cfg.min_len, max_len=cfg.max_len, **kwargs
                 )
             elif cfg_datatype is int:
-                datatype = Integer(
-                    min_value=cfg.min_value,
-                    max_value=cfg.max_value,
-                    **kwargs
-                )
+                datatype = Integer(min_value=cfg.min_value, max_value=cfg.max_value, **kwargs)
             elif cfg_datatype is float:
-                datatype = Number(
-                    min_value=cfg.min_value,
-                    max_value=cfg.max_value,
-                    **kwargs
-                )
+                datatype = Number(min_value=cfg.min_value, max_value=cfg.max_value, **kwargs)
             elif cfg_datatype is bool:
                 datatype = Boolean(**kwargs)
             elif cfg_datatype is type(None):
@@ -523,10 +498,7 @@ def build_json_schema(config_structure: dict) -> dict:
                 for part in condition_cfg.name.split(".")[:-1]:
                     prev.setdefault(part, {})
                     prev = prev[part]
-                prev[condition_cfg.name.split(".")[-1]] = {
-                    "_cfg": condition_cfg,
-                    "_source": "condition"
-                }
+                prev[condition_cfg.name.split(".")[-1]] = {"_cfg": condition_cfg, "_source": "condition"}
 
                 condition = Object()
                 handle_object(cond_structure, condition, is_condition=True)

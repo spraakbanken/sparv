@@ -1,4 +1,5 @@
 """System utility functions."""
+
 from __future__ import annotations
 
 import errno
@@ -50,7 +51,7 @@ def call_java(
     search_paths: list | tuple = (),
     encoding: str | None = None,
     verbose: bool = False,
-    return_command: bool = False
+    return_command: bool = False,
 ) -> tuple[str, str]:
     """Call java with a jar file, command line arguments and stdin.
 
@@ -102,7 +103,7 @@ def call_binary(
     verbose: bool = False,
     use_shell: bool = False,
     allow_error: bool = False,
-    return_command: bool = False
+    return_command: bool = False,
 ) -> tuple[str, str] | subprocess.Popen:
     """Call a binary with arguments and stdin, return a pair (stdout, stderr) or the process.
 
@@ -170,7 +171,7 @@ def find_binary(
     search_paths: list | tuple = (),
     executable: bool = True,
     allow_dir: bool = False,
-    raise_error: bool = False
+    raise_error: bool = False,
 ) -> str | None:
     """Search for the binary for a program.
 
@@ -337,10 +338,7 @@ def call_svn(command: str, *args: str) -> int:
     if svn_username and svn_password:
         cmd.extend(["--password", svn_password])
 
-    messages = {
-        "delete": "Deleting file with Sparv",
-        "import": "Adding file with Sparv"
-    }
+    messages = {"delete": "Deleting file with Sparv", "import": "Adding file with Sparv"}
     message = messages.get(command, "")
     if message:
         cmd.extend(["-m", message])
@@ -357,11 +355,13 @@ def call_svn(command: str, *args: str) -> int:
         if "E215004" in e.stderr:
             raise SparvErrorMessage(
                 "SVN authentication failed. Please set SVN_USERNAME and SVN_PASSWORD environment variables.",
-                module="api.util.system", function="call_svn"
+                module="api.util.system",
+                function="call_svn",
             ) from e
         if "E200009" in e.stderr:
             raise FileNotFoundError("File not found. Please check the file path and try again.") from e
-        raise SparvErrorMessage(f"Command returned exit status {e.returncode}", module="api.util.system",
-                                function="call_svn") from e
+        raise SparvErrorMessage(
+            f"Command returned exit status {e.returncode}", module="api.util.system", function="call_svn"
+        ) from e
 
     return result.returncode

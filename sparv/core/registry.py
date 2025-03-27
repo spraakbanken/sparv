@@ -72,6 +72,7 @@ class LanguageRegistry(UserDict):
             The full language name.
         """
         from sparv.api import util
+
         if lang not in self:
             langcode, _, suffix = lang.partition("-")
             if iso_lang := util.misc.get_language_name_by_part3(langcode):
@@ -91,12 +92,10 @@ modules: dict[str, Module] = {}
 annotation_classes = {
     # Classes from modules
     "module_classes": defaultdict(list),
-
     # Classes from annotation usage
     "implicit_classes": {},
-
     # Classes from config, either new classes or overriding the above
-    "config_classes": {}
+    "config_classes": {},
 }
 
 # All available module classes sorted by language. This is only used by the wizard.
@@ -174,8 +173,9 @@ def find_modules(no_import: bool = False, find_custom: bool = False) -> list:
                 try:
                     spec.loader.exec_module(m)
                 except Exception as e:
-                    raise SparvErrorMessage(f"Module '{module_name}' cannot be imported due to an error in file "
-                                            f"'{module_path}': {e}") from None
+                    raise SparvErrorMessage(
+                        f"Module '{module_name}' cannot be imported due to an error in file '{module_path}': {e}"
+                    ) from None
                 add_module_to_registry(m, module_name)
 
     # Search for installed plugins
@@ -224,7 +224,7 @@ def add_module_to_registry(module: ModuleType, module_name: str, skip_language_c
             languages.add_language(lang)
         # ...but skip modules for other languages than the one specified in the config
         if not check_language(
-                sparv_config.get("metadata.language"), module.__language__, sparv_config.get("metadata.variety")
+            sparv_config.get("metadata.language"), module.__language__, sparv_config.get("metadata.variety")
         ):
             del _potential_annotators[module_name]
             return
@@ -266,6 +266,7 @@ def wizard(config_keys: list[str], source_structure: bool = False) -> Callable:
     Returns:
         A decorator that adds the wrapped function to the wizard registry.
     """
+
     def decorator(f: Callable) -> Callable:
         """Add wrapped function to wizard registry.
 
@@ -277,6 +278,7 @@ def wizard(config_keys: list[str], source_structure: bool = False) -> Callable:
         """
         wizards.append((f, tuple(config_keys), source_structure))
         return f
+
     return decorator
 
 
@@ -291,10 +293,10 @@ def _get_module_name(module_string: str) -> str:
     """
     if module_string.startswith(modules_path):
         # Built-in Sparv module
-        module_name = module_string[len(modules_path) + 1:].split(".")[0]
+        module_name = module_string[len(modules_path) + 1 :].split(".")[0]
     elif module_string.startswith(core_modules_path):
         # Built-in Sparv core module
-        module_name = module_string[len(core_modules_path) + 1:].split(".")[0]
+        module_name = module_string[len(core_modules_path) + 1 :].split(".")[0]
     elif module_string.split(".")[0] == custom_name:
         # Custom user module
         module_name = module_string
@@ -453,9 +455,15 @@ def annotator(
     )
 
 
-def importer(description: str, file_extension: str, name: str | None = None, outputs: list[str] | Config | None = None,
-             text_annotation: str | None = None, structure: type[SourceStructureParser] | None = None,
-             config: list[Config] | None = None) -> Callable:
+def importer(
+    description: str,
+    file_extension: str,
+    name: str | None = None,
+    outputs: list[str] | Config | None = None,
+    text_annotation: str | None = None,
+    structure: type[SourceStructureParser] | None = None,
+    config: list[Config] | None = None,
+) -> Callable:
     """Return a decorator for importer functions.
 
     Args:
@@ -474,8 +482,16 @@ def importer(description: str, file_extension: str, name: str | None = None, out
     Returns:
         A decorator.
     """
-    return _annotator(description=description, a_type=Annotator.importer, name=name, file_extension=file_extension,
-                      outputs=outputs, text_annotation=text_annotation, structure=structure, config=config)
+    return _annotator(
+        description=description,
+        a_type=Annotator.importer,
+        name=name,
+        file_extension=file_extension,
+        outputs=outputs,
+        text_annotation=text_annotation,
+        structure=structure,
+        config=config,
+    )
 
 
 def exporter(
@@ -632,7 +648,7 @@ def _add_to_registry(annotator: dict, skip_language_check: bool = False) -> None
             languages.add_language(lang)
         # ... but skip annotators for other languages than the one specified in the config
         if not check_language(
-                sparv_config.get("metadata.language"), annotator["language"], sparv_config.get("metadata.variety")
+            sparv_config.get("metadata.language"), annotator["language"], sparv_config.get("metadata.variety")
         ):
             return
 
@@ -668,11 +684,15 @@ def _add_to_registry(annotator: dict, skip_language_check: bool = False) -> None
             # Make sure annotation names include module names as prefix
             if not attr:
                 if not ann_name.startswith(f"{module_name}."):
-                    raise SparvErrorMessage(f"Output annotation '{ann_name}' in module '{module_name}' doesn't include "
-                                            "module name as prefix.")
+                    raise SparvErrorMessage(
+                        f"Output annotation '{ann_name}' in module '{module_name}' doesn't include "
+                        "module name as prefix."
+                    )
             elif not attr.startswith(f"{module_name}."):
-                raise SparvErrorMessage(f"Output annotation '{ann}' in module '{module_name}' doesn't include "
-                                        "module name as prefix in attribute.")
+                raise SparvErrorMessage(
+                    f"Output annotation '{ann}' in module '{module_name}' doesn't include "
+                    "module name as prefix in attribute."
+                )
 
             # Add to class registry
             if cls:
@@ -696,18 +716,23 @@ def _add_to_registry(annotator: dict, skip_language_check: bool = False) -> None
                                 all_module_classes[language][cls].append(cls_target)
 
                     # Only add classes for relevant languages
-                    if check_language(
-                        sparv_config.get("metadata.language"),
-                        annotator["language"],
-                        sparv_config.get("metadata.variety")
-                    ) and cls_target not in annotation_classes["module_classes"][cls]:
+                    if (
+                        check_language(
+                            sparv_config.get("metadata.language"),
+                            annotator["language"],
+                            sparv_config.get("metadata.variety"),
+                        )
+                        and cls_target not in annotation_classes["module_classes"][cls]
+                    ):
                         annotation_classes["module_classes"][cls].append(cls_target)
 
         elif isinstance(val.default, ModelOutput):
             modeldir = val.default.name.split("/")[0]
             if not modeldir.startswith(module_name):
-                raise SparvErrorMessage(f"Output model '{val.default}' in module '{module_name}' doesn't include module"
-                                        " name as sub directory.")
+                raise SparvErrorMessage(
+                    f"Output model '{val.default}' in module '{module_name}' doesn't include module"
+                    " name as sub directory."
+                )
         elif isinstance(val.default, Config):
             sparv_config.add_config_usage(val.default.name, rule_name)
         elif isinstance(val.default, (ExportAnnotations, ExportAnnotationsAllSourceFiles, SourceAnnotations)):
@@ -715,16 +740,21 @@ def _add_to_registry(annotator: dict, skip_language_check: bool = False) -> None
             annotation_sources.add(val.default.config_name)
         elif isinstance(val.default, Export):
             if "/" not in val.default:
-                raise SparvErrorMessage(f"Illegal export path for export '{val.default}' in module '{module_name}'. "
-                                        "A subdirectory must be used.")
+                raise SparvErrorMessage(
+                    f"Illegal export path for export '{val.default}' in module '{module_name}'. "
+                    "A subdirectory must be used."
+                )
             export_dir = val.default.split("/")[0]
             if not (export_dir.startswith(f"{module_name}.") or export_dir == module_name):
-                raise SparvErrorMessage(f"Illegal export path for export '{val.default}' in module '{module_name}'. "
-                                        "The export subdirectory must include the module name as prefix.")
+                raise SparvErrorMessage(
+                    f"Illegal export path for export '{val.default}' in module '{module_name}'. "
+                    "The export subdirectory must include the module name as prefix."
+                )
 
     if annotator["type"] in {Annotator.installer, Annotator.uninstaller} and not has_marker:
-        raise SparvErrorMessage(f"'{rule_name}' creates no OutputMarker, which is required by all installers and "
-                                "uninstallers.")
+        raise SparvErrorMessage(
+            f"'{rule_name}' creates no OutputMarker, which is required by all installers and uninstallers."
+        )
 
     if f_name in modules[module_name].functions:
         console.print(
@@ -754,10 +784,7 @@ def find_implicit_classes() -> None:
 
 
 def handle_config(
-    cfg: Config,
-    module_name: str,
-    rule_name: str | None = None,
-    language: list[str] | None = None
+    cfg: Config, module_name: str, rule_name: str | None = None, language: list[str] | None = None
 ) -> None:
     """Handle Config instances.
 
@@ -772,8 +799,9 @@ def handle_config(
             has already been declared, or if the config variable is missing a description.
     """
     if not cfg.name.startswith(f"{module_name}."):
-        raise SparvErrorMessage(f"Config option '{cfg.name}' in module '{module_name}' doesn't include module "
-                                "name as prefix.")
+        raise SparvErrorMessage(
+            f"Config option '{cfg.name}' in module '{module_name}' doesn't include module name as prefix."
+        )
     # Check that config variable hasn't already been declared
     prev = sparv_config.config_structure
     for k in cfg.name.split("."):
@@ -782,7 +810,8 @@ def handle_config(
         prev = prev[k]
     else:
         raise SparvErrorMessage(
-            f"The config variable '{cfg.name}' in '{rule_name or module_name}' has already been declared.")
+            f"The config variable '{cfg.name}' in '{rule_name or module_name}' has already been declared."
+        )
     if cfg.default is not None:
         sparv_config.set_default(cfg.name, cfg.default)
     if language:

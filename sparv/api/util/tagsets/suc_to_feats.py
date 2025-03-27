@@ -4,7 +4,6 @@ This tag conversion was taken from this ruby script: https://github.com/spraakba
 It might be worth improving this in the future, but it's good enough for now.
 """
 
-
 MSD_TO_FEATS = {
     "UTR": "Gender=Com",
     "NEU": "Gender=Neut",
@@ -34,7 +33,7 @@ MSD_TO_FEATS = {
     "SMS": "Compound=Yes",
     "SUB": "Case=Nom",
     "OBJ": "Case=Acc",
-    "SUB+OBJ": "Case=Acc,Nom"
+    "SUB+OBJ": "Case=Acc,Nom",
 }
 
 

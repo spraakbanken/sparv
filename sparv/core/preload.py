@@ -45,13 +45,7 @@ class Preloader:
     """Class representing a preloader."""
 
     def __init__(
-        self,
-        function: Callable,
-        target: str,
-        preloader: Callable,
-        params: dict,
-        cleanup: Callable,
-        shared: bool
+        self, function: Callable, target: str, preloader: Callable, params: dict, cleanup: Callable, shared: bool
     ) -> None:
         """Initialize a preloader."""
         self.function = function
@@ -113,7 +107,7 @@ def receive_data(sock: socket.socket) -> Any:
     buf_length = recvall(sock, data_length_bytes)
     if not buf_length or len(buf_length) < data_length_bytes:
         return None
-    length, = struct.unpack(">I", buf_length)
+    (length,) = struct.unpack(">I", buf_length)
 
     # Get data
     data = recvall(sock, length)
@@ -238,11 +232,13 @@ def handle(client_sock: socket.socket, annotators: dict[str, Preloader]) -> bool
     data[1][annotator.target] = annotator.preloaded
 
     # Set up logging over socket
-    log_handler.setup_logging(data[2]["log_server"],
-                              log_level=data[2]["log_level"],
-                              log_file_level=data[2]["log_file_level"],
-                              file=data[3],
-                              job=data[0])
+    log_handler.setup_logging(
+        data[2]["log_server"],
+        log_level=data[2]["log_level"],
+        log_file_level=data[2]["log_file_level"],
+        file=data[3],
+        job=data[0],
+    )
 
     # Call annotator function
     try:
@@ -274,7 +270,7 @@ def worker(
     worker_no: int,
     server_socket: socket.socket,
     annotators: dict[str, Preloader],
-    stop_event: multiprocessing.synchronize.Event
+    stop_event: multiprocessing.synchronize.Event,
 ) -> None:
     """Listen to the socket server and handle incoming requests.
 
@@ -337,8 +333,9 @@ def serve(
 
     preload_config = config.get("preload")
     if not preload_config:
-        raise SparvErrorMessage("Preloader config is missing. Use the 'preload' section "
-                                "in your config file to list annotators to preload.")
+        raise SparvErrorMessage(
+            "Preloader config is missing. Use the 'preload' section in your config file to list annotators to preload."
+        )
     rules = {}
     for rule in storage.all_rules:
         if rule.has_preloader:
@@ -348,8 +345,10 @@ def serve(
 
     for annotator in preload_config:
         if annotator not in rules:
-            raise SparvErrorMessage(f"Unknown annotator '{annotator}' in preloader config. Either it doesn't exist "
-                                    "or it doesn't support preloading.")
+            raise SparvErrorMessage(
+                f"Unknown annotator '{annotator}' in preloader config. Either it doesn't exist "
+                "or it doesn't support preloading."
+            )
         rule = rules[annotator]
         preloader_params = {}
         for param in rule.annotator_info["preloader_params"]:
@@ -361,7 +360,7 @@ def serve(
             rule.annotator_info["preloader"],
             preloader_params,
             rule.annotator_info["preloader_cleanup"],
-            rule.annotator_info["preloader_shared"]
+            rule.annotator_info["preloader_shared"],
         )
         if annotator_obj.shared:
             annotator_obj.preloaded = annotator_obj.preloader(**annotator_obj.params)
@@ -391,7 +390,7 @@ def serve(
         "Press Ctrl-C to exit, or run 'sparv preload stop --socket /path/to/socket'. You can also stop the "
         "preloader by sending an interrupt signal to the process with id %d.",
         socket_file.absolute(),
-        os.getpid()
+        os.getpid(),
     )
 
     # Periodically check whether stop_event is set or not and stop all processes when set

@@ -24,7 +24,9 @@ class SparvErrorMessage(Exception):  # noqa: N818
         """
         self.message = message
         # Alter message before calling base class
-        super().__init__(f"{SparvErrorMessage.start_marker}{module}\n{function}\n{message}{SparvErrorMessage.end_marker}")
+        super().__init__(
+            f"{SparvErrorMessage.start_marker}{module}\n{function}\n{message}{SparvErrorMessage.end_marker}"
+        )
 
 
 def get_logger(name: str) -> logging.Logger:
@@ -43,8 +45,11 @@ def get_logger(name: str) -> logging.Logger:
     return logging.getLogger(name)
 
 
-def parse_annotation_list(annotation_names: Iterable[str] | None, all_annotations: Iterable[str] | None = None,
-                          add_plain_annotations: bool = True) -> list[tuple[str, str | None]]:
+def parse_annotation_list(
+    annotation_names: Iterable[str] | None,
+    all_annotations: Iterable[str] | None = None,
+    add_plain_annotations: bool = True,
+) -> list[tuple[str, str | None]]:
     """Take a list of annotation names and possible export names, and return a list of tuples.
 
     Each list item will be split into a tuple by the string ' as '.

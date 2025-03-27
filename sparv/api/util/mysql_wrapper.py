@@ -1,4 +1,5 @@
 """Util class for creating MySQL files."""
+
 from __future__ import annotations
 
 import operator
@@ -18,6 +19,7 @@ MAX_ALLOWED_PACKET = 900000
 
 class MySQL:
     """Class for executing MySQL commands or creating SQL files."""
+
     binaries = ("mysql", "mariadb")
 
     def __init__(
@@ -82,7 +84,7 @@ class MySQL:
                     "ssh",
                     [self.host, " ".join([self.binaries[0], *self.arguments])],
                     stdin=sql % args,
-                    encoding=self.encoding
+                    encoding=self.encoding,
                 )
             if out:
                 logger.info("MySQL: %s", out)
@@ -98,7 +100,7 @@ class MySQL:
         primary: str | list[str] | None = None,
         indexes: list[str | list[str]] | None = None,
         constraints: list[tuple[str, str, list[str]]] | None = None,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> None:
         """Create a table in the database.
 
@@ -111,8 +113,10 @@ class MySQL:
             constraints: A list of constraints.
             **kwargs: Additional options for the table creation.
         """
-        sqlcolumns = [f"  {_atom(name)} {_type(typ)} {extra or ''} DEFAULT {_value(default)}"
-                      for name, typ, default, extra in columns]
+        sqlcolumns = [
+            f"  {_atom(name)} {_type(typ)} {extra or ''} DEFAULT {_value(default)}"
+            for name, typ, default, extra in columns
+        ]
         if primary:
             if isinstance(primary, str):
                 primary = primary.split()
@@ -126,8 +130,7 @@ class MySQL:
             for constraint in constraints:
                 sqlcolumns += [f"CONSTRAINT {constraint[0]} {_atom(constraint[1])} ({_atomseq(constraint[2])})"]
         if drop:
-            sql = (f"DROP TABLE IF EXISTS {_atom(table)};\n"
-                   f"CREATE TABLE {_atom(table)} (\n ")
+            sql = f"DROP TABLE IF EXISTS {_atom(table)};\nCREATE TABLE {_atom(table)} (\n "
         else:
             sql = f"CREATE TABLE IF NOT EXISTS {_atom(table)} (\n "
 
@@ -234,8 +237,11 @@ class MySQL:
         def insert(_values: list[str], _extra: str = "") -> str:
             if _extra:
                 _extra = "\n" + _extra
-            return f"INSERT INTO {table} ({', '.join(sorted(rows[0].keys()))}) VALUES\n" + ",\n".join(
-                _values) + f"{_extra};"
+            return (
+                f"INSERT INTO {table} ({', '.join(sorted(rows[0].keys()))}) VALUES\n"
+                + ",\n".join(_values)
+                + f"{_extra};"
+            )
 
         for row in rows:
             if isinstance(row, dict):
@@ -340,8 +346,7 @@ def _dict(dct: dict, filter_null: bool = False) -> str:
         The converted dictionary.
     """
     assert isinstance(dct, dict)
-    return ", ".join(f"{_atom(k)} = {_value(v)}" for (k, v) in dct.items()
-                     if not (filter_null and v is None))
+    return ", ".join(f"{_atom(k)} = {_value(v)}" for (k, v) in dct.items() if not (filter_null and v is None))
 
 
 def _escape(string: str) -> str:

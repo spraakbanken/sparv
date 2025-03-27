@@ -1,4 +1,5 @@
 """Functions related to handling plugins."""
+
 import json
 import subprocess
 import sys
@@ -143,7 +144,5 @@ def list_installed_plugins(verbose: bool = False) -> None:
         table.add_row("No plugins installed.", "", "")
 
     console.print(table)
-    console.print(
-        "Run 'sparv modules \\[plugin name]' to get more information about a plugin module and its features."
-    )
+    console.print("Run 'sparv modules \\[plugin name]' to get more information about a plugin module and its features.")
     console.print("Run 'sparv plugins --help' for more information about managing plugins.")

@@ -47,6 +47,7 @@ def pos_to_upos(pos: str, lang: str, tagset: str) -> str:
 # SUC POS
 ################################################################################
 
+
 def _swe_suc_convert(pos: str) -> str:
     """Convert SUC tags to UPOS.
 
@@ -81,7 +82,7 @@ def _swe_suc_convert(pos: str) -> str:
         "UO": "X",  # Could be any PoS, most probably a noun /ljo
         "MAD": "PUNCT",
         "MID": "PUNCT",
-        "PAD": "PUNCT"
+        "PAD": "PUNCT",
     }
     return pos_dict.get(pos, FALLBACK)
 
@@ -109,7 +110,7 @@ EAGLES_DICT = {
     "W": "NUM",
     "Z": "NUM",
     "Y": "X",
-    "X": "X"
+    "X": "X",
 }
 
 
@@ -205,7 +206,7 @@ def _eng_penn_convert(pos: str) -> str:
         "CD": "NUM",
         "FW": "X",
         "LS": "X",
-        "SYM": "SYM"
+        "SYM": "SYM",
     }
     if pos in {"NN", "NNS"}:
         return "NOUN"
@@ -252,7 +253,7 @@ def _bul_bultreebank_convert(pos: str) -> str:
         "Cs": "SCONJ",
         "T": "PART",
         "R": "ADP",
-        "I": "INTJ"
+        "I": "INTJ",
     }
     if pos[0] in {"N", "V", "C"}:
         return pos_dict.get(pos[0:2], FALLBACK)
@@ -287,7 +288,7 @@ def _est_treetagger_convert(pos: str) -> str:
         "Y": "X",  # abbreviation
         "X": "ADV",
         "Z": "PUNCT",
-        "T": "X"  # foreign
+        "T": "X",  # foreign
     }
     if "." in pos:
         pos = pos.split(".")[0]
@@ -326,7 +327,7 @@ def _fin_finntreebank_convert(pos: str) -> str:
         "A": "ADJ",
         "CC": "CONJ",
         "CS": "SCONJ",
-        "NON-TWOL": "X"  # unknown
+        "NON-TWOL": "X",  # unknown
     }
     if pos in pos_dict:
         return pos_dict[pos]
@@ -356,7 +357,7 @@ def _nld_treetagger_convert(pos: str) -> str:
         "pre": "ADP",
         "pro": "PRON",
         "pun": "PUNCT",
-        "ver": "VERB"
+        "ver": "VERB",
     }
     if pos == "$.":
         return "PUNCT"
@@ -400,7 +401,7 @@ def _lat_treetagger_convert(pos: str) -> str:
         "SENT": "PUNCT",
         "PUN": "PUNCT",
         "SYM": "SYM",
-        "CLI": "X"  # enclitics
+        "CLI": "X",  # enclitics
     }
     if ":" in pos:
         return pos_dict.get(pos.split(":")[0], FALLBACK)
@@ -455,7 +456,7 @@ def _pol_national_corpus_of_polish_convert(pos: str) -> str:
         "interp": "PUNCT",
         "SENT": "PUNCT",
         "xxx": "X",  # alien
-        "ign": "X"  # unknown form
+        "ign": "X",  # unknown form
     }
     if ":" in pos:
         return pos_dict.get(pos.split(":")[0], FALLBACK)
@@ -493,7 +494,7 @@ def _ron_multext_convert(pos: str) -> str:
         "Q": "PART",
         "I": "INTJ",
         "Y": "X",  # abbreviation
-        "X": "X"
+        "X": "X",
     }
     if pos[0] in {"N", "V", "C", "S"}:
         return pos_dict.get(pos[0:2], FALLBACK)
@@ -532,7 +533,7 @@ def _slk_slovak_national_corpus_convert(pos: str) -> str:
         "%": "X",  # foreign language citation
         "0": "NUM",
         ":r": "PROPN",
-        ":q": "X"  # incorrect spelling
+        ":q": "X",  # incorrect spelling
     }
     if len(pos) == 1 and not pos.isalpha():
         return "PUNCT"
@@ -609,7 +610,7 @@ def _deu_stts_convert(pos: str) -> str:
         "XY": "SYM",  # non-word
         "$,": "PUNCT",
         "$.": "PUNCT",
-        "$(": "PUNCT"
+        "$(": "PUNCT",
     }
     return pos_dict[pos]
 
@@ -639,7 +640,7 @@ def _fra_treetagger_convert(pos: str) -> str:
         "PUN": "PUNCT",
         "SEN": "X",  # SENT: sentence tag
         "SYM": "SYM",
-        "VER": "VERB"
+        "VER": "VERB",
     }
     if pos == "DET:POS":
         return "PRON"

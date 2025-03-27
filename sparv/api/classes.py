@@ -247,8 +247,11 @@ class CommonAnnotationMixin(BaseAnnotation):
             yield self._corpus_text[self.source_file][start:end]
 
     @staticmethod
-    def _read_attributes(source_file: str, annotations: list[BaseAnnotation] | tuple[BaseAnnotation, ...],
-                         with_annotation_name: bool = False) -> Iterator:
+    def _read_attributes(
+        source_file: str,
+        annotations: list[BaseAnnotation] | tuple[BaseAnnotation, ...],
+        with_annotation_name: bool = False,
+    ) -> Iterator:
         """Yield tuples of multiple attributes on the same annotation.
 
         Args:
@@ -287,9 +290,7 @@ class CommonAnnotationMixin(BaseAnnotation):
 
     @staticmethod
     def _read_parents_and_children(
-        source_file: str,
-        parent: BaseAnnotation,
-        child: BaseAnnotation
+        source_file: str, parent: BaseAnnotation, child: BaseAnnotation
     ) -> tuple[Iterator, Iterator]:
         """Read parent and child annotations.
 
@@ -348,8 +349,9 @@ class CommonAnnotationMixin(BaseAnnotation):
                         break
             if parent_span is None or parent_span[0] > child_span[0]:
                 if orphan_alert:
-                    logger.warning("Child '%s' missing parent; closest parent is %s",
-                                   child_i, parent_span or previous_parent_span)
+                    logger.warning(
+                        "Child '%s' missing parent; closest parent is %s", child_i, parent_span or previous_parent_span
+                    )
                 orphans.append(child_i)
             else:
                 parent_children[-1].append(child_i)
@@ -414,8 +416,11 @@ class CommonAnnotationMixin(BaseAnnotation):
                     break
             if parent_span is None or parent_span[0] > child_span[0]:
                 if orphan_alert:
-                    logger.warning("Child '%s' missing parent; closest parent is %s",
-                                   child_span, parent_span or previous_parent_span)
+                    logger.warning(
+                        "Child '%s' missing parent; closest parent is %s",
+                        child_span,
+                        parent_span or previous_parent_span,
+                    )
                 child_parents.append(None)
             else:
                 child_parents.append(parent_i)
@@ -464,8 +469,9 @@ class Annotation(CommonAnnotationMixin, CommonMixin, BaseAnnotation):
         """
         return self._read_text(self.source_file)
 
-    def read_attributes(self, annotations: list[BaseAnnotation] | tuple[BaseAnnotation, ...],
-                        with_annotation_name: bool = False) -> Iterator:
+    def read_attributes(
+        self, annotations: list[BaseAnnotation] | tuple[BaseAnnotation, ...], with_annotation_name: bool = False
+    ) -> Iterator:
         """Return an iterator of tuples of multiple attributes on the same annotation.
 
         Args:
@@ -495,8 +501,8 @@ class Annotation(CommonAnnotationMixin, CommonMixin, BaseAnnotation):
         return self._get_children(self.source_file, child, orphan_alert)
 
     def get_child_values(
-            self, child: BaseAnnotation, append_orphans: bool = False, orphan_alert: bool = False
-        ) -> Iterator[Iterator]:
+        self, child: BaseAnnotation, append_orphans: bool = False, orphan_alert: bool = False
+    ) -> Iterator[Iterator]:
         """Get values of children of this annotation.
 
         Args:
@@ -659,8 +665,12 @@ class AnnotationAllSourceFiles(CommonAnnotationMixin, CommonAllSourceFilesMixin,
         """
         return self._read_text(source_file)
 
-    def read_attributes(self, source_file: str, annotations: list[BaseAnnotation] | tuple[BaseAnnotation, ...],
-                        with_annotation_name: bool = False) -> Iterator:
+    def read_attributes(
+        self,
+        source_file: str,
+        annotations: list[BaseAnnotation] | tuple[BaseAnnotation, ...],
+        with_annotation_name: bool = False,
+    ) -> Iterator:
         """Return an iterator of tuples of multiple attributes on the same annotation.
 
         Args:
@@ -691,8 +701,8 @@ class AnnotationAllSourceFiles(CommonAnnotationMixin, CommonAllSourceFilesMixin,
         return self._get_children(source_file, child, orphan_alert)
 
     def get_child_values(
-            self, source_file: str, child: BaseAnnotation, append_orphans: bool = False, orphan_alert: bool = False
-        ) -> Iterator[Iterator]:
+        self, source_file: str, child: BaseAnnotation, append_orphans: bool = False, orphan_alert: bool = False
+    ) -> Iterator[Iterator]:
         """Get values of children of this annotation.
 
         Args:
@@ -818,8 +828,9 @@ class BaseOutput(BaseAnnotation):
     all_files = False
     common = False
 
-    def __init__(self, name: str = "", cls: str | None = None, description: str | None = None,
-                 source_file: str | None = None) -> None:
+    def __init__(
+        self, name: str = "", cls: str | None = None, description: str | None = None, source_file: str | None = None
+    ) -> None:
         """Initialize class.
 
         Args:
@@ -836,8 +847,9 @@ class BaseOutput(BaseAnnotation):
 class Output(CommonMixin, BaseOutput):
     """Regular annotation or attribute used as output."""
 
-    def __init__(self, name: str = "", cls: str | None = None, description: str | None = None,
-                 source_file: str | None = None) -> None:
+    def __init__(
+        self, name: str = "", cls: str | None = None, description: str | None = None, source_file: str | None = None
+    ) -> None:
         """Initialize class.
 
         Args:
@@ -899,8 +911,9 @@ class OutputData(CommonMixin, BaseOutput):
 
     data = True
 
-    def __init__(self, name: str = "", cls: str | None = None, description: str | None = None,
-                 source_file: str | None = None) -> None:
+    def __init__(
+        self, name: str = "", cls: str | None = None, description: str | None = None, source_file: str | None = None
+    ) -> None:
         """Initialize class.
 
         Args:
@@ -1178,7 +1191,7 @@ class Config(str):
         min_value: int | float | None = None,
         max_value: int | float | None = None,
         const: Any | None = None,
-        conditions: list[Config] | None = None
+        conditions: list[Config] | None = None,
     ) -> None:
         """Initialize class.
 
@@ -1325,6 +1338,7 @@ class Model(Base):
         Args:
             url: URL to download from.
         """
+
         def log_progress(downloaded: int, total_size: int) -> None:
             if total_size > 0:
                 logger.progress(progress=downloaded, total=total_size)

@@ -1,5 +1,6 @@
 # ruff: noqa: N999
 """Settings related to import."""
+
 import os
 
 from sparv.api import Config, wizard
@@ -32,19 +33,18 @@ __config__ = [
 ]
 
 
-@wizard(config_keys=[
-    "import.importer",
-    "import.source_dir"
-])
+@wizard(config_keys=["import.importer", "import.source_dir"])
 def setup_wizard(_: dict):
     """Return wizard question regarding source path and input format."""
-    questions = [{
-        "type": "path",
-        "name": "import.source_dir",
-        "message": "Relative path to the current directory containing your source files:",
-        "validate": os.path.isdir,
-        "default": paths.source_dir
-    }]
+    questions = [
+        {
+            "type": "path",
+            "name": "import.source_dir",
+            "message": "Relative path to the current directory containing your source files:",
+            "validate": os.path.isdir,
+            "default": paths.source_dir,
+        }
+    ]
 
     importers = []
     for module_name in registry.modules:
@@ -52,13 +52,20 @@ def setup_wizard(_: dict):
             if annotator["type"] == registry.Annotator.importer:
                 importers.append((f"{module_name}:{f_name}", annotator))
     max_len = max(len(n) for n, _ in importers)
-    questions.append({
-        "type": "select",
-        "name": "import.importer",
-        "choices": [{
-            "name": "{:{width}}   {description} (*.{file_extension})".format(importer_name, width=max_len, **importer),
-            "value": importer_name,
-        } for importer_name, importer in importers],
-        "message": "Choose an importer based on your type of source files:"
-    })
+    questions.append(
+        {
+            "type": "select",
+            "name": "import.importer",
+            "choices": [
+                {
+                    "name": "{:{width}}   {description} (*.{file_extension})".format(
+                        importer_name, width=max_len, **importer
+                    ),
+                    "value": importer_name,
+                }
+                for importer_name, importer in importers
+            ],
+            "message": "Choose an importer based on your type of source files:",
+        }
+    )
     return questions

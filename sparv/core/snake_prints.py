@@ -1,4 +1,5 @@
 """Printing functions for Snakefile."""
+
 import json
 import operator
 
@@ -40,7 +41,7 @@ def print_modules_summary(snake_storage: snake_utils.SnakeStorage, json_output: 
         "importers": snake_storage.all_importers,
         "exporters": snake_storage.all_exporters,
         "installers": snake_storage.all_installers,
-        "uninstallers": snake_storage.all_uninstallers
+        "uninstallers": snake_storage.all_uninstallers,
     }
 
     modules_data = {k: {} for k in all_module_types}
@@ -63,20 +64,17 @@ def print_modules_summary(snake_storage: snake_utils.SnakeStorage, json_output: 
         for module_type, module_type_data in modules_data.items():
             table.add_row(f"[b]{module_type.upper()}[/b]")
             for module, module_data in module_type_data.items():
-                table.add_row(
-                    f"  {module}",
-                    module_data["description"].split("\n")[0]
-                )
+                table.add_row(f"  {module}", module_data["description"].split("\n")[0])
             table.add_row()
         console.print(table)
         console.print(
             "For more details about a specific module run [green]'sparv modules \\[module name]'[/green].",
-            highlight=False
+            highlight=False,
         )
         console.print(
             "For more details about all modules of a specific type run "
             "[green]'sparv modules --\\[module type]'[/green].",
-            highlight=False
+            highlight=False,
         )
 
 
@@ -86,7 +84,7 @@ def print_modules_info(
     snake_storage: snake_utils.SnakeStorage,
     reverse_config_usage: dict,
     json_output: bool = False,
-    include_params: bool = False
+    include_params: bool = False,
 ) -> None:
     """Print full info for chosen module_types and module_names.
 
@@ -103,7 +101,7 @@ def print_modules_info(
         "importers": snake_storage.all_importers,
         "exporters": snake_storage.all_exporters,
         "installers": snake_storage.all_installers,
-        "uninstallers": snake_storage.all_uninstallers
+        "uninstallers": snake_storage.all_uninstallers,
     }
 
     def quoted_representer(dumper: yaml.Dumper, data: str) -> yaml.ScalarNode:
@@ -205,8 +203,11 @@ def print_modules_info(
                                     if cfg_datatype is str:
                                         datatypes.append(cfg_datatype.__name__)
                                         if config_object.choices:
-                                            config_info["choices"] = config_object.choices() if callable(
-                                                config_object.choices) else config_object.choices
+                                            config_info["choices"] = (
+                                                config_object.choices()
+                                                if callable(config_object.choices)
+                                                else config_object.choices
+                                            )
                                         if config_object.pattern:
                                             config_info["pattern"] = config_object.pattern
                                     elif cfg_datatype in {int, float}:
@@ -220,9 +221,7 @@ def print_modules_info(
                                         if args:
                                             if typing_inspect.is_union_type(args[0]):
                                                 args_inner = typing_inspect.get_args(args[0])
-                                                datatypes.append(
-                                                    f"list[{' | '.join(a.__name__ for a in args_inner)}]"
-                                                )
+                                                datatypes.append(f"list[{' | '.join(a.__name__ for a in args_inner)}]")
                                             else:
                                                 datatypes.append(f"list[{args[0].__name__}]")
                                         else:
@@ -245,7 +244,7 @@ def print_modules_info(
                         f_data["parameters"][p] = {
                             "optional": optional,
                             "type": f"list[{typ.__name__}]" if li else typ.__name__,
-                            "default": default
+                            "default": default,
                         }
                 module_data["functions"][f_name] = f_data
 
@@ -304,7 +303,7 @@ def _print_modules(modules_data: dict) -> None:
         console.print(
             f"  [b]{module_type.upper()}[/b]",
             style="reverse",
-            justify="left"  # Fill entire width
+            justify="left",  # Fill entire width
         )
         console.print()
 
@@ -327,9 +326,9 @@ def _print_modules(modules_data: dict) -> None:
                             f"[b]{f_name.upper()}[/b]\n[i]{escape(f_data['description'])}[/i]",
                             box=left_line,
                             padding=(0, 1),
-                            border_style="bright_green"
+                            border_style="bright_green",
                         ),
-                        (0, 2)
+                        (0, 2),
                     )
                 )
 
@@ -343,15 +342,12 @@ def _print_modules(modules_data: dict) -> None:
                         title_justify="left",
                         padding=(0, 2),
                         pad_edge=False,
-                        border_style="bright_black"
+                        border_style="bright_black",
                     )
                     table.add_column(no_wrap=True)
                     table.add_column()
                     for f_ann, ann_data in f_data["annotations"].items():
-                        table.add_row(
-                            f"• {escape(f_ann)}",
-                            escape(ann_data["description"] or "")
-                        )
+                        table.add_row(f"• {escape(f_ann)}", escape(ann_data["description"] or ""))
                         if "resolved_name" in ann_data or "class" in ann_data:
                             inner_table = Table(show_header=False, padding=(0, 1, 0, 0), box=None)
                             inner_table.add_column(justify="left", style="i dim")
@@ -371,7 +367,7 @@ def _print_modules(modules_data: dict) -> None:
                         title_justify="left",
                         padding=(0, 2),
                         pad_edge=False,
-                        border_style="bright_black"
+                        border_style="bright_black",
                     )
                     table.add_column()
                     table.add_row(
@@ -390,37 +386,37 @@ def _print_modules(modules_data: dict) -> None:
                         title_justify="left",
                         padding=(0, 2),
                         pad_edge=False,
-                        border_style="bright_black"
+                        border_style="bright_black",
                     )
                     table.add_column(no_wrap=True)
                     table.add_column()
                     for config_key, config_info in f_data["config"].items():
                         table.add_row(
                             f"• {escape(config_key)}",
-                            escape(config_info.get("description", "[i dim]No description available[/]"))
+                            escape(config_info.get("description", "[i dim]No description available[/]")),
                         )
                         if "datatype" in config_info:
                             inner_table = Table(show_header=False, padding=(0, 1, 0, 0), box=None)
                             inner_table.add_column(justify="left", style="i dim")
                             inner_table.add_row(
                                 f"type{'s' if len(config_info['datatype']) > 1 else ''}:",
-                                f"{escape(' | '.join(config_info['datatype']))}"
+                                f"{escape(' | '.join(config_info['datatype']))}",
                             )
 
                             presentation = {
                                 "str": {
                                     "pattern": "regexp",
                                     "min_len": "min length",
-                                    "max_len": "max length"
+                                    "max_len": "max length",
                                 },
                                 "int": {
                                     "min_value": "min",
-                                    "max_value": "max"
+                                    "max_value": "max",
                                 },
                                 "float": {
                                     "min_value": "min",
-                                    "max_value": "max"
-                                }
+                                    "max_value": "max",
+                                },
                             }
 
                             for datatype in config_info["datatype"]:
@@ -429,9 +425,9 @@ def _print_modules(modules_data: dict) -> None:
                                         if key in config_info:
                                             inner_table.add_row(
                                                 f"{presentation[datatype][key]}:",
-                                                yaml.dump(
-                                                    config_info[key], default_flow_style=True
-                                                ).strip().removesuffix("\n...")
+                                                yaml.dump(config_info[key], default_flow_style=True)
+                                                .strip()
+                                                .removesuffix("\n..."),
                                             )
 
                             if "choices" in config_info:
@@ -440,9 +436,9 @@ def _print_modules(modules_data: dict) -> None:
                             if "default" in config_info:
                                 inner_table.add_row(
                                     "default:",
-                                    yaml.dump(
-                                        config_info["default"], default_flow_style=True
-                                    ).strip().removesuffix("\n...")
+                                    yaml.dump(config_info["default"], default_flow_style=True)
+                                    .strip()
+                                    .removesuffix("\n..."),
                                 )
 
                             table.add_row("", Padding(inner_table, (0, 0, 0, 2)))
@@ -457,7 +453,7 @@ def _print_modules(modules_data: dict) -> None:
                         title_justify="left",
                         padding=(0, 2),
                         pad_edge=False,
-                        border_style="bright_black"
+                        border_style="bright_black",
                     )
                     table.add_column(no_wrap=True)
                     table.add_column()
@@ -571,9 +567,17 @@ def print_installers(snake_storage: snake_utils.SnakeStorage, uninstall: bool = 
             table.add_row(target, desc)
         console.print(table)
 
-    extra = ("If the 'uninstall' setting is not set, any uninstallers connected to the installers in the 'install' "
-             "section will be used instead.") if uninstall else ""
+    extra = (
+        (
+            "If the 'uninstall' setting is not set, any uninstallers connected to the installers in the 'install' "
+            "section will be used instead."
+        )
+        if uninstall
+        else ""
+    )
 
-    console.print(f"[i]Note:[/i] Use the '{prefix}install' section in your corpus configuration to select what "
-                  f"{prefix}installations should be performed when running 'sparv {prefix}install' without arguments. "
-                  f"{extra}")
+    console.print(
+        f"[i]Note:[/i] Use the '{prefix}install' section in your corpus configuration to select what "
+        f"{prefix}installations should be performed when running 'sparv {prefix}install' without arguments. "
+        f"{extra}"
+    )

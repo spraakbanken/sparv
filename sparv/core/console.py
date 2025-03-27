@@ -1,4 +1,5 @@
 """Provide a Console instance for pretty printing."""
+
 from rich.console import Console
 from rich.theme import Theme
 
@@ -8,7 +9,7 @@ _theme = Theme(
         "repr.ipv6": "none",
         "repr.eui48": "none",
         "repr.eui64": "none",
-        "repr.number": "none"
+        "repr.number": "none",
     }
 )
 

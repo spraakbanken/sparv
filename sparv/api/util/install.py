@@ -1,4 +1,5 @@
 """Util functions for installations on remote servers."""
+
 from __future__ import annotations
 
 import shlex
@@ -12,11 +13,7 @@ from sparv.api.util import system
 logger = get_logger(__name__)
 
 
-def install_path(
-    source_path: str | Path,
-    host: str | None,
-    target_path: str | Path
-) -> None:
+def install_path(source_path: str | Path, host: str | None, target_path: str | Path) -> None:
     """Transfer a file or the contents of a directory to a target destination, optionally on a different host.
 
     Args:
@@ -58,9 +55,7 @@ def install_mysql(host: str | None, db_name: str, sqlfile: Path | str | list[Pat
         else:
             logger.info("Installing MySQL database: %s, source: %s (%d/%d)", db_name, f, file_count + 1, file_total)
             if not host:
-                subprocess.check_call(
-                    f"cat {shlex.quote(str(f))} | mysql {shlex.quote(db_name)}", shell=True
-                )
+                subprocess.check_call(f"cat {shlex.quote(str(f))} | mysql {shlex.quote(db_name)}", shell=True)
             else:
                 subprocess.check_call(
                     f"cat {shlex.quote(str(f))} | ssh {shlex.quote(host)} {shlex.quote(f'mysql {db_name}')}", shell=True
@@ -94,8 +89,9 @@ def install_svn(source_file: str | Path, svn_url: str, remove_existing: bool = F
     # Check if source file exists
     source_file = Path(source_file)
     if not source_file.exists():
-        raise SparvErrorMessage(f"Source file does not exist: {source_file}",
-                                module="api.util.install", function="install_svn")
+        raise SparvErrorMessage(
+            f"Source file does not exist: {source_file}", module="api.util.install", function="install_svn"
+        )
 
     # Check if svn_url is set
     if not svn_url:
@@ -109,8 +105,9 @@ def install_svn(source_file: str | Path, svn_url: str, remove_existing: bool = F
         if returncode == 0:
             if remove_existing is False:
                 raise SparvErrorMessage(
-                    f"File already exists in SVN repository: {svn_url}", module="api.util.install",
-                    function="install_svn"
+                    f"File already exists in SVN repository: {svn_url}",
+                    module="api.util.install",
+                    function="install_svn",
                 )
             logger.info("File exists in SVN repository, updating: %s", svn_url)
             system.call_svn("delete", svn_url)
@@ -156,11 +153,13 @@ def install_git(source_file: str | Path, repo_path: str | Path) -> None:
 
     # Check if source file and repo path exist
     if not source_file.exists():
-        raise SparvErrorMessage(f"Source file does not exist: {source_file}", module="api.util.install",
-                                function="install_git")
+        raise SparvErrorMessage(
+            f"Source file does not exist: {source_file}", module="api.util.install", function="install_git"
+        )
     if not repo_path.exists():
-        raise SparvErrorMessage("Local Git repository path does not exist", module="api.util.install",
-                                function="install_git")
+        raise SparvErrorMessage(
+            "Local Git repository path does not exist", module="api.util.install", function="install_git"
+        )
 
     # Copy the file to the local Git repository
     target_file = repo_path / source_file.name
@@ -189,8 +188,9 @@ def uninstall_git(file_path: str | Path) -> None:
     """
     file_path = Path(file_path)
     if not file_path.exists():
-        raise SparvErrorMessage(f"File does not exist in Git repository: {file_path}", module="api.util.install",
-                                function="uninstall_git")
+        raise SparvErrorMessage(
+            f"File does not exist in Git repository: {file_path}", module="api.util.install", function="uninstall_git"
+        )
 
     # Remove file from Git and commit
     try:

@@ -42,6 +42,7 @@ class CurrentProgress:
 
     These are set by setup_logging() and used by _log_progress().
     """
+
     current_file = None
     current_job = None
 
@@ -97,7 +98,7 @@ logging.Logger.export_dirs = _export_dirs
 messages = {
     "missing_configs": defaultdict(set),
     "missing_binaries": defaultdict(set),
-    "missing_classes": defaultdict(set)
+    "missing_classes": defaultdict(set),
 }
 
 missing_annotations_msg = (
@@ -231,7 +232,7 @@ class InternalLogHandler(logging.Handler):
                             "",
                             start=bool(record.total),
                             completed=record.progress or record.advance or 0,
-                            total=record.total or 100.0
+                            total=record.total or 100.0,
                         )
                     else:
                         if record.total:
@@ -291,12 +292,14 @@ class ProgressWithTable(progress.Progress):
                 elapsed = str(timedelta(seconds=round(time.time() - task["starttime"])))
                 elapsed_max_len = max(len(elapsed), elapsed_max_len)
                 try:
-                    rows.append((
-                        task["name"],
-                        f"[dim]{task['file']}[/dim]",
-                        bar_col(self._tasks[task["task"]]) if task["task"] else "",
-                        elapsed
-                    ))
+                    rows.append(
+                        (
+                            task["name"],
+                            f"[dim]{task['file']}[/dim]",
+                            bar_col(self._tasks[task["task"]]) if task["task"] else "",
+                            elapsed,
+                        )
+                    )
                 except KeyError:  # May happen if self._tasks has changed
                     pass
 
@@ -304,8 +307,9 @@ class ProgressWithTable(progress.Progress):
             table.add_column("Task", no_wrap=True, min_width=self.task_max_len + 2, ratio=1)
             table.add_column("File", no_wrap=True)
             table.add_column("Bar", width=10)
-            table.add_column("Elapsed", no_wrap=True, width=elapsed_max_len, justify="right",
-                             style="progress.remaining")
+            table.add_column(
+                "Elapsed", no_wrap=True, width=elapsed_max_len, justify="right", style="progress.remaining"
+            )
             table.add_row("[b]Task[/]", "[b]File[/]", "", "[default b]Elapsed[/]")
             for row in rows:
                 table.add_row(*row)
@@ -437,14 +441,13 @@ class LogHandler:
         stream_handler.addFilter(internal_filter)
 
         if self.json:
-            stream_formatter = json_formatter = jsonlogger.JsonFormatter(LOG_FORMAT_DEBUG, rename_fields={
-                "asctime": "time",
-                "levelname": "level"
-            })
+            stream_formatter = json_formatter = jsonlogger.JsonFormatter(
+                LOG_FORMAT_DEBUG, rename_fields={"asctime": "time", "levelname": "level"}
+            )
         else:
             stream_formatter = logging.Formatter(
                 "%(message)s" if stream_handler.level > logging.DEBUG else "(%(process)d) - %(message)s",
-                datefmt=TIME_FORMAT
+                datefmt=TIME_FORMAT,
             )
 
         stream_handler.setFormatter(stream_formatter)
@@ -452,8 +455,9 @@ class LogHandler:
 
         # File logger
         self.log_filename = f"{datetime.datetime.now().strftime('%Y-%m-%d_%H.%M.%S.%f')}.log"
-        file_handler = FileHandlerWithDirCreation(paths.log_dir / self.log_filename, mode="w",
-                                                  encoding="UTF-8", delay=True)
+        file_handler = FileHandlerWithDirCreation(
+            paths.log_dir / self.log_filename, mode="w", encoding="UTF-8", delay=True
+        )
         file_handler.setLevel(self.log_file_level.upper())
         file_handler.addFilter(progress_internal_filter)
 
@@ -484,13 +488,14 @@ class LogHandler:
             progress.TextColumn("[progress.description]{task.description}"),
             progress.TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
             progress.TextColumn("[progress.remaining]{task.completed} of {task.total} tasks"),
-            progress.TextColumn("{task.fields[text]}")
+            progress.TextColumn("{task.fields[text]}"),
         ]
         if self.simple:
             self.progress = progress.Progress(*progress_layout, console=console)
         else:
-            self.progress = ProgressWithTable(self.jobs, self.current_jobs, self.jobs_max_len,
-                                              *progress_layout, console=console)
+            self.progress = ProgressWithTable(
+                self.jobs, self.current_jobs, self.jobs_max_len, *progress_layout, console=console
+            )
         self.progress.start()
         self.bar = self.progress.add_task(self.icon, start=False, total=0, text="[dim]Preparing...[/dim]")
 
@@ -549,28 +554,29 @@ class LogHandler:
         Raises:
             BrokenPipeError: If a missing config variable is detected. This stops Snakemake.
         """
+
         def missing_config_message(source: str) -> None:
             """Create error message when config variables are missing."""
             variables = messages["missing_configs"][source]
             message = "The following config variable{} need{} to be set:\n • {}".format(
-                *("s", "") if len(variables) > 1 else ("", "s"),
-                "\n • ".join(variables))
+                *("s", "") if len(variables) > 1 else ("", "s"), "\n • ".join(variables)
+            )
             self.messages["error"].append((source, message))
 
         def missing_binary_message(source: str) -> None:
             """Create error message when binaries are missing."""
             binaries = messages["missing_binaries"][source]
             message = "The following executable{} {} needed but could not be found:\n • {}".format(
-                *("s", "are") if len(binaries) > 1 else ("", "is"),
-                "\n • ".join(binaries))
+                *("s", "are") if len(binaries) > 1 else ("", "is"), "\n • ".join(binaries)
+            )
             self.messages["error"].append((source, message))
 
         def missing_class_message(source: str, classes: list[str] | None = None) -> None:
             """Create error message when class variables are missing."""
             variables = messages["missing_classes"][source] or classes
             message = "The following class{} need{} to be set:\n • {}".format(
-                *("es", "") if len(variables) > 1 else ("", "s"),
-                "\n • ".join(variables))
+                *("es", "") if len(variables) > 1 else ("", "s"), "\n • ".join(variables)
+            )
 
             if "text" in variables:
                 message += (
@@ -612,11 +618,10 @@ class LogHandler:
                 if errmsg:
                     errmsg.append("\n")
                 errmsg.append(
-                    "The following input file{} {} missing:\n"
-                    " • {}\n".format(
+                    "The following input file{} {} missing:\n • {}\n".format(
                         "s" if len(missing_other) > 1 else "",
                         "are" if len(missing_other) > 1 else "is",
-                        "\n • ".join(missing_other)
+                        "\n • ".join(missing_other),
                     )
                 )
             if errmsg:
@@ -664,19 +669,22 @@ class LogHandler:
                 if not self.simple:
                     file = msg["wildcards"].get("file", "")
                     if file.startswith(str(paths.work_dir)):
-                        file = file[len(str(paths.work_dir)) + 1:]
+                        file = file[len(str(paths.work_dir)) + 1 :]
 
                     self.current_jobs[msg["jobid"]] = {
                         "task": None,
                         "name": msg["msg"],
                         "starttime": time.time(),
-                        "file": file
+                        "file": file,
                     }
 
                     self.job_ids[msg["msg"], file] = msg["jobid"]
 
-        elif (level == "job_finished" or (level == "job_error" and self.keep_going)) and self.use_progressbar and msg[
-                "jobid"] in self.current_jobs:
+        elif (
+            (level == "job_finished" or (level == "job_error" and self.keep_going))
+            and self.use_progressbar
+            and msg["jobid"] in self.current_jobs
+        ):
             this_job = self.current_jobs[msg["jobid"]]
             if self.stats:
                 self.stats_data[this_job["name"]] += time.time() - this_job["starttime"]
@@ -702,7 +710,9 @@ class LogHandler:
                 # Parse error message
                 message = re.search(
                     rf"{SparvErrorMessage.start_marker}([^\n]*)\n([^\n]*)\n(.*?){SparvErrorMessage.end_marker}",
-                    msg["msg"], flags=re.DOTALL)
+                    msg["msg"],
+                    flags=re.DOTALL,
+                )
                 if message:
                     module, function, error_message = message.groups()
                     error_source = f"{module}:{function}" if module and function else None
@@ -822,10 +832,11 @@ class LogHandler:
             self.progress.stop()
             if not self.simple and self.bar_started:
                 # Clear table header from screen
-                console.control(Control(
-                    ControlType.CARRIAGE_RETURN,
-                    *((ControlType.CURSOR_UP, 1), (ControlType.ERASE_IN_LINE, 2)) * 2
-                ))
+                console.control(
+                    Control(
+                        ControlType.CARRIAGE_RETURN, *((ControlType.CURSOR_UP, 1), (ControlType.ERASE_IN_LINE, 2)) * 2
+                    )
+                )
 
         self.finished = True
 
@@ -842,8 +853,8 @@ class LogHandler:
             elif self.log_filename:
                 # Errors from modules have already been logged to both stdout and the log file
                 self.error(
-                    "Job execution failed. See log messages above or "
-                    f"{paths.log_dir / self.log_filename} for details.")
+                    f"Job execution failed. See log messages above or {paths.log_dir / self.log_filename} for details."
+                )
             else:
                 # Errors from modules have already been logged to stdout
                 self.error("Job execution failed. See log messages above for details.")
@@ -853,8 +864,7 @@ class LogHandler:
                 errmsg = ["An unexpected error occurred."]
                 if self.log_level and logging._nameToLevel[self.log_level.upper()] > logging.DEBUG:
                     errmsg[0] += (
-                        " To display further details about this error, rerun Sparv with the "
-                        "'--log debug' argument.\n"
+                        " To display further details about this error, rerun Sparv with the '--log debug' argument.\n"
                     )
                     if error.get("msg"):
                         # Show only a summary of the error
@@ -874,8 +884,11 @@ class LogHandler:
             spacer = ""
             if self.export_dirs:
                 spacer = "\n"
-                self.info("The exported files can be found in the following location{}:\n • {}".format(
-                    "s" if len(self.export_dirs) > 1 else "", "\n • ".join(sorted(self.export_dirs))))
+                self.info(
+                    "The exported files can be found in the following location{}:\n • {}".format(
+                        "s" if len(self.export_dirs) > 1 else "", "\n • ".join(sorted(self.export_dirs))
+                    )
+                )
 
             if self.stats_data:
                 spacer = ""
@@ -886,8 +899,7 @@ class LogHandler:
                 table.add_row("[b]Task[/]", "[default b]Time taken[/]", "[b]Percentage[/b]")
                 total_time = sum(self.stats_data.values())
                 for task, elapsed in sorted(self.stats_data.items(), key=lambda x: -x[1]):
-                    table.add_row(task, str(timedelta(seconds=round(elapsed))),
-                                    f"{100 * elapsed / total_time:.1f}%")
+                    table.add_row(task, str(timedelta(seconds=round(elapsed))), f"{100 * elapsed / total_time:.1f}%")
                 console.print(table)
 
             if self.log_levelcount:
@@ -937,7 +949,7 @@ def setup_logging(
     log_level: str = "warning",
     log_file_level: str = "warning",
     file: str | None = None,
-    job: str | None = None
+    job: str | None = None,
 ) -> None:
     """Set up logging with socket handler.
 

@@ -1,4 +1,5 @@
 """Misc util functions."""
+
 from __future__ import annotations
 
 import pathlib
@@ -173,6 +174,7 @@ def chain(annotations: Iterable[dict], default: Any = None) -> Generator[tuple]:
      'w:4': 'The Principia Discordia',
      'w:5': 'The Principia Discordia'}
     """
+
     def follow(key: Any) -> Any:
         for annot in annotations:
             try:
@@ -180,6 +182,7 @@ def chain(annotations: Iterable[dict], default: Any = None) -> Generator[tuple]:
             except KeyError:  # noqa: PERF203
                 return default
         return key
+
     return ((key, follow(key)) for key in annotations[0])
 
 
