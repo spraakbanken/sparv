@@ -7,11 +7,12 @@ import os
 import pathlib
 import pickle
 import time
-import urllib.request
 import zipfile
 from abc import ABC, abstractmethod
 from collections.abc import Iterable, Iterator, Sequence
 from typing import Any, Callable, Union  # Union still needed in some cases for Python 3.9 compatibility
+
+import requests
 
 import sparv.core
 from sparv.core import io
@@ -1324,13 +1325,23 @@ class Model(Base):
         Args:
             url: URL to download from.
         """
-        def log_progress(block_num: int, block_size: int, total_size: int) -> None:
+        def log_progress(downloaded: int, total_size: int) -> None:
             if total_size > 0:
-                logger.progress(progress=block_num * block_size, total=total_size)
-        os.makedirs(self.path.parent, exist_ok=True)
+                logger.progress(progress=downloaded, total=total_size)
+
+        self.path.parent.mkdir(parents=True, exist_ok=True)
         logger.debug("Downloading from: %s", url)
         try:
-            urllib.request.urlretrieve(url, self.path, reporthook=log_progress)
+            with requests.get(url, stream=True) as response:
+                response.raise_for_status()
+                total_size = int(response.headers.get("content-length", 0))
+                downloaded = 0
+                with self.path.open("wb") as file:
+                    for chunk in response.iter_content(chunk_size=8192):
+                        if chunk:  # Filter out keep-alive chunks
+                            file.write(chunk)
+                            downloaded += len(chunk)
+                            log_progress(downloaded, total_size)
             logger.info("Successfully downloaded %s", self.name)
         except Exception as e:
             logger.error("Download of %s from %s failed", self.name, url)
