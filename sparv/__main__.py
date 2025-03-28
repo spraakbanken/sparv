@@ -133,7 +133,7 @@ class SortedCompletionFinder(argcomplete.CompletionFinder):
 
 
 def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) -> bool:
-    """Run Sparv (main entry point for Sparv).
+    """Handle command line arguments and run the appropriate command.
 
     If argv is None, the command line arguments are read from sys.argv.
 
@@ -562,10 +562,8 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
 
     if args.command == "setup":
         if args.reset:
-            setup.reset()
-        else:
-            setup.run(args.dir)
-        return True
+            return setup.reset()
+        return setup.run(args.dir)
     if args.command == "wizard":
         from sparv.core.wizard import Wizard
 
@@ -781,6 +779,14 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
     return success
 
 
+def cli() -> None:
+    """Run main function and exit with the appropriate exit code.
+
+    This is the entry point for the CLI, called when running 'sparv' from the command line.
+    We need this simply to translate the return value from main() to a proper exit code.
+    """
+    sys.exit(0 if main() else 1)
+
+
 if __name__ == "__main__":
-    success = main()
-    sys.exit(0 if success else 1)
+    cli()

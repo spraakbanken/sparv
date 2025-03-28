@@ -7,7 +7,6 @@ import importlib.resources
 import os
 import pathlib
 import shutil
-import sys
 
 import appdirs
 from rich.padding import Padding
@@ -56,8 +55,12 @@ def copy_resource_files(data_dir: pathlib.Path) -> None:
                 shutil.copy(f, data_dir / rel_f)
 
 
-def reset() -> None:
-    """Remove the data dir config file."""
+def reset() -> bool:
+    """Remove the data dir config file.
+
+    Returns:
+        True if the reset was successful, False otherwise.
+    """
     if paths.sparv_config_file.is_file():
         data_dir = paths.read_sparv_config().get("sparv_data")
         try:
@@ -68,19 +71,23 @@ def reset() -> None:
                 paths.sparv_config_file.parent.rmdir()
         except Exception:
             console.print("An error occurred while trying to reset the configuration.")
-            sys.exit(1)
+            return False
         console.print("Sparv's data directory information has been reset.")
         if data_dir and pathlib.Path(data_dir).is_dir():
             console.print(f"The data directory itself has not been removed, and is still available at:\n{data_dir}")
     else:
         console.print("Nothing to reset.")
+    return True
 
 
-def run(sparv_datadir: str | None = None) -> None:
+def run(sparv_datadir: str | None = None) -> bool:
     """Query user about data dir path unless provided by argument, and populate path with files.
 
     Args:
         sparv_datadir: Path to the data directory.
+
+    Returns:
+        True if the setup was successful, False otherwise.
     """
     default_dir = pathlib.Path(appdirs.user_data_dir("sparv"))
     current_dir = paths.get_data_path()
@@ -121,10 +128,10 @@ def run(sparv_datadir: str | None = None) -> None:
                 )
             except KeyboardInterrupt:
                 console.print("\nSetup interrupted.")
-                sys.exit()
+                return False
             if not cont:
                 console.print("\nSetup aborted.")
-                sys.exit()
+                return False
             path = current_dir
         else:
             # Ask user for path
@@ -138,7 +145,7 @@ def run(sparv_datadir: str | None = None) -> None:
                 path_str = input().strip()
             except KeyboardInterrupt:
                 console.print("\nSetup interrupted.")
-                sys.exit()
+                return False
             path = pathlib.Path(path_str) if path_str else current_dir or default_dir
 
     try:
@@ -154,7 +161,7 @@ def run(sparv_datadir: str | None = None) -> None:
             "\nAn error occurred while trying to create the directories. "
             "Make sure the path you entered is correct, and that you have the necessary read/write permissions."
         )
-        sys.exit(1)
+        return False
 
     if not using_env:
         # Save data dir setting to config file
@@ -170,3 +177,4 @@ def run(sparv_datadir: str | None = None) -> None:
     (path / VERSION_FILE).write_text(__version__, encoding="utf-8")
 
     console.print(f"\nSetup completed. The Sparv data directory is set to '{path}'.")
+    return True

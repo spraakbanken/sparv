@@ -51,7 +51,7 @@ Homepage = "https://github.com/spraakbanken/sparv-pipeline/"
 Documentation = "https://spraakbanken.gu.se/sparv/"
 
 [project.scripts]
-sparv = "sparv.__main__:main"
+sparv = "sparv.__main__:cli"
 
 [tool.hatch]
 version.path = "sparv/__init__.py"
