@@ -78,7 +78,7 @@ class SparvPaths:
         if not self.data_dir and (
             data_dir_str := os.environ.get(self.data_dir_env) or self.read_sparv_config().get("sparv_data")
         ):
-            self.data_dir = Path(data_dir_str).expanduser()
+            self.data_dir = Path(data_dir_str).expanduser().resolve()
 
         if subpath:
             return self.data_dir / subpath if self.data_dir else Path(subpath)

@@ -149,8 +149,8 @@ def run(sparv_datadir: str | None = None) -> bool:
             path = pathlib.Path(path_str) if path_str else current_dir or default_dir
 
     try:
-        # Expand any "~"
-        path = path.expanduser()
+        # Expand any "~" and make the path absolute
+        path = path.expanduser().resolve()
         # Create directories
         dirs = [paths.bin_dir.name, paths.config_dir.name, paths.models_dir.name]
         path.mkdir(parents=True, exist_ok=True)

@@ -52,6 +52,7 @@
 - Fixed bug in `stats_export` which caused it to crash sometimes.
 - Better handling of whitespace in tokens in the `cwb` and `wsd` modules.
 - Fixed SSL certificate verification issues when downloading models.
+- Fixed problem when entering relative path as Sparv data directory.
 
 ## [5.2.0] - 2023-12-07
 
