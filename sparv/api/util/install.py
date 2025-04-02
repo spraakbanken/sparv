@@ -1,5 +1,4 @@
 """Util functions for installations on remote servers."""
-
 from __future__ import annotations
 
 import shlex
@@ -13,7 +12,11 @@ from sparv.api.util import system
 logger = get_logger(__name__)
 
 
-def install_path(source_path: str | Path, host: str | None, target_path: str | Path) -> None:
+def install_path(
+    source_path: str | Path,
+    host: str | None,
+    target_path: str | Path
+) -> None:
     """Transfer a file or the contents of a directory to a target destination, optionally on a different host.
 
     Args:
@@ -55,7 +58,9 @@ def install_mysql(host: str | None, db_name: str, sqlfile: Path | str | list[Pat
         else:
             logger.info("Installing MySQL database: %s, source: %s (%d/%d)", db_name, f, file_count + 1, file_total)
             if not host:
-                subprocess.check_call(f"cat {shlex.quote(str(f))} | mysql {shlex.quote(db_name)}", shell=True)
+                subprocess.check_call(
+                    f"cat {shlex.quote(str(f))} | mysql {shlex.quote(db_name)}", shell=True
+                )
             else:
                 subprocess.check_call(
                     f"cat {shlex.quote(str(f))} | ssh {shlex.quote(host)} {shlex.quote(f'mysql {db_name}')}", shell=True
@@ -89,9 +94,8 @@ def install_svn(source_file: str | Path, svn_url: str, remove_existing: bool = F
     # Check if source file exists
     source_file = Path(source_file)
     if not source_file.exists():
-        raise SparvErrorMessage(
-            f"Source file does not exist: {source_file}", module="api.util.install", function="install_svn"
-        )
+        raise SparvErrorMessage(f"Source file does not exist: {source_file}",
+                                module="api.util.install", function="install_svn")
 
     # Check if svn_url is set
     if not svn_url:
@@ -105,9 +109,8 @@ def install_svn(source_file: str | Path, svn_url: str, remove_existing: bool = F
         if returncode == 0:
             if remove_existing is False:
                 raise SparvErrorMessage(
-                    f"File already exists in SVN repository: {svn_url}",
-                    module="api.util.install",
-                    function="install_svn",
+                    f"File already exists in SVN repository: {svn_url}", module="api.util.install",
+                    function="install_svn"
                 )
             logger.info("File exists in SVN repository, updating: %s", svn_url)
             system.call_svn("delete", svn_url)
@@ -168,8 +171,14 @@ def install_git(source_file: str | Path, repo_path: str | Path) -> None:
     # Add file to Git and commit
     try:
         logger.info("Adding file to local Git repository: %s", repo_path)
-        subprocess.check_call(["git", "-C", str(repo_path), "add", str(target_file)])
-        subprocess.check_call(["git", "-C", str(repo_path), "commit", "-m", "Adding file with Sparv"])
+        add = subprocess.run(["git", "-C", str(repo_path), "add", str(target_file)], check=True, capture_output=True)
+        if add.stderr:
+            logger.warning("Command 'git add' generated the following output on stderr: %s", add.stderr.decode())
+        commit = subprocess.run(
+            ["git", "-C", str(repo_path), "commit", "-m", "Adding file with Sparv"], check=True, capture_output=True
+        )
+        if commit.stderr:
+            logger.warning("Command 'git commit' generated the following output on stderr: %s", commit.stderr.decode())
     except subprocess.CalledProcessError as e:
         raise SparvErrorMessage(
             f"Failed to add file to local Git repository: {e}", module="api.util.install", function="install_git"
@@ -188,15 +197,18 @@ def uninstall_git(file_path: str | Path) -> None:
     """
     file_path = Path(file_path)
     if not file_path.exists():
-        raise SparvErrorMessage(
-            f"File does not exist in Git repository: {file_path}", module="api.util.install", function="uninstall_git"
-        )
+        raise SparvErrorMessage(f"File does not exist in Git repository: {file_path}", module="api.util.install",
+                                function="uninstall_git")
 
     # Remove file from Git and commit
     try:
         logger.info("Removing file from local Git repository: %s", file_path)
-        subprocess.check_call(["git", "-C", str(file_path.parent), "rm", str(file_path.name)])
-        subprocess.check_call(["git", "-C", str(file_path.parent), "commit", "-m", "Removing file with Sparv"])
+        rm = subprocess.check_call(["git", "-C", str(file_path.parent), "rm", str(file_path.name)])
+        if rm.stderr:
+            logger.warning("Command 'git rm' generated the following output on stderr: %s", rm.stderr.decode())
+        commit = subprocess.check_call(["git", "-C", str(file_path.parent), "commit", "-m", "Removing file with Sparv"])
+        if commit.stderr:
+            logger.warning("Command 'git commit' generated the following output on stderr: %s", commit.stderr.decode())
     except subprocess.CalledProcessError as e:
         raise SparvErrorMessage(
             f"Failed to remove file from local Git repository: {e}", module="api.util.install", function="uninstall_git"
