@@ -40,6 +40,7 @@
   `OutputDataAllSourceFiles` can now be called with a source file name to get the respective non-all-source-files
   instance. This is now the recommended way to use these classes, and the previous methods will be removed in a future
   major release.
+- Changed library used for parsing PDF files from `pdfplumber` to `pypdfium2`.
 
 ### Fixed
 
