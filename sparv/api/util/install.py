@@ -140,12 +140,13 @@ def uninstall_svn(svn_url: str) -> None:
     system.call_svn("delete", svn_url)
 
 
-def install_git(source_file: str | Path, repo_path: str | Path) -> None:
+def install_git(source_file: str | Path, repo_path: str | Path, commit_message: str | None = None) -> None:
     """Copy a file to a local Git repository and make a commit.
 
     Args:
         source_file: The file to copy.
         repo_path: The path to the local Git repository.
+        commit_message: The commit message. If not set, a default message will be used.
 
     Raises:
         SparvErrorMessage: If the source file does not exist, if repo_path is not set, or if it is not possible to add
@@ -174,8 +175,10 @@ def install_git(source_file: str | Path, repo_path: str | Path) -> None:
         add = subprocess.run(["git", "-C", str(repo_path), "add", str(target_file)], check=True, capture_output=True)
         if add.stderr:
             logger.warning("Command 'git add' generated the following output on stderr: %s", add.stderr.decode())
+
+        message = commit_message or f"Add {source_file.name!r} with Sparv"
         commit = subprocess.run(
-            ["git", "-C", str(repo_path), "commit", "-m", "Adding file with Sparv"], check=True, capture_output=True
+            ["git", "-C", str(repo_path), "commit", "-m", message], check=True, capture_output=True
         )
         if commit.stderr:
             logger.warning("Command 'git commit' generated the following output on stderr: %s", commit.stderr.decode())
@@ -185,11 +188,12 @@ def install_git(source_file: str | Path, repo_path: str | Path) -> None:
         ) from e
 
 
-def uninstall_git(file_path: str | Path) -> None:
+def uninstall_git(file_path: str | Path, commit_message: str | None = None) -> None:
     """Remove a file from a local Git repository and make a commit.
 
     Args:
         file_path: The path to file to remove.
+        commit_message: The commit message. If not set, a default message will be used.
 
     Raises:
         SparvErrorMessage: If repo_path is not set, if the file does not exist in the Git repository, or if it is not
@@ -206,7 +210,8 @@ def uninstall_git(file_path: str | Path) -> None:
         rm = subprocess.check_call(["git", "-C", str(file_path.parent), "rm", str(file_path.name)])
         if rm.stderr:
             logger.warning("Command 'git rm' generated the following output on stderr: %s", rm.stderr.decode())
-        commit = subprocess.check_call(["git", "-C", str(file_path.parent), "commit", "-m", "Removing file with Sparv"])
+        message = commit_message or "Remove {source_file.name!r} with Sparv"
+        commit = subprocess.check_call(["git", "-C", str(file_path.parent), "commit", "-m", message])
         if commit.stderr:
             logger.warning("Command 'git commit' generated the following output on stderr: %s", commit.stderr.decode())
     except subprocess.CalledProcessError as e:
