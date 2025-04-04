@@ -4,7 +4,7 @@ To process a corpus with Sparv, you need to create a *corpus configuration file*
 [YAML](https://docs.ansible.com/ansible/latest/reference_appendices/YAMLSyntax.html), provides essential information
 about your corpus and instructs Sparv on how to process it. The [corpus config wizard](#corpus-config-wizard) can assist
 you in generating this file. Alternatively, you can refer to the [example
-corpora](https://github.com/spraakbanken/sparv-pipeline/releases/latest/download/example_corpora.zip) for inspiration.
+corpora](https://github.com/spraakbanken/sparv/releases/latest/download/example_corpora.zip) for inspiration.
 
 A minimal config file contains a list of automatic annotations you want to be included in the output.
 Below is an example of a small config file:
@@ -507,7 +507,7 @@ For the `misc:affix` annotator, the parameters are:
 
 To include this annotation in your corpus, add `<token>:misc.word.affixed` to an annotations list in your corpus config
 (e.g., `export.annotations`). This example is applied in the standard-swe [example
-corpus](https://github.com/spraakbanken/sparv-pipeline/releases/latest/download/example_corpora.zip).
+corpus](https://github.com/spraakbanken/sparv/releases/latest/download/example_corpora.zip).
 
 You can use the same annotator multiple times with different output names:
 
@@ -648,7 +648,7 @@ custom_annotations:
 > When using custom annotations from your own code, all output annotations must be prefixed with `custom`.
 
 An example of a user-defined custom annotator can be found in the standard-swe [example
-corpus](https://github.com/spraakbanken/sparv-pipeline/releases/latest/download/example_corpora.zip).
+corpus](https://github.com/spraakbanken/sparv/releases/latest/download/example_corpora.zip).
 
 For more information on writing an annotator function, refer to the [developer's
 guide](../developers-guide/writing-sparv-plugins.md#module-code). If you have written a general annotator module,

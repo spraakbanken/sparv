@@ -38,7 +38,7 @@ manual](https://spraakbanken.gu.se/sparv/#/user-manual/installation-and-setup) f
 ## Running tests
 
 If you want to run the tests you will need to clone this project from
-[GitHub](https://github.com/spraakbanken/sparv-pipeline) since the test data is not distributed with pip.
+[GitHub](https://github.com/spraakbanken/sparv) since the test data is not distributed with pip.
 
 Before cloning the repository with [git](https://git-scm.com/downloads) make sure you have [Git Large File
 Storage](https://git-lfs.github.com/) installed (`apt install git-lfs`). Some files will not be downloaded correctly
@@ -53,6 +53,6 @@ source venv/bin/activate
 pip install -e .[dev]
 ```
 
-Now with the virtual environment activated you can run `pytest` from the sparv-pipeline directory. You can run
+Now with the virtual environment activated you can run `pytest` from the `sparv` directory. You can run
 particular tests using the provided markers (e.g. `pytest -m swe` to run the Swedish tests only) or via substring
 matching (e.g. `pytest -k "not slow"` to skip the slow tests).

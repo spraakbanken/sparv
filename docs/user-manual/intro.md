@@ -14,14 +14,14 @@ While Sparv is primarily designed for Swedish text, it can also be used for othe
 integrate third-party tools that support other languages is straightforward, making Sparv a flexible solution for
 multilingual text analysis.
 
-The [source code](https://github.com/spraakbanken/sparv-pipeline) is available under the [MIT
+The [source code](https://github.com/spraakbanken/sparv) is available under the [MIT
 license](https://opensource.org/licenses/MIT). If you have any questions, problems or suggestions please contact
 <sb-sparv@svenska.gu.se>.
 
 This documentation is also available in PDF format. You can download the [user
-manual](https://github.com/spraakbanken/sparv-pipeline/releases/latest/download/user-manual.pdf) and the [developer's
-guide](https://github.com/spraakbanken/sparv-pipeline/releases/latest/download/developers-guide.pdf) from the [latest
-Sparv release on GitHub](https://github.com/spraakbanken/sparv-pipeline/releases/latest).
+manual](https://github.com/spraakbanken/sparv/releases/latest/download/user-manual.pdf) and the [developer's
+guide](https://github.com/spraakbanken/sparv/releases/latest/download/developers-guide.pdf) from the [latest
+Sparv release on GitHub](https://github.com/spraakbanken/sparv/releases/latest).
 
 !!! abstract "Cite Sparv"
     *[Martin Hammarstedt, Anne Schumacher, Lars Borin, Markus Forsberg (2022): Sparv 5 User
@@ -33,7 +33,7 @@ Sparv release on GitHub](https://github.com/spraakbanken/sparv-pipeline/releases
 > GitHub repository:
 >
 > 1. Log in to GitHub
-> 2. Go to https://github.com/spraakbanken/sparv-pipeline
+> 2. Go to https://github.com/spraakbanken/sparv
 > 3. Click "Watch" in the upper right corner
 > 4. Select "Custom"
 > 5. Check the "Releases" box

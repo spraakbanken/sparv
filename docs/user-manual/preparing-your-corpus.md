@@ -25,7 +25,7 @@ my_corpus/
 ```
 
 If you're trying Sparv for the first time, we recommend downloading and test-running some of the [example
-corpora](https://github.com/spraakbanken/sparv-pipeline/releases/latest/download/example_corpora.zip). These corpora
+corpora](https://github.com/spraakbanken/sparv/releases/latest/download/example_corpora.zip). These corpora
 come with pre-configured `config.yaml` files and source files.
 
 > [!NOTE]

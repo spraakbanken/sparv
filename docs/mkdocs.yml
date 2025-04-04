@@ -1,6 +1,6 @@
 site_name: Sparv
 site_url: https://spraakbanken.gu.se/sparv/
-repo_url: https://github.com/spraakbanken/sparv-pipeline
+repo_url: https://github.com/spraakbanken/sparv
 docs_dir: mkdocs
 #copyright: Copyright &copy; 2024 Språkbanken Text
 
