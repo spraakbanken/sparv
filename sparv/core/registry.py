@@ -681,6 +681,13 @@ def _add_to_registry(annotator: dict, skip_language_check: bool = False) -> None
             cls = val.default.cls
             ann_name, attr = ann.split()
 
+            # Data annotations may not contain ':' in the name
+            if ann.data and ":" in ann.name:
+                raise SparvErrorMessage(
+                    f"Output annotation '{ann}' in module '{module_name}' cannot contain ':' in the name, since it is "
+                    "a data annotation."
+                )
+
             # Make sure annotation names include module names as prefix
             if not attr:
                 if not ann_name.startswith(f"{module_name}."):
