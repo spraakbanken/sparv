@@ -18,6 +18,17 @@
     font-weight: 500;
 }
 
+/* Slightly larger font size for tables */
+.md-typeset table:not([class]) {
+    font-size: 0.7rem;
+}
+
+/* Slightly larger font size for admonitions */
+.md-typeset .admonition,
+.md-typeset details {
+    font-size: 0.7rem;
+}
+
 /* Tab bar */
 .md-tabs {
     background-color: var(--md-code-bg-color) !important;
