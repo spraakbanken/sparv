@@ -47,9 +47,21 @@ Sparv requires a dedicated directory to store language models and configuration 
 configurations and presets.
 
 > [!TIP]
-> Instead of setting the data directory path using `sparv setup`, you may use the environment variable `SPARV_DATADIR`.
-> This overrides any path you have previously configured using the setup process. Note that you still have to run
-> the setup command at least once to populate the selected directory, even when using the environment variable.
+>
+> For a non-interactive setup (e.g. in a Docker container), you can use the `--dir` flag to specify the data directory
+> path and perform the setup in one command:
+>
+> ```sh
+> sparv setup --dir /path/to/sparv-data
+> ```
+
+> [!TIP]
+>
+> Instead of (or in addition to) setting the data directory path using `sparv setup`, you can use the environment
+> variable `SPARV_DATADIR`. This overrides any path you may have previously configured using the setup process. This is
+> useful if you want to have multiple Sparv installations with different data directories on the same machine. Note that
+> you still have to run the `setup` command at least once to populate the selected directory, even when using the
+> environment variable.
 
 ### Optional: Pre-build Models
 

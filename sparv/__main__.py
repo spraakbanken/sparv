@@ -180,7 +180,8 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
         "languages": "List supported languages",
         "setup": {
             "short": "Set up the Sparv data directory",
-            "long": "Set up the Sparv data directory. Run without arguments for interactive setup.",
+            "long": "Set up the Sparv data directory. Run without arguments for interactive setup. Use the '--dir' "
+            "option for non-interactive setup.",
         },
         "wizard": "Run config wizard to create a corpus config",
         "build-models": {
@@ -313,7 +314,7 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
         "setup", help=help["setup"]["short"], description=help["setup"]["long"], formatter_class=RichHelpFormatter
     )
     setup_parser.add_argument("-d", "--dir", help="Directory to use as Sparv data directory")
-    setup_parser.add_argument("--reset", action="store_true", help="Reset data directory setting.")
+    setup_parser.add_argument("--reset", action="store_true", help="Reset data directory setting")
 
     models_parser = subparsers.add_parser(
         "build-models",

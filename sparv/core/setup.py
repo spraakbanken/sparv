@@ -74,7 +74,9 @@ def reset() -> bool:
             return False
         console.print("Sparv's data directory information has been reset.")
         if data_dir and pathlib.Path(data_dir).is_dir():
-            console.print(f"The data directory itself has not been removed, and is still available at:\n{data_dir}")
+            console.print(
+                f"The data directory itself has not been removed, and is still available at:\n{data_dir}", width=80
+            )
     else:
         console.print("Nothing to reset.")
     return True
@@ -100,13 +102,15 @@ def run(sparv_datadir: str | None = None) -> bool:
         using_env = False
         path = pathlib.Path(sparv_datadir)
     else:
+        env_message = " (set via environment variable)" if using_env else ""
         console.print(
             "\n[b]Sparv Data Directory Setup[/b]\n\n"
-            f"Current data directory: [green]{current_dir or '<not set>'}[/green]\n\n"
+            f"Current data directory: [green]{current_dir or '<not set>'}[/green]{env_message}\n\n"
             "Sparv needs a place to store its configuration files, language models and other data. "
             "After selecting the directory you want to use for this purpose, Sparv will populate it with a default "
             "config file and presets. Any existing files in the target directory will be backed up. Any previous "
-            "backups will be overwritten."
+            "backups will be overwritten.",
+            width=80,
         )
         console.print(
             Padding(
@@ -114,18 +118,20 @@ def run(sparv_datadir: str | None = None) -> bool:
                 "details. You may also override the data directory setting using the environment variable "
                 f"'{paths.data_dir_env}'.",
                 (1, 4),
-            )
+            ),
+            width=80,
         )
 
         if using_env:
             try:
-                cont = Confirm.ask(
+                console.print(
                     f"[b red]NOTE:[/b red] Sparv's data directory is currently set to '{current_dir}' using the "
                     f"environment variable '{paths.data_dir_env}'. This variable takes precedence over any previous "
                     f"path set using this setup process. To change the path, either edit the environment variable, or "
-                    f"delete the variable and rerun the setup command.\n"
-                    "Do you want to continue the setup process using the above path?"
+                    f"delete the variable and rerun the setup command.\n",
+                    width=80,
                 )
+                cont = Confirm.ask("Do you want to continue the setup process using the above path?")
             except KeyboardInterrupt:
                 console.print("\nSetup interrupted.")
                 return False
@@ -141,7 +147,7 @@ def run(sparv_datadir: str | None = None) -> bool:
                 msg = f" Leave empty to use the default which is '{default_dir}':"
 
             try:
-                console.print(f"Enter the path to the directory you want to use.{msg}")
+                console.print(f"Enter the path to the directory you want to use.{msg}", width=80)
                 path_str = input().strip()
             except KeyboardInterrupt:
                 console.print("\nSetup interrupted.")
@@ -159,7 +165,8 @@ def run(sparv_datadir: str | None = None) -> bool:
     except Exception:
         console.print(
             "\nAn error occurred while trying to create the directories. "
-            "Make sure the path you entered is correct, and that you have the necessary read/write permissions."
+            "Make sure the path you entered is correct, and that you have the necessary read/write permissions.",
+            width=80,
         )
         return False
 
@@ -176,5 +183,5 @@ def run(sparv_datadir: str | None = None) -> bool:
     # Save Sparv version number to a file in data dir
     (path / VERSION_FILE).write_text(__version__, encoding="utf-8")
 
-    console.print(f"\nSetup completed. The Sparv data directory is set to '{path}'.")
+    console.print(f"\nSetup completed. The Sparv data directory is set to '{path}'.", width=80)
     return True
