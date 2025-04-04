@@ -51,3 +51,13 @@
 .md-typeset mark[data-md-highlight] {
     animation: fade 20s forwards;
 }
+
+/* Hide empty table headers */
+thead:has(tr):not(:has(th:not(:empty))) {
+    display: none;
+}
+
+/* Remove border-top from the first row of tbody when thead is hidden */
+thead:has(tr):not(:has(th:not(:empty)))+tbody tr:first-child td {
+    border-top: none !important;
+}
