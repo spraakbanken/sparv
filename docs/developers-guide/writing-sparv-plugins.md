@@ -45,7 +45,7 @@ name = "sparv-sbx-uppercase"
 version = "0.1.0"
 description = "Uppercase converter (example plug-in for Sparv)"
 readme = "README.md"
-license.text = "MIT License"
+license = "MIT"
 dependencies = [
     "sparv-pipeline~=5.0"
 ]

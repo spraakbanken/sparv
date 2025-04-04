@@ -8,7 +8,7 @@ dynamic = ["version"]
 description = "Språkbanken's text analysis tool"
 readme = "README.md"
 requires-python = ">=3.9"
-license.text = "MIT License"
+license = "MIT"
 authors = [
     { name = "Språkbanken Text", email = "sb-info@svenska.gu.se" }
 ]
