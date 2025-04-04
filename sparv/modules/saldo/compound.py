@@ -262,7 +262,7 @@ class StatsLexicon:
 
 
 class InFileLexicon:
-    """A dictionary of all words occurring in the input file.
+    """A dictionary of all words occurring in the source file.
 
     keys = words, values =  MSD tags
     """

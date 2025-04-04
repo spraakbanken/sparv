@@ -91,9 +91,9 @@ various Sparv modules.
 
 ## Import Options
 
-The `import` section of your corpus config provides Sparv with details about your input files (i.e., your corpus).
+The `import` section of your corpus config provides Sparv with details about your source files (i.e., your corpus).
 
-- `import.source_dir`: Specifies the location of your input files and defaults to `source`. Sparv will search this
+- `import.source_dir`: Specifies the location of your source files and defaults to `source`. Sparv will search this
   directory recursively for valid files to process.
 
 - `import.importer`: Defines which importer Sparv should use when processing your files. Which importer you should use

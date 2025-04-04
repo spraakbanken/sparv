@@ -432,7 +432,7 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
 
     # Add common arguments
     for subparser in [run_parser, runrule_parser]:
-        subparser.add_argument("-f", "--file", nargs="+", default=[], help="Only annotate specified input file(s)")
+        subparser.add_argument("-f", "--file", nargs="+", default=[], help="Only annotate specified source file(s)")
     for subparser in [run_parser, runrule_parser, createfile_parser, models_parser, install_parser, uninstall_parser]:
         subparser.add_argument(
             "-n", "--dry-run", action="store_true", help="Print summary of tasks without running them"
@@ -606,7 +606,7 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
     snakemake_args = {
         "workdir": args.dir,
         "rerun_triggers": ["mtime", "input"],  # Rerun based on file modification times and changes to
-        # the set of input files
+        # the set of source files
         "force_incomplete": True,  # Always rerun incomplete files
     }
     config = {"run_by_sparv": True}

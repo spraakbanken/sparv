@@ -403,7 +403,7 @@ class SparvXMLParser:
             try:
                 tree = etree.parse(source_file)
             except Exception as e:
-                raise SparvErrorMessage(f"The XML input file could not be parsed. Error: {e!s}") from None
+                raise SparvErrorMessage(f"The XML source file could not be parsed. Error: {e!s}") from None
             root = tree.getroot()
         else:
             text = source_file.read_text(encoding="utf-8")
@@ -414,7 +414,7 @@ class SparvXMLParser:
             try:
                 root = etree.fromstring(text)
             except Exception as e:
-                raise SparvErrorMessage(f"The XML input file could not be parsed. Error: {e!s}") from None
+                raise SparvErrorMessage(f"The XML source file could not be parsed. Error: {e!s}") from None
 
         iter_tree(root)
 

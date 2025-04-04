@@ -133,12 +133,12 @@ def make_rule(
             # single job, due to how Snakemake creates processes for run-jobs.
             script: "run_snake.py"
 
-        # Create rule to run this annotation on all input files
+        # Create rule to run this annotation on all source files
         make_all_files_rule(rule_storage)
 
 
 def make_all_files_rule(rule_storage: snake_utils.RuleStorage) -> None:
-    """Create named rule to run an annotation on all input files.
+    """Create named rule to run an annotation on all source files.
 
     Args:
         rule_storage: Rule storage object.
@@ -441,12 +441,12 @@ rule list_exports:
         )
 
 
-# Rule to list all input files
+# Rule to list all source files
 rule files:
     run:
         from rich.columns import Columns  # noqa: E402
 
-        print("Available input files:\n")
+        print("Available source files:\n")
         # Convert to Text to get rid of syntax highlighting
         console.print(
             Columns([Text(f) for f in sorted(snake_storage.source_files)], column_first=True, padding=(0, 3))

@@ -106,7 +106,7 @@ def parse(
 The `@exporter` decorator is used to create functions that generate final outputs, often referred to as exports. These
 outputs typically combine information from multiple annotations into a single file. The output produced by an exporter
 is generally not used as input for any other module. An export can consist of any kind of data, such as a frequency
-list, XML files, or a database dump. It can create one file per input file, combine information from all input files
+list, XML files, or a database dump. It can create one file per source file, combine information from all source files
 into a single output file, or follow any other structure as needed.
 
 **Parameters**:

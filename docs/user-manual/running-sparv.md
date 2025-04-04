@@ -170,13 +170,13 @@ are detailed in the [Setting Up Sparv section](installation-and-setup.md#setting
 These commands allow you to run specific annotation processors or create specific files. They are mostly useful for
 debugging and testing. You can provide multiple arguments to these commands.
 
-Example of running the Stanza annotations (part-of-speech tagging and dependency parsing) for all input files:
+Example of running the Stanza annotations (part-of-speech tagging and dependency parsing) for all source files:
 
 ```sh
 sparv run-rule stanza:annotate
 ```
 
-Example of creating the part-of-speech annotation for the input file `document1`:
+Example of creating the part-of-speech annotation for the source file `document1`:
 
 ```sh
 sparv create-file sparv-workdir/document1/segment.token/stanza.pos
