@@ -559,7 +559,18 @@ class Annotation(CommonAnnotationMixin, CommonMixin, BaseAnnotation):
 
     @property
     def size(self) -> int:
-        """Get number of values.
+        """Get the number of values in the annotation.
+
+        Note:
+            You can also use the built-in `len()` function to get the number of values.
+
+        Returns:
+            The number of values in the annotation.
+        """
+        return self._get_size(self.source_file)
+
+    def __len__(self) -> int:
+        """Get the number of values in the annotation.
 
         Returns:
             The number of values in the annotation.

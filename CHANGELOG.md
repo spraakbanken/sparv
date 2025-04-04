@@ -20,7 +20,7 @@
   them from a local Git repository.
 - Added `misc:metadata_from_filename` annotator, to extract metadata from filenames.
 - Added `size` property to the `Annotation` class, replacing the `get_size()` method which will be removed in a future
-  version of Sparv.
+  version of Sparv. Additionally, you can now use the `len()` function on `Annotation` instances to get the size.
 - Sparv can now be used as a library by importing the `sparv` package.
 
 ### Changed
