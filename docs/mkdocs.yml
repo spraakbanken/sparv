@@ -77,4 +77,20 @@ markdown_extensions:
       permalink: true
 plugins:
   - search
+  - mkdocstrings:  # https://mkdocstrings.github.io/
+      default_handler: python
+      handlers:
+        python:
+          paths: [..]  # Relative path to the Sparv package
+          options:
+            members_order: source
+            show_source: false
+            show_signature: true
+            separate_signature: true
+            # show_signature_annotations: true
+            merge_init_into_class: true
+            docstring_section_style: spacy
+            docstring_options:
+              returns_multiple_items: false
+              returns_named_value: false
   - gh-admonitions  # https://github.com/PGijsbers/admonitions
