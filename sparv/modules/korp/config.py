@@ -56,6 +56,7 @@ LABELS = {
 @exporter(
     "Create Korp config file for the corpus.",
     config=[
+        Config("korp.name", description="Optional name to use in Korp instead of `metadata.name`.", datatype=dict),
         Config(
             "korp.annotations",
             description="Sparv annotations to include. Leave blank to use cwb.annotations.",
@@ -105,6 +106,7 @@ LABELS = {
 def config(
     id: Corpus = Corpus(),
     name: dict = Config("metadata.name"),
+    korp_name: Optional[dict] = Config("korp.name"),
     description: Optional[dict] = Config("metadata.description"),
     short_description: Optional[dict] = Config("metadata.short_description"),
     language: str = Config("metadata.language"),
@@ -141,6 +143,7 @@ def config(
     Args:
         id: Corpus ID.
         name: Corpus name.
+        korp_name: Optional name to use in Korp. If not set, `name` will be used.
         description: Corpus description.
         short_description: Short corpus description.
         language: Corpus language.
@@ -180,7 +183,7 @@ def config(
     }
     optional = {
         "description": build_description(description, short_description),
-        "title": name,
+        "title": korp_name or name,
         "limited_access": protected,
         "custom_attributes": custom_annotations,
         "morphology": morphology,
