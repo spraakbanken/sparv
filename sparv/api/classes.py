@@ -88,6 +88,10 @@ class Base(ABC):
         """Return length of name."""
         return len(self.name)
 
+    def __bool__(self) -> bool:
+        """Return True if name is not empty."""
+        return bool(self.name)
+
 
 class BaseAnnotation(Base):
     """An annotation or attribute used as input."""
