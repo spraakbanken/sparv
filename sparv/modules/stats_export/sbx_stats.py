@@ -485,7 +485,7 @@ def uninstall_sbx_freq_list(
     if not host and not remote_dir:
         raise SparvErrorMessage("Either remote host or remote directory must be specified.")
 
-    uninstall_file = Path(f"stats_{corpus_id}.csv")
+    uninstall_file = f"stats_{corpus_id}.csv"
     if host and host.startswith("svn+"):
         url = host.rstrip("/") + "/" + uninstall_file
         util.install.uninstall_svn(url)
@@ -523,7 +523,7 @@ def uninstall_sbx_freq_list_compressed(
     if not host and not remote_dir:
         raise SparvErrorMessage("Either remote host or remote directory must be specified.")
 
-    uninstall_file = Path(f"stats_{corpus_id}.csv.{compression}")
+    uninstall_file = f"stats_{corpus_id}.csv.{compression}"
     if host and host.startswith("svn+"):
         url = host.rstrip("/") + "/" + uninstall_file
         util.install.uninstall_svn(url)
@@ -559,7 +559,7 @@ def uninstall_sbx_freq_list_date(
     if not host and not remote_dir:
         raise SparvErrorMessage("Either remote host or remote directory must be specified.")
 
-    uninstall_file = Path(f"stats_{corpus_id}.csv")
+    uninstall_file = f"stats_{corpus_id}.csv"
     if host and host.startswith("svn+"):
         url = host.rstrip("/") + "/" + uninstall_file
         util.install.uninstall_svn(url)
@@ -597,7 +597,7 @@ def uninstall_sbx_freq_list_date_compressed(
     if not host and not remote_dir:
         raise SparvErrorMessage("Either remote host or remote directory must be specified.")
 
-    uninstall_file = Path(f"stats_{corpus_id}.csv.{compression}")
+    uninstall_file = f"stats_{corpus_id}.csv.{compression}"
     if host and host.startswith("svn+"):
         url = host.rstrip("/") + "/" + uninstall_file
         util.install.uninstall_svn(url)
