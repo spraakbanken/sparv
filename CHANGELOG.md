@@ -41,6 +41,7 @@
   instance. This is now the recommended way to use these classes, and the previous methods will be removed in a future
   major release.
 - Changed library used for parsing PDF files from `pdfplumber` to `pypdfium2`.
+- Plugin module name convention is now enforced.
 
 ### Fixed
 

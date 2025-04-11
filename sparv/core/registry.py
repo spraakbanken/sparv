@@ -178,11 +178,25 @@ def find_modules(no_import: bool = False, find_custom: bool = False) -> list:
                     ) from None
                 add_module_to_registry(m, module_name)
 
+    module_name_regex = re.compile(r"^[a-z][a-z0-9]+_[a-z0-9](?:[a-z0-9_]*[a-z0-9])?$")
+
     # Search for installed plugins
     for entry_point in entry_points(group="sparv.plugin"):
         skip = False
         try:
             m = entry_point.load()
+            # Validate module name
+            if not module_name_regex.match(entry_point.name):
+                console.print(
+                    f"[red]:warning-emoji:  The plugin module {entry_point.name!r} has an invalid name. The name must, "
+                    "in addition to being a valid Python identifier, consist of the following parts, in this order:\n\n"
+                    "    - A namespace prefix representing the plugin author (at least two characters)\n"
+                    "    - An underscore\n"
+                    "    - One or more letters, digits, or underscores\n\n"
+                    "All letters must be lowercase, and the first and last character of the name can not be an "
+                    "underscore."
+                )
+                continue
             # Check compatibility with Sparv version
             for requirement in entry_point.dist.requires:
                 req = Requirement(requirement)
