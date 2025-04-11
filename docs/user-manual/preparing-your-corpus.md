@@ -57,11 +57,15 @@ apply to all source files:
 
 ## XML Guidelines
 
-The most common source format for Sparv is XML. Sparv is very flexible in terms of XML structure, but there are some
-general guidelines to follow, as outlined below.
+The recommended source format for Sparv is XML. While Sparv supports other formats, XML is the most versatile and
+enables the most advanced processing. Sparv can handle XML files with almost any structure, but there are some general
+guidelines to follow, as outlined below.
 
-The most important requirement is that your XML must be valid. This means that it must adhere to the rules of the XML
-specification. You can check the validity of your XML using an XML validator, such as the command-line tool `xmllint`.
+### Valid XML
+
+The most important requirement is that your XML must be valid. This means that it must adhere to the [rules of the XML
+specification](https://www.w3schools.com/xml/xml_syntax.asp). You can check the validity of your XML using an XML
+validator, such as the command-line tool `xmllint`, or an online validator.
 
 ### Element Names
 
@@ -86,7 +90,8 @@ stored in attributes:
 
 You can store multiple documents in one XML file. Each document should be enclosed in a separate element, such as
 `<document>`. You then need to specify the document element in the corpus configuration file using the
-`import.text_annotation` setting. This affects any automatic document-level annotations.
+`import.text_annotation` setting. This affects any automatic document-level annotations. Make sure that all documents
+are enclosed within a single root element, for the XML to be valid. This root element can be named anything.
 
 Example:
 
@@ -105,6 +110,10 @@ Example:
 
 Your XML files may contain metadata, such as author, title, or publication date. Metadata can be stored as attributes on
 any element. Sparv will not by default process this metadata, but it will be preserved in the output files.
+
+Including metadata in your XML files can be useful, especially if you plan to use your finished corpus in a corpus
+search tool like Korp. Metadata such as author, title, and publication date can help filter search results and provide
+additional context about the documents in your corpus.
 
 Example:
 

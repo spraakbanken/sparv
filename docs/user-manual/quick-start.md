@@ -154,8 +154,8 @@ After a short while, Sparv will tell you where the resulting files are saved. Le
 ## What's Next?
 
 Try adding some more annotations to your corpus by extending the annotations list in the corpus configuration file. To
-explore available annotations, use the `sparv modules` command. You can also try out the corpus configuration
-wizard by running `sparv wizard`.
+explore available annotations, use the `sparv modules` command, or see the [Available Analyses](available-analyses.md)
+section in the documentation. You can also try out the corpus configuration wizard by running `sparv wizard`.
 
 It is also possible to annotate texts in other languages, such as English. Just change `language: swe` to
 `language: eng` in the configuration file. Run `sparv languages` to see all supported languages.

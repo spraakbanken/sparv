@@ -9,8 +9,10 @@ To install Sparv, you'll need a Unix-like environment (e.g. Linux, macOS or [Win
 Linux](https://docs.microsoft.com/en-us/windows/wsl/about)) with [Python 3.9](https://python.org/) or later.
 
 > [!NOTE]
+>
 > While most Sparv features may work in a Windows environment, Sparv is not regularly tested on Windows, so
-> compatibility is not guaranteed.
+> compatibility is not guaranteed. Feel free to [report any issues](https://github.com/spraakbanken/sparv/issues) you
+> encounter.
 
 ## Installing Sparv
 
@@ -65,9 +67,9 @@ configurations and presets.
 
 ### Optional: Pre-build Models
 
-You can optionally pre-build the model files to speed up the annotation of your first corpus. This step is not required,
-but it can make the initial annotation process faster since all models will already be set up. If you choose to skip
-this step, the models will be downloaded and built automatically when you annotate your first corpus.
+Sparv will automatically download and build the models needed for the analyses you want to perform. Optionally, you can
+also pre-build the models to speed up the annotation of your first corpus. This step is not required, and unless you
+have a specific reason to do so, we recommend skipping it, as it may download models that you won't use.
 
 To pre-build the models, use the following command:
 
@@ -102,9 +104,9 @@ software is installed correctly, Sparv will automatically download and install t
 |**License**                       |[MIT](https://opensource.org/licenses/MIT)|
 |**Dependencies**                  |[Java](https://www.java.com/en/download/)|
 
-[Sparv wsd](https://github.com/spraakbanken/sparv-wsd) is developed by Språkbanken and is licensed under the same terms
-as Sparv. To use it within Sparv, simply download the `saldowsd.jar` file from the provided
-GitHub link and place it in the `bin/wsd` directory inside your [Sparv data directory](#setting-up-sparv).
+[Sparv wsd](https://github.com/spraakbanken/sparv-wsd) is developed by Språkbanken Text and is licensed under the same
+terms as Sparv. To use it within Sparv, simply download the `saldowsd.jar` file from the provided GitHub link and place
+it in the `bin/wsd` directory inside your [Sparv data directory](#setting-up-sparv).
 
 ### hfst-SweNER
 

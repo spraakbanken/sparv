@@ -6,7 +6,7 @@ file](../user-manual/corpus-configuration.md). Each [Sparv decorator](sparv-deco
 consisting of a name, a description, and an optional default value. These configuration parameters can then be
 referenced in the signature of the decorated function (or other functions) using either the `Config` class or the
 `[...]` syntax in other Sparv classes' parameters. Below is an example of how to declare and use configuration
-parameters in a Sparv annotator, demonstrating both methods of referencing the configuration values in the function
+parameters in a Sparv processor, demonstrating both methods of referencing the configuration values in the function
 signature:
 
 ```python
@@ -57,7 +57,7 @@ the user when listing modules with the `sparv modules` command.
 The `Config` class includes several parameters for validating configuration values. Beyond specifying the data type
 (e.g., `int`, `float`, `str`, `bool`), you can define a list of valid values, a range of values, or a regular expression
 pattern that the value must match. For a comprehensive list of available parameters, refer to the [Sparv
-Classes](sparv-classes.md#config) page.
+Classes](sparv-classes.md#sparv.api.classes.Config) page.
 
 It is recommended to at least specify the data type for each configuration parameter. In future versions of Sparv, this
 may become a requirement.

@@ -1,13 +1,15 @@
 # Writing Sparv Plugins
+
 Sparv consists of various processors such as importers, annotators, and exporters, contained in so-called
 modules. While many modules come with the main Sparv package, none are mandatory to use, and you can easily extend the
 pipeline with your own modules using plugins. A plugin is simply a Sparv module that is not part of the main package.
-Writing a plugin is the recommended way to add a new module to Sparv.
 
-> [!NOTE]
-> When writing a plugin, always prefix your Python package with a namespace followed by an underscore to
-> indicate the organization or developer the plugin belongs to. This avoids package name clashes and will be enforced in
-> the future. In the example below, we use the prefix "sbx_" (for Språkbanken Text).
+!!! note "Naming Conventions"
+
+    The name of a Sparv module is the name of the Python package containing the module code. In addition to being a
+    valid Python identifier, the name must start with a namespace representing the plugin author or organization,
+    followed by an underscore. This is to avoid name clashes with other plugins and will be enforced in the future. In
+    the example below, we use the prefix "sbx_" (for Språkbanken Text).
 
 For your first plugin, we recommend looking at the [Sparv plugin
 template](https://github.com/spraakbanken/sparv-plugin-template). The template includes an example of a small annotation

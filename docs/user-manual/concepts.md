@@ -1,17 +1,18 @@
 # Sparv Concepts
 
-This section provides an overview of the key concepts and components of Sparv, including the corpus
-directory structure, configuration files, annotations, annotators, modules, and plugins. Some of these concepts are
-explained in more detail in other sections of the user manual.
+This section provides an overview of the key concepts and components of Sparv, including the corpus directory structure,
+configuration files, annotations, annotators, modules, and plugins. Some of these concepts are explained in more detail
+in other sections of the user manual.
 
 ## Corpus Directory
 
-Each corpus that you want to process with Sparv needs to be stored in a separate directory. This directory is referred to
-as a *corpus directory*. A corpus directory contains a corpus configuration file (`config.yaml`) and a directory with
-source files. The source files are the documents to be annotated, in a format that Sparv can process, such as XML or plain
-text.
+Each corpus that you want to process with Sparv needs to be stored in a separate directory. This directory is referred
+to as a *corpus directory*. A corpus directory contains a corpus configuration file (`config.yaml`) and a directory with
+source files. The source files are the documents to be annotated, in a format that Sparv can process, such as XML or
+plain text.
 
-The corpus directory structure and source file requirements are described in more detail in the [Preparing Your Corpus](preparing-your-corpus.md) section.
+The corpus directory structure and source file requirements are described in more detail in the [Preparing Your
+Corpus](preparing-your-corpus.md) section.
 
 ## Configuration File
 
@@ -41,6 +42,7 @@ is covered in the [Developer's Guide](../developers-guide/writing-sparv-plugins.
 annotations to the text. Examples of annotations include part-of-speech tags, lemmas, named entities, and syntactic
 structures.
 
-How to specify which annotations to add to your corpus is described in the [Corpus Configuration](corpus-configuration.md)
-section. For a list of available annotations and annotators, run the `sparv modules` command, as described in the
-[Running Sparv](running-sparv.md) section.
+How to specify which annotations to add to your corpus is described in the [Corpus
+Configuration](corpus-configuration.md) section. For a list of available annotations and annotators, run the `sparv
+modules` command, as described in the [Running Sparv](running-sparv.md) section. You can also find a list of available
+annotations in the [Available Analyses](available-analyses.md) section in the documentation.

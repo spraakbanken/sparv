@@ -26,8 +26,8 @@ of speech, etc.) and generates new annotations.
   separated by a blank line.
 - `config`: A list of `Config` instances defining configuration options for the annotator.
 - `language`: A list of supported languages. If no list is provided, all languages are supported.
-- `priority`: Functions with higher priority will be preferred when scheduling which functions to run. The default
-  priority is 0.
+- `priority`: Functions with higher priority (higher number) will be preferred when scheduling which functions to run.
+  The default priority is 0.
 - `order`: If multiple annotators produce the same output, this integer value helps determine which to try to use first.
   A lower number indicates higher priority.
 - `wildcards`: A list of wildcards used in the annotator function's arguments.
@@ -116,8 +116,8 @@ into a single output file, or follow any other structure as needed.
 - `name`: An optional name to use instead of the function name.
 - `config`: A list of `Config` instances defining configuration options for the exporter.
 - `language`: A list of supported languages. If no list is provided, all languages are supported.
-- `priority`: Functions with higher priority will be preferred when scheduling which functions to run. The default
-  priority is 0.
+- `priority`: Functions with higher priority (higher number) will be preferred when scheduling which functions to run.
+  The default priority is 0.
 - `order`: If multiple exporters produce the same output, this integer value helps determine which to try to use first.
   A lower number indicates higher priority.
 - `abstract`: Set to `True` if this exporter does not produce any output.
@@ -168,8 +168,8 @@ It is recommended that an installer removes any related uninstaller's marker to 
 - `name`: An optional name to use instead of the function name.
 - `config`: A list of `Config` instances defining configuration options for the installer.
 - `language`: A list of supported languages. If no list is provided, all languages are supported.
-- `priority`: Functions with higher priority will be preferred when scheduling which functions to run. The default
-  priority is 0.
+- `priority`: Functions with higher priority (higher number) will be preferred when scheduling which functions to run.
+  The default priority is 0.
 - `uninstaller`: The name of the related uninstaller.
 
 **Example:**
@@ -210,8 +210,8 @@ It is recommended that an uninstaller removes any related installer's marker to 
 - `name`: An optional name to use instead of the function name.
 - `config`: A list of `Config` instances defining configuration options for the uninstaller.
 - `language`: A list of supported languages. If no list is provided, all languages are supported.
-- `priority`: Functions with higher priority will be preferred when scheduling which functions to run. The default
-  priority is 0.
+- `priority`: Functions with higher priority (higher number) will be preferred when scheduling which functions to run.
+  The default priority is 0.
 
 **Example:**
 
@@ -247,8 +247,8 @@ model is set up on your system, it will be available for any corpus.
 - `name`: An optional name to use instead of the function name.
 - `config`: A list of `Config` instances defining configuration options for the model builder.
 - `language`: A list of supported languages. If no list is provided, all languages are supported.
-- `priority`: Functions with higher priority will be preferred when scheduling which functions to run. The default
-  priority is 0.
+- `priority`: Functions with higher priority (higher number) will be preferred when scheduling which functions to run.
+  The default priority is 0.
 - `order`: If multiple model builders produce the same output, this integer value helps determine which to try to use
   first. A lower number indicates higher priority.
 

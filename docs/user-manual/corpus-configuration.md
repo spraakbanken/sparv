@@ -28,14 +28,16 @@ export:
 > seen in the example above.
 
 > [!NOTE]
-> Most annotators in Sparv have adjustable options that can be fine-tuned within the configuration file. Each module
-> has its own dedicated section, like `metadata` and `export` in the example above. To view all available configuration
-> keys and their descriptions, use the `sparv modules` command.
+> Most processors (like annotators or importers) in Sparv have adjustable options that can be fine-tuned within
+> the configuration file. Each module has its own dedicated section, like `metadata` and `export` in the example above.
+> To view all available configuration keys and their descriptions, use the `sparv modules` command.
 
 ## Config Schema
 
 Running `sparv schema` will generate a JSON schema that in many text editors can be used to validate your config file as
 you are creating it. In some editors, this schema also enables autocompletion for configuration options.
+
+The schema is printed to the console, but you can save it to a file by running `sparv schema > schema.json`.
 
 ## Corpus Config Wizard
 
@@ -89,6 +91,9 @@ various Sparv modules.
 - `metadata.description`: An optional description of the corpus, which may span multiple lines. Like `metadata.name`,
   this field is divided into language-specific subsections using ISO 639-3 language codes.
 
+- `metadata.short_description`: An optional short description of the corpus, spanning one line. Like `metadata.name`,
+  this field is divided into language-specific subsections using ISO 639-3 language codes.
+
 ## Import Options
 
 The `import` section of your corpus config provides Sparv with details about your source files (i.e., your corpus).
@@ -97,13 +102,13 @@ The `import` section of your corpus config provides Sparv with details about you
   directory recursively for valid files to process.
 
 - `import.importer`: Defines which importer Sparv should use when processing your files. Which importer you should use
-    depends on the format of your source files.  For XML files, use `xml_import:parse` (the default setting), and for
+  depends on the format of your source files. For XML files, use `xml_import:parse` (the default setting), and for
   plain text files, use `text_import:parse`. Run `sparv modules` to see what other importers are available.
 
 - `import.text_annotation`: Identifies the existing annotation representing *one text*. Any automatic text-level
   annotations will be attached to this annotation. For XML files, this corresponds to an XML element in your source
-  files; for plain text, a default `text` root annotation is created automatically, so no further configuration is
-  needed.
+  files; for unstructured import formats, like plain text and PDF, a default `text` root annotation is created
+  automatically, so no further configuration is needed.
 
     !!! note
         This setting automatically sets the `text` [class](#annotation-classes). If you want to use an automatic
@@ -456,9 +461,7 @@ When managing multiple corpora with similar configurations, you can streamline t
 configuration file. This is particularly useful when only a few variables, such as the corpus ID, differ between
 corpora. To do this, specify the path to the parent configuration file in the `parent` variable of your individual
 corpus config files. Your corpus configuration will then inherit all parameters from the parent file, except those
-explicitly defined in the individual config file. You can also specify multiple parent files in a list, with each
-subsequent parent overriding any conflicting values from the previous ones. Nested parents, where a parent references
-another parent, are also supported.
+explicitly defined in the individual config file.
 
 ```yaml
 parent: ../parent-config.yaml
@@ -471,19 +474,33 @@ metadata:
 In this example, the configuration will include everything from `../parent-config.yaml`, but the values for
 `metadata.id` and `metadata.name.swe` will be overridden with `animals-foxes` and `Djurkorpus: Rävar`, respectively.
 
+You can also specify multiple parent files in a list, with each subsequent parent overriding any conflicting values from
+the previous ones:
+
+```yaml
+parent:
+    - ../parent-config.yaml
+    - ../another-parent-config.yaml
+```
+
+Nested parents, where a parent references another parent, are also supported.
+
 ## Custom Annotations
 
 The `custom_annotations` section of the configuration file serves three distinct purposes, each detailed below.
 
 ### Built-in Utility Annotations
 
-Sparv includes a special type of annotator called "utility annotators," which require configuration to be used. Unlike
-other annotators that can be customized with configuration variables, utility annotators use parameters and are often
-designed to modify other annotations. For example, the `misc:affix` annotator can add a prefix and/or suffix to another
-annotation.
+Sparv includes a special type of annotator called "utility annotators". Unlike regular annotators which usually have
+default settings but can be customized with configuration variables, utility annotators have no or few default settings,
+and need to be configured using the `custom_annotations` section. They can be used multiple times, and their purpose is
+often to create new annotations by modifying the output of other annotators. Examples of utility annotators include
+`misc:affix` which adds a prefix and/or suffix to another annotation, and `misc:find_replace_regex` which replaces text
+in an annotation using a regular expression.
 
 To use a utility annotator in your corpus, you need to configure it in the `custom_annotations` section of your config
-file. Here is an example configuration for the `misc:affix` annotator:
+file. Utility annotators have no configuration variables, and instead use parameters. Here is an example configuration
+for the `misc:affix` annotator:
 
 ```yaml
 custom_annotations:

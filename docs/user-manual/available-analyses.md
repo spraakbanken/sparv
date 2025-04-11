@@ -1,9 +1,9 @@
 # Available Analyses
 
 This section provides an overview of some of the built-in analyses available within Sparv and the Sparv plugins
-developed by Språkbanken. Note that this is not an exhaustive list of available annotations but rather a summary of the
-linguistic analyses. Technical annotations (e.g., automatic assignment of IDs or calculation of whitespace information)
-are not included here. For a complete list of analyses, refer to the output of the `sparv modules` command.
+developed by Språkbanken Text. Note that this is not an exhaustive list of available annotations but rather a summary of
+the linguistic analyses. Technical annotations (e.g., automatic assignment of IDs or calculation of whitespace
+information) are not included here. For a complete list of analyses, refer to the output of the `sparv modules` command.
 
 > [!NOTE]
 >
