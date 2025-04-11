@@ -105,8 +105,8 @@ class BaseAnnotation(Base):
         """Initialize class.
 
         Args:
-            name: Name of the annotation.
-            source_file: Source file for the annotation.
+            name: The name of the annotation.
+            source_file: The name of the source file.
             is_input: Deprecated, use AnnotationName instead of setting this to False.
         """
         super().__init__(name)
@@ -116,6 +116,9 @@ class BaseAnnotation(Base):
 
     def expand_variables(self, rule_name: str = "") -> list[str]:
         """Update name by replacing <class> references with annotation names and [config] references with config values.
+
+        Note:
+            This should normally not be used by Sparv modules, as it is not needed.
 
         Args:
             rule_name: The name of the rule using the string, for logging config usage.
@@ -128,32 +131,32 @@ class BaseAnnotation(Base):
         return rest
 
     def split(self) -> tuple[str, str]:
-        """Split name into annotation name and attribute.
+        """Split the name into plain annotation name and attribute.
 
         Returns:
-            A tuple with the annotation name and attribute name.
+            A tuple with the plain annotation name and attribute name.
         """
         return io.split_annotation(self.name)
 
     def has_attribute(self) -> bool:
-        """Return True if the annotation has an attribute."""
+        """Return `True` if the annotation has an attribute."""
         return io.ELEM_ATTR_DELIM in self.name
 
     @property
     def annotation_name(self) -> str:
-        """Get annotation name (excluding name of any attribute).
+        """Retrieve the plain annotation name (excluding name of any attribute).
 
         Returns:
-            The annotation name without any attribute.
+            The plain annotation name without any attribute.
         """
         return self.split()[0]
 
     @property
     def attribute_name(self) -> str | None:
-        """Get attribute name (excluding name of annotation).
+        """Retrieve the attribute name (excluding name of the span annotation).
 
         Returns:
-            The attribute name without name of annotation.
+            The attribute name without the name of the span annotation.
         """
         return self.split()[1] or None
 
@@ -177,11 +180,11 @@ class CommonMixin(BaseAnnotation):
     """Common methods used by many classes."""
 
     def exists(self) -> bool:
-        """Return True if annotation file exists."""
+        """Return `True` if annotation file exists."""
         return io.annotation_exists(self)
 
     def remove(self) -> None:
-        """Remove annotation file."""
+        """Remove the annotation file."""
         io.remove_annotation(self)
 
 
@@ -189,11 +192,11 @@ class CommonAllSourceFilesMixin(BaseAnnotation):
     """Common methods used by many classes."""
 
     def exists(self, source_file: str) -> bool:
-        """Return True if annotation file exists."""
+        """Return `True` if annotation file exists."""
         return io.annotation_exists(self, source_file)
 
     def remove(self, source_file: str) -> None:
-        """Remove annotation file."""
+        """Remove the annotation file."""
         io.remove_annotation(self, source_file)
 
 
@@ -433,7 +436,11 @@ class CommonAnnotationMixin(BaseAnnotation):
 
 
 class Annotation(CommonAnnotationMixin, CommonMixin, BaseAnnotation):
-    """Regular Annotation tied to one source file."""
+    """Regular Annotation tied to one source file.
+
+    This class represents a regular annotation tied to a single source file. It is used when an annotation is required
+    as input for a function, for example, `Annotation("<token:word>")`.
+    """
 
     def __iter__(self) -> Iterator[str]:
         """Get an iterator of values from the annotation.
@@ -457,8 +464,8 @@ class Annotation(CommonAnnotationMixin, CommonMixin, BaseAnnotation):
         """Get an iterator of spans from the annotation.
 
         Args:
-            decimals: If True, return spans with decimals.
-            with_annotation_name: If True, return spans with annotation name.
+            decimals: If `True`, return spans with decimals.
+            with_annotation_name: If `True`, return spans with annotation name.
 
         Returns:
             An iterator of spans from the annotation.
@@ -480,7 +487,7 @@ class Annotation(CommonAnnotationMixin, CommonMixin, BaseAnnotation):
 
         Args:
             annotations: List of annotations to read attributes from.
-            with_annotation_name: If True, return attributes with annotation name.
+            with_annotation_name: If `True`, return attributes with annotation name.
 
         Returns:
             An iterator of tuples of attributes.
@@ -492,7 +499,7 @@ class Annotation(CommonAnnotationMixin, CommonMixin, BaseAnnotation):
 
         Args:
             child: Child annotation.
-            orphan_alert: If True, log a warning when a child has no parent.
+            orphan_alert: If `True`, log a warning when a child has no parent.
 
         Returns:
             A tuple of two lists.
@@ -511,12 +518,12 @@ class Annotation(CommonAnnotationMixin, CommonMixin, BaseAnnotation):
 
         Args:
             child: Child annotation.
-            append_orphans: If True, append orphans to the end.
-            orphan_alert: If True, log a warning when a child has no parent.
+            append_orphans: If `True`, append orphans to the end.
+            orphan_alert: If `True`, log a warning when a child has no parent.
 
         Returns:
             An iterator with one element for each parent. Each element is an iterator of values in the child annotation.
-            If append_orphans is True, the last element is an iterator of orphans.
+            If `append_orphans` is `True`, the last element is an iterator of orphans.
         """
         return self._get_child_values(self.source_file, child, append_orphans, orphan_alert)
 
@@ -525,18 +532,18 @@ class Annotation(CommonAnnotationMixin, CommonMixin, BaseAnnotation):
 
         Args:
             parent: Parent annotation.
-            orphan_alert: If True, log a warning when a child has no parent.
+            orphan_alert: If `True`, log a warning when a child has no parent.
 
         Returns:
             A list with n (= total number of children) elements where every element is an index in the parent
-            annotation, or None when no parent is found.
+            annotation, or `None` when no parent is found.
         """
         return self._get_parents(self.source_file, parent, orphan_alert)
 
     def read_parents_and_children(self, parent: BaseAnnotation, child: BaseAnnotation) -> tuple[Iterator, Iterator]:
         """Read parent and child annotations.
 
-        Reorder them according to span position, but keep original index information.
+        Reorders them according to span position, but keeps original index information.
 
         Args:
             parent: Parent annotation.
@@ -548,13 +555,14 @@ class Annotation(CommonAnnotationMixin, CommonMixin, BaseAnnotation):
         return self._read_parents_and_children(self.source_file, parent, child)
 
     def create_empty_attribute(self) -> list:
-        """Return a list filled with None of the same size as this annotation."""
+        """Return a list filled with `None` of the same size as this annotation."""
         return self._create_empty_attribute(self.source_file)
 
     def get_size(self) -> int:
         """Get number of values.
 
-        NB: This method is deprecated and will be removed in future versions. Use the size property instead.
+        Note:
+            This method is deprecated and will be removed in future versions. Use the `size` property instead.
 
         Returns:
             The number of values in the annotation.
@@ -585,14 +593,20 @@ class Annotation(CommonAnnotationMixin, CommonMixin, BaseAnnotation):
 class AnnotationName(BaseAnnotation):
     """Class representing an Annotation name.
 
-    To be used when only the name is of interest and not the actual annotation file.
+    Use this class when only the name of an annotation is needed, not the actual data. The annotation will not be added
+    as a prerequisite for the annotator, meaning that using `AnnotationName` will not automatically trigger the creation
+    of the referenced annotation.
     """
 
     is_input = False
 
 
 class AnnotationData(CommonMixin, BaseAnnotation):
-    """Annotation of the data type, not tied to spans in the corpus text."""
+    """Annotation of the data type, for one source file, not tied to spans in the corpus text.
+
+    This class represents an annotation holding arbitrary data, i.e., data that is not tied to spans in the corpus text.
+    It is used as input to an annotator.
+    """
 
     data = True
 
@@ -600,27 +614,31 @@ class AnnotationData(CommonMixin, BaseAnnotation):
         """Initialize class.
 
         Args:
-            name: Name of the annotation.
-            source_file: Source file for the annotation.
+            name: The name of the annotation.
+            source_file: The name of the source file.
         """
         super().__init__(name, source_file=source_file)
 
-    def read(self, source_file: str | None = None) -> Iterator[str]:
-        """Read arbitrary string data from annotation file.
-
-        Args:
-            source_file: Source file for the annotation.
+    def read(self) -> Iterator[str]:
+        """Read arbitrary string data from the annotation file.
 
         Returns:
             The data of the annotation.
         """
-        return io.read_data(self.source_file or source_file, self)
+        return io.read_data(self.source_file, self)
 
 
 class AnnotationAllSourceFiles(CommonAnnotationMixin, CommonAllSourceFilesMixin, BaseAnnotation):
     """Regular annotation but source file must be specified for all actions.
 
-    Use as input to an annotator to require the specificed annotation for every source file in the corpus.
+    Like [`Annotation`][sparv.api.classes.Annotation], this class represents a regular annotation, but is used as input
+    to an annotator to require the specified annotation for *every source file* in the corpus. By calling an instance of
+    this class with a source file name as an argument, you can get an instance of `Annotation` for that source file.
+
+    Note:
+        All methods of this class are deprecated and will be removed in a future version of Sparv. Instead, create an
+        instance of `Annotation` by passing a source file name as an argument, and use the methods of the `Annotation`
+        class.
     """
 
     all_files = True
@@ -629,7 +647,7 @@ class AnnotationAllSourceFiles(CommonAnnotationMixin, CommonAllSourceFilesMixin,
         """Initialize class.
 
         Args:
-            name: Name of the annotation.
+            name: The name of the annotation.
         """
         super().__init__(name)
         self._size = {}
@@ -767,7 +785,18 @@ class AnnotationAllSourceFiles(CommonAnnotationMixin, CommonAllSourceFilesMixin,
 
 
 class AnnotationDataAllSourceFiles(CommonAllSourceFilesMixin, BaseAnnotation):
-    """Data annotation but source file must be specified for all actions."""
+    """Data annotation but source file must be specified for all actions.
+
+    Similar to [`AnnotationData`][sparv.api.classes.AnnotationData], this class is used for annotations holding
+    arbitrary data, but it is used as input to an annotator to require the specified annotation for *every source file*
+    in the corpus. By calling an instance of this class with a source file name as an argument, you can get an instance
+    of `AnnotationData` for that source file.
+
+    Note:
+        All methods of this class are deprecated and will be removed in a future version of Sparv. Instead, create an
+        instance of [`AnnotationData`][sparv.api.classes.AnnotationData] by passing a source file name as an argument,
+        and use the methods of the `AnnotationData` class.
+    """
 
     all_files = True
     data = True
@@ -776,7 +805,7 @@ class AnnotationDataAllSourceFiles(CommonAllSourceFilesMixin, BaseAnnotation):
         """Initialize class.
 
         Args:
-            name: Name of the annotation.
+            name: The name of the annotation.
         """
         super().__init__(name)
 
@@ -804,7 +833,12 @@ class AnnotationDataAllSourceFiles(CommonAllSourceFilesMixin, BaseAnnotation):
 
 
 class AnnotationCommonData(CommonMixin, BaseAnnotation):
-    """Data annotation for the whole corpus."""
+    """Data annotation for the whole corpus.
+
+    Like [`AnnotationData`][sparv.api.classes.AnnotationData], this class represents an annotation with arbitrary data
+    when used as input to an annotator. However, `AnnotationCommonData` is used for data that applies to the entire
+    corpus, not tied to a specific source file.
+    """
 
     common = True
     data = True
@@ -813,12 +847,12 @@ class AnnotationCommonData(CommonMixin, BaseAnnotation):
         """Initialize class.
 
         Args:
-            name: Name of the annotation.
+            name: The name of the annotation.
         """
         super().__init__(name)
 
     def read(self) -> Iterator[str]:
-        """Read arbitrary corpus level string data from annotation file.
+        """Read arbitrary corpus-level string data from the annotation file.
 
         Returns:
             The data of the annotation.
@@ -827,11 +861,45 @@ class AnnotationCommonData(CommonMixin, BaseAnnotation):
 
 
 class Marker(AnnotationCommonData):
-    """A marker indicating that something has run."""
+    """A marker indicating that something has run.
+
+    Similar to [`AnnotationCommonData`][sparv.api.classes.AnnotationCommonData], but typically without any actual data.
+    Used as input. Markers are used to make sure that something has been executed. Created using
+    [`OutputMarker`][sparv.api.classes.OutputMarker].
+    """
+
+    def __init__(self, name: str = "") -> None:
+        """Initialize class.
+
+        Args:
+            name: The name of the marker.
+        """
+        super().__init__(name)
+
+    def read(self) -> Iterator[str]:
+        """Read arbitrary corpus-level string data from the marker file.
+
+        Returns:
+            An iterator with the data of the marker.
+        """
+        return super().read()
+
+    def exists(self) -> bool:
+        """Return `True` if marker file exists."""
+        return super().exists()
+
+    def remove(self) -> None:
+        """Remove the marker file."""
+        return super().remove()
 
 
 class MarkerOptional(Marker):
-    """Same as regular Marker, except if it doesn't exist, it won't be created."""
+    """Same as [`Marker`][sparv.api.classes.Marker], but if the marker file doesn't exist, it won't be created.
+
+    This is mainly used to get a reference to a marker that may or may not exist, to be able to remove markers from
+    connected (un)installers without triggering the connected (un)installation. Otherwise, running an uninstaller
+    without first having run the installer would needlessly trigger the installation first.
+    """
 
     is_input = False
 
@@ -860,7 +928,7 @@ class BaseOutput(BaseAnnotation):
 
 
 class Output(CommonMixin, BaseOutput):
-    """Regular annotation or attribute used as output."""
+    """Regular annotation or attribute used as output from an annotator function."""
 
     def __init__(
         self, name: str = "", cls: str | None = None, description: str | None = None, source_file: str | None = None
@@ -868,25 +936,33 @@ class Output(CommonMixin, BaseOutput):
         """Initialize class.
 
         Args:
-            name: Name of the annotation.
-            cls: Class of the annotation.
+            name: The name of the annotation.
+            cls: Optional annotation class of the output.
             description: Description of the annotation.
-            source_file: Source file for the annotation.
+            source_file: The name of the source file.
         """
         super().__init__(name, cls, description=description, source_file=source_file)
 
-    def write(self, values: list, source_file: str | None = None) -> None:
-        """Write an annotation to file. Existing annotation will be overwritten.
+    def write(self, values: list) -> None:
+        """Write the annotation to a file, overwriting any existing annotation.
 
         Args:
             values: A list of values.
-            source_file: Source file for the annotation.
         """
-        io.write_annotation(self.source_file or source_file, self, values)
+        io.write_annotation(self.source_file, self, values)
 
 
 class OutputAllSourceFiles(CommonAllSourceFilesMixin, BaseOutput):
-    """Regular annotation or attribute used as output, but source file must be specified for all actions."""
+    """Regular annotation or attribute used as output, but not tied to a specific source file.
+
+    Similar to [`Output`][sparv.api.classes.Output], this class represents a regular annotation or attribute used as
+    output, but it is used when output should be produced for *every source file* in the corpus. By calling an instance
+    of this class with a source file name as an argument, you can get an instance of `Output` for that source file.
+
+    Note:
+        All methods of this class are deprecated and will be removed in a future version of Sparv. Instead, create an
+        instance of `Output` by passing a source file name as an argument, and use the methods of the `Output` class.
+    """
 
     all_files = True
 
@@ -894,8 +970,8 @@ class OutputAllSourceFiles(CommonAllSourceFilesMixin, BaseOutput):
         """Initialize class.
 
         Args:
-            name: Name of the annotation.
-            cls: Class of the annotation.
+            name: The name of the annotation.
+            cls: Optional annotation class of the output.
             description: Description of the annotation.
         """
         super().__init__(name, cls, description=description)
@@ -922,7 +998,10 @@ class OutputAllSourceFiles(CommonAllSourceFilesMixin, BaseOutput):
 
 
 class OutputData(CommonMixin, BaseOutput):
-    """Data annotation used as output."""
+    """An annotation holding arbitrary data that is used as output.
+
+    This data is not tied to spans in the corpus text.
+    """
 
     data = True
 
@@ -932,15 +1011,15 @@ class OutputData(CommonMixin, BaseOutput):
         """Initialize class.
 
         Args:
-            name: Name of the annotation.
-            cls: Class of the annotation.
+            name: The name of the annotation.
+            cls: Optional annotation class of the output.
             description: Description of the annotation.
-            source_file: Source file for the annotation.
+            source_file: The name of the source file.
         """
         super().__init__(name, cls, description=description, source_file=source_file)
 
     def write(self, value: Any) -> None:
-        """Write arbitrary data to annotation file.
+        """Write arbitrary corpus-level string data to the annotation file.
 
         Args:
             value: The data to write.
@@ -949,7 +1028,17 @@ class OutputData(CommonMixin, BaseOutput):
 
 
 class OutputDataAllSourceFiles(CommonAllSourceFilesMixin, BaseOutput):
-    """Data annotation used as output, but source file must be specified for all actions."""
+    """Data annotation used as output, not tied to a specific source file.
+
+    Similar to [`OutputData`][sparv.api.classes.OutputData], this class is used for output annotations holding arbitrary
+    data, but it is used when output should be produced for *every source file* in the corpus. By calling an instance of
+    this class with a source file name as an argument, you can get an instance of `OutputData` for that source file.
+
+    Note:
+        All methods of this class are deprecated and will be removed in a future version of Sparv. Instead, create an
+        instance of `OutputData` by passing a source file name as an argument, and use the methods of the `OutputData`
+        class.
+    """
 
     all_files = True
     data = True
@@ -958,8 +1047,8 @@ class OutputDataAllSourceFiles(CommonAllSourceFilesMixin, BaseOutput):
         """Initialize class.
 
         Args:
-            name: Name of the annotation.
-            cls: Class of the annotation.
+            name: The name of the annotation.
+            cls: Optional annotation class of the output.
             description: Description of the annotation.
         """
         super().__init__(name, cls, description=description)
@@ -997,7 +1086,11 @@ class OutputDataAllSourceFiles(CommonAllSourceFilesMixin, BaseOutput):
 
 
 class OutputCommonData(CommonMixin, BaseOutput):
-    """Data annotation for the whole corpus."""
+    """Data annotation for the whole corpus.
+
+    Similar to [`OutputData`][sparv.api.classes.OutputData], but for a data annotation that applies to the entire
+    corpus.
+    """
 
     common = True
     data = True
@@ -1006,14 +1099,14 @@ class OutputCommonData(CommonMixin, BaseOutput):
         """Initialize class.
 
         Args:
-            name: Name of the annotation.
-            cls: Class of the annotation.
+            name: The name of the annotation.
+            cls: Optional annotation class of the output.
             description: Description of the annotation.
         """
         super().__init__(name, cls, description=description)
 
     def write(self, value: Any) -> None:
-        """Write arbitrary corpus level data to annotation file.
+        """Write arbitrary corpus-level data to the annotation file.
 
         Args:
             value: The data to write.
@@ -1022,7 +1115,22 @@ class OutputCommonData(CommonMixin, BaseOutput):
 
 
 class OutputMarker(OutputCommonData):
-    """A class for creating a marker, indicating that something has run."""
+    """A class for creating a marker, indicating that something has run.
+
+    Similar to [`OutputCommonData`][sparv.api.classes.OutputCommonData], but typically without any actual data. Markers
+    are used to indicate that something has been executed, often by functions that don't produce a natural output, such
+    as installers and uninstallers.
+    """
+
+    def __init__(self, name: str = "", cls: str | None = None, description: str | None = None) -> None:
+        """Initialize class.
+
+        Args:
+            name: The name of the marker.
+            cls: Optional annotation class of the output.
+            description: Description of the annotation.
+        """
+        super().__init__(name, cls, description)
 
     def write(self, value: str = "") -> None:
         """Create a marker, indicating that something has run.
@@ -1043,7 +1151,7 @@ class Text:
         """Initialize class.
 
         Args:
-            source_file: Name of the source file.
+            source_file: The name of the source file.
         """
         self.source_file = source_file
 
@@ -1056,7 +1164,7 @@ class Text:
         return io.read_data(self.source_file, io.TEXT_FILE)
 
     def write(self, text: str) -> None:
-        """Write text to a file, overwriting any existing content.
+        """Write the provided text content to a file, overwriting any existing content.
 
         Args:
             text: The text to write. Should be a unicode string.
@@ -1069,7 +1177,7 @@ class Text:
 
 
 class SourceStructure(BaseAnnotation):
-    """Every annotation available in a source file."""
+    """Every annotation name available in a source file."""
 
     data = True
 
@@ -1077,12 +1185,12 @@ class SourceStructure(BaseAnnotation):
         """Initialize class.
 
         Args:
-            source_file: Source file for the annotation.
+            source_file: Name of the source file.
         """
         super().__init__(io.STRUCTURE_FILE, source_file)
 
     def read(self) -> list[str]:
-        """Read structure file to get a list of nams of annotations in the source file.
+        """Read structure file to get a list of names of annotations in the source file.
 
         Returns:
             A list of annotation names.
@@ -1100,7 +1208,10 @@ class SourceStructure(BaseAnnotation):
 
 
 class Headers(CommonMixin, BaseAnnotation):
-    """List of header annotation names."""
+    """List of header annotation names.
+
+    Represents a list of header annotation names for a given source file, used as output for importers.
+    """
 
     data = True
 
@@ -1108,12 +1219,12 @@ class Headers(CommonMixin, BaseAnnotation):
         """Initialize class.
 
         Args:
-            source_file: Source file for the annotation.
+            source_file: The name of the source file.
         """
         super().__init__(io.HEADERS_FILE, source_file)
 
     def read(self) -> list[str]:
-        """Read headers file.
+        """Read the headers file and return a list of header annotation names.
 
         Returns:
             A list of header annotation names.
@@ -1121,12 +1232,20 @@ class Headers(CommonMixin, BaseAnnotation):
         return io.read_data(self.source_file, self).splitlines()
 
     def write(self, header_annotations: list[str]) -> None:
-        """Write headers file.
+        """Write the headers file with the provided list of header annotation names.
 
         Args:
             header_annotations: A list of header annotation names.
         """
         io.write_data(self.source_file, self, "\n".join(header_annotations))
+
+    def exists(self) -> bool:
+        """Return `True` if the headers file exists for this source file."""
+        return super().exists()
+
+    def remove(self) -> None:
+        """Remove the headers file."""
+        return super().remove()
 
 
 class Namespaces(BaseAnnotation):
@@ -1164,15 +1283,19 @@ class Namespaces(BaseAnnotation):
 
 
 class SourceFilename(str):
-    """Name of a source file."""
+    """A string representing the name of a source file."""
 
 
 class Corpus(str):
-    """Name of the corpus."""
+    """A string representing the name (ID) of a corpus."""
 
 
 class AllSourceFilenames(Sequence[str]):
-    """List with names of all source files."""
+    """List with names of all source files.
+
+    This class provides an iterable containing the names of all source files. It is commonly used by exporter
+    functions that need to combine annotations from multiple source files.
+    """
 
     def __init__(self) -> None:
         """Initialize class."""
@@ -1188,7 +1311,13 @@ class AllSourceFilenames(Sequence[str]):
 
 
 class Config(str):
-    """Class holding configuration key names."""
+    """Class holding configuration key names.
+
+    This class represents a configuration key and optionally its default value. You can specify the datatype and allowed
+    values, which will be used for validating the config and generating the Sparv config JSON schema.
+
+    For further information on how to use this class, see the [Config Parameters](config-parameters.md) page.
+    """
 
     def __new__(cls, name: str, *args, **kwargs) -> str:
         return super().__new__(cls, name)
@@ -1211,18 +1340,22 @@ class Config(str):
         """Initialize class.
 
         Args:
-            name: Name of the config key.
-            default: Default value of the config key.
-            description: Description of the config key.
-            datatype: Datatype of the config key.
-            choices: A list of allowed values for the config key, or a function that returns them.
-            pattern: A regex pattern that the value must match.
-            min_len: Minimum length of the value.
-            max_len: Maximum length of the value.
-            min_value: Minimum value of the value.
-            max_value: Maximum value of the value.
-            const: A constant value that the value must equal.
-            conditions: A list of other Config objects that must be met for this Config to be valid.
+            name: The name of the configuration key.
+            default: The optional default value of the configuration key.
+            description: A mandatory description of the configuration key.
+            datatype: A type specifying the allowed datatype(s). Supported types are `int`, `float`, `str`, `bool`,
+                `None`, `type(None)`, `list`, and `dict`. For `list` and `dict`, you can specify the allowed types for
+                the elements by using type arguments, like `list[str]` or `dict[str, int]`. More complex types (e.g.,
+                further nesting) than these are not supported. `type(None)` is used to allow `None` as a value. `None`
+                is the default value, and means that any datatype is allowed.
+            choices: An iterable of valid choices, or a function that returns such an iterable.
+            pattern: A regular expression matching valid values (only for the datatype `str`).
+            min_len: An `int` representing the minimum length of the value.
+            max_len: An `int` representing the maximum length of the value.
+            min_value: An `int` or `float` representing the minimum numeric value.
+            max_value: An `int` or `float` representing the maximum numeric value.
+            const: Restrict the value to a constant.
+            conditions: A list of `Config` objects with conditions that must also be met.
         """
         self.name = name
         self.default = default
@@ -1239,7 +1372,18 @@ class Config(str):
 
 
 class Wildcard(str):
-    """Class holding wildcard information."""
+    """Class holding wildcard information.
+
+    Typically used in the `wildcards` list passed as an argument to the [`@annotator`
+    decorator](sparv-decorators.md#annotator), e.g.:
+
+    ```python
+    @annotator("Number {annotation} by relative position within {parent}", wildcards=[
+        Wildcard("annotation", Wildcard.ANNOTATION),
+        Wildcard("parent", Wildcard.ANNOTATION)
+    ])
+    ```
+    """
 
     ANNOTATION = 1
     ATTRIBUTE = 2
@@ -1253,10 +1397,11 @@ class Wildcard(str):
         """Initialize class.
 
         Args:
-            name: Name of the wildcard.
-            type: Type of the wildcard, by reference to the constants defined in this class
-                (ANNOTATION, ATTRIBUTE, ANNOTATION_ATTRIBUTE, OTHER).
-            description: Description of the wildcard.
+            name: The name of the wildcard.
+            type: The type of the wildcard, by reference to the constants defined in this class
+                (`Wildcard.ANNOTATION`, `Wildcard.ATTRIBUTE`, `Wildcard.ANNOTATION_ATTRIBUTE`,
+                or `Wildcard.OTHER`).
+            description: The description of the wildcard.
         """
         self.name = name
         self.type = type
@@ -1264,7 +1409,11 @@ class Wildcard(str):
 
 
 class Model(Base):
-    """Path to a model file."""
+    """Path to a model file.
+
+    Represents a path to a model file. The path can be either an absolute path, a relative path, or a path relative to
+    the Sparv model directory. Typically used as input to annotator functions.
+    """
 
     def __init__(self, name: str) -> None:
         """Initialize class.
@@ -1290,7 +1439,7 @@ class Model(Base):
         """Get model path.
 
         Returns:
-            The path to the model file.
+            Get the path to the model file as a `pathlib.Path` object.
         """
         return_path = pathlib.Path(self.name)
         # Return as is, if path is absolute, models dir is already included, or if relative path to a file that exists
@@ -1348,7 +1497,7 @@ class Model(Base):
         return data
 
     def download(self, url: str) -> None:
-        """Download file from URL and save to the model path.
+        """Download the file from the given URL and save to the model path.
 
         Args:
             url: URL to download from.
@@ -1399,19 +1548,19 @@ class Model(Base):
         """Remove model file from disk.
 
         Args:
-            raise_errors: If True, raise errors if file doesn't exist.
+            raise_errors: If `True`, raise an error if the file cannot be removed (e.g., if it doesn't exist).
         """
         self.path.unlink(missing_ok=not raise_errors)
 
 
 class ModelOutput(Model):
-    """Path to model file used as output of a modelbuilder."""
+    """Same as [`Model`][sparv.api.classes.Model], but used as the output of a model builder."""
 
     def __init__(self, name: str, description: str | None = None) -> None:
         """Initialize class.
 
         Args:
-            name: Name of the model file.
+            name: The name of the model file.
             description: Description of the model.
         """
         super().__init__(name)
@@ -1419,30 +1568,45 @@ class ModelOutput(Model):
 
 
 class Binary(str):
-    """Path to binary executable."""
+    """Path to binary executable.
+
+    This class holds the path to a binary executable. The path can be either the name of a binary in the system's
+    `PATH`, a full path to a binary, or a path relative to the Sparv data directory. It is often used to define a
+    prerequisite for an annotator function.
+
+    Args:
+        object: Path to the binary executable.
+    """
 
 
 class BinaryDir(str):
-    """Path to directory containing executable binaries."""
+    """Path to directory containing executable binaries.
+
+    This class holds the path to a directory containing executable binaries. The path can be either an absolute path or
+    a path relative to the Sparv data directory.
+
+    Args:
+        object: Path to the directory containing the executable binaries.
+    """
 
 
 class Source:
-    """Path to directory containing input files."""
+    """Path to the directory containing source files."""
 
     def __init__(self, source_dir: str = "") -> None:
         """Initialize class.
 
         Args:
-            source_dir: Path to directory containing input files. Should usually be left blank, for Sparv to
+            source_dir: Path to the directory containing source files. Should usually be left blank, for Sparv to
                 automatically get the path.
         """
         self.source_dir = source_dir
 
     def get_path(self, source_file: SourceFilename, extension: str) -> pathlib.Path:
-        """Get the path of a source file.
+        """Get the path of a specific source file.
 
         Args:
-            source_file: Name of the source file.
+            source_file: The name of the source file.
             extension: File extension to append to the source file.
 
         Returns:
@@ -1459,11 +1623,23 @@ class Source:
 
 
 class Export(str):
-    """Export directory and filename pattern."""
+    """A string containing the path to an export directory and filename.
+
+    Represents an export file, used to define the output of an exporter function.
+
+    Args:
+        object: The export directory and filename. The export directory must include the module name as a prefix or be
+            equal to the module name. The filename may include the wildcard `{file}` which will be replaced with the
+            name of the source file. For example: `"xml_export.pretty/{file}_export.xml"`.
+    """
 
 
 class ExportInput(str):
-    """Export directory and filename pattern, used as input."""
+    """Export directory and filename pattern, used as input.
+
+    Represents the export directory and filename pattern used as input. Use this class when you need export files as
+    input for another function.
+    """
 
     def __new__(cls, val: str, *args, **kwargs):
         return super().__new__(cls, val)
@@ -1472,14 +1648,18 @@ class ExportInput(str):
         """Initialize class.
 
         Args:
-            val: Export directory and filename pattern (e.g. `"xml_export.pretty/[xml_export.filename]"`).
+            val: The export directory and filename pattern (e.g., `"xml_export.pretty/{file}_export.xml"`).
             all_files: Set to `True` to get the export for all source files.
         """
         self.all_files = all_files
 
 
 class ExportAnnotations(Sequence[tuple[Annotation, Union[str, None]]]):
-    """Iterable with annotations to include in export."""
+    """Iterable with annotations to include in export.
+
+    An iterable containing annotations to be included in the export, as specified in the corpus configuration. When
+    using this class, annotation files for the current source file are automatically added as dependencies.
+    """
 
     # If is_input = False the annotations won't be added to the rule's input.
     is_input = True
@@ -1488,8 +1668,8 @@ class ExportAnnotations(Sequence[tuple[Annotation, Union[str, None]]]):
         """Initialize class.
 
         Args:
-            config_name: Name of the config key.
-            is_input: Deprecated, use ExportAnnotationNames instead of setting this to False.
+            config_name: The configuration variable specifying which annotations to include.
+            is_input: Deprecated, use `ExportAnnotationNames` instead of setting this to `False`.
         """
         self.config_name = config_name
         self.items = []
@@ -1511,7 +1691,9 @@ class ExportAnnotations(Sequence[tuple[Annotation, Union[str, None]]]):
 class ExportAnnotationNames(ExportAnnotations):
     """List of annotations to include in export.
 
-    To be used when only the annotation names are of interest and not the actual annotation files.
+    An iterable containing annotations to be included in the export, as specified in the corpus configuration. Unlike
+    `ExportAnnotations`, using this class will not add the annotations as dependencies. Use this class when you only
+    need the annotation names, not the actual annotation files.
     """
 
     is_input = False
@@ -1520,13 +1702,17 @@ class ExportAnnotationNames(ExportAnnotations):
         """Initialize class.
 
         Args:
-            config_name: Name of the config key.
+            config_name: The configuration variable specifying which annotations to include.
         """
         super().__init__(config_name)
 
 
 class ExportAnnotationsAllSourceFiles(Sequence[tuple[AnnotationAllSourceFiles, Union[str, None]]]):
-    """List of annotations to include in export."""
+    """List of annotations to include in export.
+
+    An iterable containing annotations to be included in the export, as specified in the corpus configuration. When
+    using this class, annotation files for *all* source files will automatically be added as dependencies.
+    """
 
     # Always true for ExportAnnotationsAllSourceFiles
     is_input = True
@@ -1535,7 +1721,7 @@ class ExportAnnotationsAllSourceFiles(Sequence[tuple[AnnotationAllSourceFiles, U
         """Initialize class.
 
         Args:
-            config_name: Name of the config key.
+            config_name: The configuration variable specifying which annotations to include.
         """
         self.config_name = config_name
         self.items: Sequence[tuple[AnnotationAllSourceFiles, str | None]] = []
@@ -1550,15 +1736,15 @@ class ExportAnnotationsAllSourceFiles(Sequence[tuple[AnnotationAllSourceFiles, U
 
 
 class SourceAnnotations(Sequence[tuple[Annotation, Union[str, None]]]):
-    """Iterable with source annotations to include in export."""
+    """An iterable containing source annotations to include in the export, as specified in the corpus configuration."""
 
     def __init__(self, config_name: str, source_file: str | None = None, _headers: bool = False) -> None:
         """Initialize class.
 
         Args:
-            config_name: Name of the config key.
-            source_file: Name of source file.
-            _headers: If True, read headers instead of source structure.
+            config_name: The configuration variable specifying which source annotations to include.
+            source_file: The name of the source file.
+            _headers: If `True`, read headers instead of source structure.
         """
         self.config_name = config_name
         self.raw_list = None
@@ -1603,28 +1789,37 @@ class SourceAnnotations(Sequence[tuple[Annotation, Union[str, None]]]):
 
 
 class HeaderAnnotations(SourceAnnotations):
-    """Iterable with header annotations to include in export."""
+    """Header annotations to include in export.
+
+    An iterable containing header annotations from the source to be included in the export, as specified in the corpus
+    configuration.
+    """
 
     def __init__(self, config_name: str, source_file: str | None = None) -> None:
         """Initialize class.
 
         Args:
-            config_name: Name of the config key.
-            source_file: Name of source file.
+            config_name: The configuration variable that specifies which header annotations to include.
+            source_file: Name of the source file.
         """
         super().__init__(config_name, source_file, _headers=True)
 
 
 class SourceAnnotationsAllSourceFiles(Sequence[tuple[AnnotationAllSourceFiles, Union[str, None]]]):
-    """Iterable with source annotations to include in export."""
+    """Iterable with source annotations to include in export.
+
+    An iterable containing source annotations to include in the export, as specified in the corpus configuration. Unlike
+    `SourceAnnotations`, this class ensures that the source annotations structure file (created using `SourceStructure`)
+    for *every* source file is added as a dependency.
+    """
 
     def __init__(self, config_name: str, source_files: Iterable[str] = (), headers: bool = False) -> None:
         """Initialize class.
 
         Args:
-            config_name: Name of the config key.
-            source_files: List of source files.
-            headers: If True, read headers instead of source structure.
+            config_name: The configuration variable specifying which source annotations to include.
+            source_files: List of source file names.
+            headers: If `True`, read headers instead of source structure.
         """
         self.config_name = config_name
         self.raw_list = None
@@ -1672,30 +1867,44 @@ class SourceAnnotationsAllSourceFiles(Sequence[tuple[AnnotationAllSourceFiles, U
 
 
 class HeaderAnnotationsAllSourceFiles(SourceAnnotationsAllSourceFiles):
-    """Iterable with header annotations to include in export."""
+    """Header annotations to include in export.
+
+    An iterable containing header annotations from all source files to be included in the export, as specified in the
+    corpus configuration. Unlike `HeaderAnnotations`, this class ensures that the header annotations file (created using
+    `Headers`) for *every* source file is added as a dependency.
+    """
 
     def __init__(self, config_name: str, source_files: Iterable[str] = ()) -> None:
         """Initialize class.
 
         Args:
-            config_name: Name of the config key.
+            config_name: The configuration variable specifying which source annotations to include.
             source_files: List of source files (internal use only).
         """
         super().__init__(config_name, source_files, headers=True)
 
 
 class Language(str):
-    """Language of the corpus."""
+    """The language of the corpus.
+
+    An instance of this class contains information about the language of the corpus. This information is retrieved from
+    the corpus configuration and is specified using an ISO 639-1 language code.
+    """
 
 
 class SourceStructureParser(ABC):
-    """Abstract class that should be implemented by an importer's structure parser."""
+    """Abstract class that should be implemented by an importer's structure parser.
+
+    Note:
+        This class is intended to be used by the wizard. The wizard functionality is going to be deprecated in a future
+        version.
+    """
 
     def __init__(self, source_dir: pathlib.Path) -> None:
         """Initialize class.
 
         Args:
-            source_dir: Path to corpus source files
+            source_dir: Path to corpus source files.
         """
         self.answers = {}
         self.source_dir = source_dir

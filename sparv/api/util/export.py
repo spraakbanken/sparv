@@ -1,4 +1,4 @@
-"""Util functions for corpus export."""
+"""`sparv.api.util.export` provides utility functions for preparing data for export."""
 
 from __future__ import annotations
 
@@ -36,16 +36,23 @@ def gather_annotations(
     source_file: str | None = None,
     flatten: bool = True,
     split_overlaps: bool = False,
-) -> tuple[list[tuple], dict[str, str]]:
-    """Calculate the span hierarchy and the annotation_dict containing all annotation elements and attributes.
+) -> tuple[list[tuple], dict[str, dict]]:
+    """Calculate the span hierarchy and the `annotation_dict` containing all annotation elements and attributes.
 
     Args:
-        annotations: List of annotations to include
-        export_names: Dictionary that maps from annotation names to export names
-        header_annotations: List of header annotations
-        source_file: The source filename
-        flatten: Whether to return the spans as a flat list
-        split_overlaps: Whether to split up overlapping spans
+        annotations: List of annotations to include.
+        export_names: Dictionary that maps from annotation names to export names.
+        header_annotations: List of header annotations.
+        source_file: The source filename.
+        flatten: Whether to return the spans as a flat list.
+        split_overlaps: Whether to split up overlapping spans.
+
+    Returns:
+        A `spans_dict` and an `annotation_dict` if `flatten` is `True`, otherwise returns `span_positions` and
+        `annotation_dict`.
+
+    Raises:
+        SparvErrorMessage: If the source file is not found for header annotations.
     """
 
     class Span:
@@ -64,7 +71,15 @@ def gather_annotations(
             "start_sub",
         )
 
-        def __init__(self, name, index, start, end, export_names, is_header):
+        def __init__(
+            self,
+            name: str,
+            index: int,
+            start: tuple[int],
+            end: tuple[int],
+            export_names: dict[str, str],
+            is_header: bool,
+        ):
             """Set attributes."""
             self.name = name
             self.index = index
@@ -244,11 +259,18 @@ def _handle_overlaps(spans_dict):
                         subposition_shift += 1
 
 
-def calculate_element_hierarchy(source_file, spans_list):
+def calculate_element_hierarchy(source_file: str, spans_list: list) -> dict[str, dict]:
     """Calculate the hierarchy for spans with identical start and end positions.
 
     If two spans A and B have identical start and end positions, go through all occurrences of A and B
     and check which element is most often parent to the other.
+
+    Args:
+        source_file: The source filename.
+        spans_list: List of spans to check for hierarchy.
+
+    Returns:
+        A dictionary with the hierarchy of spans.
     """
     # Find elements with identical spans
     span_duplicates = defaultdict(set)
@@ -307,19 +329,19 @@ def get_annotation_names(
     source_namespace: str | None = None,
     xml_mode: bool | None = False,
 ) -> tuple[list[Annotation | AnnotationAllSourceFiles], list[str], dict[str, str]]:
-    """Get a list of annotations, token attributes and a dictionary for renamed annotations.
+    """Get a list of annotations, token attributes, and a dictionary translating annotation names to export names.
 
     Args:
         annotations: List of elements:attributes (annotations) to include.
         source_annotations: List of elements:attributes from the source file to include. If not specified,
-            everything will be included.
+            includes everything.
         source_file: Name of the source file.
         token_name: Name of the token annotation.
-        remove_namespaces: Remove all namespaces in export_names unless names are ambiguous.
-        keep_struct_names: For structural attributes (anything other than token), include the annotation base name
-            (everything before ":") in export_names (used in cwb encode).
-        sparv_namespace: The namespace to be added to all Sparv annotations.
-        source_namespace: The namespace to be added to all annotations present in the source.
+        remove_namespaces: Set to `True` to remove all namespaces in `export_names` unless names are ambiguous.
+        keep_struct_names: Set to `True` to include the annotation base name (everything before ":") in `export_names`
+            for annotations that are not token attributes.
+        sparv_namespace: Namespace to add to all Sparv annotations.
+        source_namespace: Namespace to add to all annotations from the source file.
 
     Returns:
         A list of annotations, a list of token attribute names, a dictionary with translation from annotation names to
@@ -356,8 +378,20 @@ def get_annotation_names(
     return [i[0] for i in all_annotations], token_attributes, export_names
 
 
-def get_header_names(header_annotations: HeaderAnnotations | None, xml_namespaces: dict[str, str]):
-    """Get a list of header annotations and a dictionary for renamed annotations."""
+def get_header_names(
+    header_annotations: HeaderAnnotations | None,
+    xml_namespaces: dict[str, str],
+) -> tuple[list[Annotation], dict[str, str]]:
+    """Get a list of header annotations and a dictionary for renamed annotations.
+
+    Args:
+        header_annotations: List of header annotations from the source file to include. If not specified,
+            includes everything.
+        xml_namespaces: XML namespaces to use for the header annotations.
+
+    Returns:
+        A list of header annotations and a dictionary with translation from annotation names to export names.
+    """
     export_names = _create_export_names(
         list(header_annotations), None, False, keep_struct_names=False, xml_namespaces=xml_namespaces, xml_mode=True
     )
@@ -566,8 +600,17 @@ def _check_name_collision(export_names, source_annotations):
 ################################################################################
 
 
-def scramble_spans(span_positions, chunk_name: str, chunk_order):
-    """Reorder chunks and open/close tags in correct order."""
+def scramble_spans(span_positions: list[tuple], chunk_name: str, chunk_order: Annotation) -> list[tuple]:
+    """Reorder spans based on `chunk_order` and ensure tags are opened and closed correctly.
+
+    Args:
+        span_positions: Original span positions, typically obtained from `gather_annotations()`.
+        chunk_name: Name of the annotation to reorder.
+        chunk_order: Annotation specifying the new order of the chunks.
+
+    Returns:
+        List of tuples with the new span positions and instructions.
+    """
     new_s_order = _reorder_spans(span_positions, chunk_name, chunk_order)
     _fix_parents(new_s_order, chunk_name)
 

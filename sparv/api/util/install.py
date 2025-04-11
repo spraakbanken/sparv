@@ -1,4 +1,4 @@
-"""Util functions for installations on remote servers."""
+"""`sparv.api.util.install` provides functions for installing and uninstalling corpora, either locally or remotely."""
 from __future__ import annotations
 
 import shlex
@@ -20,30 +20,31 @@ def install_path(
     """Transfer a file or the contents of a directory to a target destination, optionally on a different host.
 
     Args:
-        source_path: The file or directory to transfer.
-        host: The remote host to transfer to. Set to None to transfer locally.
-        target_path: The destination path.
+        source_path: Path to the local file or directory to sync. If a directory is specified, its contents are synced,
+            not the directory itself, and any extraneous files in destination directories are deleted.
+        host: Remote host to install to. Set to `None` to install locally.
+        target_path: Path to the target file or directory.
     """
     system.rsync(source_path, host, target_path)
 
 
 def uninstall_path(path: str | Path, host: str | None = None) -> None:
-    """Remove a file or directory, optionally on a remote host.
+    """Remove a file or directory, optionally on a different host.
 
     Args:
-        path: The file or directory to remove.
-        host: The remote host to remove from. Set to None to remove locally.
+        path: Path to the file or directory to remove.
+        host: Remote host where the file or directory is located. Set to `None` to remove locally.
     """
     system.remove_path(path, host)
 
 
 def install_mysql(host: str | None, db_name: str, sqlfile: Path | str | list[Path | str]) -> None:
-    """Insert tables and data from SQL-file(s) to local or remote MySQL database.
+    """Insert tables and data from one or more SQL files into a local or remote MySQL database.
 
     Args:
-        host: The remote host to install to. Set to None to install locally.
-        db_name: Name of the database.
-        sqlfile: Path to a SQL file, or list of paths.
+        host: The remote host to install to. Set to `None` to install locally.
+        db_name: The name of the database.
+        sqlfile: The path to a SQL file, or a list of paths to multiple SQL files.
     """
     if isinstance(sqlfile, (str, Path)):
         sqlfile = [sqlfile]
@@ -68,7 +69,13 @@ def install_mysql(host: str | None, db_name: str, sqlfile: Path | str | list[Pat
 
 
 def install_mysql_dump(host: str, db_name: str, tables: str | Iterable[str]) -> None:
-    """Copy selected tables (including data) from local to remote MySQL database."""
+    """Copy selected tables, including their data, from a local MySQL database to a remote one.
+
+    Args:
+        host: The remote host to install to.
+        db_name: The name of the remote database.
+        tables: A table name or a list of table names. If a list is provided, the tables are separated by spaces.
+    """
     if isinstance(tables, str):
         tables = tables.split()
     logger.info("Copying MySQL database: %s, tables: %s", db_name, ", ".join(tables))
@@ -76,7 +83,7 @@ def install_mysql_dump(host: str, db_name: str, tables: str | Iterable[str]) -> 
 
 
 def install_svn(source_file: str | Path, svn_url: str, remove_existing: bool = False) -> None:
-    """Check in a file to a SVN repository.
+    """Check in a file to an SVN repository.
 
     If the file is already in the repository, it will be deleted and added again.
 
@@ -122,7 +129,7 @@ def install_svn(source_file: str | Path, svn_url: str, remove_existing: bool = F
 
 
 def uninstall_svn(svn_url: str) -> None:
-    """Delete a file from a SVN repository.
+    """Delete a file from an SVN repository.
 
     Args:
         svn_url: The URL to the SVN repository including the name of the file to remove.

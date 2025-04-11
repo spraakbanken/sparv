@@ -1,4 +1,4 @@
-"""Misc util functions."""
+"""`sparv.api.util.misc` provides miscellaneous util functions."""
 
 from __future__ import annotations
 
@@ -18,13 +18,13 @@ logger = get_logger(__name__)
 
 
 def dump_yaml(data: dict, resolve_alias: bool = False, sort_keys: bool = False, indent: int = 2) -> str:
-    """Convert a dict to a YAML document string.
+    """Convert a dictionary to a YAML formatted string.
 
     Args:
-        data: The data to be dumped.
-        resolve_alias: Will replace aliases with their anchor's content if set to True.
+        data: The dictionary to be converted.
+        resolve_alias: Whether to replace aliases with their anchor's content.
         sort_keys: Whether to sort the keys alphabetically.
-        indent: Number of spaces used for indentation.
+        indent: The number of spaces to use for indentation.
 
     Returns:
         The YAML document as a string.
@@ -72,9 +72,9 @@ def cwbset(
     """Take an iterable with strings and return a set in the format used by Corpus Workbench.
 
     Args:
-        values: The values to be joined.
+        values: An iterable containing string values.
         delimiter: The delimiter to be used between the values.
-        affix: The affix to be used at the beginning and end of the set.
+        affix: The affix enclosing the resulting string.
         sort: Whether to sort the values before joining them.
         maxlength: Maximum length of the resulting string.
         encoding: Encoding to use when calculating the length of the string.
@@ -96,12 +96,13 @@ def cwbset(
 
 
 def set_to_list(setstring: str, delimiter: str = "|", affix: str = "|") -> list[str]:
-    """Turn a set string into a list.
+    """Convert a set-formatted string into a list.
 
     Args:
-        setstring: The set string to be converted.
-        delimiter: The delimiter used in the set string.
-        affix: The affix used in the set string.
+        setstring: The string to convert into a list. The string should be enclosed with `affix` characters and have
+            elements separated by `delimiter`.
+        delimiter: The character used to separate elements in `setstring`.
+        affix: The character that encloses `setstring`.
 
     Returns:
         A list of strings.
@@ -112,27 +113,25 @@ def set_to_list(setstring: str, delimiter: str = "|", affix: str = "|") -> list[
     return setstring.split(delimiter)
 
 
-def remove_control_characters(text: str, keep: str | None = None) -> str:
-    """Remove control characters from text, except for those in 'keep'.
+def remove_control_characters(text: str, keep: Iterable[str] = ("\n", "\t", "\r")) -> str:
+    """Remove control characters from the given text, except for those specified in `keep`.
 
     Args:
-        text: The text to be processed.
-        keep: A list of control characters to keep.
+        text: The string from which to remove control characters.
+        keep: An iterable of characters to keep. Default is newline, tab, and carriage return.
 
     Returns:
         The text with control characters removed.
     """
-    if keep is None:
-        keep = ["\n", "\t", "\r"]
     return "".join(c for c in text if c in keep or unicodedata.category(c)[0:2] != "Cc")
 
 
-def remove_formatting_characters(text: str, keep: str | None = None) -> str:
-    """Remove formatting characters from text, except for those in 'keep'.
+def remove_formatting_characters(text: str, keep: Iterable[str] = ()) -> str:
+    """Remove formatting characters from the given text, except for those specified in 'keep'.
 
     Args:
-        text: The text to be processed.
-        keep: A list of formatting characters to keep.
+        text: The text from which to remove formatting characters.
+        keep: An iterable of characters to keep.
 
     Returns:
         The text with formatting characters removed.
@@ -186,15 +185,15 @@ def chain(annotations: Iterable[dict], default: Any = None) -> Generator[tuple]:
     return ((key, follow(key)) for key in annotations[0])
 
 
-def test_lexicon(lexicon: dict, testwords: list[str]) -> None:
-    """Test the validity of a lexicon.
+def test_lexicon(lexicon: dict, testwords: Iterable[str]) -> None:
+    """Test the validity of a lexicon by checking if specific test words are present as keys.
 
-    Takes a dictionary ('lexicon') and a list of test words that are expected to occur as keys in 'lexicon'.
-    Prints the value for each test word.
+    This function takes a dictionary (lexicon) and a list of test words, printing the value associated with each test
+    word.
 
     Args:
-        lexicon: The lexicon to test.
-        testwords: A list of test words.
+        lexicon: A dictionary representing the lexicon.
+        testwords: An iterable of strings, each expected to be a key in the lexicon.
     """
     logger.info("Testing annotations...")
     for key in testwords:
@@ -202,10 +201,15 @@ def test_lexicon(lexicon: dict, testwords: list[str]) -> None:
 
 
 class PickledLexicon:
-    """Read basic pickled lexicon and look up keys."""
+    """A class for reading a basic pickled lexicon and looking up keys."""
 
     def __init__(self, picklefile: pathlib.Path | Model, verbose: bool = True) -> None:
-        """Read lexicon from picklefile."""
+        """Read lexicon from a pickled file.
+
+        Args:
+            picklefile: A `pathlib.Path` or `Model` object pointing to the pickled lexicon.
+            verbose: Whether to log status updates while reading the lexicon.
+        """
         picklefile_path: pathlib.Path = picklefile.path if isinstance(picklefile, Model) else picklefile
         if verbose:
             logger.info("Reading lexicon: %s", picklefile)

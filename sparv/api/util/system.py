@@ -1,4 +1,4 @@
-"""System utility functions."""
+"""`sparv.api.util.system` provides functions for managing processes, creating directories, and more."""
 
 from __future__ import annotations
 
@@ -16,10 +16,10 @@ logger = get_logger(__name__)
 
 
 def kill_process(process: subprocess.Popen) -> None:
-    """Kill a process, and ignore the error if it is already dead.
+    """Terminate a process, ignoring any errors if the process is already terminated.
 
     Args:
-        process: The process to kill.
+        process: The process to be terminated.
 
     Raises:
         OSError: If an error occurs while killing the process.
@@ -37,7 +37,7 @@ def clear_directory(path: str | Path) -> None:
     """Create a new empty directory at the given path, and remove its contents if it already exists.
 
     Args:
-        path: The path to the directory.
+        path: The path where the directory should be created.
     """
     shutil.rmtree(path, ignore_errors=True)
     Path(path).mkdir(parents=True, exist_ok=True)
@@ -53,21 +53,21 @@ def call_java(
     verbose: bool = False,
     return_command: bool = False,
 ) -> tuple[str, str]:
-    """Call java with a jar file, command line arguments and stdin.
+    """Execute a Java program using a specified jar file, command line arguments, and `stdin` input.
 
     Args:
-        jar: The jar file to run.
-        arguments: List of arguments to pass to the jar.
-        options: List of options to pass to java.
-        stdin: Input to pass to the process.
-        search_paths: List of paths where to look for the jar file.
-        encoding: Encoding to use for stdin and stdout.
-        verbose: If True, pipe stderr to stderr in the terminal, instead of returning it.
-        return_command: If True, return the process instead of stdout and stderr.
+        jar: The name of the jar file to execute.
+        arguments: A list of arguments to pass to the Java program.
+        options: A list of Java options to include in the call.
+        stdin: Input to pass to the program's `stdin`.
+        search_paths: Additional paths to search for the Java binary, in addition to the environment variable PATH.
+        encoding: The encoding to use for `stdin` and `stdout`.
+        verbose: If `True`, pipe `stderr` to `stderr` in the terminal, instead of returning it.
+        return_command: If `True`, return the process instead of `stdout` and `stderr`.
 
     Returns:
-        A tuple with stdout and stderr, or the process if return_command is True.
-        If verbose is True, stderr is an empty string.
+        A tuple with `stdout` and `stderr`, or the process if `return_command` is `True`.
+        If `verbose` is `True`, `stderr` is an empty string.
     """
     assert isinstance(arguments, (list, tuple))
     assert isinstance(options, (list, tuple))
@@ -105,23 +105,26 @@ def call_binary(
     allow_error: bool = False,
     return_command: bool = False,
 ) -> tuple[str, str] | subprocess.Popen:
-    """Call a binary with arguments and stdin, return a pair (stdout, stderr) or the process.
+    """Call a binary with specified arguments and `stdin`.
 
     Args:
-        name: Name of the binary to call.
+        name: The binary to execute (can include absolute or relative path). Accepts a string or a list of strings,
+            using the first found binary.
         arguments: List of arguments to pass to the binary.
-        stdin: Input to pass to the process.
-        raw_command: Raw command to execute (implies use_shell=True).
-        search_paths: List of paths where to look for the binary.
-        encoding: Encoding to use for stdin and stdout.
-        verbose: If True, pipe stderr to stderr in the terminal, instead of returning it.
-        use_shell: If True, execute the command through the shell.
-        allow_error: If True, do not raise an error if the binary returns a non-zero exit code.
-        return_command: If True, return the process instead of stdout and stderr.
+        stdin: Input to pass to the process's `stdin`.
+        raw_command: A raw command to execute through the shell (implies `use_shell=True`).
+        search_paths: Additional paths to search for the binary, besides the environment variable `PATH`.
+        encoding: Encoding to use for `stdin` and `stdout`.
+        verbose: If `True`, pipe `stderr` to `stderr` in the terminal, instead of returning it.
+        use_shell: If `True`, executes the command through the shell. Automatically set to `True` if `raw_command` is
+            provided.
+        allow_error: If `False` (default), raises an error if the binary returns a non-zero exit code, and log both
+            `stdout` and `stderr`.
+        return_command: If `True`, returns the process instead of `stdout` and `stderr`.
 
     Returns:
-        A tuple with stdout and stderr, or the process if return_command is True.
-        If verbose is True, stderr is an empty string.
+        A tuple with `stdout` and `stderr`, or the process if `return_command` is `True`.
+        If `verbose` is `True`, `stderr` is an empty string.
 
     Raises:
         OSError: If an error occurs while calling the binary.
@@ -173,20 +176,20 @@ def find_binary(
     allow_dir: bool = False,
     raise_error: bool = False,
 ) -> str | None:
-    """Search for the binary for a program.
+    """Locate the binary for a given program.
 
     Args:
-        name: Name of the binary, either a string or a list of strings with alternative names.
-        search_paths: List of paths where to look, in addition to the environment variable PATH.
-        executable: Set to False to not fail when binary is not executable.
-        allow_dir: Set to True to allow the target to be a directory instead of a file.
-        raise_error: Raise error if binary could not be found.
+        name: The name of the binary, either as a string or a list of strings with alternative names.
+        search_paths: A list of additional paths to search, besides those in the environment variable `PATH`.
+        executable: If `False`, does not fail when the binary is not executable.
+        allow_dir: If `True`, allows the target to be a directory instead of a file.
+        raise_error: If `True`, raises an error if the binary could not be found.
 
     Returns:
-        Path to binary, or None if not found.
+        The path to binary, or `None` if not found.
 
     Raises:
-        SparvErrorMessage: If raise_error is True and the binary could not be found.
+        SparvErrorMessage: If `raise_error` is `True` and the binary could not be found.
     """
     if isinstance(name, str):
         name = [name]
@@ -227,7 +230,7 @@ def find_binary(
 
 
 def rsync(local: str | Path, host: str | None, remote: str | Path) -> None:
-    """Transfer files and/or directories using rsync.
+    """Transfer files and directories using rsync.
 
     When syncing a directory, extraneous files in the destination directory are deleted, and it is always the contents
     of the source directory that are synced, not the directory itself (i.e. the rsync source directory is always
@@ -235,8 +238,8 @@ def rsync(local: str | Path, host: str | None, remote: str | Path) -> None:
 
     Args:
         local: The file or directory to transfer.
-        host: The remote host to transfer to. Set to None to transfer locally.
-        remote: The destination path (file or directory).
+        host: The remote host to transfer to. Set to `None` to transfer locally.
+        remote: The path to the target file or directory.
     """
     assert local and remote, "Both 'local' and 'remote' must be set."  # noqa: PT018
     remote_dir = os.path.dirname(remote)  # noqa: PTH120 - pathlib doesn't handle ending slash
@@ -261,7 +264,7 @@ def remove_path(path: str | Path, host: str | None = None) -> None:
 
     Args:
         path: The file or directory to remove.
-        host: The remote host to remove from. Leave empty to remove locally.
+        host: The remote host to remove from. Leave as `None` to remove locally.
     """
     assert path, "'path' must not be empty."
     if host:
