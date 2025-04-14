@@ -19,8 +19,8 @@
 - Added utility functions: `util.install.install_git` and `util.install.uninstall_git` for adding files to or removing
   them from a local Git repository.
 - Added `misc:metadata_from_filename` annotator, to extract metadata from filenames.
-- Added `size` property to the `Annotation` class, replacing the `get_size()` method which will be removed in a future
-  version of Sparv. Additionally, you can now use the `len()` function on `Annotation` instances to get the size.
+- Added support for using `len()` on instances of the `Annotation` class, replacing the `get_size()` method which will
+  be removed in a future version of Sparv.
 - Sparv can now be used as a library by importing the `sparv` package.
 
 ### Changed

@@ -476,6 +476,6 @@ def metadata_from_filename(
     match = re.search(pattern, source_file)
     if match:
         metadata = match.group(1)
-        out.write([metadata] * text.size)
+        out.write([metadata] * len(text))
     else:
-        out.write([""] * text.size)
+        out.write([""] * len(text))
