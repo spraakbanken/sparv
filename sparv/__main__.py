@@ -766,6 +766,7 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
         keep_going=keep_going,
         json=json_log,
         log_queue=log_queue,
+        root_dir=args.dir,
     )
     snakemake_args["log_handler"] = [progress.log_handler]
 

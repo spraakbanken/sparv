@@ -349,6 +349,7 @@ class LogHandler:
         keep_going: bool = False,
         json: bool = False,
         log_queue: queue.Queue | None = None,
+        root_dir: str | None = None,
     ) -> None:
         """Initialize log handler.
 
@@ -363,6 +364,7 @@ class LogHandler:
             keep_going: Set to True if the keepgoing flag is enabled for Snakemake.
             json: Set to True to enable JSON output.
             log_queue: Queue to store log messages.
+            root_dir: Root directory for the corpus (if set using `--dir`).
         """
         self.use_progressbar = progressbar and console.is_terminal
         self.simple = simple or not console.is_terminal
@@ -375,6 +377,7 @@ class LogHandler:
         self.log_file_level = log_file_level
         self.log_filename = None
         self.log_levelcount = defaultdict(int)
+        self.root_dir = root_dir
         self.finished = False
         self.handled_error = False
         self.messages = defaultdict(list)
@@ -456,7 +459,10 @@ class LogHandler:
         # File logger
         self.log_filename = f"{datetime.datetime.now().strftime('%Y-%m-%d_%H.%M.%S.%f')}.log"
         file_handler = FileHandlerWithDirCreation(
-            paths.log_dir / self.log_filename, mode="w", encoding="UTF-8", delay=True
+            Path(self.root_dir or Path().cwd()) / paths.log_dir / self.log_filename,
+            mode="w",
+            encoding="UTF-8",
+            delay=True,
         )
         file_handler.setLevel(self.log_file_level.upper())
         file_handler.addFilter(progress_internal_filter)

@@ -42,6 +42,8 @@
   major release.
 - Changed library used for parsing PDF files from `pdfplumber` to `pypdfium2`.
 - Plugin module name convention is now enforced.
+- The `logs` directory is now always created relative to the corpus directory instead of the directory where `sparv` is
+  run.
 
 ### Fixed
 
