@@ -442,6 +442,7 @@ class LogHandler:
 
         stream_handler.setLevel(self.log_level.upper())
         stream_handler.addFilter(internal_filter)
+        stream_handler.addFilter(lambda record: not getattr(record, "to_file", False))
 
         if self.json:
             stream_formatter = json_formatter = jsonlogger.JsonFormatter(
@@ -466,6 +467,7 @@ class LogHandler:
         )
         file_handler.setLevel(self.log_file_level.upper())
         file_handler.addFilter(progress_internal_filter)
+        file_handler.addFilter(lambda record: not getattr(record, "to_stdout", False))
 
         if self.json:
             file_formatter = json_formatter
@@ -870,7 +872,8 @@ class LogHandler:
                 errmsg = ["An unexpected error occurred."]
                 if self.log_level and logging._nameToLevel[self.log_level.upper()] > logging.DEBUG:
                     errmsg[0] += (
-                        " To display further details about this error, rerun Sparv with the '--log debug' argument.\n"
+                        f" For more details, please check '{paths.log_dir / self.log_filename}', or rerun Sparv "
+                        "with the '--log debug' argument.\n"
                     )
                     if error.get("msg"):
                         # Show only a summary of the error
@@ -886,6 +889,8 @@ class LogHandler:
                     errmsg.append("")
                     errmsg.append(error.get("msg") or "An unknown error occurred.")
                 self.error("\n".join(errmsg))
+                # Always log full error message to file, no matter the log level
+                self.logger.error(error.get("msg") or "An unknown error occurred.", extra={"to_file": True})
         else:
             spacer = ""
             if self.export_dirs:
