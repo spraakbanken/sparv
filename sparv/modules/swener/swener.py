@@ -2,6 +2,7 @@
 import re
 from typing import Optional
 import xml.etree.ElementTree as etree
+import subprocess
 import xml.sax.saxutils
 
 from sparv.api import Annotation, Binary, Config, Output, SparvErrorMessage, annotator, get_logger, util
@@ -15,7 +16,8 @@ MAX_TOKEN_LENGTH = 100  # SweNER sometimes hangs on very long tokens
 
 
 @annotator("Named entity tagging with SweNER", language=["swe"],
-           config=[Config("swener.binary", default="hfst-swener", description="SweNER executable", datatype=str)])
+           config=[Config("swener.binary", default="hfst-swener", description="SweNER executable", datatype=str),
+                   Config("swener.timeout", default=1200, description="Timeout for SweNER process", datatype=int)])
 def annotate(out_ne: Output = Output("swener.ne", cls="named_entity", description="Named entity segments from SweNER"),
              out_ne_ex: Output = Output("swener.ne:swener.ex", description="Named entity expressions from SweNER"),
              out_ne_type: Output = Output("swener.ne:swener.type", cls="named_entity:type",
@@ -28,6 +30,7 @@ def annotate(out_ne: Output = Output("swener.ne", cls="named_entity", descriptio
              sentence: Annotation = Annotation("<sentence>"),
              token: Annotation = Annotation("<token>"),
              binary: Binary = Binary("[swener.binary]"),
+             timeout: int = Config("swener.timeout"),
              process_dict: Optional[dict] = None):
     """Tag named entities using HFST-SweNER.
 
@@ -79,9 +82,15 @@ def annotate(out_ne: Output = Output("swener.ne", cls="named_entity", descriptio
     # else:
     # Otherwise use communicate which buffers properly
     # logger.info("STDIN %s %s", type(stdin.encode(encoding)), stdin.encode(encoding))
-    stdout, stderr = process.communicate(stdin.encode(util.constants.UTF8))
-    if process.returncode > 0:
-        raise SparvErrorMessage(f"An error occurred while running HFST-SweNER:\n\n{stderr.decode()}")
+    try:
+        stdout, stderr = process.communicate(stdin.encode(util.constants.UTF8), timeout=timeout)
+    except subprocess.TimeoutExpired:
+        logger.warning("SweNER timed out after %d seconds. Skipping NER annotation for this document.", timeout)
+        process.kill()
+        stdout = b""
+    else:
+        if process.returncode > 0:
+            raise SparvErrorMessage(f"An error occurred while running HFST-SweNER:\n\n{stderr.decode()}")
     # logger.info("STDOUT %s %s", type(stdout.decode(encoding)), stdout.decode(encoding))
 
     parse_swener_output(sentences, token, stdout.decode(util.constants.UTF8), out_ne, out_ne_ex, out_ne_type,
@@ -97,68 +106,69 @@ def parse_swener_output(sentences: list, token: Annotation, output, out_ne: Outp
     out_subtype = []
     out_name = []
 
-    token_spans = list(token.read_spans())
+    if output:
+        token_spans = list(token.read_spans())
 
-    # Loop through the NE-tagged sentences and parse each one with ElemenTree
-    for sent, tagged_sent in zip(sentences, output.strip().split(SENT_SEP)):
-        xml_sent = "<sroot>" + tagged_sent + "</sroot>"
+        # Loop through the NE-tagged sentences and parse each one with ElementTree
+        for sent, tagged_sent in zip(sentences, output.strip().split(SENT_SEP)):
+            xml_sent = "<sroot>" + tagged_sent + "</sroot>"
 
-        # Filter out tags on the format <EnamexXxxXxx> since they seem to always overlap with <ENAMEX> elements,
-        # making the XML invalid.
-        xml_sent = re.sub(r"</?Enamex[^>\s]+>", "", xml_sent)
-        try:
-            root = etree.fromstring(xml_sent)
-        except:
-            logger.warning("Error parsing sentence. Skipping.")
-            continue
+            # Filter out tags on the format <EnamexXxxXxx> since they seem to always overlap with <ENAMEX> elements,
+            # making the XML invalid.
+            xml_sent = re.sub(r"</?Enamex[^>\s]+>", "", xml_sent)
+            try:
+                root = etree.fromstring(xml_sent)
+            except Exception:
+                logger.warning("Error parsing sentence. Skipping.")
+                continue
 
-        # Init token counter; needed to get start_pos and end_pos
-        i = 0
-        previous_end = 0
-        children = list(root.iter())
+            # Init token counter; needed to get start_pos and end_pos
+            i = 0
+            previous_end = 0
+            children = list(root.iter())
 
-        try:
-            for count, child in enumerate(children):
-                start_pos = token_spans[sent[i]][0]
-                start_i = i
+            try:
+                for count, child in enumerate(children):
+                    start_pos = token_spans[sent[i]][0]
+                    start_i = i
 
-                # If current child has text, increase token counter
-                if child.text:
-                    i += len(child.text.strip().split(TOK_SEP))
+                    # If current child has text, increase token counter
+                    if child.text:
+                        i += len(child.text.strip().split(TOK_SEP))
 
-                    # Extract NE tags and save them in lists
-                    if child.tag != "sroot":
-                        if start_i < previous_end:
-                            pass
-                            # logger.warning("Overlapping NE elements found; discarding one.")
-                        else:
-                            end_pos = token_spans[sent[i - 1]][1]
-                            previous_end = i
-                            span = (start_pos, end_pos)
-                            out_ne_spans.append(span)
-                            out_ex.append(child.tag)
-                            out_type.append(child.get("TYPE"))
-                            out_subtype.append(child.get("SBT"))
-                            out_name.append(child.text)
+                        # Extract NE tags and save them in lists
+                        if child.tag != "sroot":
+                            if start_i < previous_end:
+                                pass
+                                # logger.warning("Overlapping NE elements found; discarding one.")
+                            else:
+                                end_pos = token_spans[sent[i - 1]][1]
+                                previous_end = i
+                                span = (start_pos, end_pos)
+                                out_ne_spans.append(span)
+                                out_ex.append(child.tag)
+                                out_type.append(child.get("TYPE"))
+                                out_subtype.append(child.get("SBT"))
+                                out_name.append(child.text)
 
-                        # If this child has a tail and it doesn't start with a space, or if it has no tail at all
-                        # despite not being the last child, it means this NE ends in the middle of a token.
-                        if (child.tail and child.tail.strip() and child.tail[0] != " ") or (
-                                not child.tail and count < len(children) - 1):
-                            i -= 1
-                            # logger.warning("Split token returned by name tagger.")
+                            # If this child has a tail and it doesn't start with a space, or if it has no tail at all
+                            # despite not being the last child, it means this NE ends in the middle of a token.
+                            if (child.tail and child.tail.strip() and child.tail[0] != " ") or (
+                                    not child.tail and count < len(children) - 1):
+                                i -= 1
+                                # logger.warning("Split token returned by name tagger.")
 
-                # If current child has text in the tail, increase token counter
-                if child.tail and child.tail.strip():
-                    i += len(child.tail.strip().split(TOK_SEP))
+                    # If current child has text in the tail, increase token counter
+                    if child.tail and child.tail.strip():
+                        i += len(child.tail.strip().split(TOK_SEP))
 
-                if (child.tag == "sroot" and child.text and child.text[-1] != " ") or (
-                        child.tail and child.tail[-1] != " "):
-                    # The next NE would start in the middle of a token, so decrease the counter by 1
-                    i -= 1
-        except IndexError:
-            logger.warning("Error parsing sentence. Skipping.")
-            continue
+                    if (child.tag == "sroot" and child.text and child.text[-1] != " ") or (
+                            child.tail and child.tail[-1] != " "):
+                        # The next NE would start in the middle of a token, so decrease the counter by 1
+                        i -= 1
+            except IndexError:
+                logger.warning("Error parsing sentence. Skipping.")
+                continue
 
     # Write annotations
     out_ne.write(out_ne_spans)
