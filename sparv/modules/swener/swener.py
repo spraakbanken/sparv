@@ -11,7 +11,7 @@ logger = get_logger(__name__)
 RESTART_THRESHOLD_LENGTH = 64000
 SENT_SEP = "\n"
 TOK_SEP = " "
-MAX_TOKEN_LENGTH = 1024  # SweNER sometimes hangs on very long tokens
+MAX_TOKEN_LENGTH = 100  # SweNER sometimes hangs on very long tokens
 
 
 @annotator("Named entity tagging with SweNER", language=["swe"],
