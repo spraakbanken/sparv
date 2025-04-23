@@ -8,10 +8,11 @@ import inspect
 import pkgutil
 import re
 from collections import UserDict, defaultdict
-from collections.abc import Container
+from collections.abc import Container, Iterable
 from enum import Enum
 from types import ModuleType
 from typing import Any, Callable, List, Tuple, TypeVar, get_type_hints  # noqa: UP035
+from typing import Iterable as TypingIterable
 
 import typing_inspect
 
@@ -1002,7 +1003,7 @@ def get_type_hint_type(type_hint: Any) -> tuple[type, bool, bool]:
 
     is_list = False
 
-    if origin in {list, List, tuple, Tuple, Container}:  # noqa: UP006
+    if origin in {list, List, tuple, Tuple, Container, Iterable, TypingIterable}:  # noqa: UP006
         is_list = True
         args = typing_inspect.get_args(type_hint)
         type_ = args[0] if args and type(args[0]) is not TypeVar else origin
