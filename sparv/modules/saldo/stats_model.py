@@ -24,7 +24,9 @@ def build_korp_stats(out: ModelOutput = ModelOutput("saldo/stats.pickle"),
     txt_file = Model("saldo/stats_all.txt")
     try:
         logger.info("Downloading Korp stats file...")
-        download_stats_file("https://svn.spraakdata.gu.se/sb-arkiv/pub/frekvens/stats_all.txt", txt_file.path)
+        download_stats_file(
+            "https://svn.spraakbanken.gu.se/sb-arkiv/!svn/bc/246648/pub/frekvens/stats_all.txt", txt_file.path
+        )
 
         logger.info("Building frequency model...")
         make_model(txt_file.path, out.path)
