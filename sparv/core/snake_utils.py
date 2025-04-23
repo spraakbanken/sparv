@@ -529,7 +529,7 @@ def rule_helper(
         # Model
         elif param_type == Model:
             if param_value is not None:
-                if not isinstance(param_value, list):
+                if not isinstance(param_value, (list, tuple)):
                     param_value = [param_value]
                 model_param = []
                 for model in param_value:
