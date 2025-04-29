@@ -33,6 +33,9 @@ def annotate(out_phrase: Output = Output("phrase_structure.phrase", description=
     nodes = []
 
     for s in sentences:
+        if len(s) == 1:
+            # Skip single token sentences
+            continue
         tokenlist = [Token(None)]
         for token_index in s:
             token = token_annotations[token_index]
