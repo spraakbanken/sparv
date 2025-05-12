@@ -2,6 +2,7 @@
 
 import pickle
 from collections import defaultdict
+from collections.abc import Container
 
 from sparv.api import (
     Annotation,
@@ -27,10 +28,17 @@ def contextual(out: Output = Output("{chunk}:geo.geo_context", description="Geog
                ne_subtype: Annotation = Annotation("swener.ne:swener.subtype"),
                ne_name: Annotation = Annotation("swener.ne:swener.name"),
                model: Model = Model("[geo.model]"),
-               language: list = []):
+               language: Container = ()) -> None:
     """Annotate chunks with location data, based on locations contained within the text.
 
-    chunk = text chunk to which the annotation will be added.
+    Args:
+        out: Output annotation for geographical places with coordinates.
+        chunk: Input chunk annotation to which location data will be added.
+        ne_type: Named entity type annotation.
+        ne_subtype: Named entity subtype annotation.
+        ne_name: Named entity name annotation.
+        model: Path to the geographical model.
+        language: List of languages to use for the model.
     """
     model = load_model(model, language=language)
 
@@ -67,8 +75,16 @@ def metadata(out: Output = Output("{chunk}:geo.geo_metadata", description="Geogr
              chunk: Annotation = Annotation("{chunk}"),
              source: Annotation = Annotation("[geo.metadata_source]"),
              model: Model = Model("[geo.model]"),
-             language: list = []):
-    """Get location data based on metadata containing location names."""
+             language: Container = ()) -> None:
+    """Get location data based on metadata containing location names.
+
+    Args:
+        out: Output annotation for geographical places with coordinates.
+        chunk: Input chunk annotation to which location data will be added.
+        source: Source attribute for location metadata.
+        model: Path to the geographical model.
+        language: List of languages to use for the model.
+    """
     geomodel = load_model(model, language=language)
 
     same_target_source = chunk.split()[0] == source.split()[0]
@@ -101,8 +117,12 @@ def metadata(out: Output = Output("{chunk}:geo.geo_metadata", description="Geogr
 
 
 @modelbuilder("Model for geo tagging")
-def build_model(out: ModelOutput = ModelOutput("geo/geo.pickle")):
-    """Download and build geo model."""
+def build_model(out: ModelOutput = ModelOutput("geo/geo.pickle")) -> None:
+    """Download and build geo model.
+
+    Args:
+        out: Output model for geographical data.
+    """
     # Download and extract cities1000.txt
     cities_zip = Model("geo/cities1000.zip")
     cities_zip.download("http://download.geonames.org/export/dump/cities1000.zip")
@@ -123,10 +143,15 @@ def build_model(out: ModelOutput = ModelOutput("geo/geo.pickle")):
     Model("geo/alternateNames.txt").remove()
 
 
-def pickle_model(geonames, alternative_names, out):
+def pickle_model(geonames: Model, alternative_names: Model, out: ModelOutput) -> None:
     """Read list of cities from Geonames dump (http://download.geonames.org/export/dump/).
 
-    Add alternative names for each city.
+    Also adds alternative names for each city.
+
+    Args:
+        geonames: Model containing geographical names.
+        alternative_names: Model containing alternative names for geographical locations.
+        out: Output model for geographical data in Pickle format.
     """
     logger.info("Reading geonames: %s", geonames.name)
     result = {}
@@ -167,10 +192,18 @@ def pickle_model(geonames, alternative_names, out):
 ########################################################################################################
 
 
-def load_model(model: Model, language=()):
-    """Load geo model and return as dict."""
+def load_model(model: Model, language: Container = ()) -> dict:
+    """Load geo model and return as dict.
+
+    Args:
+        model: The model to load.
+        language: Optional list of languages to filter alternative names.
+
+    Returns:
+        dict: A dictionary containing geographical data.
+    """
     logger.info("Reading geomodel: %s", model)
-    with open(model.path, "rb") as infile:
+    with model.path.open("rb") as infile:
         m = pickle.load(infile)
 
     result = defaultdict(set)
@@ -187,8 +220,15 @@ def load_model(model: Model, language=()):
     return result
 
 
-def most_populous(locations):
-    """Disambiguate locations by only keeping the most populous ones."""
+def most_populous(locations: list) -> set:
+    """Disambiguate locations by only keeping the most populous ones.
+
+    Args:
+        locations: List of locations to disambiguate.
+
+    Returns:
+        set: A set of the most populous locations.
+    """
     result = set()
 
     for loc in locations:
@@ -197,6 +237,13 @@ def most_populous(locations):
     return result
 
 
-def _format_location(location_data):
-    """Format location as city;country;latitude;longitude."""
+def _format_location(location_data: set) -> str:
+    """Format location as city;country;latitude;longitude.
+
+    Args:
+        location_data: Set of location data to format.
+
+    Returns:
+        str: Formatted location string.
+    """
     return util.misc.cwbset(";".join((y[0], y[3], y[1], y[2])) for x, y in location_data)
