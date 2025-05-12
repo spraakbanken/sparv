@@ -7,6 +7,7 @@ License for Stanford CoreNLP: GPL2 https://www.gnu.org/licenses/old-licenses/gpl
 """
 
 import tempfile
+from dataclasses import dataclass
 from pathlib import Path
 
 from sparv.api import Annotation, BinaryDir, Config, Language, Output, Text, annotator, get_logger, util
@@ -33,8 +34,23 @@ def annotate(corpus_text: Text = Text(),
                                          description="Dependency relations to the head"),
              out_dephead_ref: Output = Output("<token>:stanford.dephead_ref", cls="token:dephead_ref",
                                               description="Sentence-relative positions of the dependency heads"),
-             binary: BinaryDir = BinaryDir("[stanford.bin]")):
-    """Use Stanford Parser to parse and annotate text."""
+             binary: BinaryDir = BinaryDir("[stanford.bin]")) -> None:
+    """Use Stanford Parser to parse and annotate text.
+
+    Args:
+        corpus_text: The corpus text.
+        lang: Language of the text.
+        text: Text annotation.
+        out_sentence: Output sentence segments.
+        out_token: Output token segments.
+        out_baseform: Output baseforms from Stanford Parser.
+        out_upos: Output part-of-speeches in UD.
+        out_pos: Output part-of-speeches from Stanford Parser.
+        out_ne: Output named entity types from Stanford Parser.
+        out_deprel: Output dependency relations to the head.
+        out_dephead_ref: Output sentence-relative positions of the dependency heads.
+        binary: Path to directory containing Stanford executables.
+    """
     args = ["-cp", binary + "/*", "edu.stanford.nlp.pipeline.StanfordCoreNLP",
             "-annotators", "tokenize,ssplit,pos,lemma,depparse,ner",
             # The output columns are taken from edu.stanford.nlp.ling.AnnotationLookup:
@@ -54,11 +70,11 @@ def annotate(corpus_text: Text = Text(),
 
         # Write all texts to temporary files
         filelist = tmpdir / "filelist.txt"
-        with open(filelist, "w", encoding="utf-8") as f:
+        with filelist.open("w", encoding="utf-8") as f:
             for nr, (start, end) in enumerate(text_spans):
                 filename = tmpdir / f"text-{nr}.txt"
                 print(filename, file=f)
-                with open(filename, "w", encoding="utf-8") as f2:
+                with filename.open("w", encoding="utf-8") as f2:
                     print(text_data[start:end], file=f2)
                 logger.debug("Writing text %d (%d-%d): %r...%r --> %s", nr, start, end,
                              text_data[start:start + 20], text_data[end - 20:end], filename.name)
@@ -100,14 +116,29 @@ def annotate(corpus_text: Text = Text(),
 def make_ref(out: Output = Output("<token>:stanford.ref", cls="token:ref",
                                   description="Token IDs relative to their sentences"),
              sentence: Annotation = Annotation("<sentence>"),
-             token: Annotation = Annotation("<token>")):
-    """Annotate tokens with IDs relative to their sentences."""
-    from sparv.modules.misc import number
+             token: Annotation = Annotation("<token>")) -> None:
+    """Annotate tokens with IDs relative to their sentences.
+
+    Args:
+        out: Output annotation with token positions relative to their sentences.
+        sentence: Sentence annotation.
+        token: Token annotation.
+    """
+    from sparv.modules.misc import number  # noqa: PLC0415
     number.number_relative(out, sentence, token)
 
 
-def _parse_output(stdout, lang, add_to_index):
-    """Parse the CoNLL format output from the Stanford Parser."""
+def _parse_output(stdout: str, lang: Language, add_to_index: int) -> list:
+    """Parse the CoNLL format output from the Stanford Parser.
+
+    Args:
+        stdout: The output from the Stanford Parser in CoNLL format.
+        lang: Language of the text.
+        add_to_index: Offset to add to the token spans.
+
+    Returns:
+        List of sentences, each containing a list of Token objects.
+    """
     sentences = []
     sentence = []
     for line in stdout.split("\n"):
@@ -119,8 +150,17 @@ def _parse_output(stdout, lang, add_to_index):
         # Create new word with attributes
         else:
             # -output.columns from the parser (see the args to the parser, in annotate() above):
-            # idx, current, lemma, pos, ner,          headidx,     deprel, BEGIN_POS, END_POS
-            ref,   word,    lemma, pos, named_entity, dephead_ref, deprel, start,     end     = line.split("\t")
+            (
+                ref,  # idx
+                word,  # current
+                lemma,  # lemma
+                pos,  # pos
+                named_entity,  # ner
+                dephead_ref,  # headidx
+                deprel,  # deprel
+                start,  # BEGIN_POS
+                end,  # END_POS
+            ) = line.split("\t")
             upos = pos_to_upos(pos, lang, "Penn")
             if named_entity == "O":  # O = empty name tag
                 named_entity = ""
@@ -133,18 +173,16 @@ def _parse_output(stdout, lang, add_to_index):
     return sentences
 
 
+@dataclass(slots=True)
 class Token:
     """Object to store annotation information for a token."""
-
-    def __init__(self, ref, word, pos, upos, baseform, ne, dephead_ref, deprel, start, end):
-        """Set attributes."""
-        self.ref = ref
-        self.word = word
-        self.pos = pos
-        self.upos = upos
-        self.baseform = baseform
-        self.ne = ne
-        self.dephead_ref = dephead_ref
-        self.deprel = deprel
-        self.start = start
-        self.end = end
+    ref: str
+    word: str
+    pos: str
+    upos: str
+    baseform: str
+    ne: str
+    dephead_ref: str
+    deprel: str
+    start: int
+    end: int
