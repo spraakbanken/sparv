@@ -18,7 +18,10 @@
 \usepackage[a4paper, margin=3cm]{geometry} % Smaller margins
 % \linespread{1.1} % Line spacing
 
-\usepackage{titlesec}
+\usepackage{titlesec} % Allows customizing section commands
+
+\usepackage{array} % For custom column widths in tables
+\usepackage{calc} % for calculating minipage widths
 
 \titleformat{\paragraph}[hang]{\normalfont\scshape}{\theparagraph}{1em}{}
 \titlespacing*{\paragraph}{0pt}{3.25ex plus 1ex minus .2ex}{0.5em} % Line break after paragraph
