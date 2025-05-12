@@ -1,31 +1,41 @@
 """Utility functions for testing Sparv with pytest."""
 # ruff: noqa: T201
 
+from __future__ import annotations
+
 import difflib
 import filecmp
-import pathlib
 import pickle
 import re
 import shutil
 import subprocess
-import xml.etree.ElementTree as etree
-from typing import Optional
+import xml.etree.ElementTree as etree  # noqa: N813
+from pathlib import Path
 
-from sparv.core.paths import paths
 from sparv.core.console import console
+from sparv.core.paths import paths
 
 GOLD_PREFIX = "gold_"
 MAX_DIFF_LINES = 25
 
 
-def run_sparv(gold_corpus_dir: pathlib.Path,
-              tmp_path: pathlib.Path,
-              targets: Optional[list] = None):
-    """Run Sparv on corpus in gold_corpus_dir and return the directory of the test corpus."""
+def run_sparv(gold_corpus_dir: Path,
+              tmp_path: Path,
+              targets: list | None = None) -> Path:
+    """Run Sparv on corpus in gold_corpus_dir and return the directory of the test corpus.
+
+    Args:
+        gold_corpus_dir: Path to the directory of the gold corpus.
+        tmp_path: Path to the temporary directory to use for the test corpus.
+        targets: List of targets to run. If None, default targets will be used.
+
+    Returns:
+        Path to the directory of the test corpus.
+    """
     if targets is None:
         targets = []
     corpus_name = gold_corpus_dir.name
-    new_corpus_dir = tmp_path / pathlib.Path(corpus_name)
+    new_corpus_dir = tmp_path / Path(corpus_name)
 
     # Copy everything but the output
     shutil.copytree(str(gold_corpus_dir), str(new_corpus_dir), ignore=shutil.ignore_patterns(
@@ -33,7 +43,7 @@ def run_sparv(gold_corpus_dir: pathlib.Path,
         str(paths.export_dir), GOLD_PREFIX + str(paths.export_dir)))
 
     args = ["sparv", "-d", str(new_corpus_dir), "run", *targets]
-    process = subprocess.run(args, capture_output=True)
+    process = subprocess.run(args, capture_output=True, check=False)
     stdout = _remove_progress_info(process.stdout.strip().decode())
     if stdout and process.returncode != 0:
         print_error(f"The following warnings/errors occurred:\n{stdout}")
@@ -43,34 +53,46 @@ def run_sparv(gold_corpus_dir: pathlib.Path,
     return new_corpus_dir
 
 
-def cmp_workdir(gold_corpus_dir: pathlib.Path,
-                test_corpus_dir: pathlib.Path,
-                ignore: Optional[list] = None):
-    """Recursively compare the workdir directories of gold_corpus and test_corpus."""
+def cmp_workdir(gold_corpus_dir: Path,
+                test_corpus_dir: Path,
+                ignore: list | None = None) -> None:
+    """Recursively compare the workdir directories of gold_corpus and test_corpus.
+
+    Args:
+        gold_corpus_dir: Path to the directory of the gold corpus.
+        test_corpus_dir: Path to the directory of the test corpus.
+        ignore: List of files/directories to ignore when comparing.
+    """
     if ignore is None:
         ignore = []
     ignore.append(".log")
-    assert _cmp_dirs(gold_corpus_dir / pathlib.Path(GOLD_PREFIX + str(paths.work_dir)),
+    assert _cmp_dirs(gold_corpus_dir / Path(GOLD_PREFIX + str(paths.work_dir)),
                      test_corpus_dir / paths.work_dir,
                      ignore=ignore
                      ), "work dir did not match the gold standard"
 
 
-def cmp_export(gold_corpus_dir: pathlib.Path,
-               test_corpus_dir: pathlib.Path,
-               ignore: Optional[list] = None):
-    """Recursively compare the export directories of gold_corpus and test_corpus."""
+def cmp_export(gold_corpus_dir: Path,
+               test_corpus_dir: Path,
+               ignore: list | None = None) -> None:
+    """Recursively compare the export directories of gold_corpus and test_corpus.
+
+    Args:
+        gold_corpus_dir: Path to the directory of the gold corpus.
+        test_corpus_dir: Path to the directory of the test corpus.
+        ignore: List of files/directories to ignore when comparing.
+    """
     if ignore is None:
         ignore = []
     ignore.append(".log")
-    assert _cmp_dirs(gold_corpus_dir / pathlib.Path(GOLD_PREFIX + str(paths.export_dir)),
+    assert _cmp_dirs(gold_corpus_dir / Path(GOLD_PREFIX + str(paths.export_dir)),
                      test_corpus_dir / paths.export_dir,
                      ignore=ignore
                      ), "export dir did not match the gold standard"
 
 
-def print_error(msg: str):
-    """Format msg into an error message."""
+def print_error(msg: str) -> None:
+    """Format msg into an error message and print it to the console."""
     console.print(f"[red]\n{msg}[/red]", highlight=False)
 
 
@@ -79,11 +101,21 @@ def print_error(msg: str):
 ################################################################################
 
 
-def _cmp_dirs(a: pathlib.Path,
-              b: pathlib.Path,
-              ignore: Optional[list] = None,
+def _cmp_dirs(a: Path,
+              b: Path,
+              ignore: list | None = None,
               ok: bool = True) -> bool:
-    """Recursively compare directories a and b."""
+    """Recursively compare directories a and b.
+
+    Args:
+        a: Path to the first directory.
+        b: Path to the second directory.
+        ignore: List of files/directories to ignore when comparing.
+        ok: Boolean indicating if the directories are equal so far (used for recursion).
+
+    Returns:
+        Boolean indicating if the directories are equal.
+    """
     if ignore is None:
         ignore = [".log"]
     dirs_cmp = filecmp.dircmp(str(a), str(b), ignore=ignore)
@@ -118,29 +150,28 @@ def _cmp_dirs(a: pathlib.Path,
             ok = False
 
     for common_dir in dirs_cmp.common_dirs:
-        new_a = a / pathlib.Path(common_dir)
-        new_b = b / pathlib.Path(common_dir)
+        new_a = a / Path(common_dir)
+        new_b = b / Path(common_dir)
         if not _cmp_dirs(new_a, new_b, ignore=ignore, ok=ok):
             ok = False
 
     return ok
 
 
-def _filediff(a: pathlib.Path, b: pathlib.Path):
-    """Print a unified diff of files a and b."""
+def _filediff(a: Path, b: Path) -> None:
+    """Print a unified diff of files a and b.
+
+    Args:
+        a: Path to the first file.
+        b: Path to the second file.
+    """
     try:
         # Try opening as pickle files first
         a_contents = pickle.load(a.open("rb"))
-        if isinstance(a_contents, str):
-            a_contents = a_contents.splitlines()
-        else:
-            a_contents = map(str, a_contents)
+        a_contents = a_contents.splitlines() if isinstance(a_contents, str) else map(str, a_contents)
 
         b_contents = pickle.load(b.open("rb"))
-        if isinstance(b_contents, str):
-            b_contents = b_contents.splitlines()
-        else:
-            b_contents = map(str, b_contents)
+        b_contents = b_contents.splitlines() if isinstance(b_contents, str) else map(str, b_contents)
     except pickle.UnpicklingError:
         # Compare as text files
         a_contents = a.read_text(encoding="utf-8").splitlines()
@@ -154,8 +185,16 @@ def _filediff(a: pathlib.Path, b: pathlib.Path):
         print(line.strip())
 
 
-def _xml_filediff(a: pathlib.Path, b: pathlib.Path):
-    """Print a unified diff of canonicalize XML files a and b."""
+def _xml_filediff(a: Path, b: Path) -> bool:
+    """Print a unified diff of canonicalize XML files a and b and return True if they differ.
+
+    Args:
+        a: Path to the first XML file.
+        b: Path to the second XML file.
+
+    Returns:
+        Boolean indicating if the files differ.
+    """
     try:
         a_contents = etree.canonicalize(a.read_text(encoding="utf-8")).splitlines()
     except etree.ParseError:
@@ -177,8 +216,15 @@ def _xml_filediff(a: pathlib.Path, b: pathlib.Path):
     return False
 
 
-def _remove_progress_info(output):
-    """Exclude progress updates from output."""
+def _remove_progress_info(output: str) -> str:
+    """Remove progress updates from output.
+
+    Args:
+        output: The output string to process.
+
+    Returns:
+        The output string with progress updates removed.
+    """
     lines = output.split("\n")
     out = []
     for line in lines:

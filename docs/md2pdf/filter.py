@@ -1,13 +1,17 @@
-"""Pandoc filter for removing links that won't work in PDF and reformatting docsify block quotes.
+"""Pandoc filter for removing links that won't work in PDF and reformatting admonitions.
 
 https://pandoc.org/filters.html
 """
 
+from __future__ import annotations
+
+from typing import Any
+
 from pandocfilters import BlockQuote, Str, Strong, toJSONFilter
 
 
-def fix_document(key, value, _format, _meta):
-    """Remove links that won't work in PDF and reformat docsify block quotes."""
+def fix_document(key: str, value: str | list | dict | None, _format: str, _meta: dict) -> Any | None:
+    """Remove links that won't work in PDF and reformat block quotes."""  # noqa: DOC201
     if key == "Link":
         url = value[2][0]
         if url.startswith(("user-manual", "developers-guide")):
@@ -20,21 +24,21 @@ def fix_document(key, value, _format, _meta):
             if first_string == "[!NOTE]":
                 value[0]["c"][0] = Strong([Str("Note:")])
                 return BlockQuote(value)
-            elif first_string == "[!INFO]":
+            if first_string == "[!INFO]":
                 value[0]["c"][0] = Strong([Str("Info:")])
                 return BlockQuote(value)
-            elif first_string == "[!TIP]":
+            if first_string == "[!TIP]":
                 value[0]["c"][0] = Strong([Str("Tip:")])
                 return BlockQuote(value)
-            elif first_string == "[!WARNING]":
+            if first_string == "[!WARNING]":
                 value[0]["c"][0] = Strong([Str("Warning:")])
                 return BlockQuote(value)
-            elif first_string == "[!ATTENTION]":
+            if first_string == "[!ATTENTION]":
                 value[0]["c"][0] = Strong([Str("Attention:")])
                 return BlockQuote(value)
         except Exception:
-            return
-        return
+            return None
+    return None
 
 
 if __name__ == "__main__":
