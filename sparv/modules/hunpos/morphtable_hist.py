@@ -1,6 +1,7 @@
 """Make morphtable for Swedish historical resources."""
 
 import re
+from pathlib import Path
 
 from sparv.api import Model, ModelOutput, modelbuilder
 from sparv.api.util.tagsets import tagmappings
@@ -15,21 +16,21 @@ def hist_morphtable(out: ModelOutput = ModelOutput("hunpos/hist/dalinm-swedberg_
 
     Args:
         out: Resulting morphtable file to be written.
-        swedberg: Wordlist from Swedberg and corresponding SALDO MSD-tags.
-        dalin: Wordlist from Dalin and corresponding SALDO MSD-tags.
+        swedberg: Word list from Swedberg and corresponding SALDO MSD-tags.
+        dalin: Word list from Dalin and corresponding SALDO MSD-tags.
         saldosuc_morphtable: SALDO Hunpos morphtable.
     """
     saldo_to_suc = tagmappings.mappings.saldo_to_suc
     saldo_to_suc["pm"] = {"PM.NOM"}
     saldo_to_suc["nl invar"] = {"NL.NOM"}
 
-    def _read_saldosuc(words, saldosuc_morphtable):
-        with open(saldosuc_morphtable, encoding="utf-8") as f:
+    def _read_saldosuc(words: dict, saldosuc_morphtable: Path) -> None:
+        with saldosuc_morphtable.open(encoding="utf-8") as f:
             for line in f:
                 xs = line.strip().split("\t")
                 words.setdefault(xs[0], set()).update(set(xs[1:]))
 
-    def _force_parse(msd):
+    def _force_parse(msd: str) -> set:
         # This is a modification of _make_saldo_to_suc in utils.tagsets.py
         params = msd.split()
 
@@ -64,7 +65,7 @@ def hist_morphtable(out: ModelOutput = ModelOutput("hunpos/hist/dalinm-swedberg_
             return new_suc
 
         paramstr = " ".join(tagmappings.mappings["saldo_params_to_suc"].get(prm, prm.upper()) for prm in params)
-        for (pre, post) in tagmappings._suc_tag_replacements:
+        for (pre, post) in tagmappings._suc_tag_replacements:  # noqa: B007
             m = re.match(pre, paramstr)
             if m:
                 break
@@ -97,19 +98,27 @@ def hist_morphtable(out: ModelOutput = ModelOutput("hunpos/hist/dalinm-swedberg_
                 if suc:
                     words.setdefault(word.lower(), set()).update(suc)
                     words.setdefault(word.title(), set()).update(suc)
-    with out.path.open(encoding="UTF-8", mode="w") as out:
+    with out.path.open(encoding="UTF-8", mode="w") as out_file:
         for w, ts in words.items():
             line = ("\t".join([w, *list(ts)]) + "\n")
-            out.write(line)
+            out_file.write(line)
 
 
-@modelbuilder("Swedberg wordlist", language=["swe-1800"])
-def download_swedberg_wordlist(out: ModelOutput = ModelOutput("hunpos/hist/swedberg-gender.hunpos")):
-    """Download Swedberg wordlist."""
+@modelbuilder("Swedberg word list", language=["swe-1800"])
+def download_swedberg_wordlist(out: ModelOutput = ModelOutput("hunpos/hist/swedberg-gender.hunpos")) -> None:
+    """Download Swedberg word list.
+
+    Args:
+        out: Output model file.
+    """
     out.download("https://github.com/spraakbanken/sparv-models/raw/master/hunpos/hist/swedberg-gender.hunpos")
 
 
-@modelbuilder("Dalin wordlist", language=["swe-1800"])
-def download_dalin_wordlist(out: ModelOutput = ModelOutput("hunpos/hist/dalinm.hunpos")):
-    """Download Dalin wordlist."""
+@modelbuilder("Dalin word list", language=["swe-1800"])
+def download_dalin_wordlist(out: ModelOutput = ModelOutput("hunpos/hist/dalinm.hunpos")) -> None:
+    """Download Dalin word list.
+
+    Args:
+        out: Output model file.
+    """
     out.download("https://github.com/spraakbanken/sparv-models/raw/master/hunpos/hist/dalinm.hunpos")
