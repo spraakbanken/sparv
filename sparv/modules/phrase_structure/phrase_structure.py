@@ -1,7 +1,7 @@
 """Module for converting Mamba-Dep dependencies to phrase structure trees."""
 
-import pprint
 from collections import defaultdict
+from typing import Optional, Union
 
 from sparv.api import Annotation, Output, annotator, get_logger
 
@@ -21,14 +21,25 @@ def annotate(out_phrase: Output = Output("phrase_structure.phrase", description=
              msd: Annotation = Annotation("<token:msd>"),
              ref: Annotation = Annotation("<token:ref>"),
              dephead_ref: Annotation = Annotation("<token:dephead_ref>"),
-             deprel: Annotation = Annotation("<token:deprel>")):
-    """Annotate sentence with phrase structures."""
+             deprel: Annotation = Annotation("<token:deprel>")) -> None:
+    """Annotate sentence with phrase structures.
+
+    Args:
+        out_phrase: Output annotation for phrase segments.
+        out_phrase_name: Output annotation for phrase names.
+        out_phrase_func: Output annotation for phrase functions.
+        token: Token annotation.
+        word: Word annotation.
+        sentence: Sentence annotation.
+        pos: POS annotation.
+        msd: MSD annotation.
+        ref: Token reference annotation.
+        dephead_ref: Dependency head reference annotation.
+        deprel: Dependency relation annotation.
+    """
     sentences, _orphans = sentence.get_children(word)
     token_annotations = list(ref.read_attributes([ref, word, pos, msd, dephead_ref, deprel]))
     token_spans = list(token.read_spans())
-
-    def get_token_span(index):
-        return token_spans[index]
 
     nodes = []
 
@@ -45,16 +56,15 @@ def annotate(out_phrase: Output = Output("phrase_structure.phrase", description=
         sen = Sentence(tokenlist)
         if not sen.is_cyclic():
             tree = convert_sentence(sen).top.to_tree_str()
-            # print(pprint.pformat(tree), file=sys.stderr)
 
             # Make nodes
-            children = flatten_tree(tree[1], [])
+            children = flatten_tree(tree[1])
             logger.debug("\n\nSENTENCE:")
             position = 0
             open_elem_stack = []
             for child in children:
                 if not child[0].startswith("WORD:"):
-                    start_pos = get_token_span(s[position])[0]
+                    start_pos = token_spans[s[position]][0]
                     open_elem_stack.append((*child, start_pos))
                     logger.debug(
                         "<phrase name=%s func=%s> %s",
@@ -66,7 +76,7 @@ def annotate(out_phrase: Output = Output("phrase_structure.phrase", description=
                     # Close nodes
                     while open_elem_stack[-1][2] == child[2]:
                         start_pos = open_elem_stack[-1][3]
-                        end_pos = get_token_span(s[position - 1])[1]
+                        end_pos = token_spans[s[position - 1]][1]
                         nodes.append(((start_pos, end_pos), open_elem_stack[-1][0], open_elem_stack[-1][1]))
                         logger.debug(
                             "</phrase name=%s func=%s> %d-%d",
@@ -80,7 +90,7 @@ def annotate(out_phrase: Output = Output("phrase_structure.phrase", description=
                     logger.debug("   %s", child[0][5:])
 
             # Close remaining open nodes
-            end_pos = get_token_span(s[-1])[1]
+            end_pos = token_spans[s[-1]][1]
             for elem in reversed(open_elem_stack):
                 start_pos = elem[3]
                 nodes.append(((start_pos, end_pos), elem[0], elem[1]))
@@ -101,44 +111,31 @@ def annotate(out_phrase: Output = Output("phrase_structure.phrase", description=
     out_phrase_func.write([i[2] for i in sorted_nodes])
 
 
-def log_output(f):
-    """Make a function write its input when called and output when finished.
+def flatten_tree(tree: list) -> list:
+    """Flatten a nested tree structure into a list of children.
 
-    >>> @log_output
-    ... def test(x, *ys, **kws):
-    ...     return kws.get("c",0)+sum(x*y for y in ys)
-    >>> test(2, 3, 4, c=1) == 1+2*3+2*4
-    test(2, 3, 4, {"c": 1})
-    test(2, 3, 4, {"c": 1}) = 15
-    True
+    Args:
+        tree: A nested list structure representing a tree.
+
+    Returns:
+        A flat list of children.
     """
-    def g(*args, **kws):
-        call = f.__name__ + pprint.pformat((*args, kws))
-        print(call)  # noqa: T201
-        res = f(*args, **kws)
-        print(call + " = " + pprint.pformat(res))  # noqa: T201
-        return res
-    return g
-
-
-# @log_output
-def flatten_tree(tree, children=[]):
-    """Flatten a nested tree structure into a list of children."""
+    children = []
     for child in tree:
         if has_children(child):
-            flatten_tree(child, children)
+            children.extend(flatten_tree(child))
         else:
             children.append(child)
     return children
 
 
-def has_children(elem):
-    """Check if elem has any child elements."""
-    if type(elem) is list:
+def has_children(elem: Union[list, tuple]) -> bool:
+    """Return True if elem has any child elements."""
+    if isinstance(elem, list):
         return True
     try:
         for child in elem:
-            if type(child) is list:
+            if isinstance(child, list):
                 return True
     except TypeError:
         return False
@@ -152,7 +149,8 @@ def has_children(elem):
 class Token:
     """Token containing a list of attributes."""
 
-    def __init__(self, t):
+    def __init__(self, t: Optional[tuple]) -> None:
+        """Initialize a token with attributes."""
         if t:
             self.word = t[1]
             self.pos = t[2]
@@ -161,28 +159,36 @@ class Token:
             self.position = int(self.ref)
             self.deprel = t[5]
             self.depheadid = t[4]
-            self.dephead = None
+            self.dephead: Optional[Token] = None
         else:
             self.ref = "0"
             self.position = 0
-            self.deprel = None
-            self.word = None
-            self.pos = None
-            self.msd = None
-            self.dephead = None
-        self.deps = []
+            self.deprel = ""
+            self.word = ""
+            self.pos = ""
+            self.msd = ""
+            self.dephead: Optional[Token] = None
+        self.deps: list[Token] = []
 
-    def get_deps_by_rel(self, r):
-        out = [n for n in self.deps if n.deprel == r]
-        return out
+    def get_deps_by_rel(self, r: str) -> list:
+        """Get dependencies with a specific relation.
 
-    def __str__(self):
+        Args:
+            r: The relation to filter by.
+
+        Returns:
+            A list of dependencies with the specified relation.
+        """
+        return [n for n in self.deps if n.deprel == r]
+
+    def __str__(self) -> str:
+        """Return a string representation of the token."""
         if self.position == 0:
             return "(ROOT)"
-        else:
-            return "WORD:" + self.word
+        return f"WORD:{self.word}"
 
-    def is_cyclic(self):
+    def is_cyclic(self) -> bool:
+        """Return True if the token has a cyclic dependency."""
         seen = {}
         n = self
         while n:
@@ -196,7 +202,8 @@ class Token:
 class Sentence:
     """Sentence containing a list of token objects."""
 
-    def __init__(self, token_list):
+    def __init__(self, token_list: list[Token]) -> None:
+        """Initialize a sentence with a list of tokens."""
         self.tokens = token_list
         table = {}
         for t in token_list:
@@ -209,23 +216,25 @@ class Sentence:
                     n.dephead = self.tokens[0]
                 n.dephead.deps.append(n)
 
-    def length(self):
+    def length(self) -> int:
+        """Return the number of tokens in the sentence."""
         return len(self.tokens)
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Return a string representation of the sentence."""
         return "(Sen: " + str(self.tokens) + ")"
 
-    def to_tree_str(self):
+    def to_tree_str(self) -> str:
+        """Return a string representation of the sentence in tree format."""
         return "\n".join([str(t) for t in self.tokens])
 
-    def words(self):
-        out = ""
-        for n in self.tokens:
-            if n.word:
-                out = out + n.word + " "
-        return out.strip()
+    def words(self) -> str:
+        """Return a string of words in the sentence."""
+        words = [n.word for n in self.tokens if n.word]
+        return " ".join(words)
 
-    def is_cyclic(self):
+    def is_cyclic(self) -> bool:
+        """Return True if the sentence has a cyclic dependency."""
         return any(n.is_cyclic() for n in self.tokens)
 
 ##############################################################################
@@ -235,88 +244,117 @@ class Sentence:
 class Terminal:
     """Class representing a terminal node of a phrase structure tree."""
 
-    def __init__(self, fun, t):
+    def __init__(self, fun: str, token: Token) -> None:
+        """Initialize a terminal node with a function and token."""
         self.fun = fun
-        self.t = t
+        self.t = token
         self.start = self.t.position
         self.end = self.start + 1
         self.label = self.t.pos
-        self.parent = None
+        self.parent: Optional[Union[Nonterminal, Terminal]] = None
 
-    def head_position(self):
+    def head_position(self) -> int:
+        """Return the position of the token."""
         return self.t.position
 
-    def to_tree_str(self, n=0):
+    def to_tree_str(self, n: int = 0) -> tuple:
+        """Return a tuple representation of the terminal node in tree format."""
         return str(self.t), str(self.fun), n
 
-    def to_word_str(self):
+    def to_word_str(self) -> str:
+        """Return the word representation of the terminal node."""
         if self.t.pos == "PM":
             return self.t.word
-        else:
-            return self.t.word.lower()
+        return self.t.word.lower()
 
     @staticmethod
-    def length():
+    def length() -> int:
+        """Return the length of the terminal node (always 1)."""
         return 1
 
-    def is_punctuation(self):
+    def is_punctuation(self) -> bool:
+        """Check if the token is a punctuation.
+
+        Returns:
+            True if the token is a punctuation, False otherwise.
+        """
         return self.t.pos in {"MAD", "MID", "PAD"}
 
-    def is_name(self):
+    def is_name(self) -> bool:
+        """Check if the token is a name.
+
+        Returns:
+            True if the token is a name, False otherwise.
+        """
         return self.t.pos == "PM"
 
-    def add_starts(self, starts):
+    def add_starts(self, starts: dict) -> None:
+        """Add the terminal node to the starts dictionary."""
         starts[self.start].append(self)
 
-    def set_parents(self):
-        pass
+    def set_parents(self) -> None:
+        """Set the parent of the terminal node (does nothing)."""
 
 
 class Nonterminal:
     """Class representing a non-terminal node of a phrase structure tree."""
 
-    def __init__(self, label, fun, headchild, children):
+    def __init__(
+        self,
+        label: str,
+        fun: str,
+        headchild: Union["Nonterminal", Terminal],
+        children: list[Union["Nonterminal", Terminal]],
+    ) -> None:
+        """Initialize a non-terminal node."""
         self.label = label
         self.fun = fun
         self.headchild = headchild
         self.children = children
         self.start = min(c.start for c in self.children)
         self.end = max(c.end for c in self.children)
-        self.parent = None
+        self.parent: Optional[Union[Nonterminal, Terminal]] = None
 
-    def head_position(self):
+    def head_position(self) -> int:
+        """Return the position of the head child."""
         return self.headchild.head_position()
 
-    def to_tree_str(self, n=0):
+    def to_tree_str(self, n: int = 0) -> list:
+        """Return a representation of the non-terminal node and its children."""
         parent = (str(self.label), str(self.fun), n)
-        children = [parent] + [c.to_tree_str(n + 2) for c in self.children]
-        return children
+        return [parent] + [c.to_tree_str(n + 2) for c in self.children]
 
-    def to_word_str(self):
+    def to_word_str(self) -> str:
+        """Return a string representation of the non-terminal node and its children."""
         wordlist = [c.to_word_str() for c in self.children]
         return " ".join(wordlist)
 
-    def length(self):
+    def length(self) -> int:
+        """Return the length of the non-terminal node (sum of lengths of children)."""
         out = 0
         for c in self.children:
             out += c.length()
         return out
 
-    def is_punctuation(self):
+    def is_punctuation(self) -> bool:
+        """Return True if the non-terminal node has only one child and that child is a punctuation."""
         if len(self.children) > 1:
             return False
         return self.children[0].is_punctuation()
 
     @staticmethod
-    def is_name():
+    def is_name() -> bool:
+        """Return False as non-terminal nodes are not names."""
         return False
 
-    def add_starts(self, starts):
+    def add_starts(self, starts: dict) -> None:
+        """Add the non-terminal node to the starts dictionary."""
         starts[self.start].append(self)
         for c in self.children:
             c.add_starts(starts)
 
-    def set_parents(self):
+    def set_parents(self) -> None:
+        """Set the parent of the non-terminal node for all children recursively."""
         for c in self.children:
             c.parent = self
             c.set_parents()
@@ -325,70 +363,86 @@ class Nonterminal:
 class PSTree:
     """Class representing a phrase structure tree."""
 
-    def __init__(self, top):
+    def __init__(self, top: Nonterminal) -> None:
+        """Initialize a phrase structure tree with a top node."""
         self.top = top
         self.starts = defaultdict(list)
         self.top.add_starts(self.starts)
         self.top.set_parents()
 
-    def length(self):
+    def length(self) -> int:
+        """Return the length of the phrase structure tree."""
         return self.top.length()
 
-    def to_tree_str(self):
+    def to_tree_str(self) -> list:
+        """Return a representation of the phrase structure tree."""
         return self.top.to_tree_str()
 
 
-def convert_sentence(sen):
-    """Do a recursive analysis of sen.
+def convert_sentence(sentence: Sentence) -> PSTree:
+    """Do a recursive analysis of a sentence.
 
-    Return a PSTree object (phrase structure tree) if the analysis was successful.
+    Args:
+        sentence: A Sentence object containing a list of tokens.
+
+    Returns:
+        A phrase structure tree object representing the sentence.
     """
-    return PSTree(convert(sen.tokens[0]))
+    return PSTree(convert(sentence.tokens[0]))
 
 
-def convert(token):
-    """Recursively analyse the phrase structure of token."""
+def convert(token: Token) -> Union[Nonterminal, Terminal]:
+    """Recursively analyse the phrase structure of token.
+
+    Args:
+        token: A Token object to analyse (including its dependencies).
+
+    Returns:
+        A Nonterminal or Terminal object representing the phrase structure.
+    """
     children = [convert(c) for c in token.deps]
 
-    def nonterminal(label):
+    def nonterminal(label: str) -> Nonterminal:
+        """Return a non-terminal node with the given label."""
         head = Terminal("HEAD", token)
         _add_head(children, head)
         return Nonterminal(label, token.deprel, head, children)
+
     if token.position == 0:
-        return Nonterminal("ROOT", "ROOT", token, children)
-    elif token.deprel == "HD":
+        return Nonterminal("ROOT", "ROOT", None, children)
+    if token.deprel == "HD":
         return Terminal(token.deprel, token)
-    elif token.pos in {"KN", "MID"}:
+    if token.pos in {"KN", "MID"}:
         if children:
             lbl = _get_coord_label(children)
             return nonterminal(lbl)
-        else:
+        else:  # noqa: RET505
             return Terminal(token.deprel, token)
-    elif token.pos in {"NN", "PN", "PM"}:
+    if token.pos in {"NN", "PN", "PM"}:
         if _starts_with_wh(token):
             # "vars mamma" etc
             return nonterminal("NP-wh")
-        else:
+        else:  # noqa: RET505
             return nonterminal("NP")
-    elif token.pos == "PP":
+    if token.pos == "PP":
         if len(children) == 0:
             return Terminal(token.deprel, token)
         if any(c.fun == "UA" for c in children):
             return nonterminal("SBAR")
-        elif _wh_after_prep(token):
+        if _wh_after_prep(token):
             # "i vilken" etc
             return nonterminal("PrP-wh")
-        else:
+        else:  # noqa: RET505
             return nonterminal("PrP")
-    elif token.pos == "SN":
+    if token.pos == "SN":
         if len(children) > 0:
             return nonterminal("SBAR")
-        else:
+        else:  # noqa: RET505
             return Terminal(token.deprel, token)
-    elif token.pos == "VB":
+    if token.pos == "VB":
         if _has_subject(token):
             if _starts_with_wh(token):
-                if _is_attributive_subclause(token):
+                if _is_attributive_subclause(token):  # noqa: SIM108
                     label = "S-wh"
                 else:
                     # too unreliable...
@@ -408,7 +462,7 @@ def convert(token):
             else:
                 label = "VP-fin"
         return nonterminal(label)
-    elif token.pos == "IE":
+    if token.pos == "IE":
         vbc = _find_first_by_pos(token.deps, "VB")
         if vbc:
             ds2 = token.deps + vbc.deps
@@ -419,7 +473,7 @@ def convert(token):
             head = Terminal("HEAD", vbc)
             _add_head(children, head)
             return Nonterminal("VP-att", token.deprel, head, children)
-        elif children:
+        elif children:  # noqa: RET505
             return nonterminal("XX")
         else:
             return Terminal(token.deprel, token)
@@ -443,7 +497,13 @@ def convert(token):
 # Auxiliaries used by convert
 ################################################################################
 
-def _add_head(in_list, h):
+def _add_head(in_list: list[Union[Terminal, Nonterminal]], h: Terminal) -> None:
+    """Add a head to the list of children based on its head position.
+
+    Args:
+        in_list: A list of children (Terminal or Nonterminal).
+        h: The head to be added.
+    """
     hp = h.head_position()
     for ix in range(len(in_list)):
         if hp < in_list[ix].head_position():
@@ -452,7 +512,15 @@ def _add_head(in_list, h):
     in_list.append(h)
 
 
-def _get_coord_label(in_list):
+def _get_coord_label(in_list: list[Union[Terminal, Nonterminal]]) -> str:
+    """Get the label for a coordinate structure.
+
+    Args:
+        in_list: A list of children (Terminal or Nonterminal).
+
+    Returns:
+        The label for the coordinate structure.
+    """
     for c in in_list:
         if isinstance(c, Nonterminal) and c.fun == "CJ":
             return c.label
@@ -462,7 +530,8 @@ def _get_coord_label(in_list):
     return "XX"
 
 
-def _has_subject(token):
+def _has_subject(token: Token) -> bool:
+    """Return True if the token has a subject."""
     return any(c.deprel in {"SS", "ES", "FS"} and c.pos != "IE" for c in token.deps)
 
 
@@ -470,14 +539,24 @@ def _has_subject(token):
 #     return ("PRS" in token.msd) or ("PRT" in token.msd)
 
 
-def _find_first_by_pos(deps, pos):
+def _find_first_by_pos(deps: list[Token], pos: str) -> Optional[Token]:
+    """Find the first Token in a list of dependencies with a specific POS tag.
+
+    Args:
+        deps: A list of Token objects.
+        pos: The POS tag to search for.
+
+    Returns:
+        The first dependency with the specified POS tag, or None if not found.
+    """
     for d in deps:
         if d.pos == pos:
             return d
     return None
 
 
-def _starts_with_wh(token):
+def _starts_with_wh(token: Token) -> bool:
+    """Return True if the token has a dependent which is interrogative and comes before it."""
     for c in token.deps:
         if (c.position < token.position) and (c.pos[0] == "H"):
             return True
@@ -486,17 +565,25 @@ def _starts_with_wh(token):
     return False
 
 
-def _is_attributive_subclause(token):
-    # we try to detect attributive subordinate clauses even though
-    # they are often inconsistently handled by MaltParser...
+def _is_attributive_subclause(token: Token) -> bool:
+    """Check if the token is part of an attributive subordinate clause.
+
+    We try to detect attributive subordinate clauses even though they are often inconsistently handled by MaltParser.
+
+    Args:
+        token: A Token object to check.
+
+    Returns:
+        True if the token is part of an attributive subordinate clause, False otherwise.
+    """
     if token.deprel == "ET":
         return True
     return any(c.pos[0] == "H" and c.word.lower() == "som" for c in token.deps)
 
 
-def _wh_after_prep(token):
+def _wh_after_prep(token: Token) -> bool:
     return any(c.pos == "HP" and c.position > token.position and len(c.deps) == 0 for c in token.deps)
 
 
-def _sort_by_head_pos(in_list):
+def _sort_by_head_pos(in_list: list) -> None:
     in_list.sort(key=lambda x: x.head_position())
