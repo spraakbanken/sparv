@@ -128,10 +128,14 @@ def run(sparv_datadir: str | None = None) -> bool:
                     f"[b red]NOTE:[/b red] Sparv's data directory is currently set to '{current_dir}' using the "
                     f"environment variable '{paths.data_dir_env}'. This variable takes precedence over any previous "
                     f"path set using this setup process. To change the path, either edit the environment variable, or "
-                    f"delete the variable and rerun the setup command.\n",
+                    f"delete the variable and rerun the setup command.\n\n",
                     width=80,
                 )
-                cont = Confirm.ask("Do you want to continue the setup process using the above path?")
+                cont = Confirm.ask(
+                    "Do you want to continue the setup process using the above path? (This will not change the data "
+                    "directory setting, only setup the contents of the directory specified by the environment "
+                    "variable.)",
+                )
             except KeyboardInterrupt:
                 console.print("\nSetup interrupted.")
                 return False
