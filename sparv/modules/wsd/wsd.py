@@ -1,6 +1,8 @@
 """Word sense disambiguation based on SALDO annotation."""
 
 import re
+import subprocess
+from pathlib import Path
 
 from sparv.api import (
     Annotation,
@@ -46,7 +48,7 @@ def annotate(wsdjar: Binary = Binary("[wsd.jar]"),
              prob_format: str = Config("wsd.prob_format"),
              default_prob: float = Config("wsd.default_prob"),
              source_file: SourceFilename = SourceFilename(),
-             encoding: str = util.constants.UTF8):
+             encoding: str = util.constants.UTF8) -> None:
     """Run the word sense disambiguation tool (saldowsd.jar) to add probabilities to the saldo annotation.
 
     Unanalyzed senses (e.g. multiword expressions) receive the probability value given by default_prob.
@@ -84,8 +86,8 @@ def annotate(wsdjar: Binary = Binary("[wsd.jar]"),
 
     stdout, stderr = process.communicate(stdin)
     # TODO: Solve hack line below!
-    # Problem is that regular messages "Reading sense vectors.." are also piped to stderr.
-    if len(stderr) > 52:
+    # Problem is that regular messages "Reading sense vectors..." are also piped to stderr.
+    if len(stderr) > 52:  # noqa: PLR2004
         util.system.kill_process(process)
         logger.error(str(stderr))
         return
@@ -102,7 +104,7 @@ def annotate(wsdjar: Binary = Binary("[wsd.jar]"),
 
 @modelbuilder("WSD models", language=["swe"])
 def build_model(sense_model: ModelOutput = ModelOutput("wsd/ALL_512_128_w10_A2_140403_ctx1.bin"),
-                context_model: ModelOutput = ModelOutput("wsd/lem_cbow0_s512_w10_NEW2_ctx.bin")):
+                context_model: ModelOutput = ModelOutput("wsd/lem_cbow0_s512_w10_NEW2_ctx.bin")) -> None:
     """Download models for SALDO-based word sense disambiguation."""
     # Download sense model
     sense_model.download(
@@ -113,8 +115,18 @@ def build_model(sense_model: ModelOutput = ModelOutput("wsd/ALL_512_128_w10_A2_1
         "https://github.com/spraakbanken/sparv-wsd/raw/master/models/scouse/lem_cbow0_s512_w10_NEW2_ctx.bin")
 
 
-def wsd_start(wsdjar, sense_model, context_model, encoding):
-    """Start a wsd process and return it."""
+def wsd_start(wsdjar: Binary, sense_model: Path, context_model: Path, encoding: str) -> subprocess.Popen:
+    """Start a wsd process and return it.
+
+    Args:
+        wsdjar: Path to the JAR file.
+        sense_model: Path to the sense model.
+        context_model: Path to the context model.
+        encoding: Encoding for the process.
+
+    Returns:
+        The started process.
+    """
     java_opts = ["-Xmx6G"]
     wsd_args = [("-appName", "se.gu.spraakbanken.wsd.VectorWSD"),
                 ("-format", "tab"),
@@ -128,8 +140,29 @@ def wsd_start(wsdjar, sense_model, context_model, encoding):
     return util.system.call_java(wsdjar, wsd_args, options=java_opts, encoding=encoding, return_command=True)
 
 
-def build_input(sentences, word_annotation, ref_annotation, lemgram_annotation, saldo_annotation, pos_annotation, source_file):
-    """Construct tab-separated input for WSD."""
+def build_input(
+    sentences: list,
+    word_annotation: list[str],
+    ref_annotation: list[str],
+    lemgram_annotation: list[str],
+    saldo_annotation: list[str],
+    pos_annotation: list[str],
+    source_file: SourceFilename,
+) -> str:
+    """Construct tab-separated input for WSD.
+
+    Args:
+        sentences: List of sentences.
+        word_annotation: Word annotation.
+        ref_annotation: Reference annotation.
+        lemgram_annotation: Lemgram annotation.
+        saldo_annotation: SALDO annotation.
+        pos_annotation: Part-of-speech annotation.
+        source_file: Source filename.
+
+    Returns:
+        Tab-separated input for WSD.
+    """
     rows = []
     for sentence in sentences:
         for token_index in sentence:
@@ -160,7 +193,15 @@ def build_input(sentences, word_annotation, ref_annotation, lemgram_annotation, 
     return "\n".join(rows)
 
 
-def process_output(word: Annotation, out: Output, stdout, in_sentences, saldo_annotation, prob_format, default_prob):
+def process_output(
+    word: Annotation,
+    out: Output,
+    stdout: str,
+    in_sentences: list,
+    saldo_annotation: list[str],
+    prob_format: str,
+    default_prob: float,
+) -> None:
     """Parse WSD output and write annotation."""
     out_annotation = word.create_empty_attribute()
 
@@ -198,8 +239,17 @@ def process_output(word: Annotation, out: Output, stdout, in_sentences, saldo_an
     out.write(out_annotation)
 
 
-def make_lemgram(lemgram, word, pos):
-    """Construct lemgram and simple_lemgram format."""
+def make_lemgram(lemgram: str, word: str, pos: str) -> tuple[str, str]:
+    """Construct lemgram and simple_lemgram format.
+
+    Args:
+        lemgram: Lemgram annotation.
+        word: Word annotation.
+        pos: Part-of-speech annotation.
+
+    Returns:
+        A tuple containing the lemgram and simple_lemgram.
+    """
     lemgram = lemgram.strip(util.constants.AFFIX) if lemgram != util.constants.AFFIX else "_"
     simple_lemgram = util.constants.DELIM.join({lem[:lem.rfind(".")] for lem in lemgram.split(util.constants.DELIM)})
 
@@ -209,11 +259,15 @@ def make_lemgram(lemgram, word, pos):
     return lemgram, simple_lemgram
 
 
-def remove_mwe(annotation):
-    """For MWEs: strip unnecessary information."""
+def remove_mwe(annotation: str) -> str:
+    """Strip unnecessary information from multi word expressions.
+
+    Args:
+        annotation: Annotation string.
+
+    Returns:
+        A cleaned annotation string.
+    """
     annotation = annotation.split(util.constants.DELIM)
     annotation = [i for i in annotation if "_" not in i]
-    if annotation:
-        return util.constants.DELIM.join(annotation)
-    else:
-        return "_"
+    return util.constants.DELIM.join(annotation) if annotation else "_"
