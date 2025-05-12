@@ -2,7 +2,7 @@
 
 import operator
 import re
-from typing import Optional
+from typing import Optional, Union
 
 from sparv.api import Annotation, Config, Output, SourceFilename, SparvErrorMessage, Text, Wildcard, annotator, util
 from sparv.api.util.tagsets import pos_to_upos, suc_to_feats, tagmappings
@@ -15,8 +15,15 @@ from sparv.api.util.tagsets import pos_to_upos, suc_to_feats, tagmappings
 def text_spans(text: Text = Text(),
                chunk: Annotation = Annotation("<token>"),
                out: Output = Output("<token>:misc.word", cls="token:word", description="Text content of every token"),
-               keep_formatting_chars: Optional[bool] = Config("misc.keep_formatting_chars")):
-    """Add the text content for each edge as a new annotation."""
+               keep_formatting_chars: Optional[bool] = Config("misc.keep_formatting_chars")) -> None:
+    """Add the text content for each token span as a new annotation.
+
+    Args:
+        text: Text content of source file.
+        chunk: Annotation with spans.
+        out: Output annotation for text content.
+        keep_formatting_chars: If True, keep formatting characters (e.g. soft hyphens) in the output.
+    """
     corpus_text = text.read()
     if isinstance(chunk, (str, Annotation)):
         chunk = chunk.read_spans()
@@ -45,14 +52,24 @@ def text_spans(text: Text = Text(),
     Config("misc.head_tail_max_length",
            description="Truncate misc.head and misc.tail to this number of characters.",
            datatype=int)])
-def text_headtail(text: Text = Text(),
-                  chunk: Annotation = Annotation("<token>"),
-                  out_head: Output = Output("<token>:misc.head", description="Whitespace characters preceding every token"),
-                  out_tail: Output = Output("<token>:misc.tail", description="Whitespace characters following every token"),
-                  truncate_after: Optional[int] = Config("misc.head_tail_max_length")) -> None:
-    """Extract "head" and "tail" whitespace characters for tokens."""
+def text_headtail(
+    text: Text = Text(),
+    chunk: Annotation = Annotation("<token>"),
+    out_head: Output = Output("<token>:misc.head", description="Whitespace characters preceding every token"),
+    out_tail: Output = Output("<token>:misc.tail", description="Whitespace characters following every token"),
+    truncate_after: Optional[int] = Config("misc.head_tail_max_length"),
+) -> None:
+    """Extract "head" and "tail" whitespace characters for tokens.
+
+    Args:
+        text: Text content of source file.
+        chunk: Annotation with spans.
+        out_head: Output annotation for whitespace characters preceding every token.
+        out_tail: Output annotation for whitespace characters following every token.
+        truncate_after: Truncate the output to this number of characters.
+    """
     def escape(t: str) -> str:
-        """Escape whitespace characters."""
+        """Return a string with whitespace characters escaped."""
         return t.replace(" ", "\\s").replace("\n", "\\n").replace("\t", "\\t")
 
     out_head_annotation = chunk.create_empty_attribute()
@@ -133,10 +150,15 @@ def fake_text_headtail(
 @annotator("Convert part-of-speech tags, specified by the mapping")
 def translate_tag(out: Output,
                   tag: Annotation,
-                  mapping: dict = {}):
+                  mapping: Union[dict, str]) -> None:
     """Convert part-of-speech tags, specified by the mapping.
 
     Example mappings: parole_to_suc, suc_to_simple, ...
+
+    Args:
+        out: Output annotation.
+        tag: Input annotation with part-of-speech tags.
+        mapping: Mapping to use for conversion. If a string is given, it will be looked up in tagmappings.mappings.
     """
     if isinstance(mapping, str):
         mapping = tagmappings.mappings[mapping]
@@ -145,8 +167,13 @@ def translate_tag(out: Output,
 
 @annotator("Convert SUC POS tags to UPOS", language=["swe"])
 def upostag(out: Output = Output("<token>:misc.upos", cls="token:upos", description="Part-of-speeches in UD"),
-            pos: Annotation = Annotation("<token:pos>")):
-    """Convert SUC POS tags to UPOS."""
+            pos: Annotation = Annotation("<token:pos>")) -> None:
+    """Convert SUC POS tags to UPOS.
+
+    Args:
+        out: Output annotation.
+        pos: Input annotation with SUC POS tags.
+    """
     pos_tags = pos.read()
     out_annotation = [pos_to_upos(tag, "swe", "SUC") for tag in pos_tags]
     out.write(out_annotation)
@@ -156,8 +183,14 @@ def upostag(out: Output = Output("<token>:misc.upos", cls="token:upos", descript
 def ufeatstag(out: Output = Output("<token>:misc.ufeats", cls="token:ufeats",
                                    description="Universal morphological features"),
               pos: Annotation = Annotation("<token:pos>"),
-              msd: Annotation = Annotation("<token:msd>")):
-    """Convert SUC MSD tags to universal features."""
+              msd: Annotation = Annotation("<token:msd>")) -> None:
+    """Convert SUC MSD tags to universal features.
+
+    Args:
+        out: Output annotation.
+        pos: Input annotation with SUC POS tags.
+        msd: Input annotation with SUC MSD tags.
+    """
     pos_tags = pos.read()
     msd_tags = msd.read()
     out_annotation = []
@@ -176,8 +209,14 @@ def ufeatstag(out: Output = Output("<token>:misc.ufeats", cls="token:ufeats",
 def struct_to_token(attr: Annotation = Annotation("{struct}:{attr}"),
                     token: Annotation = Annotation("<token>"),
                     out: Output = Output("<token>:misc.from_struct_{struct}_{attr}",
-                                         description="Token attribute based on {struct}:{attr}")):
-    """Convert an attribute on a structural annotation into a token attribute."""
+                                         description="Token attribute based on {struct}:{attr}")) -> None:
+    """Convert an attribute on a structural annotation into a token attribute.
+
+    Args:
+        attr: Structural annotation with the attribute to convert.
+        token: Token annotation.
+        out: Output annotation for the token attribute.
+    """
     token_parents = token.get_parents(attr)
     attr_values = list(attr.read())
     out_values = [attr_values[p] if p is not None else "" for p in token_parents]
@@ -192,8 +231,14 @@ def struct_to_token(attr: Annotation = Annotation("{struct}:{attr}"),
 def inherit(parent: Annotation = Annotation("{parent}:{attr}"),
             child: Annotation = Annotation("{child}"),
             out: Output = Output("{child}:misc.inherit_{parent}_{attr}",
-                                 description="Attribute on {child} inherited from {parent}:{attr}")):
-    """Inherit attribute from a structural parent annotation to a child."""
+                                 description="Attribute on {child} inherited from {parent}:{attr}")) -> None:
+    """Inherit attribute from a structural parent annotation to a child.
+
+    Args:
+        parent: Structural parent annotation with the attribute to inherit.
+        child: Child annotation.
+        out: Output attribute for the child annotation, with the inherited values.
+    """
     child_parents = child.get_parents(parent)
     attr_values = list(parent.read())
     out_values = [attr_values[p] if p is not None else "" for p in child_parents]
@@ -201,7 +246,7 @@ def inherit(parent: Annotation = Annotation("{parent}:{attr}"),
 
 
 # TODO: Do we still need this? struct_to_token probably mostly replaces it
-def chain(out, annotations, default=None):
+def chain(out, annotations, default=None):  # noqa
     """Create a functional composition of a list of annotations.
 
     E.g., token.sentence + sentence.id -> token.sentence-id
@@ -214,8 +259,13 @@ def chain(out, annotations, default=None):
 
 @annotator("Create new annotation, with spans as values")
 def span_as_value(chunk: Annotation,
-                  out: Output):
-    """Create new annotation, with spans as values."""
+                  out: Output) -> None:
+    """Create new annotation, with spans as values.
+
+    Args:
+        chunk: Annotation with spans.
+        out: Output annotation with spans as values.
+    """
     out.write((f"{start}-{end}" for start, end in chunk.read_spans()))
 
 
@@ -223,11 +273,16 @@ def span_as_value(chunk: Annotation,
 def select(out: Output,
            annotation: Annotation,
            index: int = 0,
-           separator: str = " "):
+           separator: str = " ") -> None:
     """Select a specific index from the values of an annotation.
 
-    The given annotation values are separated by 'separator',
-    by default whitespace, with at least index + 1 elements.
+    The given annotation values are separated by 'separator', by default whitespace, with at least index + 1 elements.
+
+    Args:
+        out: Output annotation.
+        annotation: Input annotation with values.
+        index: Index to select from the values of the annotation.
+        separator: Separator used to split the values of the annotation.
     """
     if isinstance(index, str):
         index = int(index)
@@ -237,8 +292,14 @@ def select(out: Output,
 @annotator("Create an annotation with a constant value")
 def constant(chunk: Annotation,
              out: Output,
-             value: str = ""):
-    """Create an annotation with a constant value."""
+             value: str = "") -> None:
+    """Create an annotation with a constant value.
+
+    Args:
+        chunk: Input annotation.
+        out: Output annotation.
+        value: Constant value to use.
+    """
     out.write(value for _ in chunk.read())
 
 
@@ -246,16 +307,29 @@ def constant(chunk: Annotation,
 def affix(chunk: Annotation,
           out: Output,
           prefix: str = "",
-          suffix: str = ""):
-    """Add prefix and/or suffix to annotation."""
+          suffix: str = "") -> None:
+    """Add prefix and/or suffix to annotation.
+
+    Args:
+        chunk: Input annotation.
+        out: Output annotation.
+        prefix: Prefix to add to the annotation values.
+        suffix: Suffix to add to the annotation values.
+    """
     out.write([(prefix + val + suffix) for val in chunk.read()])
 
 
 @annotator("Replace every character in an annotation with an anonymous character")
 def anonymise(chunk: Annotation,
               out: Output,
-              anonym_char: str = "*"):
-    """Replace every character in an annotation with an anonymous character (* per default)."""
+              anonym_char: str = "*") -> None:
+    """Replace every character in an annotation with an anonymous character (* per default).
+
+    Args:
+        chunk: Input annotation.
+        out: Output annotation.
+        anonym_char: Character to use for anonymisation.
+    """
     out.write([(anonym_char * len(val)) for val in chunk.read()])
 
 
@@ -263,8 +337,15 @@ def anonymise(chunk: Annotation,
 def replace(chunk: Annotation,
             out: Output,
             find: str = "",
-            sub: str = ""):
-    """Find and replace whole annotation. Find string must match whole annotation."""
+            sub: str = "") -> None:
+    """Find and replace whole annotation. Find string must match whole annotation.
+
+    Args:
+        chunk: Input annotation.
+        out: Output annotation.
+        find: String to find in the annotation values.
+        sub: Replacement string.
+    """
     out.write(sub if val == find else val for val in chunk.read())
 
 
@@ -272,11 +353,20 @@ def replace(chunk: Annotation,
 def replace_list(chunk: Annotation,
                  out: Output,
                  find: str = "",
-                 sub: str = ""):
+                 sub: str = "") -> None:
     """Find and replace annotations.
 
     Find string must match whole annotation.
-    find and sub are whitespace separated lists of words to replace and their replacement.
+    `find` and `sub` are whitespace separated lists of words to replace and their replacement.
+
+    Args:
+        chunk: Input annotation.
+        out: Output annotation.
+        find: String to find in the annotation values. Can be a list of words separated by whitespace.
+        sub: Replacement string. Can be a list of words separated by whitespace.
+
+    Raises:
+        SparvErrorMessage: If the number of words in `find` and `sub` do not match.
     """
     find = find.split()
     sub = sub.split()
@@ -290,8 +380,15 @@ def replace_list(chunk: Annotation,
 def find_replace(chunk: Annotation,
                  out: Output,
                  find: str = "",
-                 sub: str = ""):
-    """Find and replace parts of or whole annotation."""
+                 sub: str = "") -> None:
+    """Find and replace parts of or whole annotation.
+
+    Args:
+        chunk: Input annotation.
+        out: Output annotation.
+        find: String to find in the annotation values.
+        sub: Replacement string.
+    """
     out.write(val.replace(find, sub) for val in chunk.read())
 
 
@@ -299,10 +396,16 @@ def find_replace(chunk: Annotation,
 def find_replace_regex(chunk: Annotation,
                        out: Output,
                        find: str = "",
-                       sub: str = ""):
+                       sub: str = "") -> None:
     """Do find and replace in values of annotation using a regular expressions.
 
     N.B: When writing regular expressions in YAML they should be enclosed in single quotes.
+
+    Args:
+        chunk: Input annotation.
+        out: Output annotation.
+        find: Regular expression to find in the annotation values.
+        sub: Replacement string.
     """
     out.write(re.sub(find, sub, val) for val in chunk.read())
 
@@ -312,10 +415,15 @@ def concat(out: Output,
            left: Annotation,
            right: Annotation,
            separator: str = "",
-           merge_twins: bool = False):
+           merge_twins: bool = False) -> None:
     """Concatenate values from two annotations, with an optional separator.
 
-    If merge_twins is set to True, no concatenation will be done on identical values.
+    Args:
+        out: Output annotation.
+        left: Left annotation.
+        right: Right annotation.
+        separator: Separator to use between the values of the two annotations.
+        merge_twins: If True, no concatenation will be performed if the values are the same.
     """
     b = list(right.read())
     out.write(
@@ -327,8 +435,14 @@ def concat(out: Output,
 @annotator("Concatenate two or more annotations, with an optional separator")
 def concat2(out: Output,
             annotations: list[Annotation],
-            separator: str = ""):
-    """Concatenate two or more annotations, with an optional separator."""
+            separator: str = "") -> None:
+    """Concatenate two or more annotations, with an optional separator.
+
+    Args:
+        out: Output annotation.
+        annotations: List of annotations to concatenate.
+        separator: Separator to use between the values of the annotations.
+    """
     annotations = [list(a.read()) for a in annotations]
     out.write([separator.join([a[n] for a in annotations]) for (n, _) in enumerate(annotations[0])])
 
@@ -336,9 +450,14 @@ def concat2(out: Output,
 @annotator("Replace empty values in 'chunk' with values from 'backoff'")
 def backoff(chunk: Annotation,
             backoff: Annotation,
-            out: Output):
-    """Replace empty values in 'chunk' with values from 'backoff'."""
-    # Function was called 'merge' before.
+            out: Output) -> None:
+    """Replace empty values in 'chunk' with values from 'backoff'.
+
+    Args:
+        chunk: Input annotation.
+        backoff: Annotation with values to use as backoff.
+        out: Output annotation.
+    """
     backoff = list(backoff.read())
     out.write(val or backoff[n] for (n, val) in enumerate(chunk.read()))
 
@@ -351,8 +470,17 @@ def backoff_with_info(
         out: Output,
         out_info: Output,
         chunk_name: str = "",
-        backoff_name: str = ""):
-    """Replace empty values in 'chunk' with values from 'backoff'."""
+        backoff_name: str = "") -> None:
+    """Replace empty values in 'chunk' with values from 'backoff'.
+
+    Args:
+        chunk: Input annotation.
+        backoff: Annotation with values to use as backoff.
+        out: Output annotation.
+        out_info: Output annotation with info about which annotator each annotation was produced with.
+        chunk_name: Name of the chunk annotation.
+        backoff_name: Name of the backoff annotation.
+    """
     backoffs = list(backoff.read())
     out_annotation = []
     out_info_annotation = []
@@ -375,9 +503,15 @@ def backoff_with_info(
 @annotator("Replace values in 'chunk' with non empty values from 'repl'")
 def override(chunk: Annotation,
              repl: Annotation,
-             out: Output):
-    """Replace values in 'chunk' with non-empty values from 'repl'."""
-    def empty(val):
+             out: Output) -> None:
+    """Replace values in 'chunk' with non-empty values from 'repl'.
+
+    Args:
+        chunk: Input annotation.
+        repl: Annotation with values to use as replacements.
+        out: Output annotation.
+    """
+    def empty(val: str) -> bool:
         if not val:
             return True
         return val == "|"
@@ -389,8 +523,14 @@ def override(chunk: Annotation,
 @annotator("Round floats to the given number of decimals")
 def roundfloat(chunk: Annotation,
                out: Output,
-               decimals: int = 2):
-    """Round floats to the given number of decimals."""
+               decimals: int = 2) -> None:
+    """Round floats to the given number of decimals.
+
+    Args:
+        chunk: Input annotation.
+        out: Output annotation.
+        decimals: Number of decimals to round to.
+    """
     decimals = int(decimals)
     strformat = "%." + str(decimals) + "f"
     out.write(strformat % round(float(val), decimals) for val in chunk.read())
@@ -401,11 +541,15 @@ def merge_to_set(out: Output,
                  left: Annotation,
                  right: Annotation,
                  unique: bool = True,
-                 sort: bool = True):
+                 sort: bool = True) -> None:
     """Merge two sets of annotations (which may be sets) into one set.
 
-    Setting unique to True will remove duplicate values.
-    Setting sort to True will sort the values within the new set.
+    Args:
+        out: Output annotation.
+        left: Left annotation.
+        right: Right annotation.
+        unique: If True, remove duplicate values.
+        sort: If True, sort the values within the new set.
     """
     le = left.read()
     ri = right.read()
@@ -421,15 +565,26 @@ def merge_to_set(out: Output,
 @annotator("Source filename as attribute on text annotation")
 def source(out: Output = Output("<text>:misc.source", description="Source filename"),
            name: SourceFilename = SourceFilename(),
-           text: Annotation = Annotation("<text>")):
-    """Create a text attribute based on the filename of the source file."""
+           text: Annotation = Annotation("<text>")) -> None:
+    """Create a text attribute based on the filename of the source file.
+
+    Args:
+        out: Output annotation.
+        name: Source filename.
+        text: Text annotation.
+    """
     out.write(name for _ in text.read())
 
 
 @annotator("Get the first annotation from a cwb set")
 def first_from_set(out: Output,
-                   chunk: Annotation):
-    """Get the first annotation from a set."""
+                   chunk: Annotation) -> None:
+    """Get the first annotation from a set.
+
+    Args:
+        out: Output annotation.
+        chunk: Input annotation.
+    """
     out_annotation = [util.misc.set_to_list(val)[0] if util.misc.set_to_list(val) else "" for val in chunk.read()]
     out.write(out_annotation)
 
@@ -438,10 +593,14 @@ def first_from_set(out: Output,
 def best_from_set(out: Output,
                   chunk: Annotation,
                   is_sorted: bool = False,
-                  score_sep=":"):
+                  score_sep: str = ":") -> None:
     """Get the best annotation from a set with scores.
 
-    If 'is_sorted = True' the input is already sorted. In this case the first value is taken and its score is removed.
+    Args:
+        out: Output annotation.
+        chunk: Input annotation.
+        is_sorted: If True, the input is already sorted, and the first value is taken.
+        score_sep: Separator used to separate the score from the value.
     """
     out_annotation = []
     for val in chunk.read():
