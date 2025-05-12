@@ -125,7 +125,7 @@ def _eagles_convert(pos: str) -> str:
     """
     if pos[0] in "NVC":
         return EAGLES_DICT.get(pos[0:2], FALLBACK)
-    else:
+    else:  # noqa: RET505
         return EAGLES_DICT.get(pos[0], FALLBACK)
 
 
@@ -259,7 +259,7 @@ def _bul_bultreebank_convert(pos: str) -> str:
         return pos_dict.get(pos[0:2], FALLBACK)
     if pos.startswith("PT"):
         return "PUNCT"
-    else:
+    else:  # noqa: RET505
         return pos_dict.get(pos[0], FALLBACK)
 
 
@@ -295,7 +295,7 @@ def _est_treetagger_convert(pos: str) -> str:
         if pos == "J":
             return pos_dict.get(pos, FALLBACK)
         return pos_dict.get(pos.split(".")[0])
-    else:
+    else:  # noqa: RET505
         return pos_dict.get(pos, FALLBACK)
 
 
@@ -331,7 +331,7 @@ def _fin_finntreebank_convert(pos: str) -> str:
     }
     if pos in pos_dict:
         return pos_dict[pos]
-    else:
+    else:  # noqa: RET505
         return pos_dict.get(pos.split("_")[0], FALLBACK)
 
 
@@ -361,7 +361,7 @@ def _nld_treetagger_convert(pos: str) -> str:
     }
     if pos == "$.":
         return "PUNCT"
-    elif pos == "pronadv":
+    elif pos == "pronadv":  # noqa: RET505
         return "ADV"  # pronomial adverb
     elif pos == "det__art":
         return "DET"
@@ -405,7 +405,7 @@ def _lat_treetagger_convert(pos: str) -> str:
     }
     if ":" in pos:
         return pos_dict.get(pos.split(":")[0], FALLBACK)
-    else:
+    else:  # noqa: RET505
         return pos_dict.get(pos, FALLBACK)
 
 
@@ -460,7 +460,7 @@ def _pol_national_corpus_of_polish_convert(pos: str) -> str:
     }
     if ":" in pos:
         return pos_dict.get(pos.split(":")[0], FALLBACK)
-    else:
+    else:  # noqa: RET505
         return pos_dict.get(pos, FALLBACK)
 
 
@@ -498,7 +498,7 @@ def _ron_multext_convert(pos: str) -> str:
     }
     if pos[0] in {"N", "V", "C", "S"}:
         return pos_dict.get(pos[0:2], FALLBACK)
-    else:
+    else:  # noqa: RET505
         return pos_dict.get(pos[0], FALLBACK)
 
 
@@ -537,7 +537,7 @@ def _slk_slovak_national_corpus_convert(pos: str) -> str:
     }
     if len(pos) == 1 and not pos.isalpha():
         return "PUNCT"
-    elif pos.startswith(":"):
+    elif pos.startswith(":"):  # noqa: RET505
         return pos_dict.get(pos, FALLBACK)
     else:
         return pos_dict.get(pos[0], FALLBACK)
@@ -644,7 +644,7 @@ def _fra_treetagger_convert(pos: str) -> str:
     }
     if pos == "DET:POS":
         return "PRON"
-    else:
+    else:  # noqa: RET505
         return pos_dict.get(pos[:3], "X")
 
 

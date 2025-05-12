@@ -116,6 +116,9 @@ def set_to_list(setstring: str, delimiter: str = "|", affix: str = "|") -> list[
 def remove_control_characters(text: str, keep: Iterable[str] = ("\n", "\t", "\r")) -> str:
     """Remove control characters from the given text, except for those specified in `keep`.
 
+    The characters removed are those with the Unicode category "Cc" (control characters).
+    https://www.unicode.org/reports/tr44/#GC_Values_Table
+
     Args:
         text: The string from which to remove control characters.
         keep: An iterable of characters to keep. Default is newline, tab, and carriage return.
@@ -123,11 +126,14 @@ def remove_control_characters(text: str, keep: Iterable[str] = ("\n", "\t", "\r"
     Returns:
         The text with control characters removed.
     """
-    return "".join(c for c in text if c in keep or unicodedata.category(c)[0:2] != "Cc")
+    return "".join(c for c in text if c in keep or unicodedata.category(c) != "Cc")
 
 
 def remove_formatting_characters(text: str, keep: Iterable[str] = ()) -> str:
     """Remove formatting characters from the given text, except for those specified in 'keep'.
+
+    The characters removed are those with the Unicode category "Cf" (formatting characters).
+    https://www.unicode.org/reports/tr44/#GC_Values_Table
 
     Args:
         text: The text from which to remove formatting characters.
@@ -138,7 +144,7 @@ def remove_formatting_characters(text: str, keep: Iterable[str] = ()) -> str:
     """
     if keep is None:
         keep = []
-    return "".join(c for c in text if c in keep or unicodedata.category(c)[0:2] != "Cf")
+    return "".join(c for c in text if c in keep or unicodedata.category(c) != "Cf")
 
 
 def chain(annotations: Iterable[dict], default: Any = None) -> Generator[tuple]:

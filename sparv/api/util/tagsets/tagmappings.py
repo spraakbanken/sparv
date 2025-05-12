@@ -42,7 +42,7 @@ saldo_to_parole: 1-many mapping between Saldo and Parole
 saldo_to_saldo: 1-many identity mapping of Saldo tags
 """
 
-# ruff: noqa: E241
+# ruff: noqa: E241, E501
 from __future__ import annotations
 
 import re
@@ -1355,11 +1355,11 @@ def _make_saldo_to_suc(compound: bool = False) -> dict[str, set[str]]:
             if (
                 saldo_tag.endswith((" c", " ci", " cm"))
                 or not params
-                or (len(params[0]) == 3 and params[0].endswith(("m", "h")))
+                or (len(params[0]) == 3 and params[0].endswith(("m", "h")))  # noqa: PLR2004
             ):
                 # Skip multiword units and compound/end syllables
                 continue
-        elif not params or (len(params[0]) == 3 and params[0].endswith("m")):
+        elif not params or (len(params[0]) == 3 and params[0].endswith("m")):  # noqa: PLR2004
             # Skip multiword units
             continue
         paramstr = " ".join(saldo_params_to_suc.get(prm, prm.upper()) for prm in params)

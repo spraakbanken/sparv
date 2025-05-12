@@ -52,7 +52,7 @@ def call_java(
     encoding: str | None = None,
     verbose: bool = False,
     return_command: bool = False,
-) -> tuple[str, str]:
+) -> tuple[str, str] | subprocess.Popen:
     """Execute a Java program using a specified jar file, command line arguments, and `stdin` input.
 
     Args:

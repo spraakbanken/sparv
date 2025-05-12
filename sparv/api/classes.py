@@ -1,15 +1,15 @@
 """Classes used as default input for annotator functions."""
-
+# ruff: noqa: FURB189
 from __future__ import annotations
 
 import gzip
 import os
-import pathlib
 import pickle
 import time
 import zipfile
 from abc import ABC, abstractmethod
 from collections.abc import Iterable, Iterator, Sequence
+from pathlib import Path
 from typing import Any, Callable, Union  # Union still needed in some cases for Python 3.9 compatibility
 
 import requests
@@ -35,7 +35,7 @@ class Base(ABC):
         assert isinstance(name, str), "'name' must be a string"
         self.name = name
         self.original_name = name
-        self.root = pathlib.Path.cwd()  # Save current working dir as root
+        self.root = Path.cwd()  # Save current working dir as root
 
     def expand_variables(self, rule_name: str = "") -> list[str]:
         """Update name by replacing <class> references with annotation names and [config] references with config values.
@@ -226,7 +226,9 @@ class CommonAnnotationMixin(BaseAnnotation):
         """
         return io.read_annotation(source_file, self)
 
-    def _read_spans(self, source_file: str, decimals: bool = False, with_annotation_name: bool = False) -> Iterator:
+    def _read_spans(
+        self, source_file: str, decimals: bool = False, with_annotation_name: bool = False
+    ) -> Iterator[tuple]:
         """Yield the spans of the annotation.
 
         Args:
@@ -258,7 +260,7 @@ class CommonAnnotationMixin(BaseAnnotation):
         source_file: str,
         annotations: list[BaseAnnotation] | tuple[BaseAnnotation, ...],
         with_annotation_name: bool = False,
-    ) -> Iterator:
+    ) -> Iterator[tuple]:
         """Yield tuples of multiple attributes on the same annotation.
 
         Args:
@@ -460,7 +462,7 @@ class Annotation(CommonAnnotationMixin, CommonMixin, BaseAnnotation):
         """
         return self._read(self.source_file)
 
-    def read_spans(self, decimals: bool = False, with_annotation_name: bool = False) -> Iterator:
+    def read_spans(self, decimals: bool = False, with_annotation_name: bool = False) -> Iterator[tuple]:
         """Get an iterator of spans from the annotation.
 
         Args:
@@ -482,7 +484,7 @@ class Annotation(CommonAnnotationMixin, CommonMixin, BaseAnnotation):
 
     def read_attributes(
         self, annotations: list[BaseAnnotation] | tuple[BaseAnnotation, ...], with_annotation_name: bool = False
-    ) -> Iterator:
+    ) -> Iterator[tuple]:
         """Return an iterator of tuples of multiple attributes on the same annotation.
 
         Args:
@@ -607,13 +609,26 @@ class AnnotationData(CommonMixin, BaseAnnotation):
         """
         super().__init__(name, source_file=source_file)
 
-    def read(self) -> Iterator[str]:
-        """Read arbitrary string data from the annotation file.
+    def read(self) -> Any:
+        """Read arbitrary data from the annotation file.
 
         Returns:
             The data of the annotation.
         """
         return io.read_data(self.source_file, self)
+
+    def split(self) -> tuple[str, str]:
+        """Split the name into plain annotation name and attribute.
+
+        Returns:
+            A tuple with the plain annotation name and an empty string.
+        """
+        return self.name, ""
+
+    @staticmethod
+    def has_attribute() -> bool:
+        """Return `False` as this class does not have an attribute."""
+        return False
 
 
 class AnnotationAllSourceFiles(CommonAnnotationMixin, CommonAllSourceFilesMixin, BaseAnnotation):
@@ -808,8 +823,8 @@ class AnnotationDataAllSourceFiles(CommonAllSourceFilesMixin, BaseAnnotation):
         """
         return AnnotationData(self.name, source_file)
 
-    def read(self, source_file: str) -> Iterator[str]:
-        """Read arbitrary string data from annotation file.
+    def read(self, source_file: str) -> Any:
+        """Read arbitrary data from annotation file.
 
         Args:
             source_file: Source file for the annotation.
@@ -818,6 +833,19 @@ class AnnotationDataAllSourceFiles(CommonAllSourceFilesMixin, BaseAnnotation):
             The data of the annotation.
         """
         return io.read_data(source_file, self)
+
+    def split(self) -> tuple[str, str]:
+        """Split the name into plain annotation name and attribute.
+
+        Returns:
+            A tuple with the plain annotation name and an empty string.
+        """
+        return self.name, ""
+
+    @staticmethod
+    def has_attribute() -> bool:
+        """Return `False` as this class does not have an attribute."""
+        return False
 
 
 class AnnotationCommonData(CommonMixin, BaseAnnotation):
@@ -839,13 +867,26 @@ class AnnotationCommonData(CommonMixin, BaseAnnotation):
         """
         super().__init__(name)
 
-    def read(self) -> Iterator[str]:
-        """Read arbitrary corpus-level string data from the annotation file.
+    def read(self) -> Any:
+        """Read arbitrary corpus-level data from the annotation file.
 
         Returns:
             The data of the annotation.
         """
         return io.read_data(None, self)
+
+    def split(self) -> tuple[str, str]:
+        """Split the name into plain annotation name and attribute.
+
+        Returns:
+            A tuple with the plain annotation name and an empty string.
+        """
+        return self.name, ""
+
+    @staticmethod
+    def has_attribute() -> bool:
+        """Return `False` as this class does not have an attribute."""
+        return False
 
 
 class Marker(AnnotationCommonData):
@@ -934,6 +975,8 @@ class Output(CommonMixin, BaseOutput):
     def write(self, values: list) -> None:
         """Write the annotation to a file, overwriting any existing annotation.
 
+        All values will be converted to strings.
+
         Args:
             values: A list of values.
         """
@@ -1014,6 +1057,19 @@ class OutputData(CommonMixin, BaseOutput):
         """
         io.write_data(self.source_file, self, value)
 
+    def split(self) -> tuple[str, str]:
+        """Split the name into plain annotation name and attribute.
+
+        Returns:
+            A tuple with the plain annotation name and an empty string.
+        """
+        return self.name, ""
+
+    @staticmethod
+    def has_attribute() -> bool:
+        """Return `False` as this class does not have an attribute."""
+        return False
+
 
 class OutputDataAllSourceFiles(CommonAllSourceFilesMixin, BaseOutput):
     """Data annotation used as output, not tied to a specific source file.
@@ -1072,6 +1128,19 @@ class OutputDataAllSourceFiles(CommonAllSourceFilesMixin, BaseOutput):
         """
         io.write_data(source_file, self, value)
 
+    def split(self) -> tuple[str, str]:
+        """Split the name into plain annotation name and attribute.
+
+        Returns:
+            A tuple with the plain annotation name and an empty string.
+        """
+        return self.name, ""
+
+    @staticmethod
+    def has_attribute() -> bool:
+        """Return `False` as this class does not have an attribute."""
+        return False
+
 
 class OutputCommonData(CommonMixin, BaseOutput):
     """Data annotation for the whole corpus.
@@ -1100,6 +1169,19 @@ class OutputCommonData(CommonMixin, BaseOutput):
             value: The data to write.
         """
         io.write_data(None, self, value)
+
+    def split(self) -> tuple[str, str]:
+        """Split the name into plain annotation name and attribute.
+
+        Returns:
+            A tuple with the plain annotation name and an empty string.
+        """
+        return self.name, ""
+
+    @staticmethod
+    def has_attribute() -> bool:
+        """Return `False` as this class does not have an attribute."""
+        return False
 
 
 class OutputMarker(OutputCommonData):
@@ -1235,6 +1317,14 @@ class Headers(CommonMixin, BaseAnnotation):
         """Remove the headers file."""
         return super().remove()
 
+    def split(self) -> tuple[str, str]:
+        """Split the name into plain annotation name and attribute.
+
+        Returns:
+            A tuple with the plain annotation name and an empty string.
+        """
+        return self.name, ""
+
 
 class Namespaces(BaseAnnotation):
     """Namespace mapping (URI to prefix) for a source file."""
@@ -1307,7 +1397,15 @@ class Config(str):
     For further information on how to use this class, see the [Config Parameters](config-parameters.md) page.
     """
 
-    def __new__(cls, name: str, *args, **kwargs) -> str:
+    def __new__(cls, name: str, *args: Any, **kwargs: Any) -> str:  # noqa: ARG004
+        """Create a new instance of the class.
+
+        Args:
+            cls: The class to create an instance of.
+            name: The name of the configuration key.
+            *args: Additional arguments.
+            **kwargs: Additional keyword arguments.
+        """
         return super().__new__(cls, name)
 
     def __init__(
@@ -1378,10 +1476,18 @@ class Wildcard(str):
     ANNOTATION_ATTRIBUTE = 3
     OTHER = 0
 
-    def __new__(cls, name: str, *args, **kwargs):
+    def __new__(cls, name: str, *args: Any, **kwargs: Any) -> str:  # noqa: ARG004
+        """Create a new instance of the class.
+
+        Args:
+            cls: The class to create an instance of.
+            name: The name of the wildcard.
+            *args: Additional arguments.
+            **kwargs: Additional keyword arguments.
+        """
         return super().__new__(cls, name)
 
-    def __init__(self, name: str, type: int = OTHER, description: str | None = None) -> None:
+    def __init__(self, name: str, type: int = OTHER, description: str | None = None) -> None:  # noqa: A002
         """Initialize class.
 
         Args:
@@ -1422,18 +1528,26 @@ class Model(Base):
         """
         return type(self) is type(other) and self.name == other.name and self.path == other.path
 
+    def __hash__(self) -> int:
+        """Return a hash of the Model instance.
+
+        Returns:
+            The hash of the Model instance.
+        """
+        return hash((self.name, self.path))
+
     @property
-    def path(self) -> pathlib.Path:
+    def path(self) -> Path:
         """Get model path.
 
         Returns:
-            Get the path to the model file as a `pathlib.Path` object.
+            Get the path to the model file as a `Path` object.
         """
-        return_path = pathlib.Path(self.name)
+        return_path = Path(self.name)
         # Return as is, if path is absolute, models dir is already included, or if relative path to a file that exists
         if return_path.is_absolute() or paths.models_dir in return_path.parents or return_path.is_file():
             return return_path
-        else:
+        else:  # noqa: RET505
             return paths.models_dir / return_path
 
     def write(self, data: str) -> None:
@@ -1528,7 +1642,7 @@ class Model(Base):
         """
         with gzip.open(self.path) as z:
             data = z.read()
-            with open(out, "wb") as f:
+            with Path(out).open("wb") as f:
                 f.write(data)
         logger.info("Successfully unzipped %s", out)
 
@@ -1590,7 +1704,7 @@ class Source:
         """
         self.source_dir = source_dir
 
-    def get_path(self, source_file: SourceFilename, extension: str) -> pathlib.Path:
+    def get_path(self, source_file: SourceFilename, extension: str) -> Path:
         """Get the path of a specific source file.
 
         Args:
@@ -1604,9 +1718,9 @@ class Source:
             extension = "." + extension
         if ":" in source_file:
             file_name, _, file_chunk = source_file.partition(":")
-            source_file = pathlib.Path(self.source_dir, file_name, file_chunk + extension)
+            source_file = Path(self.source_dir, file_name, file_chunk + extension)
         else:
-            source_file = pathlib.Path(self.source_dir, source_file + extension)
+            source_file = Path(self.source_dir, source_file + extension)
         return source_file
 
 
@@ -1629,10 +1743,18 @@ class ExportInput(str):
     input for another function.
     """
 
-    def __new__(cls, val: str, *args, **kwargs):
+    def __new__(cls, val: str, *args: Any, **kwargs: Any) -> str:  # noqa: ARG004
+        """Create a new instance of the class.
+
+        Args:
+            cls: The class to create an instance of.
+            val: The export directory and filename pattern (e.g., `"xml_export.pretty/{file}_export.xml"`).
+            *args: Additional arguments.
+            **kwargs: Additional keyword arguments.
+        """
         return super().__new__(cls, val)
 
-    def __init__(self, val: str, all_files: bool = False) -> None:
+    def __init__(self, val: str, all_files: bool = False) -> None:  # noqa: ARG002
         """Initialize class.
 
         Args:
@@ -1888,7 +2010,7 @@ class SourceStructureParser(ABC):
         version.
     """
 
-    def __init__(self, source_dir: pathlib.Path) -> None:
+    def __init__(self, source_dir: Path) -> None:
         """Initialize class.
 
         Args:

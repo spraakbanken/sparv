@@ -11,6 +11,8 @@ from sparv.api.util import system
 
 logger = get_logger(__name__)
 
+EMPTY_FILE_LIMIT = 10  # Minimum file size (in bytes) to be considered non-empty
+
 
 def install_path(
     source_path: str | Path,
@@ -54,7 +56,7 @@ def install_mysql(host: str | None, db_name: str, sqlfile: Path | str | list[Pat
     for file_count, f in enumerate(sqlfile):
         if not f.exists():
             logger.error("Missing SQL file: %s", f)
-        elif f.stat().st_size < 10:
+        elif f.stat().st_size < EMPTY_FILE_LIMIT:
             logger.info("Skipping empty file: %s (%d/%d)", f, file_count + 1, file_total)
         else:
             logger.info("Installing MySQL database: %s, source: %s (%d/%d)", db_name, f, file_count + 1, file_total)

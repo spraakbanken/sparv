@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import re
-import xml.etree.ElementTree as etree
+import xml.etree.ElementTree as etree  # noqa: N813
 from collections import OrderedDict, defaultdict
+from collections.abc import Iterable
 from copy import deepcopy
 from itertools import combinations
 from typing import Any
@@ -32,7 +33,7 @@ logger = get_logger(__name__)
 def gather_annotations(
     annotations: list[Annotation],
     export_names: dict[str, str],
-    header_annotations=None,
+    header_annotations: list[Annotation] | None = None,
     source_file: str | None = None,
     flatten: bool = True,
     split_overlaps: bool = False,
@@ -75,11 +76,11 @@ def gather_annotations(
             self,
             name: str,
             index: int,
-            start: tuple[int],
-            end: tuple[int],
+            start: tuple[int, ...],
+            end: tuple[int, ...],
             export_names: dict[str, str],
             is_header: bool,
-        ):
+        ) -> None:
             """Set attributes."""
             self.name = name
             self.index = index
@@ -92,20 +93,28 @@ def gather_annotations(
             self.node = None
             self.overlap_id = None
 
-        def set_node(self, parent_node=None):
-            """Create an XML node under parent_node."""
+        def set_node(self, parent_node: etree.Element | None = None) -> None:
+            """Create an XML node under parent_node.
+
+            Args:
+                parent_node: The parent node to create the XML node under. If None, create a root node.
+            """
             if parent_node is not None:
                 self.node = etree.SubElement(parent_node, self.export)
             else:
                 self.node = etree.Element(self.export)
 
-        def __repr__(self):
-            """Stringify the most interesting span info (for debugging mostly)."""
+        def __repr__(self) -> str:
+            """Stringify the most interesting span info (for debugging mostly).
+
+            Returns:
+                A string representation of the span.
+            """
             if self.export != self.name:
                 return f"<{self.name}/{self.export} {self.index} {self.start}-{self.end}>"
             return f"<{self.name} {self.index} {self.start}-{self.end}>"
 
-        def __lt__(self, other_span):
+        def __lt__(self, other_span: Span) -> bool:
             """Return True if other_span comes after this span.
 
             Sort spans according to their position and hierarchy. Sort by:
@@ -114,18 +123,18 @@ def gather_annotations(
             3. the calculated element hierarchy
             """
 
-            def get_sort_key(span, hierarchy, sub_positions=False, empty_span=False):
+            def get_sort_key(
+                span: Span, hierarchy: int, sub_positions: bool = False, empty_span: bool = False
+            ) -> tuple:
                 """Return a sort key for span which makes span comparison possible."""
                 if empty_span:
                     if sub_positions:
                         return (span.start, span.start_sub), hierarchy, (span.end, span.end_sub)
-                    else:
-                        return span.start, hierarchy, span.end
-                else:  # noqa: PLR5501
+                    return span.start, hierarchy, span.end
+                else:  # noqa: RET505
                     if sub_positions:
                         return (span.start, span.start_sub), (-span.end, -span.end_sub), hierarchy
-                    else:
-                        return span.start, -span.end, hierarchy
+                    return span.start, -span.end, hierarchy
 
             if self.name in elem_hierarchy and other_span.name in elem_hierarchy[self.name]:
                 self_hierarchy = elem_hierarchy[self.name][other_span.name]
@@ -176,7 +185,7 @@ def gather_annotations(
                     raise SparvErrorMessage(
                         f"Could not find data for XML header '{base_name}'. "
                         "Was this element listed in 'xml_import.header_elements'?"
-                    )
+                    ) from None
 
     # Calculate hierarchy (if needed) and sort the span objects
     elem_hierarchy = calculate_element_hierarchy(source_file, spans_list)
@@ -190,10 +199,13 @@ def gather_annotations(
             insert_index = len(spans_dict[span.start])
             if span.name in elem_hierarchy:
                 for i, (instruction, s) in enumerate(spans_dict[span.start]):
-                    if instruction == "close":
-                        if s.name in elem_hierarchy[span.name] and elem_hierarchy[span.name][s.name] == 1:
-                            insert_index = i
-                            break
+                    if (
+                        instruction == "close"
+                        and s.name in elem_hierarchy[span.name]
+                        and elem_hierarchy[span.name][s.name] == 1
+                    ):
+                        insert_index = i
+                        break
             spans_dict[span.start].insert(insert_index, ("open", span))
             spans_dict[span.end].insert(insert_index + 1, ("close", span))
         else:
@@ -214,8 +226,15 @@ def gather_annotations(
     return span_positions, annotation_dict
 
 
-def _handle_overlaps(spans_dict):
-    """Split overlapping spans and give them unique IDs to preserve their original connection."""
+def _handle_overlaps(spans_dict: dict[int, list[tuple]]) -> None:
+    """Handle overlapping spans by splitting them and assigning unique IDs to maintain their original relationships.
+
+    Overlapping spans, such as <aaa> ... <b> ... </aaa> ... </b>, need to be split for certain export formats,
+    like XML, which do not support overlapping tags.
+
+    Args:
+        spans_dict: A dictionary mapping span positions to the spans that open and close at those positions.
+    """
     span_stack = []
     overlap_count = 0
     for position in sorted(spans_dict):
@@ -259,7 +278,7 @@ def _handle_overlaps(spans_dict):
                         subposition_shift += 1
 
 
-def calculate_element_hierarchy(source_file: str, spans_list: list) -> dict[str, dict]:
+def calculate_element_hierarchy(source_file: str, spans_list: list) -> dict[str, dict[str, int]]:
     """Calculate the hierarchy for spans with identical start and end positions.
 
     If two spans A and B have identical start and end positions, go through all occurrences of A and B
@@ -278,7 +297,7 @@ def calculate_element_hierarchy(source_file: str, spans_list: list) -> dict[str,
     empty_span_starts = defaultdict(set)
     for span in spans_list:
         # We don't include sub-positions here as we still need to compare spans with sub-positions with spans without
-        span_duplicates[(span.start, span.end)].add(span.name)
+        span_duplicates[span.start, span.end].add(span.name)
         if (span.start, span.start_sub) == (span.end, span.end_sub):
             empty_span_starts[span.name].add(span.start)
         else:
@@ -332,9 +351,9 @@ def get_annotation_names(
     """Get a list of annotations, token attributes, and a dictionary translating annotation names to export names.
 
     Args:
-        annotations: List of elements:attributes (annotations) to include.
-        source_annotations: List of elements:attributes from the source file to include. If not specified,
-            includes everything.
+        annotations: List of elements:attributes (annotations) to include, with possible export names.
+        source_annotations: List of elements:attributes from the source file to include, with possible export names. If
+            not specified, includes everything.
         source_file: Name of the source file.
         token_name: Name of the token annotation.
         remove_namespaces: Set to `True` to remove all namespaces in `export_names` unless names are ambiguous.
@@ -342,6 +361,7 @@ def get_annotation_names(
             for annotations that are not token attributes.
         sparv_namespace: Namespace to add to all Sparv annotations.
         source_namespace: Namespace to add to all annotations from the source file.
+        xml_mode: Set to `True` to use XML namespaces in `export_names`.
 
     Returns:
         A list of annotations, a list of token attribute names, a dictionary with translation from annotation names to
@@ -399,8 +419,17 @@ def get_header_names(
     return [a[0] for a in header_annotations], export_names
 
 
-def _remove_duplicates(annotation_tuples):
-    """Remove duplicates from annotation_tuples without changing the order."""
+def _remove_duplicates(
+    annotation_tuples: list[tuple[Annotation | AnnotationAllSourceFiles, str | None]],
+) -> list[tuple]:
+    """Remove duplicates from annotation_tuples without changing the order.
+
+    Args:
+        annotation_tuples: List of tuples containing annotations and their export names.
+
+    Returns:
+        A list of tuples with unique annotations and their export names.
+    """
     new_annotations = OrderedDict()
     for a, new_name in annotation_tuples:
         if a not in new_annotations or new_name is not None:
@@ -409,28 +438,49 @@ def _remove_duplicates(annotation_tuples):
 
 
 def _create_export_names(
-    annotations: list[tuple[Annotation | AnnotationAllSourceFiles, Any]],
+    annotations: list[tuple[Annotation | AnnotationAllSourceFiles, str | None]],
     token_name: str | None,
     remove_namespaces: bool,
     keep_struct_names: bool,
-    source_annotations: list[tuple[Annotation | AnnotationAllSourceFiles, Any]] = [],
+    source_annotations: Iterable[tuple[Annotation | AnnotationAllSourceFiles, str | None]] = (),
     sparv_namespace: str | None = None,
     source_namespace: str | None = None,
     xml_namespaces: dict | None = None,
     xml_mode: bool | None = False,
 ) -> dict[str, str]:
-    """Create dictionary for renamed annotations."""
-    if remove_namespaces:
+    """Create dictionary with translation from annotation names to export names.
 
-        def shorten(annotation):
+    Args:
+        annotations: List of tuples containing annotations and their export names.
+        token_name: Name of the token annotation.
+        remove_namespaces: Set to `True` to remove all namespaces from the export names unless names are ambiguous.
+        keep_struct_names: Set to `True` to include the annotation base name (everything before ":") in the export names
+            for annotations that are not token attributes.
+        source_annotations: List of source annotations.
+        sparv_namespace: Namespace to add to all Sparv annotations.
+        source_namespace: Namespace to add to all annotations from the source file.
+        xml_namespaces: Dictionary of XML namespaces.
+        xml_mode: Set to `True` to use XML namespaces in the export names.
+
+    Returns:
+        A dictionary with translation from annotation names to export names.
+    """
+    if remove_namespaces:
+        def shorten(annotation: Annotation | AnnotationAllSourceFiles) -> str:
             """Shorten annotation name or attribute name.
 
             For example:
                 segment.token -> token
                 segment.token:saldo.baseform -> segment.token:baseform
+
+            Args:
+                annotation: The annotation to shorten.
+
+            Returns:
+                The shortened annotation name.
             """
 
-            def remove_before_dot(name):
+            def remove_before_dot(name: str) -> str:
                 # Always remove "custom."
                 name = name.removeprefix("custom.")
                 # Remove everything before first "."
@@ -449,17 +499,12 @@ def _create_export_names(
         short_names = {}
         for annotation, new_name in annotations:
             name = annotation.name
-            # Don't remove namespaces from elements and attributes contained in the source files
-            if (annotation, new_name) in source_annotations:
-                short_name = name
-            else:
-                short_name = shorten(annotation)
             if new_name:
-                if ":" in name:
-                    # Combine new attribute name with base annotation name
-                    short_name = io.join_annotation(annotation.annotation_name, new_name)
-                else:
-                    short_name = new_name
+                # If attribute, combine new attribute name with base annotation name
+                short_name = io.join_annotation(annotation.annotation_name, new_name) if ":" in name else new_name
+            else:
+                # Don't remove namespaces from elements and attributes contained in the source files
+                short_name = name if (annotation, new_name) in source_annotations else shorten(annotation)
             short_names_count[short_name] += 1
             base, attr = Annotation(short_name).split()
             short_names[name] = attr or base
@@ -470,26 +515,25 @@ def _create_export_names(
             if not new_name:
                 # Only use short name if it's unique
                 if "." in name and short_names_count[shorten(annotation)] == 1:
-                    new_name = short_names[name]
+                    new_name = short_names[name]  # noqa: PLW2901
                 else:
-                    new_name = annotation.attribute_name or annotation.annotation_name
+                    new_name = annotation.attribute_name or annotation.annotation_name  # noqa: PLW2901
 
-            if keep_struct_names:
-                # Keep annotation base name (the part before ":") if this is not a token attribute
-                if ":" in name and not name.startswith(token_name):
-                    base_name = annotation.annotation_name
-                    new_name = io.join_annotation(export_names.get(base_name, base_name), new_name)
+            # Keep annotation base name (the part before ":") if this is not a token attribute
+            if keep_struct_names and ":" in name and not name.startswith(token_name):
+                base_name = annotation.annotation_name
+                new_name = io.join_annotation(export_names.get(base_name, base_name), new_name)  # noqa: PLW2901
             export_names[name] = new_name
-    else:
+    else:  # noqa: PLR5501
         if keep_struct_names:
             export_names = {}
             for annotation, new_name in sorted(annotations):  # Sorted in order to handle annotations before attributes
                 name = annotation.name
                 if not new_name:
-                    new_name = annotation.attribute_name or annotation.annotation_name
+                    new_name = annotation.attribute_name or annotation.annotation_name  # noqa: PLW2901
                 if ":" in name and not name.startswith(token_name):
                     base_name = annotation.annotation_name
-                    new_name = io.join_annotation(export_names.get(base_name, base_name), new_name)
+                    new_name = io.join_annotation(export_names.get(base_name, base_name), new_name)  # noqa: PLW2901
                 export_names[name] = new_name
         else:
             export_names = {
@@ -508,8 +552,20 @@ def _create_export_names(
     return export_names  # noqa: RET504
 
 
-def _get_xml_tagname(tag, xml_namespaces, xml_mode=False):
-    """Take care of namespaces by looking up URIs for prefixes (if xml_mode=True) or by converting to dot notation."""
+def _get_xml_tagname(tag: str, xml_namespaces: dict, xml_mode: bool = False) -> str:
+    """Take care of namespaces by looking up URIs for prefixes (if xml_mode=True) or by converting to dot notation.
+
+    Args:
+        tag: The tag name to convert.
+        xml_namespaces: A dictionary of XML namespaces.
+        xml_mode: If `True`, convert prefixes to URIs.
+
+    Returns:
+        The converted tag name.
+
+    Raises:
+        SparvErrorMessage: If the namespace prefix is not found in `xml_namespaces`.
+    """
     sep = re.escape(XML_NAMESPACE_SEP)
     m = re.match(rf"(.*){sep}(.+)", tag)
     if m:
@@ -522,7 +578,7 @@ def _get_xml_tagname(tag, xml_namespaces, xml_mode=False):
                     f"namespace prefix '{m.group(1)}'!"
                 )
             return re.sub(rf"(.*){sep}(.+)", rf"{{{uri}}}\2", tag)
-        elif m.group(1):
+        elif m.group(1):  # noqa: RET505
             # Replace "prefix+tag" with "prefix.tag", skip this for default namespaces
             return re.sub(rf"(.*){sep}(.+)", r"\1.\2", tag)
     return tag
@@ -531,11 +587,22 @@ def _get_xml_tagname(tag, xml_namespaces, xml_mode=False):
 def _add_global_namespaces(
     export_names: dict,
     annotations: list[tuple[Annotation | AnnotationAllSourceFiles, Any]],
-    source_annotations: list,
+    source_annotations: Iterable,
     sparv_namespace: str | None = None,
     source_namespace: str | None = None,
-):
-    """Add sparv_namespace and source_namespace to export names."""
+) -> dict:
+    """Add sparv_namespace and source_namespace to export names.
+
+    Args:
+        export_names: Dictionary with export names.
+        annotations: List of all Sparv annotations for the corpus.
+        source_annotations: List of source annotations.
+        sparv_namespace: Namespace to add to all Sparv annotations.
+        source_namespace: Namespace to add to all annotations from the source file.
+
+    Returns:
+        A dictionary with updated export names.
+    """
     source_annotation_names = [a.name for a, _ in source_annotations]
 
     if sparv_namespace:
@@ -551,8 +618,16 @@ def _add_global_namespaces(
     return export_names
 
 
-def _check_name_collision(export_names, source_annotations):
-    """Detect collisions in attribute names and resolve them or send warnings."""
+def _check_name_collision(export_names: dict, source_annotations: Iterable) -> dict:
+    """Detect collisions in attribute names and resolve them or send warnings.
+
+    Args:
+        export_names: Dictionary with export names.
+        source_annotations: List of source annotations.
+
+    Returns:
+        A dictionary with updated export names.
+    """
     source_names = [a.name for a, _ in source_annotations]
 
     # Get annotations with identical export attribute names
@@ -569,7 +644,7 @@ def _check_name_collision(export_names, source_annotations):
         attr_collisions = {k: v for k, v in attr_dict.items() if len(v) > 1}
         for annots in attr_collisions.values():
             # If there are two colliding attributes and one is an automatic one, prefix it with SPARV_DEFAULT_NAMESPACE
-            if len(annots) == 2 and len([a for a in annots if a.name not in source_names]) == 1:
+            if len(annots) == 2 and len([a for a in annots if a.name not in source_names]) == 1:  # noqa: PLR2004
                 sparv_annot = annots[0] if annots[0].name not in source_names else annots[1]
                 source_annot = annots[0] if annots[0].name in source_names else annots[1]
                 new_name = SPARV_DEFAULT_NAMESPACE + "." + export_names[sparv_annot.name]
@@ -622,8 +697,17 @@ def scramble_spans(span_positions: list[tuple], chunk_name: str, chunk_order: An
     return new_span_positions  # noqa: RET504
 
 
-def _reorder_spans(span_positions, chunk_name: str, chunk_order):
-    """Scramble chunks according to the chunk_order."""
+def _reorder_spans(span_positions: list[tuple], chunk_name: str, chunk_order: Annotation) -> dict:
+    """Scramble chunks according to the chunk_order.
+
+    Args:
+        span_positions: Original span positions, typically obtained from `gather_annotations()`.
+        chunk_name: Name of the annotation to reorder.
+        chunk_order: Annotation specifying the new order of the chunks.
+
+    Returns:
+        Dictionary with the new span positions and instructions.
+    """
     new_s_order = defaultdict(list)
     parent_stack = []
     temp_stack = []
@@ -651,13 +735,12 @@ def _reorder_spans(span_positions, chunk_name: str, chunk_order):
                 if not new_s_order[current_s_index]:
                     new_s_order[current_s_index].extend(parent_stack)
                 new_s_order[current_s_index].append((instruction, span))
+            elif current_s_index is not None:
+                # Encountered child to chunk
+                new_s_order[current_s_index].append((instruction, span))
             else:
-                if current_s_index is not None:
-                    # Encountered child to chunk
-                    new_s_order[current_s_index].append((instruction, span))
-                else:
-                    # Encountered parent to chunk
-                    temp_stack.append((instruction, span))
+                # Encountered parent to chunk
+                temp_stack.append((instruction, span))
 
         elif instruction == "close":
             if current_s_index is not None:
@@ -674,8 +757,13 @@ def _reorder_spans(span_positions, chunk_name: str, chunk_order):
     return new_s_order
 
 
-def _fix_parents(new_s_order, chunk_name):
-    """Go through new_span_positions, remove duplicate opened parents and close parents."""
+def _fix_parents(new_s_order: dict, chunk_name: str) -> None:
+    """Go through new_s_order, remove duplicate opened parents and close parents.
+
+    Args:
+        new_s_order: Dictionary with the new span positions and instructions.
+        chunk_name: Name of the annotation used to reorder the chunks.
+    """
     open_parents = []
     new_s_order_indices = sorted(new_s_order.keys())
     for i, s_index in enumerate(new_s_order_indices):
@@ -689,7 +777,7 @@ def _fix_parents(new_s_order, chunk_name):
                     current_chunk_index = span.index
                 elif is_parent:
                     open_parents.append((instruction, span))
-            else:  # "close"
+            else:  # "close"  # noqa: PLR5501
                 # If chunk, check index to make sure it's the right chunk and not a nested one
                 if span.name == chunk_name and span.index == current_chunk_index:
                     is_parent = True
@@ -699,7 +787,7 @@ def _fix_parents(new_s_order, chunk_name):
                         open_parents.pop()
         # Check next chunk: close parents in current chunk that are not part of next chunk and
         # remove already opened parents from next chunk
-        if i < len(new_s_order_indices) - 1:
+        if i < len(new_s_order_indices) - 1:  # noqa: SIM108
             next_chunk = new_s_order[new_s_order_indices[i + 1]]
         else:
             next_chunk = []
