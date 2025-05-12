@@ -729,7 +729,8 @@ class LogHandler:
                 self.terminated = True
 
         elif level == "debug":
-            if "SparvErrorMessage" in msg["msg"]:
+            # SparvErrorMessage in rules causes another exception (RuleException) to be raised, so skip those
+            if "SparvErrorMessage" in msg["msg"] and "RuleException" not in msg["msg"]:
                 # SparvErrorMessage exception from pipeline core
                 # Parse error message
                 message = re.search(
