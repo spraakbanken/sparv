@@ -3,6 +3,7 @@
 from typing import Optional
 
 from sparv.api import Annotation, Config, Language, Model, Output, Text, annotator, get_logger, util
+from sparv.core.misc import SparvErrorMessage
 
 from . import stanza_utils
 
@@ -38,8 +39,35 @@ def annotate(corpus_text: Text = Text(),
              use_gpu: bool = Config("stanza.use_gpu"),
              batch_size: int = Config("stanza.batch_size"),
              max_sentence_length: int = Config("stanza.max_sentence_length"),
-             cpu_fallback: bool = Config("stanza.cpu_fallback")):
-    """Do dependency parsing using Stanza."""
+             cpu_fallback: bool = Config("stanza.cpu_fallback")) -> None:
+    """Do dependency parsing using Stanza.
+
+    Args:
+        corpus_text: The corpus text.
+        lang: The language of the text.
+        sentence_chunk: Annotation to use as input when segmenting sentences.
+        sentence_annotation: Optional existing sentence annotation.
+        token_annotation: Optional existing token annotation.
+        out_sentence: Output sentence segments.
+        out_token: Output token segments.
+        out_upos: Output part-of-speeches in UD.
+        out_pos: Output part-of-speeches from Stanza.
+        out_baseform: Output baseform from Stanza.
+        out_feats: Output universal morphological features.
+        out_deprel: Output dependency relations to the head.
+        out_dephead_ref: Output sentence-relative positions of the dependency heads.
+        out_dephead: Output positions of the dependency heads.
+        out_ne: Output named entity segments from Stanza.
+        out_ne_type: Output named entity types from Stanza.
+        resources_file: Path to the Stanza resources file.
+        use_gpu: Whether to use GPU for Stanza.
+        batch_size: Stanza batch size.
+        max_sentence_length: Maximum sentence length to parse.
+        cpu_fallback: Whether to use CPU if GPU runs out of memory.
+
+    Raises:
+        SparvErrorMessage: On configuration errors.
+    """
     import torch  # noqa: PLC0415
 
     from stanza.pipeline.core import DownloadMethod  # noqa: PLC0415
@@ -53,7 +81,7 @@ def annotate(corpus_text: Text = Text(),
             gpus = util.system.gpus()
             if gpus:
                 torch.cuda.set_device(gpus[0])
-    except:
+    except Exception:
         pass
 
     # Read corpus_text and text_spans
@@ -81,10 +109,12 @@ def annotate(corpus_text: Text = Text(),
     write_tokens = True
 
     if token_annotation:
+        if not sentence_annotation:
+            raise SparvErrorMessage("stanza.sentence_annotation is required when using stanza.token_annotation.")
         write_tokens = False
         sentences, _orphans = sentence_annotation.get_children(token_annotation)
         # sentences.append(orphans)
-        token_spans = list(token_annotation.read())
+        token_spans = list(token_annotation.read_spans(decimals=True))
         sentence_segments, all_tokens, ne_segments, ne_types = process_tokens(sentences, token_spans, text_data,
                                                                               nlp_args, stanza_args)
     elif sentence_annotation:
@@ -115,8 +145,19 @@ def annotate(corpus_text: Text = Text(),
     out_ne_type.write(ne_types)
 
 
-def process_tokens(sentences, token_spans, text_data, nlp_args, stanza_args):
-    """Process pre-tokenized text with Stanza."""
+def process_tokens(sentences: list, token_spans: list, text_data: str, nlp_args: dict, stanza_args: dict) -> tuple:
+    """Process pre-tokenized text with Stanza.
+
+    Args:
+        sentences: List of sentences.
+        token_spans: List of token spans.
+        text_data: Text data.
+        nlp_args: Stanza pipeline arguments.
+        stanza_args: Stanza arguments.
+
+    Returns:
+        Tuple of sentence segments, tokens, named entity segments and named entity types.
+    """
     import stanza  # noqa: PLC0415
 
     # Init Stanza pipeline
@@ -163,8 +204,18 @@ def process_tokens(sentences, token_spans, text_data, nlp_args, stanza_args):
     return [], all_tokens, ne_segments, ne_types
 
 
-def process_sentences(sentence_spans, text_data, nlp_args, stanza_args):
-    """Process pre-sentence segmented text with Stanza."""
+def process_sentences(sentence_spans: list, text_data: str, nlp_args: dict, stanza_args: dict) -> tuple:
+    """Process pre-sentence segmented text with Stanza.
+
+    Args:
+        sentence_spans: List of sentence spans.
+        text_data: Text data.
+        nlp_args: Stanza pipeline arguments.
+        stanza_args: Stanza arguments.
+
+    Returns:
+        Tuple of sentence segments, tokens, named entity segments and named entity types.
+    """
     import stanza  # noqa: PLC0415
 
     # Init Stanza pipeline
@@ -204,7 +255,7 @@ def process_sentences(sentence_spans, text_data, nlp_args, stanza_args):
     for entity in doc.entities:
         # Calculate positions for NE spans
         if entity.start_char > end:
-            for start, end, offs in sentence_offsets:
+            for start, end, offs in sentence_offsets:  # noqa: B007
                 if start <= entity.start_char < end:
                     break
         ne_segments.append((entity.start_char + offs, entity.end_char + offs))
@@ -213,8 +264,18 @@ def process_sentences(sentence_spans, text_data, nlp_args, stanza_args):
     return [], all_tokens, ne_segments, ne_types
 
 
-def process_text(text_spans, text_data, nlp_args, stanza_args):
-    """Process text with Stanza (including sentence segmentation)."""
+def process_text(text_spans: list, text_data: str, nlp_args: dict, stanza_args: dict) -> tuple:
+    """Process text with Stanza (including sentence segmentation).
+
+    Args:
+        text_spans: List of text spans.
+        text_data: Text data.
+        nlp_args: Stanza pipeline arguments.
+        stanza_args: Stanza arguments.
+
+    Returns:
+        Tuple of sentence segments, all tokens, named entity segments and named entity types.
+    """
     import stanza  # noqa: PLC0415
 
     # Init Stanza pipeline
@@ -250,7 +311,7 @@ def process_text(text_spans, text_data, nlp_args, stanza_args):
 class Token:
     """Object to store annotation information for a token."""
 
-    def __init__(self, stanza_w, offset=0, token_dephead_count=0):
+    def __init__(self, stanza_w, offset: int = 0, token_dephead_count: int = 0) -> None:  # noqa: ANN001
         """Set attributes."""
         self.word = stanza_w.text  # Mostly used for debugging
         self.start = stanza_w.start_char + offset
@@ -266,5 +327,6 @@ class Token:
         self.deprel = stanza_w.deprel
         self.dephead = str(stanza_w.head - 1 + token_dephead_count) if stanza_w.head > 0 else "-"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """Return a string representation of the token."""
         return f"{self.word} <{self.baseform} {self.upos} {self.deprel}> ({self.start}-{self.end})"
