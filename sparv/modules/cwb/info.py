@@ -2,6 +2,7 @@
 
 import time
 from datetime import datetime
+from pathlib import Path
 
 from sparv.api import (
     AllSourceFilenames,
@@ -25,8 +26,17 @@ def info(out: Export = Export("cwb.encoded/data/.info"),
          firstdate: AnnotationCommonData = AnnotationCommonData("cwb.datefirst"),
          lastdate: AnnotationCommonData = AnnotationCommonData("cwb.datelast"),
          resolution: AnnotationCommonData = AnnotationCommonData("dateformat.resolution"),
-         protected: bool = Config("korp.protected")):
-    """Create CWB .info file."""
+         protected: bool = Config("korp.protected")) -> None:
+    """Create CWB .info file.
+
+    Args:
+        out: Output file path for the .info file.
+        sentences: Annotation containing the number of sentences in the corpus.
+        firstdate: Annotation containing the first date in the corpus.
+        lastdate: Annotation containing the last date in the corpus.
+        resolution: Annotation containing the date resolution.
+        protected: Boolean indicating if the corpus is protected.
+    """
     create_info_file(sentences, firstdate, lastdate, resolution, protected, out)
 
 
@@ -36,14 +46,32 @@ def info_scrambled(out: Export = Export("cwb.encoded_scrambled/data/.info"),
                    firstdate: AnnotationCommonData = AnnotationCommonData("cwb.datefirst"),
                    lastdate: AnnotationCommonData = AnnotationCommonData("cwb.datelast"),
                    resolution: AnnotationCommonData = AnnotationCommonData("dateformat.resolution"),
-                   protected: bool = Config("korp.protected")):
-    """Create CWB .info file for scrambled corpus."""
+                   protected: bool = Config("korp.protected")) -> None:
+    """Create CWB .info file for scrambled corpus.
+
+    Args:
+        out: Output file path for the .info file.
+        sentences: Annotation containing the number of sentences in the corpus.
+        firstdate: Annotation containing the first date in the corpus.
+        lastdate: Annotation containing the last date in the corpus.
+        resolution: Annotation containing the date resolution.
+        protected: Boolean indicating if the corpus is protected.
+    """
     create_info_file(sentences, firstdate, lastdate, resolution, protected, out)
 
 
 def create_info_file(sentences: AnnotationCommonData, firstdate: AnnotationCommonData, lastdate: AnnotationCommonData,
-                     resolution: AnnotationCommonData, protected: bool, out: Export):
-    """Create .info file."""
+                     resolution: AnnotationCommonData, protected: bool, out: Export) -> None:
+    """Create .info file.
+
+    Args:
+        sentences: Annotation containing the number of sentences in the corpus.
+        firstdate: Annotation containing the first date in the corpus.
+        lastdate: Annotation containing the last date in the corpus.
+        resolution: Annotation containing the date resolution.
+        protected: Boolean indicating if the corpus is protected.
+        out: Output file path for the .info file.
+    """
     content = []
     protected_str = str(protected).lower()
 
@@ -53,29 +81,41 @@ def create_info_file(sentences: AnnotationCommonData, firstdate: AnnotationCommo
                            ("DateResolution", resolution),
                            ("Updated", time.strftime("%Y-%m-%d")),
                            ("Protected", protected_str)]:
-        if isinstance(value_obj, AnnotationCommonData):
-            value = value_obj.read()
-        else:
-            value = value_obj
+        value = value_obj.read() if isinstance(value_obj, AnnotationCommonData) else value_obj
 
         content.append(f"{key}: {value}\n")
 
     # Write .info file
-    with open(out, "w", encoding="utf-8") as o:
+    with Path(out).open("w", encoding="utf-8") as o:
         o.writelines(content)
 
     logger.info("Exported: %s", out)
 
 
 @annotator("datefirst and datelast files for .info", order=1)
-def info_date(source_files: AllSourceFilenames = AllSourceFilenames(),
-              out_datefirst: OutputCommonData = OutputCommonData("cwb.datefirst", description="The earliest date in the corpus"),
-              out_datelast: OutputCommonData = OutputCommonData("cwb.datelast", description="The latest date in the corpus"),
-              datefrom: AnnotationAllSourceFiles = AnnotationAllSourceFiles("[dateformat.out_annotation]:dateformat.datefrom"),
-              dateto: AnnotationAllSourceFiles = AnnotationAllSourceFiles("[dateformat.out_annotation]:dateformat.dateto"),
-              timefrom: AnnotationAllSourceFiles = AnnotationAllSourceFiles("[dateformat.out_annotation]:dateformat.timefrom"),
-              timeto: AnnotationAllSourceFiles = AnnotationAllSourceFiles("[dateformat.out_annotation]:dateformat.timeto")):
-    """Create datefirst and datelast file (needed for .info file)."""
+def info_date(
+    source_files: AllSourceFilenames = AllSourceFilenames(),
+    out_datefirst: OutputCommonData = OutputCommonData("cwb.datefirst", description="The earliest date in the corpus"),
+    out_datelast: OutputCommonData = OutputCommonData("cwb.datelast", description="The latest date in the corpus"),
+    datefrom: AnnotationAllSourceFiles = AnnotationAllSourceFiles("[dateformat.out_annotation]:dateformat.datefrom"),
+    dateto: AnnotationAllSourceFiles = AnnotationAllSourceFiles("[dateformat.out_annotation]:dateformat.dateto"),
+    timefrom: AnnotationAllSourceFiles = AnnotationAllSourceFiles("[dateformat.out_annotation]:dateformat.timefrom"),
+    timeto: AnnotationAllSourceFiles = AnnotationAllSourceFiles("[dateformat.out_annotation]:dateformat.timeto"),
+) -> None:
+    """Create datefirst and datelast file (needed for .info file).
+
+    Args:
+        source_files: List of source files.
+        out_datefirst: Output file path for the datefirst file.
+        out_datelast: Output file path for the datelast file.
+        datefrom: Annotation containing the date from information.
+        dateto: Annotation containing the date to information.
+        timefrom: Annotation containing the time from information.
+        timeto: Annotation containing the time to information.
+
+    Raises:
+        SparvErrorMessage: If the corpus is configured as having date information, but no dates were found.
+    """
     first_date = None
     last_date = None
 
@@ -101,9 +141,16 @@ def info_date(source_files: AllSourceFilenames = AllSourceFilenames(),
 
 
 @annotator("Empty datefirst and datelast files for .info", order=2)
-def info_date_unknown(out_datefirst: OutputCommonData = OutputCommonData("cwb.datefirst", description="Empty string"),
-                      out_datelast: OutputCommonData = OutputCommonData("cwb.datelast", description="Empty string")):
-    """Create empty datefirst and datelast file (needed for .info file) if corpus has no date information."""
+def info_date_unknown(
+    out_datefirst: OutputCommonData = OutputCommonData("cwb.datefirst", description="Empty string"),
+    out_datelast: OutputCommonData = OutputCommonData("cwb.datelast", description="Empty string"),
+) -> None:
+    """Create empty datefirst and datelast file (needed for .info file) if corpus has no date information.
+
+    Args:
+        out_datefirst: Output file path for the datefirst file.
+        out_datelast: Output file path for the datelast file.
+    """
     logger.info("No date information found in corpus")
 
     # Write datefirst and datelast files
