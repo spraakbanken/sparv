@@ -30,7 +30,7 @@ def parse(source_file: SourceFilename = SourceFilename(),
           prefix: Optional[str] = Config("docx_import.prefix"),
           keep_control_chars: bool = Config("docx_import.keep_control_chars"),
           normalize: str = Config("docx_import.normalize")) -> None:
-    """Parse docx file as input to the Sparv Pipeline.
+    """Parse docx file as input to Sparv.
 
     Args:
         source_file: The source filename.
@@ -39,12 +39,15 @@ def parse(source_file: SourceFilename = SourceFilename(),
         keep_control_chars: Set to True to keep control characters in the text.
         normalize: Normalize input text using any of the following forms: 'NFC', 'NFKC', 'NFD', and 'NFKD'.
             'NFC' is used by default.
+
+    Raises:
+        SparvErrorMessage: If the docx file cannot be parsed.
     """
     source_file_path = source_dir.get_path(source_file, ".docx")
     try:
         d = docx2python(source_file_path)
     except Exception as e:
-        raise SparvErrorMessage(f"Failed to parse docx file '{source_file}'. {type(e).__name__}: {e}")
+        raise SparvErrorMessage(f"Failed to parse docx file '{source_file}'. {type(e).__name__}: {e}") from None
 
     # Extract all text from the body, ignoring headers and footers
     text = "\n\n".join(iter_at_depth(d.body, 4))

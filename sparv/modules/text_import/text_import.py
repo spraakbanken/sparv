@@ -48,7 +48,7 @@ def parse(
     keep_control_chars: bool = Config("text_import.keep_control_chars"),
     normalize: str = Config("text_import.normalize"),
 ) -> None:
-    """Parse plain text file as input to the Sparv Pipeline.
+    """Parse plain text file as input to Sparv.
 
     Args:
         source_file: The name of the source file.

@@ -2,6 +2,7 @@
 
 
 from datetime import datetime
+from pathlib import Path
 
 import yaml
 
@@ -12,15 +13,19 @@ logger = get_logger(__name__)
 
 
 @exporter("YAML file containing annotation version info")
-def yaml_export(out: Export = Export("version_info/info_[metadata.id].yaml")):
-    """Create YAML file containing annotation version information."""
+def yaml_export(out: Export = Export("version_info/info_[metadata.id].yaml")) -> None:
+    """Create YAML file containing annotation version information.
+
+    Args:
+        out: The output file path.
+    """
     info_dict = {
         "Sparv version": sparv_version,
         "Annotation date": datetime.today().strftime("%Y-%m-%d")
     }
 
     # Write YAML file
-    logger.info("Exported: %s", out)
     content = yaml.dump(info_dict, allow_unicode=True, indent=4, sort_keys=False, default_flow_style=False)
-    with open(out, "w", encoding="utf-8") as o:
+    with Path(out).open("w", encoding="utf-8") as o:
         o.writelines(content)
+    logger.info("Exported: %s", out)
