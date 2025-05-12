@@ -73,7 +73,7 @@ def dateformat(in_from: Annotation = Annotation("[dateformat.datetime_from]"),
                outformat: str = Config("dateformat.date_outformat"),
                splitter: Optional[str] = Config("dateformat.splitter"),
                pre_regex: Optional[str] = Config("dateformat.pre_regex"),
-               regex: Optional[str] = Config("dateformat.regex")):
+               regex: Optional[str] = Config("dateformat.regex")) -> None:
     """Convert existing dates/times to specified date output format.
 
     https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior
@@ -104,8 +104,21 @@ def dateformat_pretty(in_date: Annotation = Annotation("[dateformat.datetime_fro
                       informat: str = Config("dateformat.datetime_informat"),
                       splitter: Optional[str] = Config("dateformat.splitter"),
                       pre_regex: Optional[str] = Config("dateformat.pre_regex"),
-                      regex: Optional[str] = Config("dateformat.regex")):
-    """Convert existing dates to format YYYY-MM-DD."""
+                      regex: Optional[str] = Config("dateformat.regex")) -> None:
+    """Convert existing dates to format YYYY-MM-DD.
+
+    Args:
+        in_date: Annotation containing dates (and times).
+        out: Annotation with formatted dates to be written.
+        informat: Format of the in_date dates/times.
+            Several formats can be specified separated by |. They will be tried in order.
+        splitter: One or more characters separating two dates in 'in_date'.
+            Treating them as from-date and to-date.
+        pre_regex: Regular expression with a catching group whose content will be used in the parsing
+            instead of the whole string. Applied before splitting.
+        regex: Regular expression with a catching group whose content will be used in the parsing
+            instead of the whole string. Applied on each value after splitting.
+    """
     _formatter(in_date, None, out, None, informat, "%Y-%m-%d", splitter, pre_regex, regex)
 
 
@@ -125,7 +138,7 @@ def timeformat(in_from: Annotation = Annotation("[dateformat.datetime_from]"),
                outformat: str = Config("dateformat.time_outformat"),
                splitter: Optional[str] = Config("dateformat.splitter"),
                pre_regex: Optional[str] = Config("dateformat.pre_regex"),
-               regex: Optional[str] = Config("dateformat.regex")):
+               regex: Optional[str] = Config("dateformat.regex")) -> None:
     """Convert existing dates/times to specified time output format.
 
     https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior
@@ -150,8 +163,10 @@ def timeformat(in_from: Annotation = Annotation("[dateformat.datetime_from]"),
 
 
 @annotator("Get datetime resolutions from informat")
-def resolution(out_resolution: OutputCommonData = OutputCommonData("dateformat.resolution", description="Datetime resolution"),
-               informat: Optional[str] = Config("dateformat.datetime_informat")):
+def resolution(
+    out_resolution: OutputCommonData = OutputCommonData("dateformat.resolution", description="Datetime resolution"),
+    informat: Optional[str] = Config("dateformat.datetime_informat"),
+) -> None:
     """Get the datetime resolution from the informat defined in the corpus config.
 
     Args:
@@ -188,9 +203,30 @@ def resolution(out_resolution: OutputCommonData = OutputCommonData("dateformat.r
 
 
 def _formatter(in_from: Annotation, in_to: Optional[Annotation], out_from: Output, out_to: Optional[Output],
-               informat: str, outformat: str, splitter: str, pre_regex: str, regex: str):
-    """Take existing dates/times and input formats and convert to specified output format."""
-    def get_smallest_unit(informat) -> Optional[str]:
+               in_format: str, out_format: str, splitter: str, pre_regex: str, regex: str) -> None:
+    """Take existing dates/times and input formats and convert to specified output format.
+
+    Args:
+        in_from: Annotation containing from-dates (and times).
+        in_to: Annotation containing to-dates.
+        out_from: Annotation with from-times to be written.
+        out_to: Annotation with to-times to be written.
+        in_format: Format of the in_from and in_to dates/times.
+            Several formats can be specified separated by |. They will be tried in order.
+        out_format: Desired format of the out_from and out_to dates.
+            Several formats can be specified separated by |. They will be tied to their respective in-format.
+        splitter: One or more characters separating two dates in 'in_from',
+            treating them as from-date and to-date.
+        pre_regex: Regular expression with a catching group whose content will be used in the parsing
+            instead of the whole string. Applied before splitting.
+        regex: Regular expression with a catching group whose content will be used in the parsing
+            instead of the whole string. Applied on each value after splitting.
+
+    Raises:
+        SparvErrorMessage: If the input annotation does not match the output annotation.
+        ValueError: If the input format is invalid.
+    """
+    def get_smallest_unit(informat: str) -> Optional[str]:
         smallest_unit = None  # No date
 
         if "%y" not in informat and "%Y" not in informat:
@@ -210,7 +246,7 @@ def _formatter(in_from: Annotation, in_to: Optional[Annotation], out_from: Outpu
 
         return smallest_unit
 
-    def get_date_length(informat):
+    def get_date_length(informat: str) -> Optional[int]:
         parts = informat.split("%")
         length = len(parts[0])  # First value is either blank or not part of date
 
@@ -244,18 +280,18 @@ def _formatter(in_from: Annotation, in_to: Optional[Annotation], out_from: Outpu
     if not in_to:
         in_to = in_from
 
-    informat = informat.split("|")
-    outformat = outformat.split("|")
+    in_format = in_format.split("|")
+    out_format = out_format.split("|")
 
-    assert len(outformat) == 1 or (
-        len(outformat) == len(informat)
+    assert len(out_format) == 1 or (
+        len(out_format) == len(in_format)
     ), "The number of out-formats must be equal to one or the number of in-formats."
 
     ifrom = list(in_from.read())
     ofrom = in_from.create_empty_attribute()
 
     for index, val in enumerate(ifrom):
-        val = val.strip()
+        val = val.strip()  # noqa: PLW2901
         if not val:
             ofrom[index] = None
             continue
@@ -264,22 +300,22 @@ def _formatter(in_from: Annotation, in_to: Optional[Annotation], out_from: Outpu
             matches = re.match(pre_regex, val)
             if not matches:
                 raise SparvErrorMessage(f"dateformat.pre_regex did not match the value {val!r}")
-            val = next(v for v in matches.groups() if v)
+            val = next(v for v in matches.groups() if v)  # noqa: PLW2901
             if not val:
                 # If the regex doesn't match, treat as no date
                 ofrom[index] = None
                 continue
 
         tries = 0
-        for inf in informat:
+        for inf in in_format:
             if splitter and splitter in inf:
-                values = re.findall("%[YybBmdHMS]", inf)
+                values = re.findall(r"%[YybBmdHMS]", inf)
                 if len(set(values)) < len(values):
                     vals = val.split(splitter)
-                    inf = inf.split(splitter)
+                    inf = inf.split(splitter)  # noqa: PLW2901
             else:
                 vals = [val]
-                inf = [inf]
+                inf = [inf]  # noqa: PLW2901
 
             if regex:
                 temp = []
@@ -302,7 +338,7 @@ def _formatter(in_from: Annotation, in_to: Optional[Annotation], out_from: Outpu
                         if datelen and not datelen == len(v):
                             raise ValueError
                         inf[i] = inf[i].replace("%3Y", "%Y")
-                        v = "0" + v
+                        v = "0" + v  # noqa: PLW2901
                     if "%0m" in inf[i] or "%0d" in inf[i]:
                         inf[i] = inf[i].replace("%0m", "%m").replace("%0d", "%d")
                         datelen = get_date_length(inf[i])
@@ -310,14 +346,16 @@ def _formatter(in_from: Annotation, in_to: Optional[Annotation], out_from: Outpu
                             raise ValueError
                     fromdates.append(datetime.datetime.strptime(v, inf[i]))
                 if len(fromdates) == 1 or out_to:
-                    ofrom[index] = fromdates[0].strftime(outformat[0] if len(outformat) == 1 else outformat[tries - 1])
+                    ofrom[index] = fromdates[0].strftime(
+                        out_format[0] if len(out_format) == 1 else out_format[tries - 1]
+                    )
                 else:
-                    outstrings = [fromdate.strftime(outformat[0] if len(outformat) == 1 else outformat[tries - 1])
+                    outstrings = [fromdate.strftime(out_format[0] if len(out_format) == 1 else out_format[tries - 1])
                                   for fromdate in fromdates]
                     ofrom[index] = outstrings[0] + splitter + outstrings[1]
                 break
             except ValueError:
-                if tries == len(informat):
+                if tries == len(in_format):
                     logger.error("Could not parse: %s", str(vals))
                     raise
                 continue
@@ -336,22 +374,22 @@ def _formatter(in_from: Annotation, in_to: Optional[Annotation], out_from: Outpu
 
             if pre_regex:
                 matches = re.match(pre_regex, val)
-                val = next(v for v in matches.groups() if v)
+                val = next(v for v in matches.groups() if v)  # noqa: PLW2901
                 if not val:
                     # If the regex doesn't match, treat as no date
                     oto[index] = None
                     continue
 
             tries = 0
-            for inf in informat:
+            for inf in in_format:
                 if splitter and splitter in inf:
-                    values = re.findall("%[YybBmdHMS]", inf)
+                    values = re.findall(r"%[YybBmdHMS]", inf)
                     if len(set(values)) < len(values):
                         vals = val.split(splitter)
-                        inf = inf.split(splitter)
+                        inf = inf.split(splitter)  # noqa: PLW2901
                 else:
                     vals = [val]
-                    inf = [inf]
+                    inf = [inf]  # noqa: PLW2901
 
                 if regex:
                     temp = []
@@ -374,7 +412,7 @@ def _formatter(in_from: Annotation, in_to: Optional[Annotation], out_from: Outpu
                             if datelen and not datelen == len(v):
                                 raise ValueError
                             inf[i] = inf[i].replace("%3Y", "%Y")
-                            v = "0" + v
+                            v = "0" + v  # noqa: PLW2901
                         if "%0m" in inf[i] or "%0d" in inf[i]:
                             inf[i] = inf[i].replace("%0m", "%m").replace("%0d", "%d")
                             datelen = get_date_length(inf[i])
@@ -386,10 +424,10 @@ def _formatter(in_from: Annotation, in_to: Optional[Annotation], out_from: Outpu
                         add = relativedelta(**{smallest_unit: 1})
 
                     todates = [todate + add - relativedelta(seconds=1) for todate in todates]
-                    oto[index] = todates[-1].strftime(outformat[0] if len(outformat) == 1 else outformat[tries - 1])
+                    oto[index] = todates[-1].strftime(out_format[0] if len(out_format) == 1 else out_format[tries - 1])
                     break
                 except ValueError:
-                    if tries == len(informat):
+                    if tries == len(in_format):
                         logger.error("Could not parse: %s", str(vals))
                         raise
                     continue
