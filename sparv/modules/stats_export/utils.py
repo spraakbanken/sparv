@@ -2,6 +2,7 @@
 
 import bz2
 import zipfile
+from pathlib import Path
 
 
 def compress(stats_file: str, out_file: str, compression: str = "zip") -> None:
@@ -13,7 +14,7 @@ def compress(stats_file: str, out_file: str, compression: str = "zip") -> None:
         compression: Compression method to use.
     """
     if compression == "bz2":
-        with open(stats_file, "rb") as f_in, bz2.open(out_file, "wb") as f_out:
+        with Path(stats_file).open("rb") as f_in, bz2.open(out_file, "wb") as f_out:
             f_out.writelines(f_in)
     else:
         with zipfile.ZipFile(out_file, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as z:

@@ -1,8 +1,8 @@
 """Build word frequency list."""
 
 import csv
-import os.path
 from collections import defaultdict
+from pathlib import Path
 from typing import Optional
 
 from sparv.api import (
@@ -39,7 +39,7 @@ def freq_list(source_files: AllSourceFilenames = AllSourceFilenames(),
               source_namespace: str = Config("export.source_namespace"),
               out: Export = Export("stats_export.frequency_list/stats_[metadata.id].csv"),
               delimiter: str = Config("stats_export.delimiter"),
-              cutoff: int = Config("stats_export.cutoff")):
+              cutoff: int = Config("stats_export.cutoff")) -> None:
     """Create a word frequency list for the entire corpus.
 
     Args:
@@ -108,8 +108,16 @@ def install_freq_list(
     uninstall_marker: MarkerOptional = MarkerOptional("stats_export.uninstall_freq_list_marker"),
     host: Optional[str] = Config("stats_export.remote_host"),
     target_dir: str = Config("stats_export.remote_dir")
-):
-    """Install frequency list on server by rsyncing."""
+) -> None:
+    """Install frequency list on server by rsyncing.
+
+    Args:
+        freq_list: The word frequency list to install.
+        marker: Marker for the installation.
+        uninstall_marker: Marker for the uninstallation to be removed.
+        host: The optional remote host to install to.
+        target_dir: The target directory on the remote host.
+    """
     util.install.install_path(freq_list, host, target_dir)
     uninstall_marker.remove()
     marker.write()
@@ -122,9 +130,17 @@ def uninstall_freq_list(
     install_marker: MarkerOptional = MarkerOptional("stats_export.install_freq_list_marker"),
     host: Optional[str] = Config("stats_export.remote_host"),
     remote_dir: str = Config("stats_export.remote_dir")
-):
-    """Uninstall word frequency list."""
-    remote_file = os.path.join(remote_dir, f"stats_{corpus_id}.csv")
+) -> None:
+    """Uninstall word frequency list.
+
+    Args:
+        corpus_id: The corpus ID.
+        marker: Marker for the uninstallation.
+        install_marker: Marker for the installation to be removed.
+        host: The optional remote host to uninstall from.
+        remote_dir: The directory on the remote host to uninstall from.
+    """
+    remote_file = Path(remote_dir) / f"stats_{corpus_id}.csv"
     logger.info("Removing word frequency file %s%s", host + ":" if host else "", remote_file)
     util.install.uninstall_path(remote_file, host)
     install_marker.remove()
@@ -135,9 +151,17 @@ def uninstall_freq_list(
 # Auxiliaries
 ################################################################################
 
-def write_csv(out, column_names, freq_dict, delimiter, cutoff):
-    """Write csv file."""
-    with open(out, "w", encoding="utf-8") as csvfile:
+def write_csv(out: Export, column_names: list[str], freq_dict: dict[tuple, int], delimiter: str, cutoff: int) -> None:
+    """Write CSV file.
+
+    Args:
+        out: The output file.
+        column_names: The column names for the CSV file.
+        freq_dict: The frequency dictionary.
+        delimiter: The column delimiter to use in the csv.
+        cutoff: The minimum frequency a word must have in order to be included in the result.
+    """
+    with Path(out).open("w", encoding="utf-8") as csvfile:
         csv_writer = csv.writer(csvfile, delimiter=delimiter)
         csv_writer.writerow(column_names)
         for annotations, freq in sorted(freq_dict.items(), key=lambda x: (-x[1], x[0])):

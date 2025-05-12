@@ -30,52 +30,90 @@ logger = get_logger(__name__)
 
 @annotator("Extract the complemgram with the highest score", language=["swe"])
 def best_complemgram(
-        out: Output = Output("<token>:stats_export.complemgram_best", description="Complemgram annotation with highest score"),
-        complemgram: Annotation = Annotation("<token>:saldo.complemgram")):
-    """Extract the complemgram with the highest score."""
-    from sparv.modules.misc import misc
+    complemgram: Annotation = Annotation("<token>:saldo.complemgram"),
+    out: Output = Output(
+        "<token>:stats_export.complemgram_best", description="Complemgram annotation with highest score"
+    ),
+) -> None:
+    """Extract the complemgram with the highest score.
+
+    Args:
+        complemgram: The input complemgram annotation.
+        out: The output complemgram annotation.
+    """
+    from sparv.modules.misc import misc  # noqa: PLC0415
+
     misc.best_from_set(out, complemgram, is_sorted=True)
 
 
 @annotator("Extract the sense with the highest score", language=["swe"])
 def best_sense(
-        out: Output = Output("<token>:stats_export.sense_best", description="Sense annotation with highest score"),
-        sense: Annotation = Annotation("<token>:wsd.sense")):
-    """Extract the sense annotation with the highest score."""
-    from sparv.modules.misc import misc
+    sense: Annotation = Annotation("<token>:wsd.sense"),
+    out: Output = Output("<token>:stats_export.sense_best", description="Sense annotation with highest score"),
+) -> None:
+    """Extract the sense annotation with the highest score.
+
+    Args:
+        sense: The input sense annotation.
+        out: The output sense annotation.
+    """
+    from sparv.modules.misc import misc  # noqa: PLC0415
+
     misc.best_from_set(out, sense, is_sorted=True)
 
 
 @annotator("Extract the first baseform annotation from a set of baseforms", language=["swe"])
 def first_baseform(
-        out: Output = Output("<token>:stats_export.baseform_first", description="First baseform from a set of baseforms"),
-        baseform: Annotation = Annotation("<token:baseform>")):
-    """Extract the first baseform annotation from a set of baseforms."""
-    from sparv.modules.misc import misc
+    baseform: Annotation = Annotation("<token:baseform>"),
+    out: Output = Output("<token>:stats_export.baseform_first", description="First baseform from a set of baseforms"),
+) -> None:
+    """Extract the first baseform annotation from a set of baseforms.
+
+    Args:
+        baseform: The input baseform annotation.
+        out: The output baseform annotation.
+    """
+    from sparv.modules.misc import misc  # noqa: PLC0415
+
     misc.first_from_set(out, baseform)
 
 
 @annotator("Extract the first lemgram annotation from a set of lemgrams", language=["swe"])
 def first_lemgram(
-        out: Output = Output("<token>:stats_export.lemgram_first", description="First lemgram from a set of lemgrams"),
-        lemgram: Annotation = Annotation("<token>:saldo.lemgram")):
-    """Extract the first lemgram annotation from a set of lemgrams."""
-    from sparv.modules.misc import misc
+    lemgram: Annotation = Annotation("<token>:saldo.lemgram"),
+    out: Output = Output("<token>:stats_export.lemgram_first", description="First lemgram from a set of lemgrams"),
+) -> None:
+    """Extract the first lemgram annotation from a set of lemgrams.
+
+    Args:
+        lemgram: The input lemgram annotation.
+        out: The output lemgram annotation.
+    """
+    from sparv.modules.misc import misc  # noqa: PLC0415
+
     misc.first_from_set(out, lemgram)
 
 
 @annotator("Get the best complemgram if the token is lacking a sense annotation", language=["swe"])
 def conditional_best_complemgram(
-    out_complemgrams: Output = Output("<token>:stats_export.complemgram_best_cond",
-                                      description="Compound analysis using lemgrams"),
     complemgrams: Annotation = Annotation("<token>:stats_export.complemgram_best"),
-    sense: Annotation = Annotation("<token:sense>")):
-    """Get the best complemgram if the token is lacking a sense annotation."""
+    sense: Annotation = Annotation("<token:sense>"),
+    out_complemgrams: Output = Output(
+        "<token>:stats_export.complemgram_best_cond", description="Compound analysis using lemgrams"
+    ),
+) -> None:
+    """Get the best complemgram if the token is lacking a sense annotation.
+
+    Args:
+        complemgrams: The input complemgram annotation.
+        sense: The input sense annotation.
+        out_complemgrams: The output complemgram annotation.
+    """
     all_annotations = list(complemgrams.read_attributes((complemgrams, sense)))
     short_complemgrams = []
-    for complemgram, sense in all_annotations:
-        if sense and sense != "|":
-            complemgram = ""
+    for complemgram, sense_val in all_annotations:
+        if sense_val and sense_val != "|":
+            complemgram = ""  # noqa: PLW2901
         short_complemgrams.append(complemgram)
     out_complemgrams.write(short_complemgrams)
 
@@ -93,7 +131,7 @@ def sbx_freq_list(
                                             "<token>:stats_export.complemgram_best_cond"),
     out: Export = Export("stats_export.frequency_list_sbx/stats_[metadata.id].csv"),
     delimiter: str = Config("stats_export.delimiter"),
-    cutoff: int = Config("stats_export.cutoff")):
+    cutoff: int = Config("stats_export.cutoff")) -> None:
     """Create a word frequency list for the entire corpus.
 
     Args:
@@ -146,7 +184,7 @@ def sbx_freq_list_date(
     date: AnnotationAllSourceFiles = AnnotationAllSourceFiles("[dateformat.out_annotation]:dateformat.date_pretty"),
     out: Export = Export("stats_export.frequency_list_sbx_date/stats_[metadata.id].csv"),
     delimiter: str = Config("stats_export.delimiter"),
-    cutoff: int = Config("stats_export.cutoff")):
+    cutoff: int = Config("stats_export.cutoff")) -> None:
     """Create a word frequency list for the entire corpus.
 
     Args:
@@ -197,8 +235,19 @@ def sbx_freq_list_simple_swe(
     baseform: AnnotationAllSourceFiles = AnnotationAllSourceFiles("<token>:stats_export.baseform_first"),
     out: Export = Export("stats_export.frequency_list_sbx/stats_[metadata.id].csv"),
     delimiter: str = Config("stats_export.delimiter"),
-    cutoff: int = Config("stats_export.cutoff")):
-    """Create a word frequency list for a corpus without sense, lemgram and complemgram annotations."""
+    cutoff: int = Config("stats_export.cutoff")) -> None:
+    """Create a word frequency list for a corpus without sense, lemgram and complemgram annotations.
+
+    Args:
+        source_files: The source files belonging to this corpus.
+        token: Token span annotations.
+        word: Word annotations.
+        pos: Part-of-speech annotations.
+        baseform: Annotations with first baseform from each set.
+        out: The output word frequency file.
+        delimiter: Column delimiter to use in the csv.
+        cutoff: The minimum frequency a word must have in order to be included in the result.
+    """
     annotations = [(word, "token"), (pos, "POS"), (baseform, "lemma")]
 
     freq_list(source_files=source_files, word=word, token=token, annotations=annotations, source_annotations=[],
@@ -230,8 +279,19 @@ def sbx_freq_list_simple(
     baseform: AnnotationAllSourceFiles = AnnotationAllSourceFiles("<token:baseform>"),
     out: Export = Export("stats_export.frequency_list_sbx/stats_[metadata.id].csv"),
     delimiter: str = Config("stats_export.delimiter"),
-    cutoff: int = Config("stats_export.cutoff")):
-    """Create a word frequency list for a corpus without sense, lemgram and complemgram annotations."""
+    cutoff: int = Config("stats_export.cutoff")) -> None:
+    """Create a word frequency list for a corpus without sense, lemgram and complemgram annotations.
+
+    Args:
+        source_files: The source files belonging to this corpus.
+        token: Token span annotations.
+        word: Word annotations.
+        pos: Part-of-speech annotations.
+        baseform: Annotations with first baseform from each set.
+        out: The output word frequency file.
+        delimiter: Column delimiter to use in the csv.
+        cutoff: The minimum frequency a word must have in order to be included in the result.
+    """
     annotations = [(word, "token"), (pos, "POS"), (baseform, "lemma")]
 
     freq_list(source_files=source_files, word=word, token=token, annotations=annotations, source_annotations=[],
@@ -267,8 +327,22 @@ def sbx_freq_list_1800(
                                             "<token>:stats_export.complemgram_best_cond"),
     out: Export = Export("stats_export.frequency_list_sbx/stats_[metadata.id].csv"),
     delimiter: str = Config("stats_export.delimiter"),
-    cutoff: int = Config("stats_export.cutoff")):
-    """Create a word frequency list for the entire corpus."""
+    cutoff: int = Config("stats_export.cutoff")) -> None:
+    """Create a word frequency list for the entire corpus.
+
+    Args:
+        source_files: The source files belonging to this corpus.
+        word: Word annotations.
+        token: Token span annotations.
+        msd: MSD annotations.
+        baseform: Annotations with first baseform from each set.
+        sense: Best sense annotations.
+        lemgram: Annotations with first lemgram from each set.
+        complemgram: Conditional best compound lemgram annotations.
+        out: The output word frequency file.
+        delimiter: Column delimiter to use in the csv.
+        cutoff: The minimum frequency a word must have in order to be included in the result.
+    """
     annotations = [(word, "token"), (msd, "POS"), (baseform, "lemma"), (sense, "SALDO sense"), (lemgram, "lemgram"),
                    (complemgram, "compound")]
 
@@ -301,8 +375,19 @@ def sbx_freq_list_fsv(
     lemgram: AnnotationAllSourceFiles = AnnotationAllSourceFiles("<token:lemgram>"),
     out: Export = Export("stats_export.frequency_list_sbx/stats_[metadata.id].csv"),
     delimiter: str = Config("stats_export.delimiter"),
-    cutoff: int = Config("stats_export.cutoff")):
-    """Create a word frequency list for a corpus without sense, lemgram and complemgram annotations."""
+    cutoff: int = Config("stats_export.cutoff")) -> None:
+    """Create a word frequency list for a corpus without sense, lemgram and complemgram annotations.
+
+    Args:
+        source_files: The source files belonging to this corpus.
+        token: Token span annotations.
+        word: Word annotations.
+        baseform: Annotations with first baseform from each set.
+        lemgram: Annotations with first lemgram from each set.
+        out: The output word frequency file.
+        delimiter: Column delimiter to use in the csv.
+        cutoff: The minimum frequency a word must have in order to be included in the result.
+    """
     annotations = [(word, "token"), (baseform, "lemma"), (lemgram, "lemgram")]
 
     freq_list(source_files=source_files, word=word, token=token, annotations=annotations, source_annotations=[],
