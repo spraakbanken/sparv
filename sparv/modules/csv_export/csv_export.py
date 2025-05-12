@@ -1,6 +1,6 @@
 """CSV file export."""
 
-import os
+from pathlib import Path
 
 from sparv.api import (
     Annotation,
@@ -37,10 +37,11 @@ def csv(source_file: SourceFilename = SourceFilename(),
         remove_namespaces: bool = Config("export.remove_module_namespaces", False),
         sparv_namespace: str = Config("export.sparv_namespace"),
         source_namespace: str = Config("export.source_namespace"),
-        delimiter: str = Config("csv_export.delimiter")):
+        delimiter: str = Config("csv_export.delimiter")) -> None:
     """Export annotations to CSV format."""
     # Create export dir
-    os.makedirs(os.path.dirname(out), exist_ok=True)
+    out_path = Path(out)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
 
     token_name = token.name
 
@@ -81,33 +82,65 @@ def csv(source_file: SourceFilename = SourceFilename(),
             csv_data.append("")
 
     # Write result to file
-    with open(out, "w", encoding="utf-8") as f:
-        f.write("\n".join(csv_data))
+    out_path.write_text("\n".join(csv_data), encoding="utf-8")
     logger.info("Exported: %s", out)
 
 
-def _make_header(token, token_attributes, export_names, delimiter):
-    """Create a csv header containing the names of the token annotations."""
+def _make_header(token: str, token_attributes: list[str], export_names: dict[str, str], delimiter: str) -> str:
+    """Create a csv header containing the names of the token annotations.
+
+    Args:
+        token: The token name.
+        token_attributes: A list of token attributes.
+        export_names: A dictionary mapping annotation names to export names.
+        delimiter: The delimiter used in the CSV file.
+
+    Returns:
+        A string representing the CSV header.
+    """
     line = [export_names.get(token, token)] + [
         export_names.get(f"{token}:{annot}", annot) for annot in token_attributes
     ]
     return delimiter.join(line)
 
 
-def _make_token_line(word, token, token_attributes, annotation_dict, index, delimiter):
-    """Create a line with the token and its annotations."""
+def _make_token_line(
+    word: str, token: str, token_attributes: list[str], annotation_dict: dict[str, dict], index: int, delimiter: str
+) -> str:
+    """Create a line with the token and its annotations.
+
+    Args:
+        word: The text of the token.
+        token: The token name.
+        token_attributes: A list of token attributes.
+        annotation_dict: Dictionary with annotations.
+        index: Index of the token.
+        delimiter: The delimiter used in the CSV file.
+
+    Returns:
+        A string representing the CSV line for the token.
+    """
     line = [word.replace(delimiter, " ")]
     for attr in token_attributes:
-        if attr not in annotation_dict[token]:
-            attr_str = util.constants.UNDEF
-        else:
-            attr_str = annotation_dict[token][attr][index]
+        attr_str = util.constants.UNDEF if attr not in annotation_dict[token] else annotation_dict[token][attr][index]
         line.append(attr_str)
     return delimiter.join(line)
 
 
-def _make_attrs(annotation, annotation_dict, export_names, index):
-    """Create a list with attribute-value strings for a structural element."""
+def _make_attrs(
+    annotation: str, annotation_dict: dict[str, dict], export_names: dict[str, str], index: int
+) -> list[str]:
+    """Create a list with attribute-value strings for a structural element.
+
+    Args:
+        annotation: The name of the annotation.
+        annotation_dict: Dictionary with annotations.
+        export_names: Dictionary mapping annotation names to export names.
+        index: Index of the annotation.
+
+    Returns:
+        A list of attribute-value strings.
+    """
     attrs = []
     for name, annot in annotation_dict[annotation].items():
         export_name = export_names.get(f"{annotation}:{name}", name)

@@ -1,6 +1,6 @@
 """CoNNL-U file export (modified SBX version)."""
-
-import os
+# ruff: noqa: PLR2004
+from pathlib import Path
 from typing import Optional
 
 from sparv.api import Annotation, Config, Export, SourceAnnotations, SourceFilename, exporter, get_logger, util
@@ -44,24 +44,28 @@ def conllu(source_file: SourceFilename = SourceFilename(),
            head: Optional[Annotation] = Annotation("[conll_export.conll_fields.head]"),
            deprel: Optional[Annotation] = Annotation("[conll_export.conll_fields.deprel]"),
            deps: Optional[Annotation] = Annotation("[conll_export.conll_fields.deps]"),
-           misc: Optional[Annotation] = Annotation("[conll_export.conll_fields.misc]")):
+           misc: Optional[Annotation] = Annotation("[conll_export.conll_fields.misc]")) -> None:
     """Export annotations to CoNLL-U format."""
     # CoNLLU specification: https://universaldependencies.org/format.html
-    # ID: Word index, integer starting at 1 for each new sentence; may be a range for multiword tokens; may be a decimal number for empty nodes (decimal numbers can be lower than 1 but must be greater than 0).
+    # ID: Word index, integer starting at 1 for each new sentence; may be a range for multiword tokens; may be a decimal
+    #     number for empty nodes (decimal numbers can be lower than 1 but must be greater than 0).
     # FORM: Word form or punctuation symbol.
     # LEMMA: Lemma or stem of word form.
     # UPOS: Universal part-of-speech tag.
     # XPOS: Language-specific part-of-speech tag; underscore if not available.
-    # FEATS: List of morphological features from the universal feature inventory or from a defined language-specific extension; underscore if not available.
+    # FEATS: List of morphological features from the universal feature inventory or from a defined language-specific
+    #        extension; underscore if not available.
     # HEAD: Head of the current word, which is either a value of ID or zero (0).
-    # DEPREL: Universal dependency relation to the HEAD (root iff HEAD = 0) or a defined language-specific subtype of one.
+    # DEPREL: Universal dependency relation to the HEAD (root iff HEAD = 0) or a defined language-specific subtype
+    #         of one.
     # DEPS: Enhanced dependency graph in the form of a list of head-deprel pairs.
     # MISC: Any other annotation.
     conll_fields = [id_ref, form, lemma, upos, xpos, feats, head, deprel, deps, misc]
     conll_fields = [f if isinstance(f, Annotation) else Annotation() for f in conll_fields]
 
     # Create export dir
-    os.makedirs(os.path.dirname(out), exist_ok=True)
+    out_path = Path(out)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
 
     token_name = token.name
 
@@ -101,13 +105,29 @@ def conllu(source_file: SourceFilename = SourceFilename(),
     csv_data.append("")
 
     # Write result to file
-    with open(out, "w", encoding="utf-8") as f:
-        f.write("\n".join(csv_data))
+    out_path.write_text("\n".join(csv_data), encoding="utf-8")
     logger.info("Exported: %s", out)
 
 
-def _make_conll_token_line(conll_fields, token, annotation_dict, index, delimiter="\t"):
-    """Create a line in CoNLL-format with the token and its annotations."""
+def _make_conll_token_line(
+        conll_fields: list[Annotation],
+        token: str,
+        annotation_dict: dict[str, dict],
+        index: int,
+        delimiter: str = "\t"
+    ) -> str:
+    """Create a line in CoNLL-format with the token and its annotations.
+
+    Args:
+        conll_fields: List of CoNLL fields.
+        token: The token name.
+        annotation_dict: Dictionary with annotations.
+        index: Index of the token.
+        delimiter: Delimiter used in the CoNLL format (default is tab).
+
+    Returns:
+        str: A string representing the CoNLL line for the token.
+    """
     line = []
     for i, annot in enumerate(conll_fields):
         if annot.attribute_name not in annotation_dict[token]:
@@ -127,8 +147,20 @@ def _make_conll_token_line(conll_fields, token, annotation_dict, index, delimite
     return delimiter.join(line)
 
 
-def _make_attrs(annotation, annotation_dict, export_names, index):
-    """Create a list with attribute-value strings for a structural element."""
+def _make_attrs(
+    annotation: str, annotation_dict: dict[str, dict], export_names: dict[str, str], index: int
+) -> list[str]:
+    """Create a list with attribute-value strings for a structural element.
+
+    Args:
+        annotation: The name of the annotation.
+        annotation_dict: Dictionary with annotations.
+        export_names: Dictionary with export names.
+        index: Index of the annotation.
+
+    Returns:
+        A list of attribute-value strings.
+    """
     attrs = []
     for name, annot in annotation_dict[annotation].items():
         export_name = export_names.get(f"{annotation}:{name}", name)
