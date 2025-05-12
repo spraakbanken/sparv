@@ -22,6 +22,7 @@
 - Added support for using `len()` on instances of the `Annotation` class, replacing the `get_size()` method which will
   be removed in a future version of Sparv.
 - Sparv can now be used as a library by importing the `sparv` package.
+- Added `swener.timeout` setting to set a timeout for SweNER.
 
 ### Changed
 
