@@ -1,5 +1,6 @@
 """Dependency parsing using MaltParser."""
 import re
+import subprocess
 from typing import Optional
 
 from sparv.api import Annotation, Binary, Config, Model, ModelOutput, Output, annotator, get_logger, modelbuilder, util
@@ -21,8 +22,17 @@ DEPREL_COLUMN = 7
 UNDEF = "_"
 
 
-def preloader(maltjar, model, encoding):
-    """Preload MaltParser executable."""
+def preloader(maltjar: Binary, model: Model, encoding: str) -> dict:
+    """Preload MaltParser executable.
+
+    Args:
+        maltjar: Path to the MaltParser jar file.
+        model: Path to the Malt model.
+        encoding: Encoding to use for the process.
+
+    Returns:
+        dict: Dictionary containing the process and a restart flag.
+    """
     process = maltstart(maltjar, model, encoding, send_empty_sentence=True)
     return {
         "process": process,
@@ -30,8 +40,18 @@ def preloader(maltjar, model, encoding):
     }
 
 
-def cleanup(maltjar, model, encoding, process_dict):
-    """Cleanup function used by preloader to restart Malt."""
+def cleanup(maltjar: Binary, model: Model, encoding: str, process_dict: dict) -> dict:
+    """Cleanup function used by preloader to restart Malt.
+
+    Args:
+        maltjar: Path to the MaltParser jar file.
+        model: Path to the Malt model.
+        encoding: Encoding to use for the process.
+        process_dict: Dictionary containing the process and a restart flag.
+
+    Returns:
+        dict: Dictionary containing the process and a restart flag.
+    """
     if process_dict["restart"]:
         util.system.kill_process(process_dict["process"])
         logger.info("Restarting MaltParser process")
@@ -60,11 +80,23 @@ def annotate(maltjar: Binary = Binary("[malt.jar]"),
              sentence: Annotation = Annotation("<sentence>"),
              token: Annotation = Annotation("<token>"),
              encoding: str = util.constants.UTF8,
-             process_dict: Optional[dict] = None):
-    """
-    Run the malt parser, in an already started process defined in process_dict, or start a new process (default).
+             process_dict: Optional[dict] = None) -> None:
+    """Run the malt parser, in an already started process defined in process_dict, or start a new process (default).
 
-    The process_dict argument should never be set from the command line.
+    Args:
+        maltjar: Path to the MaltParser jar file.
+        model: Path to the Malt model.
+        out_dephead: Output annotation for dependency heads.
+        out_dephead_ref: Output annotation for sentence-relative positions of dependency heads.
+        out_deprel: Output annotation for dependency relations.
+        word: Input word annotation.
+        pos: Input part-of-speech annotation.
+        msd: Input morphological feature annotation.
+        ref: Input token reference annotation.
+        sentence: Input sentence annotation.
+        token: Input token annotation.
+        encoding: Encoding to use for the Malt process.
+        process_dict: Dictionary containing the process and a restart flag, used by preloader.
     """
     if process_dict is None:
         process = maltstart(maltjar, model, encoding)
@@ -78,15 +110,24 @@ def annotate(maltjar: Binary = Binary("[malt.jar]"),
 
     sentences, orphans = sentence.get_children(token)
     if orphans:
-        logger.warning(f"Found {len(orphans)} tokens not belonging to any sentence. These will not be annotated with "
-                       f"dependency relations.")
+        logger.warning("Found %d tokens not belonging to any sentence. These will not be annotated with "
+                       "dependency relations.", len(orphans))
 
     word_annotation = list(word.read())
     pos_annotation = list(pos.read())
     msd_annotation = list(msd.read())
     ref_annotation = list(ref.read())
 
-    def conll_token(nr, token_index):
+    def conll_token(nr: int, token_index: int) -> str:
+        """Create a CoNLL token string.
+
+        Args:
+            nr: Token number.
+            token_index: Index of the token in the sentence.
+
+        Returns:
+            str: CoNLL token string.
+        """
         form = word_annotation[token_index]
         lemma = UNDEF
         pos = cpos = pos_annotation[token_index]
@@ -150,14 +191,30 @@ def annotate(maltjar: Binary = Binary("[malt.jar]"),
 def make_ref(out: Output = Output("<token>:malt.ref", cls="token:ref",
                                   description="Token IDs relative to their sentences"),
              sentence: Annotation = Annotation("<sentence>"),
-             token: Annotation = Annotation("<token>")):
-    """Annotate tokens with IDs relative to their sentences."""
-    from sparv.modules.misc import number
+             token: Annotation = Annotation("<token>")) -> None:
+    """Annotate tokens with IDs relative to their sentences.
+
+    Args:
+        out: Output annotation for token IDs relative to their sentences.
+        sentence: Input sentence annotation.
+        token: Input token annotation.
+    """
+    from sparv.modules.misc import number  # noqa: PLC0415
     number.number_relative(out, sentence, token)
 
 
-def maltstart(maltjar, model, encoding, send_empty_sentence=False):
-    """Start a malt process and return it."""
+def maltstart(maltjar: Binary, model: Model, encoding: str, send_empty_sentence: bool = False) -> subprocess.Popen:
+    """Start a malt process and return it.
+
+    Args:
+        maltjar: Path to the MaltParser jar file.
+        model: Path to the Malt model.
+        encoding: Encoding to use for the process.
+        send_empty_sentence: Whether to send an empty sentence to Malt, to "warm up" the process.
+
+    Returns:
+        The Malt process.
+    """
     java_opts = ["-Xmx1024m"]
     malt_args = ["-ic", encoding, "-oc", encoding, "-m", "parse"]
     if str(model).startswith("http://") or str(model).startswith("https://"):
@@ -190,9 +247,13 @@ def maltstart(maltjar, model, encoding, send_empty_sentence=False):
 
 @modelbuilder("Model for MaltParser", language=["swe"])
 def build_model(out: ModelOutput = ModelOutput("malt/swemalt-1.7.2.mco"),
-                _maltjar: Binary = Binary("[malt.jar]")):
+                _maltjar: Binary = Binary("[malt.jar]")) -> None:
     """Download model for MaltParser.
 
     Won't download model unless maltjar has been installed.
+
+    Args:
+        out: Output model file.
+        _maltjar: Path to the MaltParser jar file.
     """
     out.download("https://maltparser.org/mco/swedish_parser/swemalt-1.7.2.mco")
