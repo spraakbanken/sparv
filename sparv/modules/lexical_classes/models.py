@@ -1,24 +1,23 @@
 """Handle models for lexical classes."""
-
-import os
+import csv
 import subprocess
-import sys
-import xml.etree.ElementTree as etree
+import xml.etree.ElementTree as etree  # noqa: N813
 from collections import defaultdict
+from pathlib import Path
+from typing import Optional, Union
 
-from sparv.api import Model, ModelOutput, get_logger, modelbuilder, util
+from sparv.api import Model, ModelOutput, SparvErrorMessage, get_logger, modelbuilder, util
 
 logger = get_logger(__name__)
 
-# Path to the cwb binaries
-CWB_SCAN_EXECUTABLE = "cwb-scan-corpus"
-CWB_DESCRIBE_EXECUTABLE = "cwb-describe-corpus"
-CORPUS_REGISTRY = os.environ.get("CORPUS_REGISTRY")
-
 
 @modelbuilder("Blingbring model", language=["swe"])
-def blingbring_model(out: ModelOutput = ModelOutput("lexical_classes/blingbring.pickle")):
-    """Download and build Blingbring model."""
+def blingbring_model(out: ModelOutput = ModelOutput("lexical_classes/blingbring.pickle")) -> None:
+    """Download and build Blingbring model.
+
+    Args:
+        out: Output model.
+    """
     # Download roget hierarchy
     classmap = Model("lexical_classes/roget_hierarchy.xml")
     classmap.download("https://github.com/spraakbanken/sparv-models/raw/master/lexical_classes/roget_hierarchy.xml")
@@ -35,8 +34,12 @@ def blingbring_model(out: ModelOutput = ModelOutput("lexical_classes/blingbring.
 
 
 @modelbuilder("SweFN model", language=["swe"])
-def swefn_model(out: ModelOutput = ModelOutput("lexical_classes/swefn.pickle")):
-    """Download and build SweFN model."""
+def swefn_model(out: ModelOutput = ModelOutput("lexical_classes/swefn.pickle")) -> None:
+    """Download and build SweFN model.
+
+    Args:
+        out: Output model.
+    """
     # Download swefn.xml and build swefn.pickle
     raw_file = Model("lexical_classes/swefn.xml")
     raw_file.download("https://svn.spraakdata.gu.se/sb-arkiv/pub/lmf/swefn/swefn.xml")
@@ -48,38 +51,54 @@ def swefn_model(out: ModelOutput = ModelOutput("lexical_classes/swefn.pickle")):
 
 
 @modelbuilder("Blingbring frequency model", language=["swe"])
-def blingbring_freq_model(out: ModelOutput = ModelOutput("lexical_classes/blingbring.freq.gp2008+suc3+romi.pickle")):
-    """Download Blingbring frequency model."""
+def blingbring_freq_model(
+    out: ModelOutput = ModelOutput("lexical_classes/blingbring.freq.gp2008+suc3+romi.pickle"),
+) -> None:
+    """Download Blingbring frequency model.
+
+    Args:
+        out: Output model.
+    """
     out.download(
-        "https://github.com/spraakbanken/sparv-models/raw/master/lexical_classes/blingbring.freq.gp2008+suc3+romi.pickle")
+        "https://github.com/spraakbanken/sparv-models/raw/master/lexical_classes/blingbring.freq.gp2008+suc3+romi.pickle"
+    )
 
 
 @modelbuilder("Blingbring frequency model", language=["swe"])
-def swefn_freq_model(out: ModelOutput = ModelOutput("lexical_classes/swefn.freq.gp2008+suc3+romi.pickle")):
-    """Download SweFN frequency model."""
+def swefn_freq_model(out: ModelOutput = ModelOutput("lexical_classes/swefn.freq.gp2008+suc3+romi.pickle")) -> None:
+    """Download SweFN frequency model.
+
+    Args:
+        out: Output model.
+    """
     out.download(
         "https://github.com/spraakbanken/sparv-models/raw/master/lexical_classes/swefn.freq.gp2008+suc3+romi.pickle")
 
 
-def read_blingbring(tsv, classmap, verbose=True):
+def read_blingbring(tsv: Path, classmap: Path, verbose: bool = True) -> dict:
     """Read the tsv version of the Blingbring lexicon (blingbring.xml).
 
-    Return a lexicon dictionary: {senseid: {roget_head: roget_head,
-                                            roget_subsection: roget_subsection,
-                                            roget_section: roget_section,
-                                            roget_class: roget_class,
-                                            bring: bring_ID}
+    Args:
+        tsv: Path to the tsv file.
+        classmap: Path to the XML file with Roget hierarchy.
+        verbose: If True, print progress messages.
+
+    Returns:
+        A dictionary with the following structure:
+            {senseid: {roget_head: roget_head,
+                roget_subsection: roget_subsection,
+                roget_section: roget_section,
+                roget_class: roget_class,
+                bring: bring_ID}
     """
     rogetdict = read_rogetmap(xml=classmap, verbose=True)
-
-    import csv
 
     if verbose:
         logger.info("Reading tsv lexicon")
     lexicon = {}
     classmapping = {}
 
-    with open(tsv, encoding="utf-8") as f:
+    with tsv.open(encoding="utf-8") as f:
         for line in csv.reader(f, delimiter="\t"):
             if line[0].startswith("#"):
                 continue
@@ -120,8 +139,17 @@ def read_blingbring(tsv, classmap, verbose=True):
     return lexicon
 
 
-def read_rogetmap(xml, verbose=True):
-    """Parse Roget map (Roget hierarchy) into a dictionary with Roget head words as keys."""
+def read_rogetmap(xml: Path, verbose: bool = True) -> dict:
+    """Parse Roget map (Roget hierarchy) into a dictionary with Roget head words as keys.
+
+    Args:
+        xml: Path to the XML file.
+        verbose: If True, print progress messages.
+
+    Returns:
+        A dictionary with the following structure:
+            {roget_head: (roget_subsection, roget_section, roget_class)}
+    """
     if verbose:
         logger.info("Reading XML lexicon")
     lexicon = {}
@@ -150,10 +178,16 @@ def read_rogetmap(xml, verbose=True):
     return lexicon
 
 
-def read_swefn(xml, verbose=True):
+def read_swefn(xml: Path, verbose: bool = True) -> dict:
     """Read the XML version of the swedish Framenet resource.
 
-    Return a lexicon dictionary, {saldoID: {swefnID}}.
+    Args:
+        xml: Path to the XML file.
+        verbose: If True, print progress messages.
+
+    Returns:
+        A dictionary with the following structure:
+            {saldoID: {swefnID}}
     """
     if verbose:
         logger.info("Reading XML lexicon")
@@ -188,8 +222,31 @@ def read_swefn(xml, verbose=True):
     return lexicon
 
 
-def create_freq_pickle(corpus, annotation, model, class_set=None, score_separator=util.constants.SCORESEP):
-    """Build pickle with relative frequency for a given annotation in one or more reference corpora."""
+def create_freq_pickle(
+    corpus: Union[str, list],
+    annotation: str,
+    model: str,
+    cwb_bin_dir: str,
+    cwb_registry: str,
+    class_set: Optional[set] = None,
+    score_separator: str = util.constants.SCORESEP,
+) -> None:
+    """Build pickle with relative frequency for a given annotation in one or more reference corpora.
+
+    This function is not used in the pipeline, but can be used to create a frequency model for a given annotation.
+
+    Args:
+        corpus: Corpus or list of corpora to use.
+        annotation: Annotation to use.
+        model: Path to the output model.
+        cwb_bin_dir: Path to the CWB bin directory.
+        cwb_registry: Path to the CWB registry.
+        class_set: Class set to use. If None, all classes are used.
+        score_separator: Separator for scores in the annotation. Default is util.constants.SCORESEP.
+
+    Raises:
+        SparvErrorMessage: If the annotation is not found in the corpus.
+    """
     lexicon = util.misc.PickledLexicon(model)
     # Create a set of all possible classes
     if class_set:
@@ -205,17 +262,18 @@ def create_freq_pickle(corpus, annotation, model, class_set=None, score_separato
     if isinstance(corpus, str):
         corpus = corpus.split()
 
+    cwb_path = Path(cwb_bin_dir)
+
     for c in corpus:
         # Get corpus size
-        process = subprocess.Popen([CWB_DESCRIBE_EXECUTABLE, "-r", CORPUS_REGISTRY, c],
+        process = subprocess.Popen([cwb_path / "cwb-describe-corpus", "-r", cwb_registry, c],
                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         reply, error = process.communicate()
         reply = reply.decode()
 
         if error:
             error = error.decode()
-            logger.error(error)
-            sys.exit(1)
+            raise SparvErrorMessage(error)
 
         for line in reply.splitlines():
             if line.startswith("size (tokens)"):
@@ -224,13 +282,13 @@ def create_freq_pickle(corpus, annotation, model, class_set=None, score_separato
 
         # Get frequency of annotation
         logger.info("Getting frequencies from %s", c)
-        process = subprocess.Popen([CWB_SCAN_EXECUTABLE, "-q", "-r", CORPUS_REGISTRY, c, annotation],
+        process = subprocess.Popen([cwb_path / "cwb-scan-corpus", "-q", "-r", cwb_registry, c, annotation],
                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         reply, error = process.communicate()
         reply = reply.decode()
         if error and "Error: can't open attribute" in error.decode():
             logger.error("Annotation '%s' not found", annotation)
-            sys.exit(1)
+            raise SparvErrorMessage(f"Annotation '{annotation}' not found")
 
         for line in reply.splitlines():
             if not line.strip():
@@ -240,7 +298,7 @@ def create_freq_pickle(corpus, annotation, model, class_set=None, score_separato
                 if cl:
                     freq = int(freq)
                     if score_separator:
-                        cl, score = cl.rsplit(score_separator, 1)
+                        cl, score = cl.rsplit(score_separator, 1)  # noqa: PLW2901
                         score = float(score)
                         if score <= 0:
                             continue
@@ -250,7 +308,7 @@ def create_freq_pickle(corpus, annotation, model, class_set=None, score_separato
     rel_freq = defaultdict(float)
 
     for cl in all_classes:
-        cl = cl.replace("_", " ")
+        cl = cl.replace("_", " ")  # noqa: PLW2901
         rel_freq[cl] = (corpus_stats[cl] + smoothing) / (corpus_size + smoothing * lexicon_size)
 
     model.write_pickle(rel_freq)

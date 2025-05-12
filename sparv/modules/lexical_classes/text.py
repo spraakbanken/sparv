@@ -25,8 +25,24 @@ def blingbring_text(out: Output = Output("<text>:lexical_classes.blingbring",
                     delimiter: str = DELIM,
                     affix: str = AFFIX,
                     freq_model: Model = Model("[lexical_classes.bb_freq_model]"),
-                    decimals: int = 3):
-    """Annotate text chunks with Blingbring classes."""
+                    decimals: int = 3) -> None:
+    """Annotate text chunks with Blingbring classes.
+
+    Args:
+        out: Resulting annotation.
+        lexical_classes_token: Existing annotation with lexical classes on token level.
+        text: Existing text span annotation.
+        token: Existing token span annotation.
+        saldoids: Existing annotation with saldoIDs, needed when types=True.
+        cutoff: Value for limiting the resulting bring classes.
+                The result will contain all words with the top x frequencies.
+                Words with frequency = 1 will be removed from the result.
+        types: If True, count every class only once per saldo ID occurrence.
+        delimiter: Delimiter character to put between ambiguous results.
+        affix: Optional character to put before and after results to mark a set.
+        freq_model: Pickled file with reference frequencies.
+        decimals: Number of decimals to keep in output.
+    """
     annotate_text(out=out, lexical_classes_token=lexical_classes_token, text=text, token=token,
                   saldoids=saldoids, cutoff=cutoff, types=types, delimiter=delimiter, affix=affix,
                   freq_model=freq_model, decimals=decimals)
@@ -47,29 +63,42 @@ def swefn_text(out: Output = Output("<text>:lexical_classes.swefn",
                delimiter: str = DELIM,
                affix: str = AFFIX,
                freq_model: Model = Model("[lexical_classes.swefn_freq_model]"),
-               decimals: int = 3):
+               decimals: int = 3) -> None:
     """Annotate text chunks with SweFN classes."""
     annotate_text(out=out, lexical_classes_token=lexical_classes_token, text=text, token=token,
                   saldoids=saldoids, cutoff=cutoff, types=types, delimiter=delimiter, affix=affix,
                   freq_model=freq_model, decimals=decimals)
 
 
-def annotate_text(out: Output, lexical_classes_token: Annotation, text: Annotation, token: Annotation,
-                  saldoids, cutoff, types, delimiter, affix, freq_model, decimals):
+def annotate_text(
+    out: Output,
+    lexical_classes_token: Annotation,
+    text: Annotation,
+    token: Annotation,
+    saldoids: Optional[Annotation],
+    cutoff: int,
+    types: bool,
+    delimiter: str,
+    affix: str,
+    freq_model: Model,
+    decimals: int,
+) -> None:
     """Annotate text chunks with lexical classes.
 
-    - out: resulting annotation file
-    - lexical_classes_token: existing annotation with lexical classes on token level.
-    - text, token: existing annotations for the text-IDs and the tokens.
-    - saldoids: existing annotation with saldoIDs, needed when types=True.
-    - cutoff: value for limiting the resulting bring classes.
-              The result will contain all words with the top x frequencies.
-              Words with frequency = 1 will be removed from the result.
-    - types: if True, count every class only once per saldo ID occurrence.
-    - delimiter: delimiter character to put between ambiguous results.
-    - affix: optional character to put before and after results to mark a set.
-    - freq_model: pickled file with reference frequencies.
-    - decimals: number of decimals to keep in output.
+    Args:
+        out: Resulting annotation.
+        lexical_classes_token: Existing annotation with lexical classes on token level.
+        text: Existing text span annotation.
+        token: Existing token span annotation.
+        saldoids: Existing annotation with saldoIDs, needed when types=True.
+        cutoff: Value for limiting the resulting bring classes.
+                The result will contain all words with the top x frequencies.
+                Words with frequency = 1 will be removed from the result.
+        types: If True, count every class only once per saldo ID occurrence.
+        delimiter: Delimiter character to put between ambiguous results.
+        affix: Optional character to put before and after results to mark a set.
+        freq_model: Pickled file with reference frequencies.
+        decimals: Number of decimals to keep in output.
     """
     cutoff = int(cutoff)
     text_children, _orphans = text.get_children(token)
@@ -91,8 +120,7 @@ def annotate_text(out: Output, lexical_classes_token: Annotation, text: Annotati
                 senses = str(sorted([s.split(SCORESEP)[0] for s in sense[token_index].strip(AFFIX).split(DELIM)]))
                 if senses in seen_types:
                     continue
-                else:
-                    seen_types.add(senses)
+                seen_types.add(senses)
 
             rogwords = classes[token_index].strip(AFFIX).split(DELIM) if classes[token_index] != AFFIX else []
             for w in rogwords:
