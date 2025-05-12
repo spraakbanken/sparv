@@ -147,6 +147,24 @@ def remove_formatting_characters(text: str, keep: Iterable[str] = ()) -> str:
     return "".join(c for c in text if c in keep or unicodedata.category(c) != "Cf")
 
 
+def remove_unassigned_characters(text: str, keep: Iterable[str] = ()) -> str:
+    """Remove unassigned characters from the given text, except for those specified in 'keep'.
+
+    The characters removed are those with the Unicode category "Cn" (unassigned characters).
+    https://www.unicode.org/reports/tr44/#GC_Values_Table
+
+    Args:
+        text: The text from which to remove unassigned characters.
+        keep: An iterable of characters to keep.
+
+    Returns:
+        The text with unassigned characters removed.
+    """
+    if keep is None:
+        keep = []
+    return "".join(c for c in text if c in keep or unicodedata.category(c) != "Cn")
+
+
 def chain(annotations: Iterable[dict], default: Any = None) -> Generator[tuple]:
     """Create a functional composition of a list of annotations.
 

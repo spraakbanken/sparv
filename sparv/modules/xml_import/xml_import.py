@@ -106,6 +106,12 @@ class XMLStructure(SourceStructureParser):
             datatype=bool,
         ),
         Config(
+            "xml_import.keep_unassigned_chars",
+            False,
+            description="Set to True to keep unassigned characters",
+            datatype=bool
+        ),
+        Config(
             "xml_import.normalize",
             default="NFC",
             description="Normalize input using any of the following forms: 'NFC', 'NFKC', 'NFD', and 'NFKD'.",
@@ -125,7 +131,8 @@ def parse(filename: SourceFilename = SourceFilename(),
           remove_namespaces: bool = Config("xml_import.remove_namespaces"),
           encoding: str = Config("xml_import.encoding"),
           keep_control_chars: bool = Config("xml_import.keep_control_chars"),
-          normalize: str = Config("xml_import.normalize")):
+          keep_unassigned_chars: bool = Config("xml_import.keep_unassigned_chars"),
+          normalize: str = Config("xml_import.normalize")) -> None:
     """Parse XML source file and create annotation files.
 
     Args:
@@ -140,11 +147,12 @@ def parse(filename: SourceFilename = SourceFilename(),
         remove_namespaces: Set to True to remove any namespaces.
         encoding: Encoding of source file. Defaults to UTF-8.
         keep_control_chars: Set to True to keep control characters in the text.
+        keep_unassigned_chars: Set to True to keep unassigned characters.
         normalize: Normalize input using any of the following forms: 'NFC', 'NFKC', 'NFD', and 'NFKD'.
             Defaults to 'NFC'.
     """
     parser = SparvXMLParser(elements, skip, header_elements, header_data, source_dir, encoding, prefix,
-                            remove_namespaces, keep_control_chars, normalize)
+                            remove_namespaces, keep_control_chars, keep_unassigned_chars, normalize)
     parser.parse(filename)
     parser.save()
 
@@ -154,11 +162,12 @@ class SparvXMLParser:
 
     def __init__(self, elements: list, skip: list, header_elements: list, header_data: list, source_dir: Source,
                  encoding: str = util.constants.UTF8, prefix: Optional[str] = None, remove_namespaces: bool = False,
-                 keep_control_chars: bool = True, normalize: str = "NFC"):
         """Initialize XML parser."""
+                 keep_control_chars: bool = False, keep_unassigned_chars: bool = False, normalize: str = "NFC") -> None:
         self.source_dir = source_dir
         self.encoding = encoding
         self.keep_control_chars = keep_control_chars
+        self.keep_unassigned_chars = keep_unassigned_chars
         self.normalize = normalize
         self.file = None
         self.prefix = prefix
@@ -399,7 +408,7 @@ class SparvXMLParser:
                 self.text.append(element.tail)
             return element_length, len(element.tail or ""), end_subpos
 
-        if self.keep_control_chars and not self.normalize:
+        if self.keep_control_chars and self.keep_unassigned_chars and not self.normalize:
             try:
                 tree = etree.parse(source_file)
             except Exception as e:
@@ -409,6 +418,8 @@ class SparvXMLParser:
             text = source_file.read_text(encoding="utf-8")
             if not self.keep_control_chars:
                 text = util.misc.remove_control_characters(text)
+            if not self.keep_unassigned_chars:
+                text = util.misc.remove_unassigned_characters(text)
             if self.normalize:
                 text = unicodedata.normalize(self.normalize, text)
             try:

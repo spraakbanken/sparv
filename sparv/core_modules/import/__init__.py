@@ -23,6 +23,9 @@ __config__ = [
     ),
     Config("import.keep_control_chars", False, description="Set to True to keep control characters", datatype=bool),
     Config(
+        "import.keep_unassigned_chars", False, description="Set to True to keep unassigned characters", datatype=bool
+    ),
+    Config(
         "import.normalize",
         default="NFC",
         description="Normalize input using any of the following forms: 'NFC', 'NFKC', 'NFD', and 'NFKD'",

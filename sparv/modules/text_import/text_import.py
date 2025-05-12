@@ -26,6 +26,12 @@ from sparv.api import Config, Output, Source, SourceFilename, SourceStructure, T
             datatype=bool,
         ),
         Config(
+            "text_import.keep_unassigned_chars",
+            False,
+            description="Set to True if unassigned characters should not be removed from the text.",
+            datatype=bool,
+        ),
+        Config(
             "text_import.normalize",
             default="NFC",
             description="Normalize input using any of the following forms: 'NFC', 'NFKC', 'NFD', and 'NFKD'.",
