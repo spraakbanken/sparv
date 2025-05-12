@@ -1,5 +1,5 @@
 """Sparv corpus set-up wizard."""
-# ruff: noqa: T201
+# ruff: noqa
 import os
 import re
 import sys

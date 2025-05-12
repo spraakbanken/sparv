@@ -35,7 +35,7 @@ __config__ = [
 
 
 @wizard(["export.source_annotations"], source_structure=True)
-def import_wizard(answers, structure: SourceStructureParser):
+def import_wizard(answers: dict, structure: SourceStructureParser) -> list[dict]:
     """Return wizard for selecting what source annotations to keep."""
     return [
         {
@@ -45,12 +45,12 @@ def import_wizard(answers, structure: SourceStructureParser):
             "choices": [
                 {"name": "All of them", "value": "all", "short": "All"},
                 {
-                    "name": "Some of them; I’ll list which ones I want to keep.",
+                    "name": "Some of them; I'll list which ones I want to keep.",
                     "value": "whitelist",
                     "short": "Keep some",
                 },
                 {
-                    "name": "Most of them; I’ll list which ones to exclude.",
+                    "name": "Most of them; I'll list which ones to exclude.",
                     "value": "blacklist",
                     "short": "Discard some",
                 },

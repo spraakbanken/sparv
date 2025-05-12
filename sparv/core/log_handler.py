@@ -1,4 +1,19 @@
-"""Handler for log messages, both from the logging library and from Snakemake."""
+"""Handler for log messages.
+
+This module handles logging for both the standard logging library and Snakemake, providing additional functionality for
+progress tracking and internal messaging.
+
+The LogHandler class is responsible for setting up the logging configuration, and contains most of the code for handling
+log messages. It also provides a progress bar and additional features for enhanced logging capabilities. The logging in
+this module uses a logger named "sparv_logging".
+
+The Sparv modules (run in separate processes) get their logger using the `get_logger()` function, which returns a logger
+("sparv") that communicates with the Sparv log handler (in the main thread) over a TCP socket, and the messages are then
+handled by the "sparv_logging" logger.
+
+Log messages from Snakemake are handled by the `log_handler()` method, which processes messages and updates the progress
+bars. Some messages are printed to the console instead of being logged.
+"""
 
 from __future__ import annotations
 
@@ -434,6 +449,7 @@ class LogHandler:
 
         # stdout logger or log queue
         if self.log_queue:
+            # Used when running as a library
             stream_handler = QueueHandler(self.log_queue)
         elif self.json:
             stream_handler = logging.StreamHandler()

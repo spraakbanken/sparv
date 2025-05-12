@@ -55,7 +55,8 @@ class CustomHelpFormatter(RawDescriptionRichHelpFormatter):
     We have our own hardcoded list of subparsers in the description, so we don't want argparse to list them again.
     """
 
-    def _rich_format_action(self, action):
+    def _rich_format_action(self, action: argparse.Action) -> str:
+        """Format action for help message, skipping subparser actions."""  # noqa: DOC201
         if isinstance(action, argparse._SubParsersAction):
             return ""
         return super()._rich_format_action(action)
@@ -329,9 +330,7 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
     models_parser.add_argument("--language", help="Language (ISO 639-3) if different from current corpus language")
     models_parser.add_argument("--all", action="store_true", help="Build all models for the current language")
 
-    wizard_parser = subparsers.add_parser(
-        "wizard", help=help["wizard"], description=help["wizard"], formatter_class=RichHelpFormatter
-    )
+    subparsers.add_parser("wizard", help=help["wizard"], description=help["wizard"], formatter_class=RichHelpFormatter)
 
     # Advanced commands
     runmodule = subparsers.add_parser(

@@ -37,7 +37,7 @@ __config__ = [
         "metadata.description.swe",
     ]
 )
-def setup_wizard(_: dict):
+def setup_wizard(_: dict) -> list[dict]:
     """Return wizard steps for setting metadata variables."""
     language_list = [{"value": lang, "name": name} for lang, name in registry.languages.items()]
     language_list.sort(key=operator.itemgetter("name"))

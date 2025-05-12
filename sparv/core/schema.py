@@ -6,9 +6,9 @@ import itertools
 import json
 import re
 from collections import defaultdict
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 from typing import Any as AnyType
-from typing import Callable, Iterable
+from typing import Callable
 
 import typing_inspect
 
@@ -433,7 +433,7 @@ def build_json_schema(config_structure: dict) -> dict:
         """Handle a property and its conditions.
 
         Args:
-            cfg: A Config object
+            cfg: A Config object.
 
         Returns:
             A tuple with two values. The first is either a datatype object or a list of datatype objects, and the

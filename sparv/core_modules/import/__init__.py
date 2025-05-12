@@ -37,7 +37,7 @@ __config__ = [
 
 
 @wizard(config_keys=["import.importer", "import.source_dir"])
-def setup_wizard(_: dict):
+def setup_wizard(_: dict) -> list[dict]:
     """Return wizard question regarding source path and input format."""
     questions = [
         {

@@ -9,10 +9,10 @@ import pkgutil
 import re
 from collections import UserDict, defaultdict
 from collections.abc import Container, Iterable
+from collections.abc import Iterable as TypingIterable
 from enum import Enum
 from types import ModuleType
 from typing import Any, Callable, List, Tuple, TypeVar, get_type_hints  # noqa: UP035
-from typing import Iterable as TypingIterable
 
 import typing_inspect
 
