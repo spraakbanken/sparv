@@ -3,6 +3,7 @@
 import itertools
 import operator
 import re
+from collections.abc import Iterable
 from typing import Optional
 
 from sparv.api import Annotation, Config, Model, Output, annotator, get_logger, util
@@ -15,8 +16,15 @@ logger = get_logger(__name__)
 PRECISION_DIFF = 0.01
 
 
-def preloader(models):
-    """Preload SALDO models."""
+def preloader(models: list[Model]) -> dict:
+    """Preload SALDO models.
+
+    Args:
+        models: A list of SALDO models to preload.
+
+    Returns:
+        A dictionary with the preloaded models.
+    """
     if not isinstance(models, list):
         models = [models]
     return {m.path.stem: SaldoLexicon(m.path) for m in models}
@@ -96,7 +104,7 @@ def annotate(token: Annotation = Annotation("<token>"),
              out_lemgram: Output = Output("<token>:saldo.lemgram", cls="token:lemgram", description="SALDO lemgrams"),
              out_baseform: Output = Output("<token>:saldo.baseform", cls="token:baseform",
                                            description="Baseforms from SALDO"),
-             models: list[Model] = [Model("[saldo.model]")],
+             models: Iterable[Model] = (Model("[saldo.model]"),),
              msd: Optional[Annotation] = Annotation("<token:msd>"),
              delimiter: str = Config("saldo.delimiter"),
              affix: str = Config("saldo.affix"),
@@ -107,7 +115,7 @@ def annotate(token: Annotation = Annotation("<token>"),
              max_gaps: int = Config("saldo.max_mwe_gaps"),
              allow_multiword_overlap: bool = Config("saldo.allow_multiword_overlap"),
              word_separator: Optional[str] = Config("saldo.word_separator"),
-             models_preloaded: Optional[dict] = None):
+             models_preloaded: Optional[dict] = None) -> None:
     """Use the Saldo lexicon model to annotate msd-tagged words.
 
     Args:
@@ -141,12 +149,30 @@ def annotate(token: Annotation = Annotation("<token>"),
          models_preloaded=models_preloaded)
 
 
-def main(token, word, sentence, reference, out_sense, out_lemgram, out_baseform, models, msd, delimiter, affix,
-         precision, precision_filter, min_precision, skip_multiword, max_gaps, allow_multiword_overlap, word_separator,
-         models_preloaded):
+def main(
+    token: Annotation,
+    word: Annotation,
+    sentence: Annotation,
+    reference: Annotation,
+    out_sense: Output,
+    out_lemgram: Output,
+    out_baseform: Output,
+    models: Iterable[Model],
+    msd: Optional[Annotation],
+    delimiter: str,
+    affix: str,
+    precision: Optional[str],
+    precision_filter: str,
+    min_precision: float,
+    skip_multiword: bool,
+    max_gaps: int,
+    allow_multiword_overlap: bool,
+    word_separator: Optional[str],
+    models_preloaded: Optional[dict],
+) -> None:
     """Do SALDO annotations with models."""
-    # Allow use of multiple lexicons
     logger.progress()
+    # Allow use of multiple lexicons
     models_list = [(m.path.stem, m) for m in models]
     if not models_preloaded:
         lexicon_list = [(name, SaldoLexicon(lex.path)) for name, lex in models_list]
@@ -237,7 +263,29 @@ def main(token, word, sentence, reference, out_sense, out_lemgram, out_baseform,
 # Auxiliaries
 ################################################################################
 
-def _find_single_word(thewords, lexicon_list, msdtag, precision, min_precision, precision_filter, annotation_info):
+def _find_single_word(
+    thewords: list,
+    lexicon_list: list,
+    msdtag: str,
+    precision: Optional[str],
+    min_precision: float,
+    precision_filter: str,
+    annotation_info: dict,
+) -> list:
+    """Find the most probable single word annotations using MSD tags.
+
+    Args:
+        thewords: List of words to annotate (usually a single word).
+        lexicon_list: List of lexicons to use for annotation.
+        msdtag: The MSD tag of the word.
+        precision: Optional format string for appending precision to each value.
+        min_precision: Minimum precision for annotations.
+        precision_filter: Precision filter to apply.
+        annotation_info: Dictionary to store the resulting annotations.
+
+    Returns:
+        Unfiltered list of annotations for the words, to be used for finding multiword expressions.
+    """
     ann_tags_words = []
 
     for w in thewords:
@@ -262,8 +310,7 @@ def _find_single_word(thewords, lexicon_list, msdtag, precision, min_precision, 
         elif precision_filter == "max":
             maxprec = annotation_precisions[0][0]
 
-            # ismax = lambda lemprec: lemprec[0] >= maxprec - PRECISION_DIFF
-            def ismax(lemprec):
+            def ismax(lemprec: tuple) -> bool:
                 return lemprec[0] >= maxprec - PRECISION_DIFF
             annotation_precisions = itertools.takewhile(ismax, annotation_precisions)
 
@@ -291,8 +338,32 @@ def _find_single_word(thewords, lexicon_list, msdtag, precision, min_precision, 
     return ann_tags_words
 
 
-def _find_multiword_expressions(incomplete_multis, complete_multis, thewords, ref, msdtag, max_gaps, ann_tags_words,
-                                msd_annotation, sent, skip_pos_check):
+def _find_multiword_expressions(
+    incomplete_multis: list,
+    complete_multis: list,
+    thewords: list,
+    ref: str,
+    msdtag: str,
+    max_gaps: int,
+    ann_tags_words: list,
+    msd_annotation: list,
+    sent: list[int],
+    skip_pos_check: bool,
+) -> None:
+    """Find multiword expressions.
+
+    Args:
+        incomplete_multis: List of incomplete multiword expressions.
+        complete_multis: List of completed multiword expressions.
+        thewords: List of words to check for multiword expressions (usually a single word).
+        ref: Reference ID of the current word.
+        msdtag: The MSD tag of the current word.
+        max_gaps: Maximum number of gaps allowed in a multiword expression.
+        ann_tags_words: List of possible annotations for the words.
+        msd_annotation: MSD annotation for whole source file.
+        sent: Token indices for the current sentence.
+        skip_pos_check: Whether to skip part-of-speech checking.
+    """
     todelfromincomplete = []  # list to keep track of which expressions that have been completed
 
     for i, x in enumerate(incomplete_multis):
@@ -307,8 +378,10 @@ def _find_multiword_expressions(incomplete_multis, complete_multis, thewords, re
         # If current gap is greater than max_gaps, stop searching
         if x[5][1] > max_gaps:
             todelfromincomplete.append(i)
-        #                                                         |  Last word may not be PP if this is a particle-multi-word                      |
-        elif seeking_word.lower() in (w.lower() for w in thewords) and (skip_pos_check or not (len(x[1]) == 1 and x[4] and msdtag.startswith("PP"))):
+        elif seeking_word.lower() in (w.lower() for w in thewords) and (
+            # Last word may not be PP if this is a particle-multi-word
+            skip_pos_check or not (len(x[1]) == 1 and x[4] and msdtag.startswith("PP"))
+        ):
             x[5][0] = False     # last word was not a gap
             del x[1][0]
             x[2].append(ref)
@@ -337,7 +410,7 @@ def _find_multiword_expressions(incomplete_multis, complete_multis, thewords, re
                 else:
                     complete_multis.append((x[2], x[0]))
 
-        else:
+        else:  # noqa: PLR5501
             # We've reached a gap
             # Are gaps allowed?
             if x[3]:
@@ -361,13 +434,17 @@ def _find_multiword_expressions(incomplete_multis, complete_multis, thewords, re
 
     # Collect possible multiword expressions:
     # Is this word a possible beginning of a multi-word expression?
-    looking_for = [(annotation, words, [ref], gap_allowed, is_particle, [False, 0])
-                   for (annotation, _, wordslist, gap_allowed, is_particle, _) in ann_tags_words if wordslist for words in wordslist]
+    looking_for = [
+        (annotation, words, [ref], gap_allowed, is_particle, [False, 0])
+        for (annotation, _, wordslist, gap_allowed, is_particle, _) in ann_tags_words
+        if wordslist
+        for words in wordslist
+    ]
     if len(looking_for) > 0:
         incomplete_multis.extend(looking_for)
 
 
-def _remove_unwanted_overlaps(complete_multis):
+def _remove_unwanted_overlaps(complete_multis: list) -> None:
     """Remove certain overlapping MWEs if they have identical POS (remove 'a' if 'b1 a1 b2 a2' or 'a1 b1 ab2')."""
     remove = set()
     for ai, a in enumerate(complete_multis):
@@ -392,7 +469,8 @@ def _remove_unwanted_overlaps(complete_multis):
         del complete_multis[a]
 
 
-def _save_multiwords(complete_multis, sentence_tokens):
+def _save_multiwords(complete_multis: list, sentence_tokens: dict) -> None:
+    """Save multiword expressions to the sentence tokens."""
     for c in complete_multis:
         first = True
         first_ref = ""
@@ -401,25 +479,41 @@ def _save_multiwords(complete_multis, sentence_tokens):
                 first_ref = tok_ref
             for ann, val in c[1].items():
                 if not first:
-                    val = [x + ":" + first_ref for x in val]
+                    val = [x + ":" + first_ref for x in val]  # noqa: PLW2901
                 sentence_tokens[tok_ref]["annotations"].setdefault(ann, []).extend(val)
             first = False
 
 
-def _join_annotation(annotation, delimiter, affix):
-    """Convert annotations into cwb sets with unique values."""
+def _join_annotation(annotation: dict, delimiter: str, affix: str) -> dict:
+    """Convert annotations into CWB sets with unique values.
+
+    Args:
+        annotation: Dictionary of annotations to join.
+        delimiter: Delimiter to use for joining.
+        affix: Affix to use for joining.
+
+    Returns:
+        Dictionary of joined annotations.
+    """
     return {
         a: util.misc.cwbset(list(dict.fromkeys(annotation[a])), delimiter=delimiter, affix=affix)
         for a in annotation
     }
 
 
-def get_precision(msd, msdtags):
-    """Calculate the precision of a Saldo annotation.
+def get_precision(msd: str, msdtags: list) -> float:
+    """Calculate the precision of a SALDO annotation.
 
     If the word's msdtag is among the annotation's possible msdtags,
     we return a high value (0.75), a partial match returns 0.66, missing MSD returns 0.5,
     and otherwise a low value (0.25).
+
+    Args:
+        msd: The MSD tag of the word.
+        msdtags: List of possible MSD tags for the annotation.
+
+    Returns:
+        The precision of the annotation.
     """
     return (0.5 if msd is None else
             0.75 if msd in msdtags else
@@ -427,7 +521,14 @@ def get_precision(msd, msdtags):
             0.25)
 
 
-def _normalize_precision(annotations):
-    """Normalize the rankings in the annotation list so that the sum is 1."""
+def _normalize_precision(annotations: list) -> list:
+    """Normalize the rankings in the annotation list so that the sum is 1.
+
+    Args:
+        annotations: List of tuples containing precision, annotation, and prefix.
+
+    Returns:
+        List of tuples with normalized precision.
+    """
     total_precision = sum(prec for (prec, _annotation, prefix) in annotations)
     return [(prec / total_precision, annotation, prefix) for (prec, annotation, prefix) in annotations]
