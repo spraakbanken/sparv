@@ -1,8 +1,9 @@
 """Import module for odt source files."""
 
 import unicodedata
-import xml.etree.ElementTree as etree
+import xml.etree.ElementTree as etree  # noqa: N813
 import zipfile
+from pathlib import Path
 from typing import Optional
 
 from sparv.api import (
@@ -42,7 +43,7 @@ def parse(source_file: SourceFilename = SourceFilename(),
           prefix: Optional[str] = Config("odt_import.prefix"),
           keep_control_chars: bool = Config("odt_import.keep_control_chars"),
           normalize: str = Config("odt_import.normalize")) -> None:
-    """Parse odt file as input to the Sparv Pipeline.
+    """Parse odt file as input to Sparv.
 
     Args:
         source_file: The source filename.
@@ -51,14 +52,17 @@ def parse(source_file: SourceFilename = SourceFilename(),
         keep_control_chars: Set to True to keep control characters in the text.
         normalize: Normalize input text using any of the following forms: 'NFC', 'NFKC', 'NFD', and 'NFKD'.
             'NFC' is used by default.
+
+    Raises:
+        SparvErrorMessage: If the file cannot be parsed or if the file is not an odt file.
     """
-    source_file_path = str(source_dir.get_path(source_file, ".odt"))
+    source_file_path = source_dir.get_path(source_file, ".odt")
 
     # Parse odt and extract all text content
     try:
         text = OdtParser(source_file_path).text
     except Exception as e:
-        raise SparvErrorMessage(f"Failed to parse odt file '{source_file}'. {type(e).__name__}: {e}")
+        raise SparvErrorMessage(f"Failed to parse odt file '{source_file}'. {type(e).__name__}: {e}") from None
 
     if not keep_control_chars:
         text = util.misc.remove_control_characters(text)
@@ -80,14 +84,15 @@ class OdtParser:
     Inspired by https://github.com/deanmalmgren/textract
     """
 
-    def __init__(self, filename):
+    def __init__(self, filename: Path) -> None:
+        """Initialize OdtParser."""
         self.filename = filename
         self.extract()
 
-    def extract(self):
+    def extract(self) -> None:
         """Extract text content from odt file."""
         # Get content XML file from ODT zip archive
-        with open(self.filename, "rb") as stream:
+        with self.filename.open("rb") as stream:
             zip_stream = zipfile.ZipFile(stream)
             content = etree.fromstring(zip_stream.read("content.xml"))
         # Iterate the XML and extract all strings
@@ -99,8 +104,15 @@ class OdtParser:
         if self.text:
             self.text = self.text[:-2]
 
-    def get_text(self, element):
-        """Recursively extract all text from element."""
+    def get_text(self, element: etree.Element) -> str:
+        """Recursively extract all text from element.
+
+        Args:
+            element: XML element to extract text from.
+
+        Returns:
+            Extracted text.
+        """
         buffer = ""
         if element.text is not None:
             buffer += element.text
@@ -127,8 +139,15 @@ class OdtParser:
         return buffer
 
     @staticmethod
-    def ns(tag):
-        """Get the name for 'tag' including its namespace."""
+    def ns(tag: str) -> str:
+        """Get the name for 'tag' including its namespace.
+
+        Args:
+            tag: The tag to get the namespace for.
+
+        Returns:
+            The tag with its namespace.
+        """
         nsmap = {
             "text": "urn:oasis:names:tc:opendocument:xmlns:text:1.0",
             "drawing": "urn:oasis:names:tc:opendocument:xmlns:drawing:1.0",

@@ -19,19 +19,20 @@ def annotate(sense: Annotation = Annotation("<token:sense>"),
              out_scores: Output = Output("<token>:sensaldo.sentiment_score", description="SenSALDO sentiment score"),
              out_labels: Output = Output("<token>:sensaldo.sentiment_label", description="SenSALDO sentiment label"),
              model: Model = Model("[sensaldo.model]"),
-             lexicon: Optional[util.misc.PickledLexicon] = None):
+             lexicon: Optional[util.misc.PickledLexicon] = None) -> None:
     """Assign sentiment values to tokens based on their sense annotation.
 
     When more than one sense is possible, calulate a weighted mean.
-    - sense: existing annotation with saldoIDs.
-    - out_scores, out_labels: resulting annotation file.
-    - model: pickled lexicon with saldoIDs as keys.
-    - lexicon: this argument cannot be set from the command line,
-      but is used in the catapult. This argument must be last.
+
+    Args:
+        sense: Sense annotation with SALDO IDs.
+        out_scores: Output annotation for sentiment scores.
+        out_labels: Output annotation for sentiment labels.
+        model: Path to the SenSALDO model.
+        lexicon: Preloaded lexicon (optional) (not implemented).
     """
     if not lexicon:
         lexicon = util.misc.PickledLexicon(model.path)
-    # Otherwise use preloaded lexicon (from catapult)
 
     result_scores = []
     result_labels = []
@@ -61,8 +62,12 @@ def annotate(sense: Annotation = Annotation("<token:sense>"),
 
 
 @modelbuilder("Sentiment model (SenSALDO)", language=["swe"])
-def build_model(out: ModelOutput = ModelOutput("sensaldo/sensaldo.pickle")):
-    """Download and build SenSALDO model."""
+def build_model(out: ModelOutput = ModelOutput("sensaldo/sensaldo.pickle")) -> None:
+    """Download and build SenSALDO model.
+
+    Args:
+        out: Output model.
+    """
     # Download and extract sensaldo-base-v02.txt
     zip_model = Model("sensaldo/sensaldo-v02.zip")
     zip_model.download("https://svn.spraakdata.gu.se/sb-arkiv/pub/lexikon/sensaldo/sensaldo-v02.zip")
@@ -79,10 +84,15 @@ def build_model(out: ModelOutput = ModelOutput("sensaldo/sensaldo.pickle")):
     Model("sensaldo/sensaldo-fullform-v02.txt").remove()
 
 
-def read_sensaldo(tsv, verbose=True):
+def read_sensaldo(tsv: Model, verbose: bool = True) -> dict:
     """Read the TSV version of the sensaldo lexicon (sensaldo-base.txt).
 
-    Return a lexicon dictionary: {senseid: (class, ranking)}
+    Args:
+        tsv: Path to the TSV file.
+        verbose: Verbose mode.
+
+    Returns:
+        A dictionary with the lexicon: {senseid: (class, ranking)}
     """
     if verbose:
         logger.info("Reading TSV lexicon")
