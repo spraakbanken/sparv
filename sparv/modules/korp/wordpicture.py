@@ -1,9 +1,8 @@
 """Create files needed for the word picture in Korp."""
 
-import math
 import re
 from collections import defaultdict
-from typing import Optional
+from typing import Optional, Union
 
 from sparv.api import (
     AllSourceFilenames,
@@ -41,7 +40,7 @@ def install_wordpicture(
     uninstall_marker: MarkerOptional = MarkerOptional("korp.uninstall_wordpicture_marker"),
     db_name: str = Config("korp.mysql_dbname"),
     host: Optional[str] = Config("korp.remote_host")
-):
+) -> None:
     """Install Korp's Word Picture SQL on remote host.
 
     Args:
@@ -64,7 +63,7 @@ def uninstall_wordpicture(
     db_name: str = Config("korp.mysql_dbname"),
     table_name: str = Config("korp.wordpicture_table"),
     host: Optional[str] = Config("korp.remote_host")
-):
+) -> None:
     """Remove Korp's Word Picture data from database.
 
     Args:
@@ -99,8 +98,32 @@ def wordpicture(
     sentence_id: Annotation = Annotation("<sentence>:misc.id"),
     ref: Annotation = Annotation("<token:ref>"),
     baseform: Annotation = Annotation("<token>:saldo.baseform")
-):
-    """Find certain dependencies between words, to be used by the Word Picture feature in Korp."""
+) -> None:
+    """Find certain syntactic dependencies between words to generate data for the Word Picture feature in Korp.
+
+    This function processes sentences and their tokens to identify specific syntactic relations (dependencies) between
+    words based on predefined patterns. These patterns are defined in the `rel_patterns` variable. In its simplest form,
+    a pattern consists of a dictionary with three keys. The keys are numeric, and in this simple form only used for
+    sorting the values. The first value is the POS of the head token, the second value is the dependency relation, and
+    the third value is the POS of the dependent token. These values can be either strings or regex patterns.
+
+    To capture more complex relations that involve intermediate tokens, a second dictionary can be used to represent
+    another relation. By sharing a key between the two dictionaries, you specify that the two tokens with that key are
+    the same. A tuple with three indices is then used to define which values from the dictionaries should be combined to
+    create the final relation. The tuple's last value is a string that can store an "extra" value, which may reference
+    the indices using string formatting.
+
+    Args:
+        out: Output annotation for the word picture data.
+        word: Word annotation.
+        pos: Part-of-speech annotation.
+        lemgram: Lemgram annotation.
+        dephead: Dependency head annotation.
+        deprel: Dependency relation annotation.
+        sentence_id: Annotation for the sentence ID.
+        ref: Sentence-relative position of the tokens.
+        baseform: Baseform annotation.
+    """
     sentence_ids = sentence_id.read()
     sentence_tokens, _ = sentence_id.get_children(word)
 
@@ -108,19 +131,21 @@ def wordpicture(
 
     annotations = list(word.read_attributes((word, pos, lemgram, dephead, deprel, ref, baseform)))
 
-    # https://cl.lingfil.uu.se/~nivre/swedish_treebank/dep.html
-    # Tuples with relations (head, rel, dep) to be found (with indexes) and an optional tuple specifying which info
-    # should be stored and how
-    rels = [
+    # Patterns for relations. See docstring for explanation.
+    rel_patterns = [
         ({1: "VB", 2: "SS", 3: "NN"}, {1: "VB", 4: "VG", 5: "VB"}, (5, 2, 3, "")),  # "han har sprungit"
         ({1: "VB", 2: "(SS|OO|IO|OA)", 3: "NN"},),
         ({1: "VB", 2: "(RA|TA)", 3: "(AB|NN)"},),
         ({1: "VB", 2: "(RA|TA)", 3: "PP"}, {3: "PP", 4: "(PA|HD)", 5: "NN"}, (1, 2, 5, "%(3)s")),  # "ges vid behov"
         ({1: "NN", 2: "(AT|ET)", 3: "JJ"},),  # "stor hund"
-        ({1: "NN", 2: "ET", 3: "VB"}, {3: "VB", 4: "SS", 5: "HP"}, (1, 2, 3, "%(5)s")),     # "brödet som bakats"
-        ({1: "NN", 2: "ET", 3: "PP"}, {3: "PP", 4: "PA", 5: "(NN|PM)"}, (1, 2, 5, "%(3)s")),  # "barnen i skolan", "hundarna i Sverige"
+        ({1: "NN", 2: "ET", 3: "VB"}, {3: "VB", 4: "SS", 5: "HP"}, (1, 2, 3, "%(5)s")),  # "brödet som bakats"
+        (
+            {1: "NN", 2: "ET", 3: "PP"},
+            {3: "PP", 4: "PA", 5: "(NN|PM)"},
+            (1, 2, 5, "%(3)s"),
+        ),  # "barnen i skolan", "hundarna i Sverige"
         ({1: "PP", 2: "PA", 3: "NN"},),  # "på bordet"
-        ({1: "JJ", 2: "AA", 3: "AB"},)  # "fullständigt galen"
+        ({1: "JJ", 2: "AA", 3: "AB"},),  # "fullständigt galen"
     ]
 
     null_rels = [
@@ -173,10 +198,10 @@ def wordpicture(
 
         assert not incomplete, "incomplete is not empty"
 
-        def _match(pattern, value):
+        def _match(pattern: str, value: str) -> bool:
             return bool(re.match(fr"^{pattern}$", value))
 
-        def _findrel(head, rel, dep):
+        def _findrel(head: Union[dict, str], rel: str, dep: Union[dict, str]) -> list:
             result = []
             if isinstance(head, dict):
                 for d in head["dep"]:
@@ -191,25 +216,31 @@ def wordpicture(
         # Look for relations
         for v in tokens.values():
             for d in v["dep"]:
-                for rel in rels:
+                for rel in rel_patterns:
                     r = rel[0]
                     if _match(";".join([x[1] for x in sorted(r.items())]), ";".join([v["pos"], d[0], d[1]["pos"]])):
                         triple = None
                         if len(rel) == 1:
+                            # This pattern is a simple relation
                             triple = ((v["lemgram"], v["word"], v["pos"], v["ref"]), d[0],
                                       (d[1]["lemgram"], d[1]["word"], d[1]["pos"], d[1]["ref"]), ("", None), sentid,
                                       v["ref"], d[1]["ref"])
                         else:
+                            # This pattern is a complex relation with intermediate tokens
+                            # Map keys from relation pattern to corresponding token objects
                             lookup = dict(zip(map(str, sorted(r)), (v, d[0], d[1])))
                             i = set(rel[0]).intersection(set(rel[1])).pop()
                             rel2 = [x[1] for x in sorted(rel[1].items())]
+                            # Find the shared token (i.e. the one with the same index in both dictionaries)
                             index1 = list(rel[0]).index(i)
                             index2 = list(rel[1]).index(i)
-                            if index1 == 2 and index2 == 0:
+                            # The shared token is the dependent in the first relation and the head in the second
+                            if index1 == 2 and index2 == 0:  # noqa: PLR2004
                                 result = _findrel(d[1], rel2[1], rel2[2])
                                 if result:
                                     lookup.update(dict(
                                         zip(map(str, sorted(rel[1])), (d[1], rel2[1], result[0]))))
+                            # The shared token is the head in both relations
                             elif index1 == 0 and index2 == 0:
                                 result = _findrel(v, rel2[1], rel2[2])
                                 if result:
@@ -217,7 +248,8 @@ def wordpicture(
                                         dict(zip(map(str, sorted(rel[1])), (v, rel2[1], result[0]))))
 
                             pp = rel[-1]
-                            if len(list(lookup)) > 3:
+                            # More than 3 indices means that we successfully resolved additional intermediate tokens
+                            if len(list(lookup)) > 3:  # noqa: PLR2004
                                 lookup_bf = {key: val["bf"] for key, val in lookup.items() if isinstance(val, dict)}
                                 lookup_ref = {key: val["ref"] for key, val in lookup.items() if isinstance(val, dict)}
                                 triple = (
@@ -277,10 +309,16 @@ def wordpicture(
     logger.progress()
 
 
-def _mutate_triple(triple):
+def _mutate_triple(triple: tuple) -> list:
     """Split |head1|head2|...| REL |dep1|dep2|...| into several separate relations.
 
     Also remove multi-words which are in both head and dep, and remove the :nn part from words.
+
+    Args:
+        triple: A tuple with a relation, where head and dep can have several values separated by |.
+
+    Returns:
+        A list of tuples with new relations based on the original one.
     """
     head, rel, dep, extra, sentid, refhead, refdep = triple
 
@@ -295,7 +333,7 @@ def _mutate_triple(triple):
         else:
             parts[part] = [val[0]]
 
-    def _remove_doubles(a, b):
+    def _remove_doubles(a: str, b: str) -> None:
         """Remove multi-words which are in both."""
         if a in is_lemgrams and b in is_lemgrams:
             doubles = [d for d in set(parts[a]).intersection(set(parts[b])) if re.search(r"\.\.\w\wm\.", d)]
@@ -338,17 +376,6 @@ def _mutate_triple(triple):
     return triples
 
 
-def mi_lex(rel, x_rel_y, x_rel, rel_y):
-    """Calculate "Lexicographer's mutual information".
-
-    - rel is the frequency of (rel)
-    - x_rel_y is the frequency of (head, rel, dep)
-    - x_rel is the frequency of (head, rel)
-    - rel_y is the frequency of (rel, dep)
-    """
-    return x_rel_y * math.log2((rel * x_rel_y) / (x_rel * rel_y * 1.0))
-
-
 @exporter("Word Picture SQL for use in Korp", language=["swe"], config=[
     Config(
         "korp.wordpicture_no_sentences",
@@ -363,23 +390,20 @@ def wordpicture_sql(
     wordpicture: AnnotationDataAllSourceFiles = AnnotationDataAllSourceFiles("korp.wordpicture"),
     no_sentences: bool = Config("korp.wordpicture_no_sentences"),
     source_files: Optional[AllSourceFilenames] = AllSourceFilenames(),
-    source_files_list: str = "",
     table_name: str = Config("korp.wordpicture_table"),
     split: bool = False
-):
+) -> None:
     """Calculate statistics of the dependencies and saves to SQL files.
 
     Args:
-        corpus: the corpus name
-        out: the name for the SQL file which will contain the resulting SQL statements
-        wordpicture: the name of the wordpicture annotation
-        no_sentences: set to True to skip generating sentences table
-        source_files: a list of source filenames
-        source_files_list: can be used instead of source_files, and should be a file containing the name of source
-            files, one per row
-        table_name: Name of database table
-        split: when set to true leads to SQL commands being split into several parts, requiring less memory during
-            creation, but installing the data will take much longer
+        corpus: The corpus name.
+        out: The name for the SQL file which will contain the resulting SQL statements.
+        wordpicture: The name of the wordpicture annotation.
+        no_sentences: Set to True to skip generating sentences table.
+        source_files: A list of source filenames.
+        table_name: Name of database table.
+        split: When set to true leads to SQL commands being split into several parts, requiring less memory during
+            creation, but installing the data will take much longer.
     """
     db_table = table_name + "_" + corpus.upper()
 
@@ -398,12 +422,6 @@ def wordpicture_sql(
     freq_index = {}
     sentence_count = defaultdict(int)
     file_count = 0
-
-    assert (source_files or source_files_list), "Missing source"
-
-    if source_files_list:
-        with open(source_files_list, encoding="utf-8") as insource:
-            source_files = [line.strip() for line in insource]
 
     if len(source_files) == 1:
         split = False
@@ -436,10 +454,10 @@ def wordpicture_sql(
             rel = rel_grouping.get(rel, rel)
 
             if (head, rel, dep) in freq_index:
-                this_index = freq_index[(head, rel, dep)]
+                this_index = freq_index[head, rel, dep]
             else:
                 this_index = index
-                freq_index[(head, rel, dep)] = this_index
+                freq_index[head, rel, dep] = this_index
                 index += 1
             #                                                                         freq    bf/wf
             freq.setdefault(head, {}).setdefault(rel, {}).setdefault(dep, [this_index, 0, [0, 0, 0, 0]])
@@ -458,9 +476,9 @@ def wordpicture_sql(
             if bfhead and bfdep:
                 rel_count[rel] += 1
             if (bfhead and bfdep) or wfhead:
-                head_rel_count[(head, rel)] += 1
+                head_rel_count[head, rel] += 1
             if (bfhead and bfdep) or wfdep:
-                dep_rel_count[(dep, rel)] += 1
+                dep_rel_count[dep, rel] += 1
 
         # If not the last file
         if file_count != len(source_files):
@@ -483,8 +501,20 @@ def wordpicture_sql(
     logger.info("Done creating SQL files")
 
 
-def _write_sql(strings, sentences, freq, rel_count, head_rel_count, dep_rel_count, sql_file, db_table,
-               split=False, first=False, last=False, no_sentences=False):
+def _write_sql(
+    strings: dict,
+    sentences: dict,
+    freq: dict,
+    rel_count: dict,
+    head_rel_count: dict,
+    dep_rel_count: dict,
+    sql_file: str,
+    db_table: str,
+    split: bool = False,
+    first: bool = False,
+    last: bool = False,
+    no_sentences: bool = False,
+) -> None:
 
     temp_db_table = "temp_" + db_table
     tables = ["", "_strings", "_rel", "_head_rel", "_dep_rel"]
@@ -514,11 +544,11 @@ def _write_sql(strings, sentences, freq, rel_count, head_rel_count, dep_rel_coun
 
     rows = []
 
-    for string, index in sorted(strings.items()):
-        if len(string) == 3:
-            string, pos, stringextra = string
+    for string_tuple, index in sorted(strings.items()):
+        if len(string_tuple) == 3:  # noqa: PLR2004
+            string, pos, stringextra = string_tuple
         else:
-            string, pos = string
+            string, pos = string_tuple
             stringextra = ""
         row = {
             "id": index,
@@ -552,32 +582,32 @@ def _write_sql(strings, sentences, freq, rel_count, head_rel_count, dep_rel_coun
     mysql.add_row(temp_db_table, rows, update_freq)
 
     rows = []
-    for rel, freq in sorted(rel_count.items()):
+    for rel, f in sorted(rel_count.items()):
         row = {
             "rel": rel,
-            "freq": freq}
+            "freq": f}
         rows.append(row)
 
     mysql.add_row(temp_db_table + "_rel", rows, update_freq)
 
     rows = []
-    for head_rel, freq in sorted(head_rel_count.items()):
+    for head_rel, f in sorted(head_rel_count.items()):
         head, rel = head_rel
         row = {
             "head": head,
             "rel": rel,
-            "freq": freq}
+            "freq": f}
         rows.append(row)
 
     mysql.add_row(temp_db_table + "_head_rel", rows, update_freq)
 
     rows = []
-    for dep_rel, freq in sorted(dep_rel_count.items()):
+    for dep_rel, f in sorted(dep_rel_count.items()):
         dep, rel = dep_rel
         row = {
             "dep": dep,
             "rel": rel,
-            "freq": freq}
+            "freq": f}
         rows.append(row)
 
     mysql.add_row(temp_db_table + "_dep_rel", rows, update_freq)

@@ -23,16 +23,12 @@ from sparv.api.util.mysql_wrapper import MySQL
 logger = get_logger(__name__)
 
 
-# Path to the cwb-scan-corpus binary
-CWB_SCAN_EXECUTABLE = "cwb-scan-corpus"
-
-
 @installer("Install lemgram SQL on remote host", language=["swe"], uninstaller="korp:uninstall_lemgrams")
 def install_lemgrams(sqlfile: ExportInput = ExportInput("korp.lemgram_index/lemgram_index.sql"),
                      marker: OutputMarker = OutputMarker("korp.install_lemgram_marker"),
                      uninstall_marker: MarkerOptional = MarkerOptional("korp.uninstall_lemgram_marker"),
                      db_name: str = Config("korp.mysql_dbname"),
-                     host: Optional[str] = Config("korp.remote_host")):
+                     host: Optional[str] = Config("korp.remote_host")) -> None:
     """Install lemgram SQL on remote host.
 
     Args:
@@ -54,7 +50,7 @@ def uninstall_lemgrams(
     install_marker: MarkerOptional = MarkerOptional("korp.install_lemgram_marker"),
     db_name: str = Config("korp.mysql_dbname"),
     host: Optional[str] = Config("korp.remote_host")
-):
+) -> None:
     """Remove lemgram index data from database.
 
     Args:
@@ -74,7 +70,7 @@ def uninstall_lemgrams(
 def lemgram_sql(corpus: Corpus = Corpus(),
                 source_files: AllSourceFilenames = AllSourceFilenames(),
                 out: Export = Export("korp.lemgram_index/lemgram_index.sql"),
-                lemgram: AnnotationAllSourceFiles = AnnotationAllSourceFiles("<token>:saldo.lemgram")):
+                lemgram: AnnotationAllSourceFiles = AnnotationAllSourceFiles("<token>:saldo.lemgram")) -> None:
     """Create lemgram index SQL file."""
     corpus = corpus.upper()
     result = defaultdict(int)
@@ -94,9 +90,9 @@ def lemgram_sql(corpus: Corpus = Corpus(),
     mysql.set_names()
 
     rows = []
-    for lemgram, freq in result.items():
+    for lg, freq in result.items():
         rows.append({
-            "lemgram": lemgram,
+            "lemgram": lg,
             "corpus": corpus,
             "freq": freq
         })
