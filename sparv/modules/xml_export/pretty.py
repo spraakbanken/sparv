@@ -1,6 +1,6 @@
 """Export annotated corpus data to pretty-printed xml."""
 
-import os
+from pathlib import Path
 from typing import Optional
 
 from sparv.api import (
@@ -68,7 +68,7 @@ def pretty(source_file: SourceFilename = SourceFilename(),
            remove_namespaces: bool = Config("export.remove_module_namespaces", False),
            sparv_namespace: str = Config("export.sparv_namespace"),
            source_namespace: str = Config("export.source_namespace"),
-           include_empty_attributes: bool = Config("xml_export.include_empty_attributes")):
+           include_empty_attributes: bool = Config("xml_export.include_empty_attributes")) -> None:
     """Export annotations to pretty XML in export_dir.
 
     Args:
@@ -89,7 +89,8 @@ def pretty(source_file: SourceFilename = SourceFilename(),
         include_empty_attributes: Whether to include attributes even when they are empty. Disabled by default.
     """
     # Create export dir
-    os.makedirs(os.path.dirname(out), exist_ok=True)
+    out_path = Path(out)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
 
     token_name = token.name
 
@@ -99,12 +100,16 @@ def pretty(source_file: SourceFilename = SourceFilename(),
     xml_namespaces = Namespaces(source_file).read()
 
     # Get annotation spans, annotations list etc.
-    annotation_list, _, export_names = util.export.get_annotation_names(annotations, source_annotations, source_file=source_file,
-                                                                        token_name=token_name,
-                                                                        remove_namespaces=remove_namespaces,
-                                                                        sparv_namespace=sparv_namespace,
-                                                                        source_namespace=source_namespace,
-                                                                        xml_mode=True)
+    annotation_list, _, export_names = util.export.get_annotation_names(
+        annotations,
+        source_annotations,
+        source_file=source_file,
+        token_name=token_name,
+        remove_namespaces=remove_namespaces,
+        sparv_namespace=sparv_namespace,
+        source_namespace=source_namespace,
+        xml_mode=True,
+    )
     if token not in annotation_list:
         logger.warning("The 'xml_export:pretty' export requires the <token> annotation for the output to include the "
                        "source text. Make sure to add <token> to the list of export annotations.")
@@ -117,7 +122,7 @@ def pretty(source_file: SourceFilename = SourceFilename(),
                                        fileid_annotation, include_empty_attributes, sparv_namespace, xml_namespaces)
 
     # Write XML to file
-    with open(out, mode="w", encoding="utf-8") as outfile:
+    with out_path.open(mode="w", encoding="utf-8") as outfile:
         print(xmlstr, file=outfile)  # Use print() to get a newline at the end of the file
     logger.info("Exported: %s", out)
 
@@ -141,8 +146,17 @@ def combined(corpus: Corpus = Corpus(),
              source_files: AllSourceFilenames = AllSourceFilenames(),
              xml_input: ExportInput = ExportInput("xml_export.pretty/[xml_export.filename]", all_files=True),
              version_info: ExportInput = ExportInput("version_info/info_[metadata.id].yaml"),
-             include_version_info: bool = Config("xml_export.include_version_info")):
-    """Combine XML export files into a single XML file."""
+             include_version_info: bool = Config("xml_export.include_version_info")) -> None:
+    """Combine XML export files into a single XML file.
+
+    Args:
+        corpus: The corpus name.
+        out: Path and filename pattern for resulting file.
+        source_files: Names of all source files to be included in the export.
+        xml_input: Input XML filename pattern.
+        version_info: Version info input file.
+        include_version_info: Whether to include annotation version info in the combined XML.
+    """
     xml_utils.combine(corpus, out, source_files, xml_input, version_info if include_version_info else None)
 
 
@@ -162,7 +176,16 @@ def compressed(
         version_info: ExportInput = ExportInput("version_info/info_[metadata.id].yaml"),
         include_version_info: bool = Config("xml_export.include_version_info")
 ) -> None:
-    """Compress combined XML export."""
+    """Compress combined XML export.
+
+    Args:
+        corpus: The corpus name.
+        out: Path and filename pattern for resulting file.
+        source_files: Names of all source files to be included in the export.
+        xml_input: Input XML filename pattern.
+        version_info: Version info input file.
+        include_version_info: Whether to include annotation version info in the combined XML.
+    """
     xml_utils.combine(corpus, out, source_files, xml_input, version_info if include_version_info else None, True)
 
 
@@ -177,8 +200,17 @@ def install(
     uninstall_marker: MarkerOptional = MarkerOptional("xml_export.uninstall_export_pretty_marker"),
     export_path: str = Config("xml_export.export_path"),
     host: Optional[str] = Config("xml_export.export_host")
-):
-    """Copy compressed XML to a target path, optionally on a remote host."""
+) -> None:
+    """Copy compressed XML to a target path, optionally on a remote host.
+
+    Args:
+        corpus: The corpus name.
+        bz2file: The compressed XML file to copy.
+        marker: Marker for the installation process.
+        uninstall_marker: Marker for the uninstallation process to remove.
+        export_path: The target path to copy the XML export to.
+        host: The optional remote host to copy the XML export to.
+    """
     xml_utils.install_compressed_xml(corpus, bz2file, marker, export_path, host)
     uninstall_marker.remove()
 
@@ -190,7 +222,15 @@ def uninstall(
     install_marker: MarkerOptional = MarkerOptional("xml_export.install_export_pretty_marker"),
     export_path: str = Config("xml_export.export_path"),
     host: Optional[str] = Config("xml_export.export_host")
-):
-    """Remove compressed XML from remote location."""
+) -> None:
+    """Remove compressed XML from remote location.
+
+    Args:
+        corpus: The corpus name.
+        marker: Marker for the installation process to remove.
+        install_marker: Marker for the uninstallation process.
+        export_path: The remote path from which to remove the XML export.
+        host: The optional remote host from which to remove the XML export.
+    """
     xml_utils.uninstall_compressed_xml(corpus, marker, export_path, host)
     install_marker.remove()

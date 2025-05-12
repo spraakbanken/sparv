@@ -1,27 +1,54 @@
 """Util functions for XML export."""
+from __future__ import annotations
 
 import bz2
 import io
-import os
 import re
-import xml.etree.ElementTree as etree
+import xml.etree.ElementTree as etree  # noqa: N813
 from collections.abc import Sequence
+from pathlib import Path
 from shutil import copyfileobj
 from typing import Optional
 
 from sparv.api import SparvErrorMessage, get_logger, util
+from sparv.api.classes import Corpus, ExportInput, OutputMarker
 
 logger = get_logger(__name__)
 
 INDENTATION = "  "
 
 
-def make_pretty_xml(span_positions, annotation_dict, export_names, token_name: str, word_annotation, fileid,
-                    include_empty_attributes: bool, sparv_namespace: Optional[str] = None,
-                    xml_namespaces: Optional[dict] = None):
+def make_pretty_xml(
+    span_positions: list[tuple],
+    annotation_dict: dict[str, dict],
+    export_names: dict[str, str],
+    token_name: str,
+    word_annotation: list[str],
+    fileid: str,
+    include_empty_attributes: bool,
+    sparv_namespace: Optional[str] = None,
+    xml_namespaces: Optional[dict] = None,
+) -> str:
     """Create a pretty formatted XML string from span_positions.
 
     Used by pretty and sentence_scrambled.
+
+    Args:
+        span_positions: List of tuples with span positions.
+        annotation_dict: Dictionary with annotations.
+        export_names: Dictionary with export names.
+        token_name: Name of the token element.
+        word_annotation: Word annotation.
+        fileid: File ID.
+        include_empty_attributes: Whether to include empty attributes.
+        sparv_namespace: Optional namespace for Sparv attributes.
+        xml_namespaces: Optional dictionary with XML namespaces.
+
+    Returns:
+        Pretty formatted XML string.
+
+    Raises:
+        SparvErrorMessage: If the root tag is missing.
     """
     # Root tag sanity check
     if not valid_root(span_positions[0], span_positions[-1]):
@@ -43,8 +70,21 @@ def make_pretty_xml(span_positions, annotation_dict, export_names, token_name: s
 
     register_namespaces(xml_namespaces)
 
-    def handle_subtoken_text(position, last_start_position, last_end_position, node, token_text):
-        """Handle text for subtoken elements."""
+    def handle_subtoken_text(
+        position: int, last_start_position: int, last_end_position: int, node: etree.Element, token_text: str
+    ) -> str:
+        """Handle text for subtoken elements.
+
+        Args:
+            position: Current position.
+            last_start_position: Last start position.
+            last_end_position: Last end position.
+            node: Current node.
+            token_text: Current token text.
+
+        Returns:
+            Updated token text.
+        """
         if last_start_position < last_end_position < position:
             node.tail = token_text[:position - last_end_position]
             token_text = token_text[position - last_end_position:]
@@ -115,8 +155,20 @@ def make_pretty_xml(span_positions, annotation_dict, export_names, token_name: s
     return stream.getvalue()
 
 
-def valid_root(first_item, last_item, true_root: bool = False):
-    """Check the validity of the root tag."""
+def valid_root(first_item: tuple, last_item: tuple, true_root: bool = False) -> bool:
+    """Check the validity of the root tag.
+
+    Checks that the first item is an opening tag and the last item is a closing tag with the same name and index. If
+    `true_root` is `True`, it also checks that the first item's index is 0, meaning that it is the real root tag.
+
+    Args:
+        first_item: First item from the list of spans.
+        last_item: Last item in the list of spans.
+        true_root: Whether to check for a true root tag.
+
+    Returns:
+        `True` if the root tag is valid, `False` otherwise.
+    """
     return (first_item[1] == "open"
             and last_item[1] == "close"
             and first_item[2].name == last_item[2].name
@@ -124,14 +176,30 @@ def valid_root(first_item, last_item, true_root: bool = False):
             and (not true_root or (first_item[0] == 0)))
 
 
-def register_namespaces(xml_namespaces: dict):
+def register_namespaces(xml_namespaces: dict) -> None:
     """Register all namespace prefixes."""
     for prefix, uri in xml_namespaces.items():
         etree.register_namespace(prefix, uri)
 
 
-def add_attrs(node, annotation, annotation_dict, export_names, index, include_empty_attributes: bool):
-    """Add attributes from annotation_dict to node."""
+def add_attrs(
+    node: etree.Element,
+    annotation: str,
+    annotation_dict: dict[str, dict],
+    export_names: dict[str, str],
+    index: int,
+    include_empty_attributes: bool,
+) -> None:
+    """Add attributes from annotation_dict to node.
+
+    Args:
+        node: XML node to add attributes to.
+        annotation: Annotation name.
+        annotation_dict: Dictionary with attribute annotations and values.
+        export_names: Dictionary with export names.
+        index: Index of the annotation.
+        include_empty_attributes: Whether to include empty attributes.
+    """
     for attrib_name, attrib_values in annotation_dict[annotation].items():
         export_name = export_names.get(f"{annotation}:{attrib_name}", attrib_name)
         if attrib_values[index] or include_empty_attributes:
@@ -203,14 +271,14 @@ def combine(
         print("<?xml version='1.0' encoding='UTF-8'?>", file=outf)
         if version_info_file:
             print("<!--", file=outf)
-            with open(version_info_file, encoding="utf-8") as vi:
+            with Path(version_info_file).open(encoding="utf-8") as vi:
                 for line in vi:
                     print(line.strip(), file=outf)
             print("-->", file=outf)
         print('<corpus id="{}">'.format(corpus.replace("&", "&amp;").replace('"', "&quot;")), file=outf)
         for infile in xml_files:
             logger.info("Read: %s", infile)
-            with open(infile, encoding="utf-8") as inf:
+            with Path(infile).open(encoding="utf-8") as inf:
                 for n, line in enumerate(inf):
                     # Skip xml declaration
                     if n == 0 and line.startswith("<?xml"):
@@ -222,27 +290,44 @@ def combine(
         logger.info("Exported: %s", out)
 
 
-def compress(xmlfile, out):
+def compress(xmlfile: str, out: str) -> None:
     """Compress XML file using bzip2.
 
     Args:
         xmlfile: Path to source file.
         out: Path to target bz2 file.
     """
-    with open(xmlfile, "rb") as infile, bz2.BZ2File(out, "wb") as outfile:
+    with Path(xmlfile).open("rb") as infile, bz2.BZ2File(out, "wb") as outfile:
         copyfileobj(infile, outfile)
 
 
-def install_compressed_xml(corpus, bz2file, marker, export_path, host):
-    """Install XML file."""
+def install_compressed_xml(
+    corpus: Corpus, bz2file: ExportInput, marker: OutputMarker, export_path: str, host: str | None
+) -> None:
+    """Install XML file.
+
+    Args:
+        corpus: Corpus name.
+        bz2file: Path to the bz2 file.
+        marker: Installation marker to write.
+        export_path: Path to the export directory to install to.
+        host: Optional host name to install to.
+    """
     filename = corpus + ".xml.bz2"
-    remote_file_path = os.path.join(export_path, filename)
+    remote_file_path = Path(export_path) / filename
     util.install.install_path(bz2file, host, remote_file_path)
     marker.write()
 
 
-def uninstall_compressed_xml(corpus, marker, export_path, host):
-    """Uninstall XML file."""
-    remote_file_path = os.path.join(export_path, corpus + ".xml.bz2")
+def uninstall_compressed_xml(corpus: Corpus, marker: OutputMarker, export_path: str, host: str | None) -> None:
+    """Uninstall XML file.
+
+    Args:
+        corpus: Corpus name.
+        marker: Uninstallation marker to write.
+        export_path: Path to the export directory to uninstall from.
+        host: Optional host name to uninstall from.
+    """
+    remote_file_path = Path(export_path) / (corpus + ".xml.bz2")
     util.install.uninstall_path(remote_file_path, host)
     marker.write()

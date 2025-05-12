@@ -1,7 +1,7 @@
 """Export annotated corpus data to format-preserved xml."""
 
-import os
-import xml.etree.ElementTree as etree
+import xml.etree.ElementTree as etree  # noqa: N813
+from pathlib import Path
 
 from sparv.api import (
     AnnotationData,
@@ -43,7 +43,7 @@ def preserved_format(source_file: SourceFilename = SourceFilename(),
                      remove_namespaces: bool = Config("export.remove_module_namespaces", False),
                      sparv_namespace: str = Config("export.sparv_namespace"),
                      source_namespace: str = Config("export.source_namespace"),
-                     include_empty_attributes: bool = Config("xml_export.include_empty_attributes")):
+                     include_empty_attributes: bool = Config("xml_export.include_empty_attributes")) -> None:
     """Export annotations to XML in export_dir and keep whitespaces and indentation from original file.
 
     Args:
@@ -61,9 +61,13 @@ def preserved_format(source_file: SourceFilename = SourceFilename(),
         sparv_namespace: The namespace to be added to all Sparv annotations.
         source_namespace: The namespace to be added to all annotations present in the source.
         include_empty_attributes: Whether to include attributes even when they are empty. Disabled by default.
+
+    Raises:
+        SparvErrorMessage: If the root tag is missing.
     """
     # Create export dir
-    os.makedirs(os.path.dirname(out), exist_ok=True)
+    out_path = Path(out)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
 
     # Read corpus text, file ID and XML namespaces
     corpus_text = text.read()
@@ -71,16 +75,21 @@ def preserved_format(source_file: SourceFilename = SourceFilename(),
     xml_namespaces = Namespaces(source_file).read()
 
     # Get annotation spans, annotations list etc.
-    annotation_list, _, export_names = util.export.get_annotation_names(annotations, source_annotations, source_file=source_file,
-                                                                        remove_namespaces=remove_namespaces,
-                                                                        sparv_namespace=sparv_namespace,
-                                                                        source_namespace=source_namespace,
-                                                                        xml_mode=True)
+    annotation_list, _, export_names = util.export.get_annotation_names(
+        annotations,
+        source_annotations,
+        source_file=source_file,
+        remove_namespaces=remove_namespaces,
+        sparv_namespace=sparv_namespace,
+        source_namespace=source_namespace,
+        xml_mode=True,
+    )
     h_annotations, h_export_names = util.export.get_header_names(header_annotations, xml_namespaces)
     export_names.update(h_export_names)
     xml_utils.replace_invalid_chars_in_names(export_names)
-    span_positions, annotation_dict = util.export.gather_annotations(annotation_list, export_names, h_annotations,
-                                                                     source_file=source_file, flatten=False, split_overlaps=True)
+    span_positions, annotation_dict = util.export.gather_annotations(
+        annotation_list, export_names, h_annotations, source_file=source_file, flatten=False, split_overlaps=True
+    )
     sorted_positions = [(pos, span[0], span[1]) for pos, spans in sorted(span_positions.items()) for span in spans]
 
     # Root tag sanity check
