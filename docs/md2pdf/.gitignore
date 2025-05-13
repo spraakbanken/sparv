@@ -1,4 +1,1 @@
-*.pdf
-*.md
-user-manual.tex
-developers-guide.tex
+output/

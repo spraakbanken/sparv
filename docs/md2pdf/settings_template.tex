@@ -23,6 +23,17 @@
 \usepackage{array} % For custom column widths in tables
 \usepackage{calc} % for calculating minipage widths
 
+% Remove the "Chapter" prefix from chapter titles
+\usepackage{titlesec}
+\titleformat{\chapter}[display]
+  {\normalfont\huge\bfseries}{}{0pt}{\Huge}
+
+% Fix numbering of chapters and sections
+\renewcommand{\thechapter}{}
+\renewcommand{\thesection}{\arabic{section}}
+\setcounter{section}{0} % Reset the section counter
+\renewcommand{\thesubsection}{\arabic{section}.\arabic{subsection}}
+
 \titleformat{\paragraph}[hang]{\normalfont\scshape}{\theparagraph}{1em}{}
 \titlespacing*{\paragraph}{0pt}{3.25ex plus 1ex minus .2ex}{0.5em} % Line break after paragraph
 
