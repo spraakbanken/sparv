@@ -8,14 +8,24 @@ from sparv.api import Annotation, Config, Output, SourceFilename, SparvErrorMess
 from sparv.api.util.tagsets import pos_to_upos, suc_to_feats, tagmappings
 
 
-@annotator("Text content of tokens", config=[
-    Config("misc.keep_formatting_chars", default=False,
-           description="Set to True if you don't want formatting characters (e.g. soft hyphens) to be removed from "
-                       "tokens in the output.", datatype=bool)])
-def text_spans(text: Text = Text(),
-               chunk: Annotation = Annotation("<token>"),
-               out: Output = Output("<token>:misc.word", cls="token:word", description="Text content of every token"),
-               keep_formatting_chars: Optional[bool] = Config("misc.keep_formatting_chars")) -> None:
+@annotator(
+    "Text content of tokens",
+    config=[
+        Config(
+            "misc.keep_formatting_chars",
+            default=False,
+            description="Set to True if you don't want formatting characters (e.g. soft hyphens) to be removed from "
+            "tokens in the output.",
+            datatype=bool,
+        )
+    ],
+)
+def text_spans(
+    text: Text = Text(),
+    chunk: Annotation = Annotation("<token>"),
+    out: Output = Output("<token>:misc.word", cls="token:word", description="Text content of every token"),
+    keep_formatting_chars: Optional[bool] = Config("misc.keep_formatting_chars"),
+) -> None:
     """Add the text content for each token span as a new annotation.
 
     Args:
@@ -29,7 +39,7 @@ def text_spans(text: Text = Text(),
         chunk = chunk.read_spans()
     out_annotation = []
     for span in chunk:
-        token = corpus_text[span[0]:span[1]]
+        token = corpus_text[span[0] : span[1]]
         if not keep_formatting_chars:
             new_token = util.misc.remove_formatting_characters(token)
             # If this token consists entirely of formatting characters, don't remove them. Empty tokens are bad!
@@ -49,9 +59,13 @@ def text_spans(text: Text = Text(),
     "The whitespace doesn't overlap, meaning that whitespace covered by one token's 'tail' will not be included in the "
     "following token's 'head'.",
     config=[
-    Config("misc.head_tail_max_length",
-           description="Truncate misc.head and misc.tail to this number of characters.",
-           datatype=int)])
+        Config(
+            "misc.head_tail_max_length",
+            description="Truncate misc.head and misc.tail to this number of characters.",
+            datatype=int,
+        )
+    ],
+)
 def text_headtail(
     text: Text = Text(),
     chunk: Annotation = Annotation("<token>"),
@@ -68,6 +82,7 @@ def text_headtail(
         out_tail: Output annotation for whitespace characters following every token.
         truncate_after: Truncate the output to this number of characters.
     """
+
     def escape(t: str) -> str:
         """Return a string with whitespace characters escaped."""
         return t.replace(" ", "\\s").replace("\n", "\\n").replace("\t", "\\t")
@@ -97,8 +112,8 @@ def text_headtail(
             except ValueError:
                 n_pos = None
             if n_pos is not None and n_pos + 1 < len(tail_text):
-                head_text = tail_text[n_pos + 1:]
-                tail_text = tail_text[:n_pos + 1]
+                head_text = tail_text[n_pos + 1 :]
+                tail_text = tail_text[: n_pos + 1]
 
             if tail_text:
                 if truncate_after:
@@ -118,15 +133,13 @@ def text_headtail(
     "string.\n\n"
     "This is useful when 'head' and 'tail' annotations are needed, but the source text has no useful whitespace, such "
     "as source files with one token per line.",
-    config=[
-        Config("misc.fake_headtail_line_length", description="Max line length", default=120, datatype=int)
-    ]
+    config=[Config("misc.fake_headtail_line_length", description="Max line length", default=120, datatype=int)],
 )
 def fake_text_headtail(
     chunk: Annotation = Annotation("<token:word>"),
     out_head: Output = Output("<token>:misc.fake_head", description="Whitespace characters preceding every token"),
     out_tail: Output = Output("<token>:misc.fake_tail", description="Whitespace characters following every token"),
-    max_line_length: int = Config("misc.fake_headtail_line_length")
+    max_line_length: int = Config("misc.fake_headtail_line_length"),
 ) -> None:
     """Create fake "head" and "tail" whitespace characters for tokens."""
     word_annotation = chunk.read()
@@ -148,9 +161,7 @@ def fake_text_headtail(
 
 
 @annotator("Convert part-of-speech tags, specified by the mapping")
-def translate_tag(out: Output,
-                  tag: Annotation,
-                  mapping: Union[dict, str]) -> None:
+def translate_tag(out: Output, tag: Annotation, mapping: Union[dict, str]) -> None:
     """Convert part-of-speech tags, specified by the mapping.
 
     Example mappings: parole_to_suc, suc_to_simple, ...
@@ -166,8 +177,10 @@ def translate_tag(out: Output,
 
 
 @annotator("Convert SUC POS tags to UPOS", language=["swe"])
-def upostag(out: Output = Output("<token>:misc.upos", cls="token:upos", description="Part-of-speeches in UD"),
-            pos: Annotation = Annotation("<token:pos>")) -> None:
+def upostag(
+    out: Output = Output("<token>:misc.upos", cls="token:upos", description="Part-of-speeches in UD"),
+    pos: Annotation = Annotation("<token:pos>"),
+) -> None:
     """Convert SUC POS tags to UPOS.
 
     Args:
@@ -180,10 +193,11 @@ def upostag(out: Output = Output("<token>:misc.upos", cls="token:upos", descript
 
 
 @annotator("Convert SUC MSD tags to universal features", language=["swe"])
-def ufeatstag(out: Output = Output("<token>:misc.ufeats", cls="token:ufeats",
-                                   description="Universal morphological features"),
-              pos: Annotation = Annotation("<token:pos>"),
-              msd: Annotation = Annotation("<token:msd>")) -> None:
+def ufeatstag(
+    out: Output = Output("<token>:misc.ufeats", cls="token:ufeats", description="Universal morphological features"),
+    pos: Annotation = Annotation("<token:pos>"),
+    msd: Annotation = Annotation("<token:msd>"),
+) -> None:
     """Convert SUC MSD tags to universal features.
 
     Args:
@@ -202,14 +216,17 @@ def ufeatstag(out: Output = Output("<token>:misc.ufeats", cls="token:ufeats",
     out.write(out_annotation)
 
 
-@annotator("Convert {struct}:{attr} into a token annotation", wildcards=[
-    Wildcard("struct", Wildcard.ANNOTATION),
-    Wildcard("attr", Wildcard.ATTRIBUTE)
-])
-def struct_to_token(attr: Annotation = Annotation("{struct}:{attr}"),
-                    token: Annotation = Annotation("<token>"),
-                    out: Output = Output("<token>:misc.from_struct_{struct}_{attr}",
-                                         description="Token attribute based on {struct}:{attr}")) -> None:
+@annotator(
+    "Convert {struct}:{attr} into a token annotation",
+    wildcards=[Wildcard("struct", Wildcard.ANNOTATION), Wildcard("attr", Wildcard.ATTRIBUTE)],
+)
+def struct_to_token(
+    attr: Annotation = Annotation("{struct}:{attr}"),
+    token: Annotation = Annotation("<token>"),
+    out: Output = Output(
+        "<token>:misc.from_struct_{struct}_{attr}", description="Token attribute based on {struct}:{attr}"
+    ),
+) -> None:
     """Convert an attribute on a structural annotation into a token attribute.
 
     Args:
@@ -223,15 +240,21 @@ def struct_to_token(attr: Annotation = Annotation("{struct}:{attr}"),
     out.write(out_values)
 
 
-@annotator("Inherit {attr} from {parent}:{attr} to {child}", wildcards=[
-    Wildcard("parent", Wildcard.ANNOTATION),
-    Wildcard("child", Wildcard.ANNOTATION),
-    Wildcard("attr", Wildcard.ATTRIBUTE)
-])
-def inherit(parent: Annotation = Annotation("{parent}:{attr}"),
-            child: Annotation = Annotation("{child}"),
-            out: Output = Output("{child}:misc.inherit_{parent}_{attr}",
-                                 description="Attribute on {child} inherited from {parent}:{attr}")) -> None:
+@annotator(
+    "Inherit {attr} from {parent}:{attr} to {child}",
+    wildcards=[
+        Wildcard("parent", Wildcard.ANNOTATION),
+        Wildcard("child", Wildcard.ANNOTATION),
+        Wildcard("attr", Wildcard.ATTRIBUTE),
+    ],
+)
+def inherit(
+    parent: Annotation = Annotation("{parent}:{attr}"),
+    child: Annotation = Annotation("{child}"),
+    out: Output = Output(
+        "{child}:misc.inherit_{parent}_{attr}", description="Attribute on {child} inherited from {parent}:{attr}"
+    ),
+) -> None:
     """Inherit attribute from a structural parent annotation to a child.
 
     Args:
@@ -258,8 +281,7 @@ def chain(out, annotations, default=None):  # noqa
 
 
 @annotator("Create new annotation, with spans as values")
-def span_as_value(chunk: Annotation,
-                  out: Output) -> None:
+def span_as_value(chunk: Annotation, out: Output) -> None:
     """Create new annotation, with spans as values.
 
     Args:
@@ -270,10 +292,7 @@ def span_as_value(chunk: Annotation,
 
 
 @annotator("Select a specific index from the values of an annotation")
-def select(out: Output,
-           annotation: Annotation,
-           index: int = 0,
-           separator: str = " ") -> None:
+def select(out: Output, annotation: Annotation, index: int = 0, separator: str = " ") -> None:
     """Select a specific index from the values of an annotation.
 
     The given annotation values are separated by 'separator', by default whitespace, with at least index + 1 elements.
@@ -290,9 +309,7 @@ def select(out: Output,
 
 
 @annotator("Create an annotation with a constant value")
-def constant(chunk: Annotation,
-             out: Output,
-             value: str = "") -> None:
+def constant(chunk: Annotation, out: Output, value: str = "") -> None:
     """Create an annotation with a constant value.
 
     Args:
@@ -304,10 +321,7 @@ def constant(chunk: Annotation,
 
 
 @annotator("Add prefix and/or suffix to an annotation")
-def affix(chunk: Annotation,
-          out: Output,
-          prefix: str = "",
-          suffix: str = "") -> None:
+def affix(chunk: Annotation, out: Output, prefix: str = "", suffix: str = "") -> None:
     """Add prefix and/or suffix to annotation.
 
     Args:
@@ -320,9 +334,7 @@ def affix(chunk: Annotation,
 
 
 @annotator("Replace every character in an annotation with an anonymous character")
-def anonymise(chunk: Annotation,
-              out: Output,
-              anonym_char: str = "*") -> None:
+def anonymise(chunk: Annotation, out: Output, anonym_char: str = "*") -> None:
     """Replace every character in an annotation with an anonymous character (* per default).
 
     Args:
@@ -334,10 +346,7 @@ def anonymise(chunk: Annotation,
 
 
 @annotator("Find and replace whole annotation")
-def replace(chunk: Annotation,
-            out: Output,
-            find: str = "",
-            sub: str = "") -> None:
+def replace(chunk: Annotation, out: Output, find: str = "", sub: str = "") -> None:
     """Find and replace whole annotation. Find string must match whole annotation.
 
     Args:
@@ -350,10 +359,7 @@ def replace(chunk: Annotation,
 
 
 @annotator("Find and replace whole annotation values")
-def replace_list(chunk: Annotation,
-                 out: Output,
-                 find: str = "",
-                 sub: str = "") -> None:
+def replace_list(chunk: Annotation, out: Output, find: str = "", sub: str = "") -> None:
     """Find and replace annotations.
 
     Find string must match whole annotation.
@@ -377,10 +383,7 @@ def replace_list(chunk: Annotation,
 
 
 @annotator("Find and replace parts of or whole annotation")
-def find_replace(chunk: Annotation,
-                 out: Output,
-                 find: str = "",
-                 sub: str = "") -> None:
+def find_replace(chunk: Annotation, out: Output, find: str = "", sub: str = "") -> None:
     """Find and replace parts of or whole annotation.
 
     Args:
@@ -393,10 +396,7 @@ def find_replace(chunk: Annotation,
 
 
 @annotator("Do find and replace in values of annotation using a regular expressions")
-def find_replace_regex(chunk: Annotation,
-                       out: Output,
-                       find: str = "",
-                       sub: str = "") -> None:
+def find_replace_regex(chunk: Annotation, out: Output, find: str = "", sub: str = "") -> None:
     """Do find and replace in values of annotation using a regular expressions.
 
     N.B: When writing regular expressions in YAML they should be enclosed in single quotes.
@@ -411,11 +411,7 @@ def find_replace_regex(chunk: Annotation,
 
 
 @annotator("Concatenate values from two annotations, with an optional separator")
-def concat(out: Output,
-           left: Annotation,
-           right: Annotation,
-           separator: str = "",
-           merge_twins: bool = False) -> None:
+def concat(out: Output, left: Annotation, right: Annotation, separator: str = "", merge_twins: bool = False) -> None:
     """Concatenate values from two annotations, with an optional separator.
 
     Args:
@@ -433,9 +429,7 @@ def concat(out: Output,
 
 
 @annotator("Concatenate two or more annotations, with an optional separator")
-def concat2(out: Output,
-            annotations: list[Annotation],
-            separator: str = "") -> None:
+def concat2(out: Output, annotations: list[Annotation], separator: str = "") -> None:
     """Concatenate two or more annotations, with an optional separator.
 
     Args:
@@ -448,9 +442,7 @@ def concat2(out: Output,
 
 
 @annotator("Replace empty values in 'chunk' with values from 'backoff'")
-def backoff(chunk: Annotation,
-            backoff: Annotation,
-            out: Output) -> None:
+def backoff(chunk: Annotation, backoff: Annotation, out: Output) -> None:
     """Replace empty values in 'chunk' with values from 'backoff'.
 
     Args:
@@ -462,15 +454,13 @@ def backoff(chunk: Annotation,
     out.write(val or backoff[n] for (n, val) in enumerate(chunk.read()))
 
 
-@annotator("Replace empty values in 'chunk' with values from 'backoff' and output info about which annotator each "
-           "annotation was produced with.")
+@annotator(
+    "Replace empty values in 'chunk' with values from 'backoff' and output info about which annotator each "
+    "annotation was produced with."
+)
 def backoff_with_info(
-        chunk: Annotation,
-        backoff: Annotation,
-        out: Output,
-        out_info: Output,
-        chunk_name: str = "",
-        backoff_name: str = "") -> None:
+    chunk: Annotation, backoff: Annotation, out: Output, out_info: Output, chunk_name: str = "", backoff_name: str = ""
+) -> None:
     """Replace empty values in 'chunk' with values from 'backoff'.
 
     Args:
@@ -501,9 +491,7 @@ def backoff_with_info(
 
 
 @annotator("Replace values in 'chunk' with non empty values from 'repl'")
-def override(chunk: Annotation,
-             repl: Annotation,
-             out: Output) -> None:
+def override(chunk: Annotation, repl: Annotation, out: Output) -> None:
     """Replace values in 'chunk' with non-empty values from 'repl'.
 
     Args:
@@ -511,6 +499,7 @@ def override(chunk: Annotation,
         repl: Annotation with values to use as replacements.
         out: Output annotation.
     """
+
     def empty(val: str) -> bool:
         if not val:
             return True
@@ -521,9 +510,7 @@ def override(chunk: Annotation,
 
 
 @annotator("Round floats to the given number of decimals")
-def roundfloat(chunk: Annotation,
-               out: Output,
-               decimals: int = 2) -> None:
+def roundfloat(chunk: Annotation, out: Output, decimals: int = 2) -> None:
     """Round floats to the given number of decimals.
 
     Args:
@@ -537,11 +524,7 @@ def roundfloat(chunk: Annotation,
 
 
 @annotator("Merge two annotations (which may be sets) into one set")
-def merge_to_set(out: Output,
-                 left: Annotation,
-                 right: Annotation,
-                 unique: bool = True,
-                 sort: bool = True) -> None:
+def merge_to_set(out: Output, left: Annotation, right: Annotation, unique: bool = True, sort: bool = True) -> None:
     """Merge two sets of annotations (which may be sets) into one set.
 
     Args:
@@ -563,9 +546,11 @@ def merge_to_set(out: Output,
 
 
 @annotator("Source filename as attribute on text annotation")
-def source(out: Output = Output("<text>:misc.source", description="Source filename"),
-           name: SourceFilename = SourceFilename(),
-           text: Annotation = Annotation("<text>")) -> None:
+def source(
+    out: Output = Output("<text>:misc.source", description="Source filename"),
+    name: SourceFilename = SourceFilename(),
+    text: Annotation = Annotation("<text>"),
+) -> None:
     """Create a text attribute based on the filename of the source file.
 
     Args:
@@ -577,8 +562,7 @@ def source(out: Output = Output("<text>:misc.source", description="Source filena
 
 
 @annotator("Get the first annotation from a cwb set")
-def first_from_set(out: Output,
-                   chunk: Annotation) -> None:
+def first_from_set(out: Output, chunk: Annotation) -> None:
     """Get the first annotation from a set.
 
     Args:
@@ -590,10 +574,7 @@ def first_from_set(out: Output,
 
 
 @annotator("Get the best annotation from a cwb set with scores")
-def best_from_set(out: Output,
-                  chunk: Annotation,
-                  is_sorted: bool = False,
-                  score_sep: str = ":") -> None:
+def best_from_set(out: Output, chunk: Annotation, is_sorted: bool = False, score_sep: str = ":") -> None:
     """Get the best annotation from a set with scores.
 
     Args:
@@ -607,8 +588,11 @@ def best_from_set(out: Output,
         if is_sorted:
             values = [(v.split(score_sep)[1], v.split(score_sep)[0]) for v in util.misc.set_to_list(val)]
         else:
-            values = sorted([(v.split(score_sep)[1], v.split(score_sep)[0]) for v in util.misc.set_to_list(val)],
-                             key=operator.itemgetter(0), reverse=True)
+            values = sorted(
+                [(v.split(score_sep)[1], v.split(score_sep)[0]) for v in util.misc.set_to_list(val)],
+                key=operator.itemgetter(0),
+                reverse=True,
+            )
         out_annotation.append(values[0][1] if values else "")
     out.write(out_annotation)
 

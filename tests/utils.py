@@ -19,9 +19,7 @@ GOLD_PREFIX = "gold_"
 MAX_DIFF_LINES = 25
 
 
-def run_sparv(gold_corpus_dir: Path,
-              tmp_path: Path,
-              targets: list | None = None) -> Path:
+def run_sparv(gold_corpus_dir: Path, tmp_path: Path, targets: list | None = None) -> Path:
     """Run Sparv on corpus in gold_corpus_dir and return the directory of the test corpus.
 
     Args:
@@ -38,9 +36,16 @@ def run_sparv(gold_corpus_dir: Path,
     new_corpus_dir = tmp_path / Path(corpus_name)
 
     # Copy everything but the output
-    shutil.copytree(str(gold_corpus_dir), str(new_corpus_dir), ignore=shutil.ignore_patterns(
-        str(paths.work_dir), GOLD_PREFIX + str(paths.work_dir),
-        str(paths.export_dir), GOLD_PREFIX + str(paths.export_dir)))
+    shutil.copytree(
+        str(gold_corpus_dir),
+        str(new_corpus_dir),
+        ignore=shutil.ignore_patterns(
+            str(paths.work_dir),
+            GOLD_PREFIX + str(paths.work_dir),
+            str(paths.export_dir),
+            GOLD_PREFIX + str(paths.export_dir),
+        ),
+    )
 
     args = ["sparv", "-d", str(new_corpus_dir), "run", *targets]
     process = subprocess.run(args, capture_output=True, check=False)
@@ -53,9 +58,7 @@ def run_sparv(gold_corpus_dir: Path,
     return new_corpus_dir
 
 
-def cmp_workdir(gold_corpus_dir: Path,
-                test_corpus_dir: Path,
-                ignore: list | None = None) -> None:
+def cmp_workdir(gold_corpus_dir: Path, test_corpus_dir: Path, ignore: list | None = None) -> None:
     """Recursively compare the workdir directories of gold_corpus and test_corpus.
 
     Args:
@@ -66,15 +69,12 @@ def cmp_workdir(gold_corpus_dir: Path,
     if ignore is None:
         ignore = []
     ignore.append(".log")
-    assert _cmp_dirs(gold_corpus_dir / Path(GOLD_PREFIX + str(paths.work_dir)),
-                     test_corpus_dir / paths.work_dir,
-                     ignore=ignore
-                     ), "work dir did not match the gold standard"
+    assert _cmp_dirs(
+        gold_corpus_dir / Path(GOLD_PREFIX + str(paths.work_dir)), test_corpus_dir / paths.work_dir, ignore=ignore
+    ), "work dir did not match the gold standard"
 
 
-def cmp_export(gold_corpus_dir: Path,
-               test_corpus_dir: Path,
-               ignore: list | None = None) -> None:
+def cmp_export(gold_corpus_dir: Path, test_corpus_dir: Path, ignore: list | None = None) -> None:
     """Recursively compare the export directories of gold_corpus and test_corpus.
 
     Args:
@@ -85,10 +85,9 @@ def cmp_export(gold_corpus_dir: Path,
     if ignore is None:
         ignore = []
     ignore.append(".log")
-    assert _cmp_dirs(gold_corpus_dir / Path(GOLD_PREFIX + str(paths.export_dir)),
-                     test_corpus_dir / paths.export_dir,
-                     ignore=ignore
-                     ), "export dir did not match the gold standard"
+    assert _cmp_dirs(
+        gold_corpus_dir / Path(GOLD_PREFIX + str(paths.export_dir)), test_corpus_dir / paths.export_dir, ignore=ignore
+    ), "export dir did not match the gold standard"
 
 
 def print_error(msg: str) -> None:
@@ -101,10 +100,7 @@ def print_error(msg: str) -> None:
 ################################################################################
 
 
-def _cmp_dirs(a: Path,
-              b: Path,
-              ignore: list | None = None,
-              ok: bool = True) -> bool:
+def _cmp_dirs(a: Path, b: Path, ignore: list | None = None, ok: bool = True) -> bool:
     """Recursively compare directories a and b.
 
     Args:

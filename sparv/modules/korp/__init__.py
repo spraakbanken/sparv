@@ -1,4 +1,5 @@
 """Korp-related annotators, exporters and installers."""
+
 from sparv.api import Config
 
 from . import config, lemgram_index, timespan, wordpicture

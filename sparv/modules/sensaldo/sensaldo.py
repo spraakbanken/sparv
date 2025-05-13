@@ -1,4 +1,5 @@
 """Sentiment annotation per token using SenSALDO."""
+
 from typing import Optional
 
 from sparv.api import Annotation, Config, Model, ModelOutput, Output, annotator, get_logger, modelbuilder, util
@@ -8,18 +9,24 @@ logger = get_logger(__name__)
 SENTIMENT_LABLES = {
     -1: "negative",
     0: "neutral",
-    1: "positive"
+    1: "positive",
 }
 
 
-@annotator("Sentiment annotation per token using SenSALDO", language=["swe"], config=[
-    Config("sensaldo.model", default="sensaldo/sensaldo.pickle", description="Path to SenSALDO model", datatype=str)
-])
-def annotate(sense: Annotation = Annotation("<token:sense>"),
-             out_scores: Output = Output("<token>:sensaldo.sentiment_score", description="SenSALDO sentiment score"),
-             out_labels: Output = Output("<token>:sensaldo.sentiment_label", description="SenSALDO sentiment label"),
-             model: Model = Model("[sensaldo.model]"),
-             lexicon: Optional[util.misc.PickledLexicon] = None) -> None:
+@annotator(
+    "Sentiment annotation per token using SenSALDO",
+    language=["swe"],
+    config=[
+        Config("sensaldo.model", default="sensaldo/sensaldo.pickle", description="Path to SenSALDO model", datatype=str)
+    ],
+)
+def annotate(
+    sense: Annotation = Annotation("<token:sense>"),
+    out_scores: Output = Output("<token>:sensaldo.sentiment_score", description="SenSALDO sentiment score"),
+    out_labels: Output = Output("<token>:sensaldo.sentiment_label", description="SenSALDO sentiment label"),
+    model: Model = Model("[sensaldo.model]"),
+    lexicon: Optional[util.misc.PickledLexicon] = None,
+) -> None:
     """Assign sentiment values to tokens based on their sense annotation.
 
     When more than one sense is possible, calulate a weighted mean.
@@ -39,8 +46,11 @@ def annotate(sense: Annotation = Annotation("<token:sense>"),
 
     for token in sense.read():
         # Get set of senses for each token and sort them according to their probabilities
-        token_senses = [tuple(s.rsplit(util.constants.SCORESEP, 1)) if util.constants.SCORESEP in s else (s, -1.0)
-                        for s in token.split(util.constants.DELIM) if s]
+        token_senses = [
+            tuple(s.rsplit(util.constants.SCORESEP, 1)) if util.constants.SCORESEP in s else (s, -1.0)
+            for s in token.split(util.constants.DELIM)
+            if s
+        ]
         token_senses.sort(key=lambda x: float(x[1]), reverse=True)
 
         # Lookup the sentiment score for the most probable sense and assign a sentiment label
@@ -107,10 +117,7 @@ def read_sensaldo(tsv: Model, verbose: bool = True) -> dict:
             saldoid, label = line.split()
             lexicon[saldoid] = label
 
-    testwords = ["förskräcklig..1",
-                 "ödmjukhet..1",
-                 "handla..1"
-                 ]
+    testwords = ["förskräcklig..1", "ödmjukhet..1", "handla..1"]
     util.misc.test_lexicon(lexicon, testwords)
 
     if verbose:

@@ -27,19 +27,21 @@ logger = get_logger(__name__)
 
 
 @exporter("Corpus word frequency list")
-def freq_list(source_files: AllSourceFilenames = AllSourceFilenames(),
-              word: AnnotationAllSourceFiles = AnnotationAllSourceFiles("[export.word]"),
-              token: AnnotationAllSourceFiles = AnnotationAllSourceFiles("<token>"),
-              annotations: ExportAnnotationsAllSourceFiles =
-                  ExportAnnotationsAllSourceFiles("stats_export.annotations"),
-              source_annotations: SourceAnnotationsAllSourceFiles = SourceAnnotationsAllSourceFiles(
-                  "stats_export.source_annotations"),
-              remove_namespaces: bool = Config("export.remove_module_namespaces", True),
-              sparv_namespace: str = Config("export.sparv_namespace"),
-              source_namespace: str = Config("export.source_namespace"),
-              out: Export = Export("stats_export.frequency_list/stats_[metadata.id].csv"),
-              delimiter: str = Config("stats_export.delimiter"),
-              cutoff: int = Config("stats_export.cutoff")) -> None:
+def freq_list(
+    source_files: AllSourceFilenames = AllSourceFilenames(),
+    word: AnnotationAllSourceFiles = AnnotationAllSourceFiles("[export.word]"),
+    token: AnnotationAllSourceFiles = AnnotationAllSourceFiles("<token>"),
+    annotations: ExportAnnotationsAllSourceFiles = ExportAnnotationsAllSourceFiles("stats_export.annotations"),
+    source_annotations: SourceAnnotationsAllSourceFiles = SourceAnnotationsAllSourceFiles(
+        "stats_export.source_annotations"
+    ),
+    remove_namespaces: bool = Config("export.remove_module_namespaces", True),
+    sparv_namespace: str = Config("export.sparv_namespace"),
+    source_namespace: str = Config("export.source_namespace"),
+    out: Export = Export("stats_export.frequency_list/stats_[metadata.id].csv"),
+    delimiter: str = Config("stats_export.delimiter"),
+    cutoff: int = Config("stats_export.cutoff"),
+) -> None:
     """Create a word frequency list for the entire corpus.
 
     Args:
@@ -61,8 +63,13 @@ def freq_list(source_files: AllSourceFilenames = AllSourceFilenames(),
 
     # Get annotations list and export names
     annotation_list, token_attributes, export_names = util.export.get_annotation_names(
-        annotations, source_annotations, token_name=token.name,
-        remove_namespaces=remove_namespaces, sparv_namespace=sparv_namespace, source_namespace=source_namespace)
+        annotations,
+        source_annotations,
+        token_name=token.name,
+        remove_namespaces=remove_namespaces,
+        sparv_namespace=sparv_namespace,
+        source_namespace=source_namespace,
+    )
 
     # Get all token and struct annotations (except the span annotations)
     token_annotations = [
@@ -92,8 +99,9 @@ def freq_list(source_files: AllSourceFilenames = AllSourceFilenames(),
         logger.progress()
 
     # Create header
-    struct_header_names = [export_names.get(a.annotation_name, a.annotation_name) + ":" + export_names[a.name]
-                           for a in struct_annotations]
+    struct_header_names = [
+        export_names.get(a.annotation_name, a.annotation_name) + ":" + export_names[a.name] for a in struct_annotations
+    ]
     column_names = [export_names[a.name] for a in token_annotations] + struct_header_names
     column_names.append("count")
 
@@ -107,7 +115,7 @@ def install_freq_list(
     marker: OutputMarker = OutputMarker("stats_export.install_freq_list_marker"),
     uninstall_marker: MarkerOptional = MarkerOptional("stats_export.uninstall_freq_list_marker"),
     host: Optional[str] = Config("stats_export.remote_host"),
-    target_dir: str = Config("stats_export.remote_dir")
+    target_dir: str = Config("stats_export.remote_dir"),
 ) -> None:
     """Install frequency list on server by rsyncing.
 
@@ -129,7 +137,7 @@ def uninstall_freq_list(
     marker: OutputMarker = OutputMarker("stats_export.uninstall_freq_list_marker"),
     install_marker: MarkerOptional = MarkerOptional("stats_export.install_freq_list_marker"),
     host: Optional[str] = Config("stats_export.remote_host"),
-    remote_dir: str = Config("stats_export.remote_dir")
+    remote_dir: str = Config("stats_export.remote_dir"),
 ) -> None:
     """Uninstall word frequency list.
 
@@ -150,6 +158,7 @@ def uninstall_freq_list(
 ################################################################################
 # Auxiliaries
 ################################################################################
+
 
 def write_csv(out: Export, column_names: list[str], freq_dict: dict[tuple, int], delimiter: str, cutoff: int) -> None:
     """Write CSV file.

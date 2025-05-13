@@ -7,9 +7,11 @@ from sparv.modules.saldo import saldo
 
 
 @modelbuilder("Hunpos morphtable input files", language=["swe"])
-def morphtable_inputs(suc: ModelOutput = ModelOutput("hunpos/suc3_morphtable.words"),
-                      morphtable_base: ModelOutput = ModelOutput("hunpos/suc.morphtable"),
-                      morphtable_patterns: ModelOutput = ModelOutput("hunpos/suc.patterns")) -> None:
+def morphtable_inputs(
+    suc: ModelOutput = ModelOutput("hunpos/suc3_morphtable.words"),
+    morphtable_base: ModelOutput = ModelOutput("hunpos/suc.morphtable"),
+    morphtable_patterns: ModelOutput = ModelOutput("hunpos/suc.patterns"),
+) -> None:
     """Download the files needed to build the SALDO morphtable.
 
     Args:
@@ -25,13 +27,15 @@ def morphtable_inputs(suc: ModelOutput = ModelOutput("hunpos/suc3_morphtable.wor
 
 
 @modelbuilder("Hunpos-SALDO morphtable", language=["swe"])
-def saldo_morphtable(out: ModelOutput = ModelOutput("hunpos/saldo_suc-tags.morphtable"),
-                     saldo_model: Model = Model("saldo/saldo.pickle"),
-                     suc: Model = Model("hunpos/suc3_morphtable.words"),
-                     morphtable_base: Model = Model("hunpos/suc.morphtable"),
-                     morphtable_patterns: Model = Model("hunpos/suc.patterns"),
-                     add_capitalized: bool = True,
-                     add_lowercase: bool = False) -> None:
+def saldo_morphtable(
+    out: ModelOutput = ModelOutput("hunpos/saldo_suc-tags.morphtable"),
+    saldo_model: Model = Model("saldo/saldo.pickle"),
+    suc: Model = Model("hunpos/suc3_morphtable.words"),
+    morphtable_base: Model = Model("hunpos/suc.morphtable"),
+    morphtable_patterns: Model = Model("hunpos/suc.patterns"),
+    add_capitalized: bool = True,
+    add_lowercase: bool = False,
+) -> None:
     """Create a morphtable file for use with Hunpos.
 
     A morphtable contains word forms from SALDO's morphology (with accompanying tags) which are missing in SUC3.

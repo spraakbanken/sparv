@@ -24,26 +24,31 @@ from . import xml_utils
 logger = get_logger(__name__)
 
 
-@exporter("XML export preserving whitespaces from source file", config=[
-    Config(
-        "xml_export.filename_formatted",
-        default="{file}_export.xml",
-        description="Filename pattern for resulting XML files, with '{file}' representing the source name.",
-        datatype=str,
-        pattern=r".*\{file\}.*",
-    )
-])
-def preserved_format(source_file: SourceFilename = SourceFilename(),
-                     text: Text = Text(),
-                     fileid: AnnotationData = AnnotationData("<fileid>"),
-                     out: Export = Export("xml_export.preserved_format/[xml_export.filename_formatted]"),
-                     annotations: ExportAnnotations = ExportAnnotations("xml_export.annotations"),
-                     source_annotations: SourceAnnotations = SourceAnnotations("xml_export.source_annotations"),
-                     header_annotations: HeaderAnnotations = HeaderAnnotations("xml_export.header_annotations"),
-                     remove_namespaces: bool = Config("export.remove_module_namespaces", False),
-                     sparv_namespace: str = Config("export.sparv_namespace"),
-                     source_namespace: str = Config("export.source_namespace"),
-                     include_empty_attributes: bool = Config("xml_export.include_empty_attributes")) -> None:
+@exporter(
+    "XML export preserving whitespaces from source file",
+    config=[
+        Config(
+            "xml_export.filename_formatted",
+            default="{file}_export.xml",
+            description="Filename pattern for resulting XML files, with '{file}' representing the source name.",
+            datatype=str,
+            pattern=r".*\{file\}.*",
+        )
+    ],
+)
+def preserved_format(
+    source_file: SourceFilename = SourceFilename(),
+    text: Text = Text(),
+    fileid: AnnotationData = AnnotationData("<fileid>"),
+    out: Export = Export("xml_export.preserved_format/[xml_export.filename_formatted]"),
+    annotations: ExportAnnotations = ExportAnnotations("xml_export.annotations"),
+    source_annotations: SourceAnnotations = SourceAnnotations("xml_export.source_annotations"),
+    header_annotations: HeaderAnnotations = HeaderAnnotations("xml_export.header_annotations"),
+    remove_namespaces: bool = Config("export.remove_module_namespaces", False),
+    sparv_namespace: str = Config("export.sparv_namespace"),
+    source_namespace: str = Config("export.source_namespace"),
+    include_empty_attributes: bool = Config("xml_export.include_empty_attributes"),
+) -> None:
     """Export annotations to XML in export_dir and keep whitespaces and indentation from original file.
 
     Args:
@@ -94,9 +99,11 @@ def preserved_format(source_file: SourceFilename = SourceFilename(),
 
     # Root tag sanity check
     if not xml_utils.valid_root(sorted_positions[0], sorted_positions[-1], true_root=True):
-        raise SparvErrorMessage("Root tag is missing! If you have manually specified which elements to include, "
-                                "make sure to include an element that encloses all other included elements and "
-                                "text content (including whitespace characters such as newlines).")
+        raise SparvErrorMessage(
+            "Root tag is missing! If you have manually specified which elements to include, "
+            "make sure to include an element that encloses all other included elements and "
+            "text content (including whitespace characters such as newlines)."
+        )
 
     # Register XML namespaces
     xml_utils.register_namespaces(xml_namespaces)
@@ -114,7 +121,7 @@ def preserved_format(source_file: SourceFilename = SourceFilename(),
             if last_pos < span.start:
                 # Get last closing node in this position
                 _, tail_span = [i for i in span_positions[last_pos] if i[0] == "close"][-1]
-                tail_span.node.tail = corpus_text[last_pos:span.start]
+                tail_span.node.tail = corpus_text[last_pos : span.start]
                 last_pos = span.start
 
             # Handle headers
@@ -128,20 +135,23 @@ def preserved_format(source_file: SourceFilename = SourceFilename(),
                 if node_stack:  # Don't create root node, it already exists
                     span.set_node(parent_node=node_stack[-1].node)
 
-                xml_utils.add_attrs(span.node, span.name, annotation_dict, export_names, span.index,
-                                    include_empty_attributes)
+                xml_utils.add_attrs(
+                    span.node, span.name, annotation_dict, export_names, span.index, include_empty_attributes
+                )
                 if span.overlap_id:
                     if sparv_namespace:
                         span.node.set(f"{sparv_namespace}.{util.constants.OVERLAP_ATTR}", f"{fileid}-{span.overlap_id}")
                     else:
-                        span.node.set(f"{util.constants.SPARV_DEFAULT_NAMESPACE}.{util.constants.OVERLAP_ATTR}",
-                                      f"{fileid}-{span.overlap_id}")
+                        span.node.set(
+                            f"{util.constants.SPARV_DEFAULT_NAMESPACE}.{util.constants.OVERLAP_ATTR}",
+                            f"{fileid}-{span.overlap_id}",
+                        )
                 node_stack.append(span)
 
                 # Set text if there should be any between this node and the next one
                 next_item = sorted_positions[x + 1]
                 if next_item[1] == "open" and next_item[2].start > span.start:
-                    span.node.text = corpus_text[last_pos:next_item[2].start]
+                    span.node.text = corpus_text[last_pos : next_item[2].start]
                     last_pos = next_item[2].start
 
         # Close node
@@ -151,12 +161,12 @@ def preserved_format(source_file: SourceFilename = SourceFilename(),
             if last_pos < span.end:
                 # Set node text if necessary
                 if span.start == last_pos:
-                    span.node.text = corpus_text[last_pos:span.end]
+                    span.node.text = corpus_text[last_pos : span.end]
                 # Set tail for previous node if necessary
                 else:
                     # Get last closing node in this position
                     _, tail_span = [i for i in span_positions[last_pos] if i[0] == "close"][-1]
-                    tail_span.node.tail = corpus_text[last_pos:span.end]
+                    tail_span.node.tail = corpus_text[last_pos : span.end]
                 last_pos = span.end
 
             # Make sure closing node == top stack node

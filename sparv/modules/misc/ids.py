@@ -23,12 +23,15 @@ DEFAULT_ID_LENGTH = 10
 
 
 @annotator("Give every source file a unique ID")
-def file_id(out: OutputDataAllSourceFiles = OutputDataAllSourceFiles("misc.fileid", cls="fileid",
-                                                                     description="Unique IDs for every source file"),
-            source_files: Optional[AllSourceFilenames] = AllSourceFilenames(),
-            source_files_list: Optional[str] = None,
-            prefix: str = "",
-            add: bool = False) -> None:
+def file_id(
+    out: OutputDataAllSourceFiles = OutputDataAllSourceFiles(
+        "misc.fileid", cls="fileid", description="Unique IDs for every source file"
+    ),
+    source_files: Optional[AllSourceFilenames] = AllSourceFilenames(),
+    source_files_list: Optional[str] = None,
+    prefix: str = "",
+    add: bool = False,
+) -> None:
     """Create unique IDs for every source file in a list, using the source filenames as seed.
 
     Args:
@@ -69,11 +72,13 @@ def file_id(out: OutputDataAllSourceFiles = OutputDataAllSourceFiles("misc.filei
 
 
 @annotator("Unique IDs for {annotation}", wildcards=[Wildcard("annotation", Wildcard.ANNOTATION)])
-def ids(source_file: SourceFilename = SourceFilename(),
-        annotation: Annotation = Annotation("{annotation}"),
-        out: Output = Output("{annotation}:misc.id", description="Unique ID for {annotation}"),
-        fileid: AnnotationData = AnnotationData("<fileid>"),
-        prefix: str = "") -> None:
+def ids(
+    source_file: SourceFilename = SourceFilename(),
+    annotation: Annotation = Annotation("{annotation}"),
+    out: Output = Output("{annotation}:misc.id", description="Unique ID for {annotation}"),
+    fileid: AnnotationData = AnnotationData("<fileid>"),
+    prefix: str = "",
+) -> None:
     """Create unique IDs for every span of an existing annotation.
 
     To make the IDs unique across all files, the IDs are prefixed with the file ID of the source file.

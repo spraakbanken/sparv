@@ -9,19 +9,19 @@ logger = get_logger(__name__)
 
 
 @annotator("Convert Mamba-Dep dependencies into phrase structure", language=["swe"])
-def annotate(out_phrase: Output = Output("phrase_structure.phrase", description="Phrase segments"),
-             out_phrase_name: Output = Output("phrase_structure.phrase:phrase_structure.name",
-                                              description="Phrase names"),
-             out_phrase_func: Output = Output("phrase_structure.phrase:phrase_structure.func",
-                                              description="Phrase functions"),
-             token: Annotation = Annotation("<token>"),
-             word: Annotation = Annotation("<token:word>"),
-             sentence: Annotation = Annotation("<sentence>"),
-             pos: Annotation = Annotation("<token:pos>"),
-             msd: Annotation = Annotation("<token:msd>"),
-             ref: Annotation = Annotation("<token:ref>"),
-             dephead_ref: Annotation = Annotation("<token:dephead_ref>"),
-             deprel: Annotation = Annotation("<token:deprel>")) -> None:
+def annotate(
+    out_phrase: Output = Output("phrase_structure.phrase", description="Phrase segments"),
+    out_phrase_name: Output = Output("phrase_structure.phrase:phrase_structure.name", description="Phrase names"),
+    out_phrase_func: Output = Output("phrase_structure.phrase:phrase_structure.func", description="Phrase functions"),
+    token: Annotation = Annotation("<token>"),
+    word: Annotation = Annotation("<token:word>"),
+    sentence: Annotation = Annotation("<sentence>"),
+    pos: Annotation = Annotation("<token:pos>"),
+    msd: Annotation = Annotation("<token:msd>"),
+    ref: Annotation = Annotation("<token:ref>"),
+    dephead_ref: Annotation = Annotation("<token:dephead_ref>"),
+    deprel: Annotation = Annotation("<token:deprel>"),
+) -> None:
     """Annotate sentence with phrase structures.
 
     Args:
@@ -66,12 +66,7 @@ def annotate(out_phrase: Output = Output("phrase_structure.phrase", description=
                 if not child[0].startswith("WORD:"):
                     start_pos = token_spans[s[position]][0]
                     open_elem_stack.append((*child, start_pos))
-                    logger.debug(
-                        "<phrase name=%s func=%s> %s",
-                        child[0],
-                        child[1],
-                        s[position]
-                    )
+                    logger.debug("<phrase name=%s func=%s> %s", child[0], child[1], s[position])
                 else:
                     # Close nodes
                     while open_elem_stack[-1][2] == child[2]:
@@ -83,7 +78,7 @@ def annotate(out_phrase: Output = Output("phrase_structure.phrase", description=
                             open_elem_stack[-1][0],
                             open_elem_stack[-1][1],
                             start_pos,
-                            end_pos
+                            end_pos,
                         )
                         open_elem_stack.pop()
                     position += 1
@@ -94,13 +89,7 @@ def annotate(out_phrase: Output = Output("phrase_structure.phrase", description=
             for elem in reversed(open_elem_stack):
                 start_pos = elem[3]
                 nodes.append(((start_pos, end_pos), elem[0], elem[1]))
-                logger.debug(
-                    "</phrase name=%s func=%s> %d-%d",
-                    elem[0],
-                    elem[1],
-                    start_pos,
-                    end_pos
-                )
+                logger.debug("</phrase name=%s func=%s> %d-%d", elem[0], elem[1], start_pos, end_pos)
 
     # Sort nodes
     sorted_nodes = sorted(nodes)
@@ -236,6 +225,7 @@ class Sentence:
     def is_cyclic(self) -> bool:
         """Return True if the sentence has a cyclic dependency."""
         return any(n.is_cyclic() for n in self.tokens)
+
 
 ##############################################################################
 # from file "to_const.py" (Richard Johansson):
@@ -496,6 +486,7 @@ def convert(token: Token) -> Union[Nonterminal, Terminal]:
 ################################################################################
 # Auxiliaries used by convert
 ################################################################################
+
 
 def _add_head(in_list: list[Union[Terminal, Nonterminal]], h: Terminal) -> None:
     """Add a head to the list of children based on its head position.

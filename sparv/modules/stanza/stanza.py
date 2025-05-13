@@ -11,35 +11,41 @@ logger = get_logger(__name__)
 
 
 @annotator("POS, lemma and dependency relations from Stanza", language=["eng"])
-def annotate(corpus_text: Text = Text(),
-             lang: Language = Language(),
-             sentence_chunk: Optional[Annotation] = Annotation("[stanza.sentence_chunk]"),
-             sentence_annotation: Optional[Annotation] = Annotation("[stanza.sentence_annotation]"),
-             token_annotation: Optional[Annotation] = Annotation("[stanza.token_annotation]"),
-             out_sentence: Optional[Output] = Output("stanza.sentence", cls="sentence",
-                                                     description="Sentence segments"),
-             out_token: Output = Output("stanza.token", cls="token", description="Token segments"),
-             out_upos: Output = Output("<token>:stanza.upos", cls="token:upos", description="Part-of-speeches in UD"),
-             out_pos: Output = Output("<token>:stanza.pos", cls="token:pos",
-                                      description="Part-of-speeches from Stanza"),
-             out_baseform: Output = Output("<token>:stanza.baseform", cls="token:baseform",
-                                           description="Baseform from Stanza"),
-             out_feats: Output = Output("<token>:stanza.ufeats", cls="token:ufeats",
-                                        description="Universal morphological features"),
-             out_deprel: Output = Output("<token>:stanza.deprel", cls="token:deprel",
-                                         description="Dependency relations to the head"),
-             out_dephead_ref: Output = Output("<token>:stanza.dephead_ref", cls="token:dephead_ref",
-                                              description="Sentence-relative positions of the dependency heads"),
-             out_dephead: Output = Output("<token>:stanza.dephead", cls="token:dephead",
-                                          description="Positions of the dependency heads"),
-             out_ne: Output = Output("stanza.ne", cls="named_entity", description="Named entity segments from Stanza"),
-             out_ne_type: Output = Output("stanza.ne:stanza.ne_type", cls="token:named_entity_type",
-                                          description="Named entitiy types from Stanza"),
-             resources_file: Model = Model("[stanza.resources_file]"),
-             use_gpu: bool = Config("stanza.use_gpu"),
-             batch_size: int = Config("stanza.batch_size"),
-             max_sentence_length: int = Config("stanza.max_sentence_length"),
-             cpu_fallback: bool = Config("stanza.cpu_fallback")) -> None:
+def annotate(
+    corpus_text: Text = Text(),
+    lang: Language = Language(),
+    sentence_chunk: Optional[Annotation] = Annotation("[stanza.sentence_chunk]"),
+    sentence_annotation: Optional[Annotation] = Annotation("[stanza.sentence_annotation]"),
+    token_annotation: Optional[Annotation] = Annotation("[stanza.token_annotation]"),
+    out_sentence: Optional[Output] = Output("stanza.sentence", cls="sentence", description="Sentence segments"),
+    out_token: Output = Output("stanza.token", cls="token", description="Token segments"),
+    out_upos: Output = Output("<token>:stanza.upos", cls="token:upos", description="Part-of-speeches in UD"),
+    out_pos: Output = Output("<token>:stanza.pos", cls="token:pos", description="Part-of-speeches from Stanza"),
+    out_baseform: Output = Output("<token>:stanza.baseform", cls="token:baseform", description="Baseform from Stanza"),
+    out_feats: Output = Output(
+        "<token>:stanza.ufeats", cls="token:ufeats", description="Universal morphological features"
+    ),
+    out_deprel: Output = Output(
+        "<token>:stanza.deprel", cls="token:deprel", description="Dependency relations to the head"
+    ),
+    out_dephead_ref: Output = Output(
+        "<token>:stanza.dephead_ref",
+        cls="token:dephead_ref",
+        description="Sentence-relative positions of the dependency heads",
+    ),
+    out_dephead: Output = Output(
+        "<token>:stanza.dephead", cls="token:dephead", description="Positions of the dependency heads"
+    ),
+    out_ne: Output = Output("stanza.ne", cls="named_entity", description="Named entity segments from Stanza"),
+    out_ne_type: Output = Output(
+        "stanza.ne:stanza.ne_type", cls="token:named_entity_type", description="Named entitiy types from Stanza"
+    ),
+    resources_file: Model = Model("[stanza.resources_file]"),
+    use_gpu: bool = Config("stanza.use_gpu"),
+    batch_size: int = Config("stanza.batch_size"),
+    max_sentence_length: int = Config("stanza.max_sentence_length"),
+    cpu_fallback: bool = Config("stanza.cpu_fallback"),
+) -> None:
     """Do dependency parsing using Stanza.
 
     Args:
@@ -98,7 +104,7 @@ def annotate(corpus_text: Text = Text(),
         "lemma_batch_size": batch_size,
         "use_gpu": use_gpu,
         "verbose": False,
-        "download_method": DownloadMethod.NONE
+        "download_method": DownloadMethod.NONE,
     }
     stanza_args = {
         "use_gpu": use_gpu,
@@ -115,16 +121,19 @@ def annotate(corpus_text: Text = Text(),
         sentences, _orphans = sentence_annotation.get_children(token_annotation)
         # sentences.append(orphans)
         token_spans = list(token_annotation.read_spans(decimals=True))
-        sentence_segments, all_tokens, ne_segments, ne_types = process_tokens(sentences, token_spans, text_data,
-                                                                              nlp_args, stanza_args)
+        sentence_segments, all_tokens, ne_segments, ne_types = process_tokens(
+            sentences, token_spans, text_data, nlp_args, stanza_args
+        )
     elif sentence_annotation:
         sentence_spans = list(sentence_annotation.read_spans())
-        sentence_segments, all_tokens, ne_segments, ne_types = process_sentences(sentence_spans, text_data, nlp_args,
-                                                                                 stanza_args)
+        sentence_segments, all_tokens, ne_segments, ne_types = process_sentences(
+            sentence_spans, text_data, nlp_args, stanza_args
+        )
     else:
         text_spans = sentence_chunk.read_spans()
-        sentence_segments, all_tokens, ne_segments, ne_types = process_text(text_spans, text_data, nlp_args,
-                                                                            stanza_args)
+        sentence_segments, all_tokens, ne_segments, ne_types = process_text(
+            text_spans, text_data, nlp_args, stanza_args
+        )
 
     # Write annotations
     if all_tokens:
@@ -165,7 +174,7 @@ def process_tokens(sentences: list, token_spans: list, text_data: str, nlp_args:
     nlp = stanza.Pipeline(**nlp_args)
 
     # Format document for stanza: list of lists of string
-    document = [[text_data[token_spans[i][0][0]:token_spans[i][1][0]] for i in s] for s in sentences]
+    document = [[text_data[token_spans[i][0][0] : token_spans[i][1][0]] for i in s] for s in sentences]
 
     # Run Stanza and process output
     doc = stanza_utils.run_stanza(nlp, document, stanza_args["batch_size"], stanza_args["max_sentence_length"])
@@ -223,7 +232,7 @@ def process_sentences(sentence_spans: list, text_data: str, nlp_args: dict, stan
     nlp = stanza.Pipeline(**nlp_args)
 
     # Format document for stanza: separate sentences by double new lines
-    document = "\n\n".join([text_data[sent_span[0]:sent_span[1]].replace("\n", " ") for sent_span in sentence_spans])
+    document = "\n\n".join([text_data[sent_span[0] : sent_span[1]].replace("\n", " ") for sent_span in sentence_spans])
 
     # Run Stanza and process output
     doc = stanza_utils.run_stanza(nlp, document, stanza_args["batch_size"], stanza_args["max_sentence_length"])
@@ -289,7 +298,7 @@ def process_text(text_spans: list, text_data: str, nlp_args: dict, stanza_args: 
 
     # Run Stanza once for every input document
     for text_span in text_spans:
-        inputtext = text_data[text_span[0]:text_span[1]]
+        inputtext = text_data[text_span[0] : text_span[1]]
         offset = text_span[0]
         doc = stanza_utils.run_stanza(nlp, inputtext, stanza_args["batch_size"], stanza_args["max_sentence_length"])
         for sent in doc.sentences:

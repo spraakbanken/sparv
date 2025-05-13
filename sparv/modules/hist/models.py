@@ -91,8 +91,13 @@ def lmf_to_pickle(
     use_fallback: bool = False,
 ) -> None:
     """Read an XML dictionary and save as a pickle file."""
-    xml_lexicon = read_lmf(xml, annotation_elements=annotation_elements, skip_multiword=skip_multiword,
-                           translate_tags=translate_tags, use_fallback=use_fallback)
+    xml_lexicon = read_lmf(
+        xml,
+        annotation_elements=annotation_elements,
+        skip_multiword=skip_multiword,
+        translate_tags=translate_tags,
+        use_fallback=use_fallback,
+    )
     SaldoLexicon.save_to_picklefile(filename, xml_lexicon)
 
 
@@ -162,7 +167,6 @@ def read_lmf(
                     wordparts = word.split()
                     for i, word in enumerate(wordparts):
                         if (not skip_multiword) and len(wordparts) > 1:
-
                             # Handle multi-word expressions
                             multiwords.append(word)
 
@@ -199,10 +203,7 @@ def read_lmf(
             if elem.tag in {"LexicalEntry", "frame", "resFrame"}:
                 root.clear()
     if verbose:
-        testwords = ["äplebuske",
-                     "stöpljus",
-                     "katt",
-                     "doktor"]
+        testwords = ["äplebuske", "stöpljus", "katt", "doktor"]
         util.misc.test_lexicon(lexicon, testwords)
         logger.info("OK, read %d entries", len(lexicon))
     return lexicon
@@ -211,6 +212,7 @@ def read_lmf(
 ################################################################################
 # Auxiliaries
 ################################################################################
+
 
 def _convert_default(pos: str, inhs: list[str], param: str) -> set[str]:
     """Try to convert SALDO tags into SUC tags.
@@ -260,7 +262,7 @@ def _try_translate(params: str) -> set[str]:
         # Copied from tagmappings._make_saldo_to_suc(), try to convert the tag
         # but allow m (the match) to be None if the tag still can't be translated
         paramstr = " ".join(tagmappings.mappings["saldo_params_to_suc"].get(param, param.upper()) for param in params)
-        for (pre, post) in tagmappings._suc_tag_replacements:  # noqa: B007
+        for pre, post in tagmappings._suc_tag_replacements:  # noqa: B007
             m = re.match(pre, paramstr)
             if m:
                 break

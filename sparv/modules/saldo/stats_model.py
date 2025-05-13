@@ -22,8 +22,9 @@ def download_korp_stats(out: ModelOutput = ModelOutput("saldo/stats.pickle")) ->
 
 
 @modelbuilder("Korp statistic model", order=2)
-def build_korp_stats(out: ModelOutput = ModelOutput("saldo/stats.pickle"),
-                     _saldom: Model = Model("saldo/saldom.xml")) -> None:
+def build_korp_stats(
+    out: ModelOutput = ModelOutput("saldo/stats.pickle"), _saldom: Model = Model("saldo/saldom.xml")
+) -> None:
     """Download Korp's word frequency file and convert it to a model.
 
     Args:
@@ -106,7 +107,7 @@ def make_model(
             #     continue
             # if len(word) > 100:
             #     continue
-            simple_msd = fields[1][:fields[1].find(".")] if "." in fields[1] else fields[1]
+            simple_msd = fields[1][: fields[1].find(".")] if "." in fields[1] else fields[1]
             fdist[word, simple_msd] += freq
     pd = LidstoneProbDist(fdist, smoothingparam, fdist.B())
 

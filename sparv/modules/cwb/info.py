@@ -21,12 +21,14 @@ logger = get_logger(__name__)
 
 
 @exporter("CWB .info file")
-def info(out: Export = Export("cwb.encoded/data/.info"),
-         sentences: AnnotationCommonData = AnnotationCommonData("misc.<sentence>_count"),
-         firstdate: AnnotationCommonData = AnnotationCommonData("cwb.datefirst"),
-         lastdate: AnnotationCommonData = AnnotationCommonData("cwb.datelast"),
-         resolution: AnnotationCommonData = AnnotationCommonData("dateformat.resolution"),
-         protected: bool = Config("korp.protected")) -> None:
+def info(
+    out: Export = Export("cwb.encoded/data/.info"),
+    sentences: AnnotationCommonData = AnnotationCommonData("misc.<sentence>_count"),
+    firstdate: AnnotationCommonData = AnnotationCommonData("cwb.datefirst"),
+    lastdate: AnnotationCommonData = AnnotationCommonData("cwb.datelast"),
+    resolution: AnnotationCommonData = AnnotationCommonData("dateformat.resolution"),
+    protected: bool = Config("korp.protected"),
+) -> None:
     """Create CWB .info file.
 
     Args:
@@ -41,12 +43,14 @@ def info(out: Export = Export("cwb.encoded/data/.info"),
 
 
 @exporter("CWB .info file for scrambled corpus")
-def info_scrambled(out: Export = Export("cwb.encoded_scrambled/data/.info"),
-                   sentences: AnnotationCommonData = AnnotationCommonData("misc.<sentence>_count"),
-                   firstdate: AnnotationCommonData = AnnotationCommonData("cwb.datefirst"),
-                   lastdate: AnnotationCommonData = AnnotationCommonData("cwb.datelast"),
-                   resolution: AnnotationCommonData = AnnotationCommonData("dateformat.resolution"),
-                   protected: bool = Config("korp.protected")) -> None:
+def info_scrambled(
+    out: Export = Export("cwb.encoded_scrambled/data/.info"),
+    sentences: AnnotationCommonData = AnnotationCommonData("misc.<sentence>_count"),
+    firstdate: AnnotationCommonData = AnnotationCommonData("cwb.datefirst"),
+    lastdate: AnnotationCommonData = AnnotationCommonData("cwb.datelast"),
+    resolution: AnnotationCommonData = AnnotationCommonData("dateformat.resolution"),
+    protected: bool = Config("korp.protected"),
+) -> None:
     """Create CWB .info file for scrambled corpus.
 
     Args:
@@ -60,8 +64,14 @@ def info_scrambled(out: Export = Export("cwb.encoded_scrambled/data/.info"),
     create_info_file(sentences, firstdate, lastdate, resolution, protected, out)
 
 
-def create_info_file(sentences: AnnotationCommonData, firstdate: AnnotationCommonData, lastdate: AnnotationCommonData,
-                     resolution: AnnotationCommonData, protected: bool, out: Export) -> None:
+def create_info_file(
+    sentences: AnnotationCommonData,
+    firstdate: AnnotationCommonData,
+    lastdate: AnnotationCommonData,
+    resolution: AnnotationCommonData,
+    protected: bool,
+    out: Export,
+) -> None:
     """Create .info file.
 
     Args:
@@ -75,12 +85,14 @@ def create_info_file(sentences: AnnotationCommonData, firstdate: AnnotationCommo
     content = []
     protected_str = str(protected).lower()
 
-    for key, value_obj in [("Sentences", sentences),
-                           ("FirstDate", firstdate),
-                           ("LastDate", lastdate),
-                           ("DateResolution", resolution),
-                           ("Updated", time.strftime("%Y-%m-%d")),
-                           ("Protected", protected_str)]:
+    for key, value_obj in [
+        ("Sentences", sentences),
+        ("FirstDate", firstdate),
+        ("LastDate", lastdate),
+        ("DateResolution", resolution),
+        ("Updated", time.strftime("%Y-%m-%d")),
+        ("Protected", protected_str),
+    ]:
         value = value_obj.read() if isinstance(value_obj, AnnotationCommonData) else value_obj
 
         content.append(f"{key}: {value}\n")

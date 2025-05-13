@@ -1,4 +1,5 @@
 """Unit tests for LanguageRegistry."""
+
 from __future__ import annotations
 
 import pytest
@@ -14,6 +15,7 @@ def language_registry() -> LanguageRegistry:
 
 class TestLanguageRegistry:
     """Test class for LanguageRegistry."""
+
     @staticmethod
     def check(tested: str | None, expected: str) -> None:
         """Check if the tested value is equal to the expected value."""

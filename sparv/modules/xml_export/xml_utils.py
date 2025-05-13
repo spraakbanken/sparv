@@ -1,4 +1,5 @@
 """Util functions for XML export."""
+
 from __future__ import annotations
 
 import bz2
@@ -52,9 +53,11 @@ def make_pretty_xml(
     """
     # Root tag sanity check
     if not valid_root(span_positions[0], span_positions[-1]):
-        raise SparvErrorMessage("Root tag is missing! If you have manually specified which elements to include, "
-                                "make sure to include an element that encloses all other included elements and "
-                                "text content.")
+        raise SparvErrorMessage(
+            "Root tag is missing! If you have manually specified which elements to include, "
+            "make sure to include an element that encloses all other included elements and "
+            "text content."
+        )
 
     # Create root node
     root_span = span_positions[0][2]
@@ -86,11 +89,11 @@ def make_pretty_xml(
             Updated token text.
         """
         if last_start_position < last_end_position < position:
-            node.tail = token_text[:position - last_end_position]
-            token_text = token_text[position - last_end_position:]
+            node.tail = token_text[: position - last_end_position]
+            token_text = token_text[position - last_end_position :]
         elif position > last_start_position:
-            node.text = token_text[:position - last_start_position]
-            token_text = token_text[position - last_start_position:]
+            node.text = token_text[: position - last_start_position]
+            token_text = token_text[position - last_start_position :]
         return token_text
 
     # Go through span_positions and build xml tree
@@ -115,8 +118,10 @@ def make_pretty_xml(
                 if sparv_namespace:
                     span.node.set(f"{sparv_namespace}.{util.constants.OVERLAP_ATTR}", f"{fileid}-{span.overlap_id}")
                 else:
-                    span.node.set(f"{util.constants.SPARV_DEFAULT_NAMESPACE}.{util.constants.OVERLAP_ATTR}",
-                                  f"{fileid}-{span.overlap_id}")
+                    span.node.set(
+                        f"{util.constants.SPARV_DEFAULT_NAMESPACE}.{util.constants.OVERLAP_ATTR}",
+                        f"{fileid}-{span.overlap_id}",
+                    )
 
             # Add text if this node is a token
             if span.name == token_name:
@@ -126,16 +131,18 @@ def make_pretty_xml(
                 current_token_text = word_annotation[span.index]
 
             if inside_token and current_token_text:
-                current_token_text = handle_subtoken_text(span.start, last_start_pos, last_end_pos, last_node,
-                                                          current_token_text)
+                current_token_text = handle_subtoken_text(
+                    span.start, last_start_pos, last_end_pos, last_node, current_token_text
+                )
                 last_start_pos = span.start
                 last_node = span.node
 
         # Close node
         else:
             if inside_token and current_token_text:
-                current_token_text = handle_subtoken_text(span.end, last_start_pos, last_end_pos, last_node,
-                                                          current_token_text)
+                current_token_text = handle_subtoken_text(
+                    span.end, last_start_pos, last_end_pos, last_node, current_token_text
+                )
                 last_end_pos = span.end
                 last_node = span.node
             if span.name == token_name:
@@ -169,11 +176,13 @@ def valid_root(first_item: tuple, last_item: tuple, true_root: bool = False) -> 
     Returns:
         `True` if the root tag is valid, `False` otherwise.
     """
-    return (first_item[1] == "open"
-            and last_item[1] == "close"
-            and first_item[2].name == last_item[2].name
-            and first_item[2].index == last_item[2].index
-            and (not true_root or (first_item[0] == 0)))
+    return (
+        first_item[1] == "open"
+        and last_item[1] == "close"
+        and first_item[2].name == last_item[2].name
+        and first_item[2].index == last_item[2].index
+        and (not true_root or (first_item[0] == 0))
+    )
 
 
 def register_namespaces(xml_namespaces: dict) -> None:
@@ -218,20 +227,20 @@ def replace_invalid_chars_in_names(export_names: dict) -> None:
         "A-Z",
         "_",
         "a-z",
-        "\xC0-\xD6",
-        "\xD8-\xF6",
-        "\xF8-\u02FF",
-        "\u0370-\u037D",
-        "\u037F-\u1FFF",
-        "\u200C-\u200D",
-        "\u2070-\u218F",
-        "\u2C00-\u2FEF",
-        "\u3001-\uD7FF",
-        "\uF900-\uFDCF",
-        "\uFDF0-\uFFFD",
-        "\u10000-\uEFFFF"
+        "\xc0-\xd6",
+        "\xd8-\xf6",
+        "\xf8-\u02ff",
+        "\u0370-\u037d",
+        "\u037f-\u1fff",
+        "\u200c-\u200d",
+        "\u2070-\u218f",
+        "\u2c00-\u2fef",
+        "\u3001-\ud7ff",
+        "\uf900-\ufdcf",
+        "\ufdf0-\ufffd",
+        "\u10000-\uefffF",
     ]
-    chars = ["-", ".", "0-9", "\xB7", "\u0300-\u036F", "\u203F-\u2040"]
+    chars = ["-", ".", "0-9", "\xb7", "\u0300-\u036f", "\u203f-\u2040"]
 
     name_start_char = re.compile(r"[^{}]".format("".join(start_chars)))
     name_char = re.compile(r"[^{}{}]".format("".join(chars), "".join(start_chars)))
@@ -260,7 +269,7 @@ def combine(
     source_files: Sequence[str],
     xml_input: str,
     version_info_file: Optional[str] = None,
-    compress: bool = False
+    compress: bool = False,
 ) -> None:
     """Combine XML files into one single XML file, optionally compressing it."""
     xml_files = [xml_input.replace("{file}", file) for file in source_files]

@@ -64,12 +64,11 @@ def align_texts(sentence1, sentence2, link1, link2, sent_parents1, sent_parents2
 # available at https://code.google.com/p/gachalign/
 # code license: GNU GPL v3
 
-BEAD_COSTS = {(1, 1): 0, (2, 1): 230, (1, 2): 230, (0, 1): 450,
-              (1, 0): 450, (2, 2): 440}
+BEAD_COSTS = {(1, 1): 0, (2, 1): 230, (1, 2): 230, (0, 1): 450, (1, 0): 450, (2, 2): 440}
 
 
 def gachalign(text1, text2, mean=1.0, variance=6.8, bc=BEAD_COSTS):
-    """ Alignment wrapper function """
+    """Alignment wrapper function"""
     lt1 = list(map(len, [s[1] for s in text1]))
     lt2 = list(map(len, [s[1] for s in text2]))
 
@@ -88,11 +87,17 @@ def align(t1, t2, mean_xy, variance_xy, bead_costs):
             if i == j == 0:
                 m[0, 0] = (0, 0, 0)
             else:
-                m[i, j] = min((m[i - di, j - dj][0] +
-                               length_cost(t1[i - di:i], t2[j - dj:j], mean_xy, variance_xy) +
-                               bead_cost, di, dj)
-                              for (di, dj), bead_cost in BEAD_COSTS.items()
-                              if i - di >= 0 and j - dj >= 0)
+                m[i, j] = min(
+                    (
+                        m[i - di, j - dj][0]
+                        + length_cost(t1[i - di : i], t2[j - dj : j], mean_xy, variance_xy)
+                        + bead_cost,
+                        di,
+                        dj,
+                    )
+                    for (di, dj), bead_cost in BEAD_COSTS.items()
+                    if i - di >= 0 and j - dj >= 0
+                )
     i, j = len(t1), len(t2)
     while True:
         (_c, di, dj) = m[i, j]
@@ -117,18 +122,20 @@ def length_cost(sx, sy, mean_xy, variance_xy):
         delta = (lx - ly * mean_xy) / math.sqrt(m * variance_xy)
     except ZeroDivisionError:
         return float("-inf")
-    return - 100 * (math.log(2) + norm_logsf(abs(delta)))
+    return -100 * (math.log(2) + norm_logsf(abs(delta)))
 
 
 def norm_cdf(z):
     """Scipy's norm distribution function as of Gale-Church'srcfile (1993)."""
     # Equation 26.2.17 from Abramowitz and Stegun (1964:p.932)
     t = 1 / float(1 + 0.2316419 * z)  # t = 1/(1+pz) , z=0.2316419
-    probdist = 1 - 0.3989423 * math.exp(-z * z / 2) * ((0.319381530 * t) +
-                                                       (-0.356563782 * math.pow(t, 2)) +
-                                                       (1.781477937 * math.pow(t, 3)) +
-                                                       (-1.821255978 * math.pow(t, 4)) +
-                                                       (1.330274429 * math.pow(t, 5)))
+    probdist = 1 - 0.3989423 * math.exp(-z * z / 2) * (
+        (0.319381530 * t)
+        + (-0.356563782 * math.pow(t, 2))
+        + (1.781477937 * math.pow(t, 3))
+        + (-1.821255978 * math.pow(t, 4))
+        + (1.330274429 * math.pow(t, 5))
+    )
     return probdist
 
 

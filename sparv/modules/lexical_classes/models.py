@@ -1,4 +1,5 @@
 """Handle models for lexical classes."""
+
 import csv
 import subprocess
 import xml.etree.ElementTree as etree  # noqa: N813
@@ -72,7 +73,8 @@ def swefn_freq_model(out: ModelOutput = ModelOutput("lexical_classes/swefn.freq.
         out: Output model.
     """
     out.download(
-        "https://github.com/spraakbanken/sparv-models/raw/master/lexical_classes/swefn.freq.gp2008+suc3+romi.pickle")
+        "https://github.com/spraakbanken/sparv-models/raw/master/lexical_classes/swefn.freq.gp2008+suc3+romi.pickle"
+    )
 
 
 def read_blingbring(tsv: Path, classmap: Path, verbose: bool = True) -> dict:
@@ -122,16 +124,15 @@ def read_blingbring(tsv: Path, classmap: Path, verbose: bool = True) -> dict:
         roget_subsection = {tup[1] for tup in rogetids if tup[1]}
         roget_section = {tup[2] for tup in rogetids if tup[2]}
         roget_class = {tup[3] for tup in rogetids if tup[3]}
-        lexicon[senseid] = {"roget_head": roget_head,
-                            "roget_subsection": roget_subsection,
-                            "roget_section": roget_section,
-                            "roget_class": roget_class,
-                            "bring": {classmapping[r] for r in roget_head}}
+        lexicon[senseid] = {
+            "roget_head": roget_head,
+            "roget_subsection": roget_subsection,
+            "roget_section": roget_section,
+            "roget_class": roget_class,
+            "bring": {classmapping[r] for r in roget_head},
+        }
 
-    testwords = ["fågel..1",
-                 "behjälplig..1",
-                 "köra_ner..1"
-                 ]
+    testwords = ["fågel..1", "behjälplig..1", "köra_ner..1"]
     util.misc.test_lexicon(lexicon, testwords)
 
     if verbose:
@@ -167,10 +168,7 @@ def read_rogetmap(xml: Path, verbose: bool = True) -> dict:
             head = elem.get("name")
             lexicon[head] = (l3, l2, l1)
 
-    testwords = ["Existence",
-                 "Health",
-                 "Amusement",
-                 "Marriage"]
+    testwords = ["Existence", "Health", "Amusement", "Marriage"]
     util.misc.test_lexicon(lexicon, testwords)
 
     if verbose:
@@ -210,11 +208,7 @@ def read_swefn(xml: Path, verbose: bool = True) -> dict:
             if elem.tag in {"LexicalEntry", "frame", "resFrame"}:
                 root.clear()
 
-    testwords = ["slant..1",
-                 "befrielse..1",
-                 "granne..1",
-                 "sisådär..1",
-                 "mjölkcentral..1"]
+    testwords = ["slant..1", "befrielse..1", "granne..1", "sisådär..1", "mjölkcentral..1"]
     util.misc.test_lexicon(lexicon, testwords)
 
     if verbose:
@@ -266,8 +260,9 @@ def create_freq_pickle(
 
     for c in corpus:
         # Get corpus size
-        process = subprocess.Popen([cwb_path / "cwb-describe-corpus", "-r", cwb_registry, c],
-                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        process = subprocess.Popen(
+            [cwb_path / "cwb-describe-corpus", "-r", cwb_registry, c], stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
         reply, error = process.communicate()
         reply = reply.decode()
 
@@ -282,8 +277,11 @@ def create_freq_pickle(
 
         # Get frequency of annotation
         logger.info("Getting frequencies from %s", c)
-        process = subprocess.Popen([cwb_path / "cwb-scan-corpus", "-q", "-r", cwb_registry, c, annotation],
-                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        process = subprocess.Popen(
+            [cwb_path / "cwb-scan-corpus", "-q", "-r", cwb_registry, c, annotation],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
         reply, error = process.communicate()
         reply = reply.decode()
         if error and "Error: can't open attribute" in error.decode():

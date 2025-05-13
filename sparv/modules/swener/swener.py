@@ -1,4 +1,5 @@
 """Named entity tagging with SweNER."""
+
 import re
 import subprocess
 import xml.etree.ElementTree as etree  # noqa: N813
@@ -23,21 +24,26 @@ MAX_TOKEN_LENGTH = 100  # SweNER sometimes hangs on very long tokens
         Config("swener.timeout", default=1200, description="Timeout (in seconds) for SweNER process", datatype=int),
     ],
 )
-def annotate(out_ne: Output = Output("swener.ne", cls="named_entity", description="Named entity segments from SweNER"),
-             out_ne_ex: Output = Output("swener.ne:swener.ex", description="Named entity expressions from SweNER"),
-             out_ne_type: Output = Output("swener.ne:swener.type", cls="named_entity:type",
-                                          description="Named entity types from SweNER"),
-             out_ne_subtype: Output = Output("swener.ne:swener.subtype", cls="named_entity:subtype",
-                                             description="Named entity sub types from SweNER"),
-             out_ne_name: Output = Output("swener.ne:swener.name", cls="named_entity:name",
-                                          description="Names in SweNER named entities"),
-             word: Annotation = Annotation("<token:word>"),
-             sentence: Annotation = Annotation("<sentence>"),
-             token: Annotation = Annotation("<token>"),
-             source: Source = Source(),
-             binary: Binary = Binary("[swener.binary]"),
-             timeout: int = Config("swener.timeout"),
-             _process_dict: Optional[dict] = None) -> None:
+def annotate(
+    out_ne: Output = Output("swener.ne", cls="named_entity", description="Named entity segments from SweNER"),
+    out_ne_ex: Output = Output("swener.ne:swener.ex", description="Named entity expressions from SweNER"),
+    out_ne_type: Output = Output(
+        "swener.ne:swener.type", cls="named_entity:type", description="Named entity types from SweNER"
+    ),
+    out_ne_subtype: Output = Output(
+        "swener.ne:swener.subtype", cls="named_entity:subtype", description="Named entity sub types from SweNER"
+    ),
+    out_ne_name: Output = Output(
+        "swener.ne:swener.name", cls="named_entity:name", description="Names in SweNER named entities"
+    ),
+    word: Annotation = Annotation("<token:word>"),
+    sentence: Annotation = Annotation("<sentence>"),
+    token: Annotation = Annotation("<token>"),
+    source: Source = Source(),
+    binary: Binary = Binary("[swener.binary]"),
+    timeout: int = Config("swener.timeout"),
+    _process_dict: Optional[dict] = None,
+) -> None:
     """Tag named entities using HFST-SweNER.
 
     SweNER is either run in an already started process defined in process_dict, or a new process is started (default).
@@ -109,12 +115,28 @@ def annotate(out_ne: Output = Output("swener.ne", cls="named_entity", descriptio
         if process.returncode > 0:
             raise SparvErrorMessage(f"An error occurred while running HFST-SweNER:\n\n{stderr.decode()}")
 
-    parse_swener_output(sentences, token, stdout.decode(util.constants.UTF8), out_ne, out_ne_ex, out_ne_type,
-                        out_ne_subtype, out_ne_name)
+    parse_swener_output(
+        sentences,
+        token,
+        stdout.decode(util.constants.UTF8),
+        out_ne,
+        out_ne_ex,
+        out_ne_type,
+        out_ne_subtype,
+        out_ne_name,
+    )
 
 
-def parse_swener_output(sentences: list, token: Annotation, output: str, out_ne: Output, out_ne_ex: Output,
-                        out_ne_type: Output, out_ne_subtype: Output, out_ne_name: Output) -> None:
+def parse_swener_output(
+    sentences: list,
+    token: Annotation,
+    output: str,
+    out_ne: Output,
+    out_ne_ex: Output,
+    out_ne_type: Output,
+    out_ne_subtype: Output,
+    out_ne_name: Output,
+) -> None:
     """Parse the SweNER output and write annotation files."""
     out_ne_spans = []
     out_ex = []
@@ -170,7 +192,8 @@ def parse_swener_output(sentences: list, token: Annotation, output: str, out_ne:
                             # If this child has a tail and it doesn't start with a space, or if it has no tail at all
                             # despite not being the last child, it means this NE ends in the middle of a token.
                             if (child.tail and child.tail.strip() and child.tail[0] != " ") or (
-                                    not child.tail and count < len(children) - 1):
+                                not child.tail and count < len(children) - 1
+                            ):
                                 i -= 1
                                 # logger.warning("Split token returned by name tagger.")
 
@@ -179,7 +202,8 @@ def parse_swener_output(sentences: list, token: Annotation, output: str, out_ne:
                         i += len(child.tail.strip().split(TOK_SEP))
 
                     if (child.tag == "sroot" and child.text and child.text[-1] != " ") or (
-                            child.tail and child.tail[-1] != " "):
+                        child.tail and child.tail[-1] != " "
+                    ):
                         # The next NE would start in the middle of a token, so decrease the counter by 1
                         i -= 1
             except IndexError:

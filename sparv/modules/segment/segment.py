@@ -20,71 +20,139 @@ except ImportError:
 logger = get_logger(__name__)
 
 
-@annotator("Automatic tokenization", config=[
-    Config("segment.token_segmenter", default="better_word", description="Token segmenter to use", datatype=str,
-           choices=lambda: sorted(SEGMENTERS)),
-    Config("segment.token_chunk", default="<sentence>",
-           description="Text chunk (annotation) to use as input when tokenizing", datatype=str),
-    Config("segment.existing_tokens", description="Optional existing token annotation", datatype=str),
-    Config("segment.tokenizer_config", default="segment/bettertokenizer.sv", description="Path to tokenizer config",
-           datatype=str),
-    Config("segment.token_list", default="segment/bettertokenizer.sv.saldo-tokens",
-           description="Path to optional token list file", datatype=str),
-])
-def tokenize(text: Text = Text(),
-             out: Output = Output("segment.token", cls="token", description="Token segments"),
-             chunk: Annotation = Annotation("[segment.token_chunk]"),
-             segmenter: str = Config("segment.token_segmenter"),
-             existing_segments: Optional[Annotation] = Annotation("[segment.existing_tokens]"),
-             model: Optional[Model] = Model("[segment.tokenizer_config]"),
-             token_list: Optional[Model] = Model("[segment.token_list]")) -> None:
+@annotator(
+    "Automatic tokenization",
+    config=[
+        Config(
+            "segment.token_segmenter",
+            default="better_word",
+            description="Token segmenter to use",
+            datatype=str,
+            choices=lambda: sorted(SEGMENTERS),
+        ),
+        Config(
+            "segment.token_chunk",
+            default="<sentence>",
+            description="Text chunk (annotation) to use as input when tokenizing",
+            datatype=str,
+        ),
+        Config("segment.existing_tokens", description="Optional existing token annotation", datatype=str),
+        Config(
+            "segment.tokenizer_config",
+            default="segment/bettertokenizer.sv",
+            description="Path to tokenizer config",
+            datatype=str,
+        ),
+        Config(
+            "segment.token_list",
+            default="segment/bettertokenizer.sv.saldo-tokens",
+            description="Path to optional token list file",
+            datatype=str,
+        ),
+    ],
+)
+def tokenize(
+    text: Text = Text(),
+    out: Output = Output("segment.token", cls="token", description="Token segments"),
+    chunk: Annotation = Annotation("[segment.token_chunk]"),
+    segmenter: str = Config("segment.token_segmenter"),
+    existing_segments: Optional[Annotation] = Annotation("[segment.existing_tokens]"),
+    model: Optional[Model] = Model("[segment.tokenizer_config]"),
+    token_list: Optional[Model] = Model("[segment.token_list]"),
+) -> None:
     """Tokenize text."""
-    do_segmentation(text=text, out=out, chunk=chunk, segmenter=segmenter, existing_segments=existing_segments,
-                    model=model, token_list=token_list)
+    do_segmentation(
+        text=text,
+        out=out,
+        chunk=chunk,
+        segmenter=segmenter,
+        existing_segments=existing_segments,
+        model=model,
+        token_list=token_list,
+    )
 
 
-@annotator("Automatic segmentation of sentences", config=[
-    Config("segment.sentence_segmenter", default="punkt_sentence", description="Sentence segmenter to use",
-           datatype=str,
-           choices=lambda: sorted(SEGMENTERS)),
-    Config("segment.sentence_chunk", default="<paragraph>, <text>",
-           description="Text chunk (annotation) to use as input when segmenting", datatype=str),
-    Config("segment.existing_sentences", description="Optional existing sentence annotation", datatype=str),
-    Config("segment.sentence_model", default="segment/punkt-nltk-svenska.pickle", description="Path to model",
-           datatype=str),
-])
-def sentence(text: Text = Text(),
-             out: Output = Output("segment.sentence", cls="sentence", description="Sentence segments"),
-             chunk: Optional[Annotation] = Annotation("[segment.sentence_chunk]"),
-             segmenter: str = Config("segment.sentence_segmenter"),
-             existing_segments: Optional[Annotation] = Annotation("[segment.existing_sentences]"),
-             model: Optional[Model] = Model("[segment.sentence_model]")) -> None:
+@annotator(
+    "Automatic segmentation of sentences",
+    config=[
+        Config(
+            "segment.sentence_segmenter",
+            default="punkt_sentence",
+            description="Sentence segmenter to use",
+            datatype=str,
+            choices=lambda: sorted(SEGMENTERS),
+        ),
+        Config(
+            "segment.sentence_chunk",
+            default="<paragraph>, <text>",
+            description="Text chunk (annotation) to use as input when segmenting",
+            datatype=str,
+        ),
+        Config("segment.existing_sentences", description="Optional existing sentence annotation", datatype=str),
+        Config(
+            "segment.sentence_model",
+            default="segment/punkt-nltk-svenska.pickle",
+            description="Path to model",
+            datatype=str,
+        ),
+    ],
+)
+def sentence(
+    text: Text = Text(),
+    out: Output = Output("segment.sentence", cls="sentence", description="Sentence segments"),
+    chunk: Optional[Annotation] = Annotation("[segment.sentence_chunk]"),
+    segmenter: str = Config("segment.sentence_segmenter"),
+    existing_segments: Optional[Annotation] = Annotation("[segment.existing_sentences]"),
+    model: Optional[Model] = Model("[segment.sentence_model]"),
+) -> None:
     """Split text into sentences."""
-    do_segmentation(text=text, out=out, chunk=chunk, segmenter=segmenter, existing_segments=existing_segments,
-                    model=model)
+    do_segmentation(
+        text=text, out=out, chunk=chunk, segmenter=segmenter, existing_segments=existing_segments, model=model
+    )
 
 
-@annotator("Automatic segmentation of paragraphs", config=[
-    Config("segment.paragraph_segmenter", default="blanklines", description="Paragraph segmenter to use", datatype=str,
-           choices=lambda: sorted(SEGMENTERS)),
-    Config("segment.paragraph_chunk", default="<text>",
-           description="Text chunk (annotation) to use as input when segmenting", datatype=str),
-    Config("segment.existing_paragraphs", description="Optional existing paragraph annotation", datatype=str),
-])
-def paragraph(text: Text = Text(),
-              out: Output = Output("segment.paragraph", cls="paragraph", description="Paragraph segments"),
-              chunk: Optional[Annotation] = Annotation("[segment.paragraph_chunk]"),
-              segmenter: str = Config("segment.paragraph_segmenter"),
-              existing_segments: Optional[Annotation] = Annotation("[segment.existing_paragraphs]"),
-              model: Optional[Model] = None) -> None:
+@annotator(
+    "Automatic segmentation of paragraphs",
+    config=[
+        Config(
+            "segment.paragraph_segmenter",
+            default="blanklines",
+            description="Paragraph segmenter to use",
+            datatype=str,
+            choices=lambda: sorted(SEGMENTERS),
+        ),
+        Config(
+            "segment.paragraph_chunk",
+            default="<text>",
+            description="Text chunk (annotation) to use as input when segmenting",
+            datatype=str,
+        ),
+        Config("segment.existing_paragraphs", description="Optional existing paragraph annotation", datatype=str),
+    ],
+)
+def paragraph(
+    text: Text = Text(),
+    out: Output = Output("segment.paragraph", cls="paragraph", description="Paragraph segments"),
+    chunk: Optional[Annotation] = Annotation("[segment.paragraph_chunk]"),
+    segmenter: str = Config("segment.paragraph_segmenter"),
+    existing_segments: Optional[Annotation] = Annotation("[segment.existing_paragraphs]"),
+    model: Optional[Model] = None,
+) -> None:
     """Split text into paragraphs."""
-    do_segmentation(text=text, out=out, chunk=chunk, segmenter=segmenter, existing_segments=existing_segments,
-                    model=model)
+    do_segmentation(
+        text=text, out=out, chunk=chunk, segmenter=segmenter, existing_segments=existing_segments, model=model
+    )
 
 
-def do_segmentation(text: Text, out: Output, segmenter: str, chunk: Optional[Annotation] = None,
-                    existing_segments: Optional[Annotation] = None, model: Optional[Model] = None,
-                    token_list: Optional[Model] = None) -> None:
+def do_segmentation(
+    text: Text,
+    out: Output,
+    segmenter: str,
+    chunk: Optional[Annotation] = None,
+    existing_segments: Optional[Annotation] = None,
+    model: Optional[Model] = None,
+    token_list: Optional[Model] = None,
+) -> None:
     """Segment all chunks (e.g. sentences) into smaller "tokens" (e.g. words), and annotate them as "element" (e.g. w).
 
     Segmentation is done by the given "segmenter"; some segmenters take
@@ -174,15 +242,25 @@ def download_bettertokenizer(out: ModelOutput = ModelOutput("segment/bettertoken
     out.download("https://github.com/spraakbanken/sparv-models/raw/master/segment/bettertokenizer.sv")
 
 
-@modelbuilder("Token list for BetterWordTokenizer", language=["swe"], config=[
-    Config("segment.token_wordlist_segmenter", "better_word",
-           description="Segmenter to use when building wordlist", datatype=str,
-           choices=lambda: sorted(SEGMENTERS))
-])
-def build_tokenlist(saldo_model: Model = Model("saldo/saldo.pickle"),
-                    out: ModelOutput = ModelOutput("segment/bettertokenizer.sv.saldo-tokens"),
-                    segmenter: str = Config("segment.token_wordlist_segmenter"),
-                    model: Model = Model("segment/bettertokenizer.sv")) -> None:
+@modelbuilder(
+    "Token list for BetterWordTokenizer",
+    language=["swe"],
+    config=[
+        Config(
+            "segment.token_wordlist_segmenter",
+            "better_word",
+            description="Segmenter to use when building wordlist",
+            datatype=str,
+            choices=lambda: sorted(SEGMENTERS),
+        )
+    ],
+)
+def build_tokenlist(
+    saldo_model: Model = Model("saldo/saldo.pickle"),
+    out: ModelOutput = ModelOutput("segment/bettertokenizer.sv.saldo-tokens"),
+    segmenter: str = Config("segment.token_wordlist_segmenter"),
+    model: Model = Model("segment/bettertokenizer.sv"),
+) -> None:
     """Build a list of words from a SALDO model, to help BetterWordTokenizer.
 
     Args:
@@ -223,6 +301,7 @@ def build_tokenlist(saldo_model: Model = Model("saldo/saldo.pickle"),
 
 ######################################################################
 
+
 def train_punkt_segmenter(
     textfiles: Union[str, list[str]], modelfile: str, encoding: str = util.constants.UTF8, protocol: int = -1
 ) -> None:
@@ -252,6 +331,7 @@ def train_punkt_segmenter(
 
 
 ######################################################################
+
 
 class LinebreakTokenizer(nltk.RegexpTokenizer):
     """Tokenizer that separates tokens by line breaks (based on NLTK's RegexpTokenizer)."""
@@ -362,7 +442,7 @@ class BetterWordTokenizer:
                     key = key[:-1]
 
                     if key == "case_sensitive":
-                        self.case_sensitive = (val.lower() == "true")
+                        self.case_sensitive = val.lower() == "true"
                     elif key.startswith("misc_"):
                         self.patterns["misc"].append(val)
                     elif key in {"start", "within", "end"}:
@@ -388,19 +468,20 @@ class BetterWordTokenizer:
         except AttributeError:
             modifiers = (re.UNICODE | re.VERBOSE) if self.case_sensitive else (re.UNICODE | re.VERBOSE | re.IGNORECASE)
             self._re_word_tokenizer = re.compile(
-                self._word_tokenize_fmt %
-                {
+                self._word_tokenize_fmt
+                % {
                     "tokens": ("(?:" + "|".join(self.patterns["tokens"]) + ")|") if self.patterns["tokens"] else "",
-                    "abbrevs": ("(?:" + "|".join(
-                        re.escape(a + ".") for a in self.abbreviations) + ")|") if self.abbreviations else "",
+                    "abbrevs": ("(?:" + "|".join(re.escape(a + ".") for a in self.abbreviations) + ")|")
+                    if self.abbreviations
+                    else "",
                     "misc": "|".join(self.patterns["misc"]),
                     "number": self.patterns["number"],
                     "within": self.patterns["within"],
                     "multi": self.patterns["multi"],
                     "start": self.patterns["start"],
-                    "end": self.patterns["end"]
+                    "end": self.patterns["end"],
                 },
-                modifiers
+                modifiers,
             )
             return self._re_word_tokenizer
 
@@ -520,5 +601,5 @@ SEGMENTERS = {
     "better_word": BetterWordTokenizer,
     "crf_tokenizer": CRFTokenizer,
     "simple_word_punkt": nltk.WordPunctTokenizer,
-    "fsv_paragraph": FSVParagraphSplitter
+    "fsv_paragraph": FSVParagraphSplitter,
 }

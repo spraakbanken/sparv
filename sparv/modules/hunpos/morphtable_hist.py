@@ -8,10 +8,12 @@ from sparv.api.util.tagsets import tagmappings
 
 
 @modelbuilder("Hunpos morphtable for Swedish historical resources", language=["swe-1800"])
-def hist_morphtable(out: ModelOutput = ModelOutput("hunpos/hist/dalinm-swedberg_saldo_suc-tags.morphtable"),
-                    swedberg: Model = Model("hunpos/hist/swedberg-gender.hunpos"),
-                    dalin: Model = Model("hunpos/hist/dalinm.hunpos"),
-                    saldosuc_morphtable: Model = Model("hunpos/saldo_suc-tags.morphtable")) -> None:
+def hist_morphtable(
+    out: ModelOutput = ModelOutput("hunpos/hist/dalinm-swedberg_saldo_suc-tags.morphtable"),
+    swedberg: Model = Model("hunpos/hist/swedberg-gender.hunpos"),
+    dalin: Model = Model("hunpos/hist/dalinm.hunpos"),
+    saldosuc_morphtable: Model = Model("hunpos/saldo_suc-tags.morphtable"),
+) -> None:
     """Read files and make a morphtable together with the information from SALDO (saldosuc_morphtable).
 
     Args:
@@ -65,7 +67,7 @@ def hist_morphtable(out: ModelOutput = ModelOutput("hunpos/hist/dalinm-swedberg_
             return new_suc
 
         paramstr = " ".join(tagmappings.mappings["saldo_params_to_suc"].get(prm, prm.upper()) for prm in params)
-        for (pre, post) in tagmappings._suc_tag_replacements:  # noqa: B007
+        for pre, post in tagmappings._suc_tag_replacements:  # noqa: B007
             m = re.match(pre, paramstr)
             if m:
                 break
@@ -100,7 +102,7 @@ def hist_morphtable(out: ModelOutput = ModelOutput("hunpos/hist/dalinm-swedberg_
                     words.setdefault(word.title(), set()).update(suc)
     with out.path.open(encoding="UTF-8", mode="w") as out_file:
         for w, ts in words.items():
-            line = ("\t".join([w, *list(ts)]) + "\n")
+            line = "\t".join([w, *list(ts)]) + "\n"
             out_file.write(line)
 
 

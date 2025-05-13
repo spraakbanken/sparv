@@ -13,79 +13,137 @@ from sparv.modules.saldo import saldo
 logger = get_logger(__name__)
 
 
-@annotator("Annotations from SALDO, Dalin and Swedberg", language=["swe-1800"], order=1, preloader=saldo.preloader,
-           preloader_params=["models"], preloader_target="models_preloaded")
+@annotator(
+    "Annotations from SALDO, Dalin and Swedberg",
+    language=["swe-1800"],
+    order=1,
+    preloader=saldo.preloader,
+    preloader_params=["models"],
+    preloader_target="models_preloaded",
+)
 def annotate_saldo(
-        token: Annotation = Annotation("<token>"),
-        word: Annotation = Annotation("<token:word>"),
-        sentence: Annotation = Annotation("<sentence>"),
-        reference: Annotation = Annotation("<token:ref>"),
-        out_sense: Output = Output("<token>:hist.sense", cls="token:sense",
-                                   description="Sense identifiers from SALDO, Dalin and Swedberg"),
-        out_lemgram: Output = Output("<token>:hist.lemgram", cls="token:lemgram",
-                                     description="Lemgrams from SALDO, Dalin and Swedberg"),
-        out_baseform: Output = Output("<token>:hist.baseform", cls="token:baseform",
-                                      description="Baseforms from SALDO, Dalin and Swedberg"),
-        models: Iterable[Model] = (Model("[saldo.model]"), Model("[hist.dalin_model]"), Model("[hist.swedberg_model]")),
-        msd: Optional[Annotation] = Annotation("<token:msd>"),
-        delimiter: str = Config("hist.delimiter"),
-        affix: str = Config("hist.affix"),
-        precision: Optional[str] = Config("saldo.precision"),
-        precision_filter: str = Config("saldo.precision_filter"),
-        min_precision: float = Config("saldo.min_precision"),
-        skip_multiword: bool = Config("saldo.skip_multiword"),
-        max_gaps: int = Config("hist.max_mwe_gaps"),
-        allow_multiword_overlap: bool = Config("saldo.allow_multiword_overlap"),
-        word_separator: Optional[str] = Config("saldo.word_separator"),
-        models_preloaded: Optional[dict] = None) -> None:
+    token: Annotation = Annotation("<token>"),
+    word: Annotation = Annotation("<token:word>"),
+    sentence: Annotation = Annotation("<sentence>"),
+    reference: Annotation = Annotation("<token:ref>"),
+    out_sense: Output = Output(
+        "<token>:hist.sense", cls="token:sense", description="Sense identifiers from SALDO, Dalin and Swedberg"
+    ),
+    out_lemgram: Output = Output(
+        "<token>:hist.lemgram", cls="token:lemgram", description="Lemgrams from SALDO, Dalin and Swedberg"
+    ),
+    out_baseform: Output = Output(
+        "<token>:hist.baseform", cls="token:baseform", description="Baseforms from SALDO, Dalin and Swedberg"
+    ),
+    models: Iterable[Model] = (Model("[saldo.model]"), Model("[hist.dalin_model]"), Model("[hist.swedberg_model]")),
+    msd: Optional[Annotation] = Annotation("<token:msd>"),
+    delimiter: str = Config("hist.delimiter"),
+    affix: str = Config("hist.affix"),
+    precision: Optional[str] = Config("saldo.precision"),
+    precision_filter: str = Config("saldo.precision_filter"),
+    min_precision: float = Config("saldo.min_precision"),
+    skip_multiword: bool = Config("saldo.skip_multiword"),
+    max_gaps: int = Config("hist.max_mwe_gaps"),
+    allow_multiword_overlap: bool = Config("saldo.allow_multiword_overlap"),
+    word_separator: Optional[str] = Config("saldo.word_separator"),
+    models_preloaded: Optional[dict] = None,
+) -> None:
     """Use lexicon models (SALDO, Dalin and Swedberg) to annotate (potentially msd-tagged) words."""
-    saldo.main(token=token, word=word, sentence=sentence, reference=reference, out_sense=out_sense,
-               out_lemgram=out_lemgram, out_baseform=out_baseform, models=models, msd=msd, delimiter=delimiter,
-               affix=affix, precision=precision, precision_filter=precision_filter, min_precision=min_precision,
-               skip_multiword=skip_multiword, max_gaps=max_gaps, allow_multiword_overlap=allow_multiword_overlap,
-               word_separator=word_separator, models_preloaded=models_preloaded)
+    saldo.main(
+        token=token,
+        word=word,
+        sentence=sentence,
+        reference=reference,
+        out_sense=out_sense,
+        out_lemgram=out_lemgram,
+        out_baseform=out_baseform,
+        models=models,
+        msd=msd,
+        delimiter=delimiter,
+        affix=affix,
+        precision=precision,
+        precision_filter=precision_filter,
+        min_precision=min_precision,
+        skip_multiword=skip_multiword,
+        max_gaps=max_gaps,
+        allow_multiword_overlap=allow_multiword_overlap,
+        word_separator=word_separator,
+        models_preloaded=models_preloaded,
+    )
 
 
-@annotator("Annotations from Schlyter and Söderwall", language=["swe-fsv"],
-           preloader=saldo.preloader, preloader_params=["models"], preloader_target="models_preloaded",
-           config=[Config("hist.fsv_min_precision", default=0.25,
-                   description="Only use annotations with a probability score higher than this")])
+@annotator(
+    "Annotations from Schlyter and Söderwall",
+    language=["swe-fsv"],
+    preloader=saldo.preloader,
+    preloader_params=["models"],
+    preloader_target="models_preloaded",
+    config=[
+        Config(
+            "hist.fsv_min_precision",
+            default=0.25,
+            description="Only use annotations with a probability score higher than this",
+        )
+    ],
+)
 def annotate_saldo_fsv(
-        token: Annotation = Annotation("<token>"),
-        word: Annotation = Annotation("<token>:hist.all_spelling_variants"),
-        sentence: Annotation = Annotation("<sentence>"),
-        reference: Annotation = Annotation("<token:ref>"),
-        out_sense: Output = Output("<token>:hist.sense", cls="token:sense",
-                                   description="Sense identifiers from SALDO (empty dummy annotation)"),
-        out_lemgram: Output = Output("<token>:hist.lemgram", cls="token:lemgram",
-                                     description="Lemgrams from Schlyter and Söderwall"),
-        out_baseform: Output = Output("<token>:hist.baseform", cls="token:baseform",
-                                      description="Baseforms from Schlyter and Söderwall"),
-        models: Iterable[Model] = (Model("[hist.fsv_model]"),),
-        delimiter: str = Config("hist.delimiter"),
-        affix: str = Config("hist.affix"),
-        precision: Optional[str] = Config("saldo.precision"),
-        precision_filter: str = Config("saldo.precision_filter"),
-        min_precision: float = Config("hist.fsv_min_precision"),
-        skip_multiword: bool = Config("saldo.skip_multiword"),
-        max_gaps: int = Config("hist.max_mwe_gaps"),
-        allow_multiword_overlap: bool = Config("saldo.allow_multiword_overlap"),
-        word_separator: str = "|",
-        models_preloaded: Optional[dict] = None) -> None:
+    token: Annotation = Annotation("<token>"),
+    word: Annotation = Annotation("<token>:hist.all_spelling_variants"),
+    sentence: Annotation = Annotation("<sentence>"),
+    reference: Annotation = Annotation("<token:ref>"),
+    out_sense: Output = Output(
+        "<token>:hist.sense", cls="token:sense", description="Sense identifiers from SALDO (empty dummy annotation)"
+    ),
+    out_lemgram: Output = Output(
+        "<token>:hist.lemgram", cls="token:lemgram", description="Lemgrams from Schlyter and Söderwall"
+    ),
+    out_baseform: Output = Output(
+        "<token>:hist.baseform", cls="token:baseform", description="Baseforms from Schlyter and Söderwall"
+    ),
+    models: Iterable[Model] = (Model("[hist.fsv_model]"),),
+    delimiter: str = Config("hist.delimiter"),
+    affix: str = Config("hist.affix"),
+    precision: Optional[str] = Config("saldo.precision"),
+    precision_filter: str = Config("saldo.precision_filter"),
+    min_precision: float = Config("hist.fsv_min_precision"),
+    skip_multiword: bool = Config("saldo.skip_multiword"),
+    max_gaps: int = Config("hist.max_mwe_gaps"),
+    allow_multiword_overlap: bool = Config("saldo.allow_multiword_overlap"),
+    word_separator: str = "|",
+    models_preloaded: Optional[dict] = None,
+) -> None:
     """Use lexicon models (Schlyter and Söderwall) to annotate words."""
-    saldo.main(token=token, word=word, sentence=sentence, reference=reference, out_sense=out_sense,
-               out_lemgram=out_lemgram, out_baseform=out_baseform, models=models, msd="", delimiter=delimiter,
-               affix=affix, precision=precision, precision_filter=precision_filter, min_precision=min_precision,
-               skip_multiword=skip_multiword, max_gaps=max_gaps, allow_multiword_overlap=allow_multiword_overlap,
-               word_separator=word_separator, models_preloaded=models_preloaded)
+    saldo.main(
+        token=token,
+        word=word,
+        sentence=sentence,
+        reference=reference,
+        out_sense=out_sense,
+        out_lemgram=out_lemgram,
+        out_baseform=out_baseform,
+        models=models,
+        msd="",
+        delimiter=delimiter,
+        affix=affix,
+        precision=precision,
+        precision_filter=precision_filter,
+        min_precision=min_precision,
+        skip_multiword=skip_multiword,
+        max_gaps=max_gaps,
+        allow_multiword_overlap=allow_multiword_overlap,
+        word_separator=word_separator,
+        models_preloaded=models_preloaded,
+    )
 
 
 @annotator("Extract POS tags (homograph sets) from lemgrams", language=["swe-fsv"])
-def extract_pos(out: Output = Output("<token>:hist.homograph_set", description="Sets of POS extracted from lemgrams"),
-                lemgrams: Annotation = Annotation("<token:lemgram>"),
-                extralemgrams: Optional[Annotation] = Annotation("[hist.extralemgrams]"),
-                delimiter: str = Config("hist.delimiter"),
-                affix: str = Config("hist.affix")) -> None:
+def extract_pos(
+    out: Output = Output("<token>:hist.homograph_set", description="Sets of POS extracted from lemgrams"),
+    lemgrams: Annotation = Annotation("<token:lemgram>"),
+    extralemgrams: Optional[Annotation] = Annotation("[hist.extralemgrams]"),
+    delimiter: str = Config("hist.delimiter"),
+    affix: str = Config("hist.affix"),
+) -> None:
     """Extract POS tags from lemgrams.
 
     Args:
@@ -95,6 +153,7 @@ def extract_pos(out: Output = Output("<token>:hist.homograph_set", description="
         delimiter: Character to put between ambiguous results.
         affix: Character to put before and after sets of results.
     """
+
     def oktag(tag: Optional[re.Match]) -> bool:
         return tag is not None and tag.group(1) not in {"e", "sxc", "mxc"}
 
@@ -107,12 +166,21 @@ def extract_pos(out: Output = Output("<token>:hist.homograph_set", description="
     _annotate_standard(out, lemgrams, mkpos, extralemgrams, delimiter=delimiter, affix=affix)
 
 
-@annotator("Get fallback lemgrams from Dalin or Swedberg", language=["swe-1800"], order=2, config=[
-    Config("hist.lemgram_key", default="lem", description="Key to lookup in the lexicon"),
-], preloader=saldo.preloader, preloader_params=["models"], preloader_target="models_preloaded")
+@annotator(
+    "Get fallback lemgrams from Dalin or Swedberg",
+    language=["swe-1800"],
+    order=2,
+    config=[
+        Config("hist.lemgram_key", default="lem", description="Key to lookup in the lexicon"),
+    ],
+    preloader=saldo.preloader,
+    preloader_params=["models"],
+    preloader_target="models_preloaded",
+)
 def lemgram_fallback(
-    out: Output = Output("<token>:hist.lemgram", cls="token:lemgram",
-                         description="Fallback lemgrams from Dalin or Swedberg"),
+    out: Output = Output(
+        "<token>:hist.lemgram", cls="token:lemgram", description="Fallback lemgrams from Dalin or Swedberg"
+    ),
     word: Annotation = Annotation("<token:word>"),
     msd: Annotation = Annotation("<token:msd>"),
     lemgram: Annotation = Annotation("<token>:saldo.lemgram"),
@@ -120,7 +188,7 @@ def lemgram_fallback(
     models: Iterable[Model] = (Model("[hist.dalin_model]"), Model("[hist.swedberg_model]")),
     delimiter: str = Config("hist.delimiter"),
     affix: str = Config("hist.affix"),
-    models_preloaded: Optional[dict] = None
+    models_preloaded: Optional[dict] = None,
 ) -> None:
     """Lookup lemgrams in models for words that do not already have a lemgram.
 
@@ -149,12 +217,21 @@ def lemgram_fallback(
     )
 
 
-@annotator("Get fallback baseforms from Dalin or Swedberg", language=["swe-1800"], order=2, config=[
-    Config("hist.baseform_key", default="gf", description="Key to lookup in the lexicon"),
-], preloader=saldo.preloader, preloader_params=["models"], preloader_target="models_preloaded")
+@annotator(
+    "Get fallback baseforms from Dalin or Swedberg",
+    language=["swe-1800"],
+    order=2,
+    config=[
+        Config("hist.baseform_key", default="gf", description="Key to lookup in the lexicon"),
+    ],
+    preloader=saldo.preloader,
+    preloader_params=["models"],
+    preloader_target="models_preloaded",
+)
 def baseform_fallback(
-    out: Output = Output("<token>:hist.baseform", cls="token:baseform",
-                         description="Fallback baseforms from Dalin or Swedberg"),
+    out: Output = Output(
+        "<token>:hist.baseform", cls="token:baseform", description="Fallback baseforms from Dalin or Swedberg"
+    ),
     word: Annotation = Annotation("<token:word>"),
     msd: Annotation = Annotation("<token:msd>"),
     baseform: Annotation = Annotation("<token>:saldo.baseform"),
@@ -162,7 +239,7 @@ def baseform_fallback(
     models: Iterable[Model] = (Model("[hist.dalin_model]"), Model("[hist.swedberg_model]")),
     delimiter: str = Config("hist.delimiter"),
     affix: str = Config("hist.affix"),
-    models_preloaded: Optional[dict] = None
+    models_preloaded: Optional[dict] = None,
 ) -> None:
     """Lookup baseforms in models for words that do not already have a baseform.
 
@@ -192,10 +269,12 @@ def baseform_fallback(
 
 
 @annotator("Convert POS into sets", language=["swe-1800"])
-def posset(pos: Annotation = Annotation("<token:pos>"),
-           out: Output = Output("<token>:hist.homograph_set", description="POS converted into sets"),
-           delimiter: str = Config("hist.delimiter"),
-           affix: str = Config("hist.affix")) -> None:
+def posset(
+    pos: Annotation = Annotation("<token:pos>"),
+    out: Output = Output("<token>:hist.homograph_set", description="POS converted into sets"),
+    delimiter: str = Config("hist.delimiter"),
+    affix: str = Config("hist.affix"),
+) -> None:
     """Annotate with POS sets by converting a single POS into a set (mostly used to make corpora comparable).
 
     Args:
@@ -204,6 +283,7 @@ def posset(pos: Annotation = Annotation("<token:pos>"),
         delimiter: Character to put between ambiguous results.
         affix: Character to put before and after sets of results.
     """
+
     def makeset(_: int, thepos: str) -> list[str]:
         """Annotate thepos with separators (dummy function)."""  # noqa: DOC201
         return [thepos]
@@ -211,16 +291,22 @@ def posset(pos: Annotation = Annotation("<token:pos>"),
     _annotate_standard(out, pos, makeset, delimiter=delimiter, affix=affix, split=False)
 
 
-@annotator("Get spelling variants from spelling model for Old Swedish", language=["swe-fsv"],
-           preloader=saldo.preloader, preloader_params=["model"], preloader_target="model_preloaded")
-def spelling_variants(word: Annotation = Annotation("<token:word>"),
-                      out: Output = Output("<token>:hist.spelling_variants", description="token spelling variants"),
-                      spellingmodel: Model = Model("[hist.fsv_spelling]"),
-                      # model: Model = Model("[hist.fsv_model]"),
-                      delimiter: str = Config("hist.delimiter"),
-                      affix: str = Config("hist.affix"),
-                      # model_preloaded: Optional[dict] = None
-                      ) -> None:
+@annotator(
+    "Get spelling variants from spelling model for Old Swedish",
+    language=["swe-fsv"],
+    preloader=saldo.preloader,
+    preloader_params=["model"],
+    preloader_target="model_preloaded",
+)
+def spelling_variants(
+    word: Annotation = Annotation("<token:word>"),
+    out: Output = Output("<token>:hist.spelling_variants", description="token spelling variants"),
+    spellingmodel: Model = Model("[hist.fsv_spelling]"),
+    # model: Model = Model("[hist.fsv_model]"),
+    delimiter: str = Config("hist.delimiter"),
+    affix: str = Config("hist.affix"),
+    # model_preloaded: Optional[dict] = None
+) -> None:
     """Use a lexicon model and a spelling model to annotate words with their spelling variants.
 
     Args:
@@ -270,17 +356,20 @@ def spelling_variants(word: Annotation = Annotation("<token:word>"),
 
 @annotator("Merge token and spelling variants into one annotation", language=["swe-fsv"])
 def all_spelling_variants(
-        out: Output = Output("<token>:hist.all_spelling_variants", description="Original token and spelling variants"),
-        word: Annotation = Annotation("<token:word>"),
-        variants: Annotation = Annotation("<token>:hist.spelling_variants")) -> None:
+    out: Output = Output("<token>:hist.all_spelling_variants", description="Original token and spelling variants"),
+    word: Annotation = Annotation("<token:word>"),
+    variants: Annotation = Annotation("<token>:hist.spelling_variants"),
+) -> None:
     """Merge token and spelling variants into one annotation."""
     from sparv.modules.misc import misc  # noqa: PLC0415
+
     misc.merge_to_set(out, left=word, right=variants, unique=False, sort=False)
 
 
 ################################################################################
 # Auxiliaries
 ################################################################################
+
 
 def _annotate_standard(
     out: Output,

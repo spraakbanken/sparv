@@ -12,33 +12,40 @@ logger = get_logger(__name__)
 
 @annotator("POS, lemma and dependency relations from Stanza", language=["swe"], order=1)
 def annotate_swe(
-        out_msd: Output = Output("<token>:stanza.msd", cls="token:msd",
-                                 description="Part-of-speeches with morphological descriptions"),
-        out_pos: Output = Output("<token>:stanza.pos", cls="token:pos", description="Part-of-speech tags"),
-        out_feats: Output = Output("<token>:stanza.ufeats", cls="token:ufeats",
-                                   description="Universal morphological features"),
-        out_baseform: Output = Output("<token>:stanza.baseform", cls="token:baseform",
-                                      description="Baseform from Stanza"),
-        out_dephead: Output = Output("<token>:stanza.dephead", cls="token:dephead",
-                                     description="Positions of the dependency heads"),
-        out_dephead_ref: Output = Output("<token>:stanza.dephead_ref", cls="token:dephead_ref",
-                                         description="Sentence-relative positions of the dependency heads"),
-        out_deprel: Output = Output("<token>:stanza.deprel", cls="token:deprel",
-                                    description="Dependency relations to the head"),
-        word: Annotation = Annotation("<token:word>"),
-        token: Annotation = Annotation("<token>"),
-        sentence: Annotation = Annotation("<sentence>"),
-        pos_model: Model = Model("[stanza.swe_pos_model]"),
-        pos_pretrain_model: Model = Model("[stanza.swe_pretrain_pos_model]"),
-        lem_model: Model = Model("[stanza.swe_lem_model]"),
-        dep_model: Model = Model("[stanza.swe_dep_model]"),
-        dep_pretrain_model: Model = Model("[stanza.swe_pretrain_dep_model]"),
-        resources_file: Model = Model("[stanza.resources_file]"),
-        use_gpu: bool = Config("stanza.use_gpu"),
-        batch_size: int = Config("stanza.batch_size"),
-        max_sentence_length: int = Config("stanza.max_sentence_length"),
-        cpu_fallback: bool = Config("stanza.cpu_fallback"),
-        max_token_length: int = Config("stanza.max_token_length")) -> None:
+    out_msd: Output = Output(
+        "<token>:stanza.msd", cls="token:msd", description="Part-of-speeches with morphological descriptions"
+    ),
+    out_pos: Output = Output("<token>:stanza.pos", cls="token:pos", description="Part-of-speech tags"),
+    out_feats: Output = Output(
+        "<token>:stanza.ufeats", cls="token:ufeats", description="Universal morphological features"
+    ),
+    out_baseform: Output = Output("<token>:stanza.baseform", cls="token:baseform", description="Baseform from Stanza"),
+    out_dephead: Output = Output(
+        "<token>:stanza.dephead", cls="token:dephead", description="Positions of the dependency heads"
+    ),
+    out_dephead_ref: Output = Output(
+        "<token>:stanza.dephead_ref",
+        cls="token:dephead_ref",
+        description="Sentence-relative positions of the dependency heads",
+    ),
+    out_deprel: Output = Output(
+        "<token>:stanza.deprel", cls="token:deprel", description="Dependency relations to the head"
+    ),
+    word: Annotation = Annotation("<token:word>"),
+    token: Annotation = Annotation("<token>"),
+    sentence: Annotation = Annotation("<sentence>"),
+    pos_model: Model = Model("[stanza.swe_pos_model]"),
+    pos_pretrain_model: Model = Model("[stanza.swe_pretrain_pos_model]"),
+    lem_model: Model = Model("[stanza.swe_lem_model]"),
+    dep_model: Model = Model("[stanza.swe_dep_model]"),
+    dep_pretrain_model: Model = Model("[stanza.swe_pretrain_dep_model]"),
+    resources_file: Model = Model("[stanza.resources_file]"),
+    use_gpu: bool = Config("stanza.use_gpu"),
+    batch_size: int = Config("stanza.batch_size"),
+    max_sentence_length: int = Config("stanza.max_sentence_length"),
+    cpu_fallback: bool = Config("stanza.cpu_fallback"),
+    max_token_length: int = Config("stanza.max_token_length"),
+) -> None:
     """Do dependency parsing using Stanza.
 
     Args:
@@ -85,7 +92,7 @@ def annotate_swe(
     if orphans:
         logger.warning(
             "Found %d tokens not belonging to any sentence. These will not be annotated with dependency relations.",
-            len(orphans)
+            len(orphans),
         )
 
     sentences_dep = []
@@ -117,17 +124,23 @@ def annotate_swe(
 
     if sentences_pos and not cpu_fallback:
         n = len(sentences_pos)
-        logger.warning(f"Found {n} sentence{'s' if n > 1 else ''} exceeding the max sentence length "  # noqa: G004
-                       f"({max_sentence_length}). {'These' if n > 1 else 'This'} sentence{'s' if n > 1 else ''} will "
-                       "not be annotated with dependency relations.")
+        logger.warning(
+            f"Found {n} sentence{'s' if n > 1 else ''} exceeding the max sentence length "  # noqa: G004
+            f"({max_sentence_length}). {'These' if n > 1 else 'This'} sentence{'s' if n > 1 else ''} will "
+            "not be annotated with dependency relations."
+        )
     if skipped:
-        logger.warning(f"Found {skipped} sentence{'s' if skipped > 1 else ''} exceeding the batch size "  # noqa: G004
-                       f"({batch_size}) in number of tokens. {'These' if skipped > 1 else 'This'} "
-                       f"sentence{'s' if skipped > 1 else ''} will not be annotated.")
+        logger.warning(
+            f"Found {skipped} sentence{'s' if skipped > 1 else ''} exceeding the batch size "  # noqa: G004
+            f"({batch_size}) in number of tokens. {'These' if skipped > 1 else 'This'} "
+            f"sentence{'s' if skipped > 1 else ''} will not be annotated."
+        )
     if skipped_token:
-        logger.warning(f"Found {skipped_token} sentence{'s' if skipped_token > 1 else ''} with tokens exceeding the "  # noqa: G004
-                       f"max token length ({max_token_length}). {'These' if skipped_token > 1 else 'This'} "
-                       f"sentence{'s' if skipped_token > 1 else ''} will not be annotated.")
+        logger.warning(
+            f"Found {skipped_token} sentence{'s' if skipped_token > 1 else ''} with tokens exceeding the "  # noqa: G004
+            f"max token length ({max_token_length}). {'These' if skipped_token > 1 else 'This'} "
+            f"sentence{'s' if skipped_token > 1 else ''} will not be annotated."
+        )
     if orphans:
         sentences_pos.append(orphans)
     msd = word.create_empty_attribute()
@@ -152,7 +165,7 @@ def annotate_swe(
         "pos_batch_size": batch_size,
         "lemma_batch_size": batch_size,
         "verbose": False,
-        "download_method": DownloadMethod.NONE
+        "download_method": DownloadMethod.NONE,
     }
 
     for sentences, dep, fallback in ((sentences_dep, True, False), (sentences_pos, False, cpu_fallback)):
@@ -164,7 +177,7 @@ def annotate_swe(
             logger.debug(
                 "Running dependency parsing and POS-taggning on %d sentences (using %s).",
                 len(sentences),
-                "GPU" if use_gpu and not fallback else "CPU"
+                "GPU" if use_gpu and not fallback else "CPU",
             )
             nlp_args["processors"] = "tokenize,pos,lemma,depparse"  # Comma-separated list of processors to use
             nlp_args["use_gpu"] = use_gpu and not fallback
@@ -207,19 +220,23 @@ def annotate_swe(
 
 
 @annotator("Part-of-speech annotation with morphological descriptions from Stanza", language=["swe"], order=2)
-def msdtag(out_msd: Output = Output("<token>:stanza.msd", cls="token:msd",
-                                    description="Part-of-speeches with morphological descriptions"),
-           out_pos: Output = Output("<token>:stanza.pos", cls="token:pos", description="Part-of-speech tags"),
-           out_feats: Output = Output("<token>:stanza.ufeats", cls="token:ufeats",
-                                      description="Universal morphological features"),
-           word: Annotation = Annotation("<token:word>"),
-           token: Annotation = Annotation("<token>"),
-           sentence: Annotation = Annotation("<sentence>"),
-           model: Model = Model("[stanza.swe_pos_model]"),
-           pretrain_model: Model = Model("[stanza.swe_pretrain_pos_model]"),
-           resources_file: Model = Model("[stanza.resources_file]"),
-           use_gpu: bool = Config("stanza.use_gpu"),
-           batch_size: int = Config("stanza.batch_size")) -> None:
+def msdtag(
+    out_msd: Output = Output(
+        "<token>:stanza.msd", cls="token:msd", description="Part-of-speeches with morphological descriptions"
+    ),
+    out_pos: Output = Output("<token>:stanza.pos", cls="token:pos", description="Part-of-speech tags"),
+    out_feats: Output = Output(
+        "<token>:stanza.ufeats", cls="token:ufeats", description="Universal morphological features"
+    ),
+    word: Annotation = Annotation("<token:word>"),
+    token: Annotation = Annotation("<token>"),
+    sentence: Annotation = Annotation("<sentence>"),
+    model: Model = Model("[stanza.swe_pos_model]"),
+    pretrain_model: Model = Model("[stanza.swe_pretrain_pos_model]"),
+    resources_file: Model = Model("[stanza.resources_file]"),
+    use_gpu: bool = Config("stanza.use_gpu"),
+    batch_size: int = Config("stanza.batch_size"),
+) -> None:
     """Do dependency parsing using Stanza.
 
     Args:
@@ -249,17 +266,21 @@ def msdtag(out_msd: Output = Output("<token>:stanza.msd", cls="token:msd",
     document = [[word_list[i] for i in s] for s in sentences]
 
     # Init Stanza Pipeline
-    nlp = _create_pipeline(stanza, {
-        "lang": "sv",
-        "processors": "tokenize,pos",
-        "dir": str(resources_file.path.parent),
-        "tokenize_pretokenized": True,  # Assume the text is tokenized by whitespace and sentence split by newline.
-        "pos_pretrain_path": str(pretrain_model.path),
-        "pos_model_path": str(model.path),
-        "pos_batch_size": batch_size,
-        "use_gpu": use_gpu,
-        "verbose": False
-    }, resources_file)
+    nlp = _create_pipeline(
+        stanza,
+        {
+            "lang": "sv",
+            "processors": "tokenize,pos",
+            "dir": str(resources_file.path.parent),
+            "tokenize_pretokenized": True,  # Assume the text is tokenized by whitespace and sentence split by newline.
+            "pos_pretrain_path": str(pretrain_model.path),
+            "pos_model_path": str(model.path),
+            "pos_batch_size": batch_size,
+            "use_gpu": use_gpu,
+            "verbose": False,
+        },
+        resources_file,
+    )
 
     doc = stanza_utils.run_stanza(nlp, document, batch_size)
     stanza_utils.check_sentence_respect(len([s for s in sentences if s]), len(doc.sentences))
@@ -279,26 +300,33 @@ def msdtag(out_msd: Output = Output("<token>:stanza.msd", cls="token:msd",
 
 
 @annotator("Dependency parsing using Stanza", language=["swe"], order=2)
-def dep_parse(out_dephead: Output = Output("<token>:stanza.dephead", cls="token:dephead",
-                                           description="Positions of the dependency heads"),
-              out_dephead_ref: Output = Output("<token>:stanza.dephead_ref", cls="token:dephead_ref",
-                                               description="Sentence-relative positions of the dependency heads"),
-              out_deprel: Output = Output("<token>:stanza.deprel", cls="token:deprel",
-                                          description="Dependency relations to the head"),
-              word: Annotation = Annotation("<token:word>"),
-              token: Annotation = Annotation("<token>"),
-              baseform: Annotation = Annotation("<token:baseform>"),
-              msd: Annotation = Annotation("<token:msd>"),
-              feats: Annotation = Annotation("<token:ufeats>"),
-              ref: Annotation = Annotation("<token>:stanza.ref"),
-              sentence: Annotation = Annotation("<sentence>"),
-              model: Model = Model("[stanza.swe_dep_model]"),
-              pretrain_model: Model = Model("[stanza.swe_pretrain_dep_model]"),
-              resources_file: Model = Model("[stanza.resources_file]"),
-              use_gpu: bool = Config("stanza.use_gpu"),
-              batch_size: int = Config("stanza.batch_size"),
-              max_sentence_length: int = Config("stanza.max_sentence_length"),
-              cpu_fallback: bool = Config("stanza.cpu_fallback")) -> None:
+def dep_parse(
+    out_dephead: Output = Output(
+        "<token>:stanza.dephead", cls="token:dephead", description="Positions of the dependency heads"
+    ),
+    out_dephead_ref: Output = Output(
+        "<token>:stanza.dephead_ref",
+        cls="token:dephead_ref",
+        description="Sentence-relative positions of the dependency heads",
+    ),
+    out_deprel: Output = Output(
+        "<token>:stanza.deprel", cls="token:deprel", description="Dependency relations to the head"
+    ),
+    word: Annotation = Annotation("<token:word>"),
+    token: Annotation = Annotation("<token>"),
+    baseform: Annotation = Annotation("<token:baseform>"),
+    msd: Annotation = Annotation("<token:msd>"),
+    feats: Annotation = Annotation("<token:ufeats>"),
+    ref: Annotation = Annotation("<token>:stanza.ref"),
+    sentence: Annotation = Annotation("<sentence>"),
+    model: Model = Model("[stanza.swe_dep_model]"),
+    pretrain_model: Model = Model("[stanza.swe_pretrain_dep_model]"),
+    resources_file: Model = Model("[stanza.resources_file]"),
+    use_gpu: bool = Config("stanza.use_gpu"),
+    batch_size: int = Config("stanza.batch_size"),
+    max_sentence_length: int = Config("stanza.max_sentence_length"),
+    cpu_fallback: bool = Config("stanza.cpu_fallback"),
+) -> None:
     """Do dependency parsing using Stanza.
 
     Args:
@@ -330,7 +358,7 @@ def dep_parse(out_dephead: Output = Output("<token>:stanza.dephead", cls="token:
     if orphans:
         logger.warning(
             "Found %d tokens not belonging to any sentence. These will not be annotated with dependency relations.",
-            len(orphans)
+            len(orphans),
         )
     sentences_dep = []
     sentences_fallback = []
@@ -349,13 +377,17 @@ def dep_parse(out_dephead: Output = Output("<token>:stanza.dephead", cls="token:
             sentences_dep.append(s)
 
     if skipped_sent:
-        logger.warning(f"Found {skipped_sent} sentence{'s' if skipped_sent > 1 else ''} exceeding the max sentence "  # noqa: G004
-                       f"length ({max_sentence_length}). {'These' if skipped_sent > 1 else 'This'} "
-                       f"sentence{'s' if skipped_sent > 1 else ''} will not be annotated.")
+        logger.warning(
+            f"Found {skipped_sent} sentence{'s' if skipped_sent > 1 else ''} exceeding the max sentence "  # noqa: G004
+            f"length ({max_sentence_length}). {'These' if skipped_sent > 1 else 'This'} "
+            f"sentence{'s' if skipped_sent > 1 else ''} will not be annotated."
+        )
     if skipped_batch:
-        logger.warning(f"Found {skipped_batch} sentence{'s' if skipped_batch > 1 else ''} exceeding the batch size "  # noqa: G004
-                       f"({batch_size}) in number of tokens. {'These' if skipped_batch > 1 else 'This'} "
-                       f"sentence{'s' if skipped_batch > 1 else ''} will not be annotated.")
+        logger.warning(
+            f"Found {skipped_batch} sentence{'s' if skipped_batch > 1 else ''} exceeding the batch size "  # noqa: G004
+            f"({batch_size}) in number of tokens. {'These' if skipped_batch > 1 else 'This'} "
+            f"sentence{'s' if skipped_batch > 1 else ''} will not be annotated."
+        )
 
     word_vals = list(word.read())
     baseform_vals = list(baseform.read())
@@ -371,26 +403,25 @@ def dep_parse(out_dephead: Output = Output("<token>:stanza.dephead", cls="token:
         if not sentences:
             continue
 
-        document = _build_doc(sentences,
-                              word_vals,
-                              baseform_vals,
-                              msd_vals,
-                              feats_vals,
-                              ref_vals)
+        document = _build_doc(sentences, word_vals, baseform_vals, msd_vals, feats_vals, ref_vals)
 
         # Init Stanza Pipeline
-        nlp = _create_pipeline(stanza, {
-            "lang": "sv",
-            "dir": str(resources_file.path.parent),
-            "processors": "tokenize,pos,lemma,depparse",
-            "tokenize_pretokenized": True,
-            "depparse_pretrain_path": str(pretrain_model.path),
-            "depparse_model_path": str(model.path),
-            "depparse_max_sentence_size": 200,  # Create new batch when encountering sentences larger than this
-            "depparse_batch_size": batch_size,
-            "use_gpu": use_gpu and not fallback,
-            "verbose": False
-        }, resources_file)
+        nlp = _create_pipeline(
+            stanza,
+            {
+                "lang": "sv",
+                "dir": str(resources_file.path.parent),
+                "processors": "tokenize,pos,lemma,depparse",
+                "tokenize_pretokenized": True,
+                "depparse_pretrain_path": str(pretrain_model.path),
+                "depparse_model_path": str(model.path),
+                "depparse_max_sentence_size": 200,  # Create new batch when encountering sentences larger than this
+                "depparse_batch_size": batch_size,
+                "use_gpu": use_gpu and not fallback,
+                "verbose": False,
+            },
+            resources_file,
+        )
 
         doc = stanza_utils.run_stanza(nlp, Document(document), batch_size, max_sentence_length)
         for sent, tagged_sent in zip(sentences, doc.sentences):
@@ -410,10 +441,16 @@ def dep_parse(out_dephead: Output = Output("<token>:stanza.dephead", cls="token:
 def msd_backoff_hunpos(
     stanza_msd: Annotation = Annotation("<token>:stanza.msd"),
     hunpos_msd: Annotation = Annotation("<token>:hunpos.msd"),
-    out: Output = Output("<token>:stanza.msd_hunpos_backoff", cls="token:msd", description="Part-of-speech tags with "
-                         "morphological descriptions from Stanza or Hunpos."),
-    info: Output = Output("<token>:stanza.msd_hunpos_backoff_info", description="Info about which annotator each msd "
-                          "annotation was produced with.")) -> None:
+    out: Output = Output(
+        "<token>:stanza.msd_hunpos_backoff",
+        cls="token:msd",
+        description="Part-of-speech tags with morphological descriptions from Stanza or Hunpos.",
+    ),
+    info: Output = Output(
+        "<token>:stanza.msd_hunpos_backoff_info",
+        description="Info about which annotator each msd annotation was produced with.",
+    ),
+) -> None:
     """Replace empty values in 'stanza_msd' with values from 'hunpos_msd'.
 
     Args:
@@ -423,18 +460,24 @@ def msd_backoff_hunpos(
         info: Output attribute for info about which annotator each msd annotation was produced with.
     """
     from sparv.modules.misc import misc  # noqa: PLC0415
-    misc.backoff_with_info(chunk=stanza_msd, backoff=hunpos_msd, out=out, out_info=info, chunk_name="stanza",
-                           backoff_name="hunpos")
+
+    misc.backoff_with_info(
+        chunk=stanza_msd, backoff=hunpos_msd, out=out, out_info=info, chunk_name="stanza", backoff_name="hunpos"
+    )
 
 
 @annotator("Extract POS from MSD", language=["swe", "swe-1800"])
 def pos_backoff_hunpos(
     stanza_pos: Annotation = Annotation("<token>:stanza.pos"),
     hunpos_pos: Annotation = Annotation("<token>:hunpos.pos"),
-    out: Output = Output("<token>:stanza.pos_hunpos_backoff", cls="token:pos",
-                         description="Part-of-speech tags from Stanza or Hunpos."),
-    info: Output = Output("<token>:stanza.pos_hunpos_backoff_info", description="Info about which annotator each pos "
-                          "annotation was produced with.")) -> None:
+    out: Output = Output(
+        "<token>:stanza.pos_hunpos_backoff", cls="token:pos", description="Part-of-speech tags from Stanza or Hunpos."
+    ),
+    info: Output = Output(
+        "<token>:stanza.pos_hunpos_backoff_info",
+        description="Info about which annotator each pos annotation was produced with.",
+    ),
+) -> None:
     """Replace empty values in 'stanza_pos' with values from 'hunpos_pos'.
 
     Args:
@@ -444,8 +487,10 @@ def pos_backoff_hunpos(
         info: Output attribute for info about which annotator each pos annotation was produced with.
     """
     from sparv.modules.misc import misc  # noqa: PLC0415
-    misc.backoff_with_info(chunk=stanza_pos, backoff=hunpos_pos, out=out, out_info=info, chunk_name="stanza",
-                           backoff_name="hunpos")
+
+    misc.backoff_with_info(
+        chunk=stanza_pos, backoff=hunpos_pos, out=out, out_info=info, chunk_name="stanza", backoff_name="hunpos"
+    )
 
 
 def _build_doc(
@@ -475,8 +520,7 @@ def _build_doc(
             baseform_list = util.misc.set_to_list(baseform[i])
             baseform_str = word[i] if not baseform_list else baseform_list[0]
 
-            token_dict = {"id": int(ref[i]), "text": word[i], "lemma": baseform_str,
-                          "xpos": msd[i], "feats": feats_str}
+            token_dict = {"id": int(ref[i]), "text": word[i], "lemma": baseform_str, "xpos": msd[i], "feats": feats_str}
             in_sent.append(token_dict)
             # logger.debug("\t".join(str(v) for v in token_dict.values()))
         if in_sent:
@@ -508,7 +552,8 @@ def _create_pipeline(stanza, nlp_args: dict, resources_file: str):  # noqa: ANN0
         if e.args[0] == "packages":
             raise SparvErrorMessage(
                 "Stanza has been updated and the resources file for the Swedish model needs to be recreated. "
-                f"Delete the file {resources_file.name!r} and rerun Sparv.") from None
+                f"Delete the file {resources_file.name!r} and rerun Sparv."
+            ) from None
         raise e
 
     return nlp

@@ -466,6 +466,7 @@ def _create_export_names(
         A dictionary with translation from annotation names to export names.
     """
     if remove_namespaces:
+
         def shorten(annotation: Annotation | AnnotationAllSourceFiles) -> str:
             """Shorten annotation name or attribute name.
 

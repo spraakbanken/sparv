@@ -10,22 +10,33 @@ from sparv.api.util.constants import AFFIX, DELIM, SCORESEP
 logger = get_logger(__name__)
 
 
-@annotator("Annotate text chunks with Blingbring classes", language=["swe"], config=[
-    Config("lexical_classes.bb_freq_model", default="lexical_classes/blingbring.freq.gp2008+suc3+romi.pickle",
-           description="Path to Blingbring frequency model", datatype=str)
-])
-def blingbring_text(out: Output = Output("<text>:lexical_classes.blingbring",
-                                         description="Lexical classes for text chunks from Blingbring"),
-                    lexical_classes_token: Annotation = Annotation("<token>:lexical_classes.blingbring"),
-                    text: Annotation = Annotation("<text>"),
-                    token: Annotation = Annotation("<token>"),
-                    saldoids: Optional[Annotation] = Annotation("<token:sense>"),
-                    cutoff: int = 3,
-                    types: bool = False,
-                    delimiter: str = DELIM,
-                    affix: str = AFFIX,
-                    freq_model: Model = Model("[lexical_classes.bb_freq_model]"),
-                    decimals: int = 3) -> None:
+@annotator(
+    "Annotate text chunks with Blingbring classes",
+    language=["swe"],
+    config=[
+        Config(
+            "lexical_classes.bb_freq_model",
+            default="lexical_classes/blingbring.freq.gp2008+suc3+romi.pickle",
+            description="Path to Blingbring frequency model",
+            datatype=str,
+        )
+    ],
+)
+def blingbring_text(
+    out: Output = Output(
+        "<text>:lexical_classes.blingbring", description="Lexical classes for text chunks from Blingbring"
+    ),
+    lexical_classes_token: Annotation = Annotation("<token>:lexical_classes.blingbring"),
+    text: Annotation = Annotation("<text>"),
+    token: Annotation = Annotation("<token>"),
+    saldoids: Optional[Annotation] = Annotation("<token:sense>"),
+    cutoff: int = 3,
+    types: bool = False,
+    delimiter: str = DELIM,
+    affix: str = AFFIX,
+    freq_model: Model = Model("[lexical_classes.bb_freq_model]"),
+    decimals: int = 3,
+) -> None:
     """Annotate text chunks with Blingbring classes.
 
     Args:
@@ -43,31 +54,60 @@ def blingbring_text(out: Output = Output("<text>:lexical_classes.blingbring",
         freq_model: Pickled file with reference frequencies.
         decimals: Number of decimals to keep in output.
     """
-    annotate_text(out=out, lexical_classes_token=lexical_classes_token, text=text, token=token,
-                  saldoids=saldoids, cutoff=cutoff, types=types, delimiter=delimiter, affix=affix,
-                  freq_model=freq_model, decimals=decimals)
+    annotate_text(
+        out=out,
+        lexical_classes_token=lexical_classes_token,
+        text=text,
+        token=token,
+        saldoids=saldoids,
+        cutoff=cutoff,
+        types=types,
+        delimiter=delimiter,
+        affix=affix,
+        freq_model=freq_model,
+        decimals=decimals,
+    )
 
 
-@annotator("Annotate text chunks with SweFN classes", language=["swe"], config=[
-    Config("lexical_classes.swefn_freq_model", default="lexical_classes/swefn.freq.gp2008+suc3+romi.pickle",
-           description="Path to SweFN frequency model", datatype=str)
-])
-def swefn_text(out: Output = Output("<text>:lexical_classes.swefn",
-                                    description="Lexical classes for text chunks from SweFN"),
-               lexical_classes_token: Annotation = Annotation("<token>:lexical_classes.swefn"),
-               text: Annotation = Annotation("<text>"),
-               token: Annotation = Annotation("<token>"),
-               saldoids: Optional[Annotation] = Annotation("<token:sense>"),
-               cutoff: int = 3,
-               types: bool = False,
-               delimiter: str = DELIM,
-               affix: str = AFFIX,
-               freq_model: Model = Model("[lexical_classes.swefn_freq_model]"),
-               decimals: int = 3) -> None:
+@annotator(
+    "Annotate text chunks with SweFN classes",
+    language=["swe"],
+    config=[
+        Config(
+            "lexical_classes.swefn_freq_model",
+            default="lexical_classes/swefn.freq.gp2008+suc3+romi.pickle",
+            description="Path to SweFN frequency model",
+            datatype=str,
+        )
+    ],
+)
+def swefn_text(
+    out: Output = Output("<text>:lexical_classes.swefn", description="Lexical classes for text chunks from SweFN"),
+    lexical_classes_token: Annotation = Annotation("<token>:lexical_classes.swefn"),
+    text: Annotation = Annotation("<text>"),
+    token: Annotation = Annotation("<token>"),
+    saldoids: Optional[Annotation] = Annotation("<token:sense>"),
+    cutoff: int = 3,
+    types: bool = False,
+    delimiter: str = DELIM,
+    affix: str = AFFIX,
+    freq_model: Model = Model("[lexical_classes.swefn_freq_model]"),
+    decimals: int = 3,
+) -> None:
     """Annotate text chunks with SweFN classes."""
-    annotate_text(out=out, lexical_classes_token=lexical_classes_token, text=text, token=token,
-                  saldoids=saldoids, cutoff=cutoff, types=types, delimiter=delimiter, affix=affix,
-                  freq_model=freq_model, decimals=decimals)
+    annotate_text(
+        out=out,
+        lexical_classes_token=lexical_classes_token,
+        text=text,
+        token=token,
+        saldoids=saldoids,
+        cutoff=cutoff,
+        types=types,
+        delimiter=delimiter,
+        affix=affix,
+        freq_model=freq_model,
+        decimals=decimals,
+    )
 
 
 def annotate_text(
@@ -134,7 +174,7 @@ def annotate_text(
                 ref_freq = freq_model.lookup(c.replace("_", " "), 0)
                 if not ref_freq:
                     logger.error("Class '%s' is missing", ref_freq)
-                class_freqs[c] = (rel / ref_freq)
+                class_freqs[c] = rel / ref_freq
 
         # Sort words according to frequency/dominance
         ordered_words = sorted(class_freqs.items(), key=operator.itemgetter(1), reverse=True)

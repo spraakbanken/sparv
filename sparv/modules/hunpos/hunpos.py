@@ -27,16 +27,19 @@ TAG_COLUMN = 1
 
 
 @annotator("Part-of-speech annotation with morphological descriptions", language=["swe"])
-def msdtag(out: Output = Output("<token>:hunpos.msd", cls="token:msd",
-                                description="Part-of-speeches with morphological descriptions"),
-           word: Annotation = Annotation("<token:word>"),
-           sentence: Annotation = Annotation("<sentence>"),
-           binary: Binary = Binary("[hunpos.binary]"),
-           model: Model = Model("[hunpos.model]"),
-           morphtable: Optional[Model] = Model("[hunpos.morphtable]"),
-           patterns: Optional[Model] = Model("[hunpos.patterns]"),
-           tag_mapping: Optional[str] = Config("hunpos.tag_mapping"),
-           encoding: str = Config("hunpos.encoding")) -> None:
+def msdtag(
+    out: Output = Output(
+        "<token>:hunpos.msd", cls="token:msd", description="Part-of-speeches with morphological descriptions"
+    ),
+    word: Annotation = Annotation("<token:word>"),
+    sentence: Annotation = Annotation("<sentence>"),
+    binary: Binary = Binary("[hunpos.binary]"),
+    model: Model = Model("[hunpos.model]"),
+    morphtable: Optional[Model] = Model("[hunpos.morphtable]"),
+    patterns: Optional[Model] = Model("[hunpos.patterns]"),
+    tag_mapping: Optional[str] = Config("hunpos.tag_mapping"),
+    encoding: str = Config("hunpos.encoding"),
+) -> None:
     """POS/MSD tag modern Swedish texts using the Hunpos tagger.
 
     Args:
@@ -50,20 +53,32 @@ def msdtag(out: Output = Output("<token>:hunpos.msd", cls="token:msd",
         tag_mapping: Optional tag mapping for the POS tags.
         encoding: Encoding to use when communicating with the Hunpos binary.
     """
-    main(out, word, sentence, binary, model, morphtable=morphtable, patterns=patterns, tag_mapping=tag_mapping,
-         encoding=encoding)
+    main(
+        out,
+        word,
+        sentence,
+        binary,
+        model,
+        morphtable=morphtable,
+        patterns=patterns,
+        tag_mapping=tag_mapping,
+        encoding=encoding,
+    )
 
 
 @annotator("Part-of-speech annotation with morphological descriptions for older Swedish", language=["swe-1800"])
-def msdtag_hist(out: Output = Output("<token>:hunpos.msd_hist", cls="token:msd",
-                                     description="Part-of-speeches with morphological descriptions"),
-                word: Annotation = Annotation("<token:word>"),
-                sentence: Annotation = Annotation("<sentence>"),
-                binary: Binary = Binary("[hunpos.binary]"),
-                model: Model = Model("[hunpos.model_hist]"),
-                morphtable: Optional[Model] = Model("[hunpos.morphtable_hist]"),
-                tag_mapping: Optional[str] = Config("hunpos.tag_mapping_hist"),
-                encoding: str = Config("hunpos.encoding")) -> None:
+def msdtag_hist(
+    out: Output = Output(
+        "<token>:hunpos.msd_hist", cls="token:msd", description="Part-of-speeches with morphological descriptions"
+    ),
+    word: Annotation = Annotation("<token:word>"),
+    sentence: Annotation = Annotation("<sentence>"),
+    binary: Binary = Binary("[hunpos.binary]"),
+    model: Model = Model("[hunpos.model_hist]"),
+    morphtable: Optional[Model] = Model("[hunpos.morphtable_hist]"),
+    tag_mapping: Optional[str] = Config("hunpos.tag_mapping_hist"),
+    encoding: str = Config("hunpos.encoding"),
+) -> None:
     """POS/MSD tag modern Swedish texts using the Hunpos tagger.
 
     Args:
@@ -76,8 +91,17 @@ def msdtag_hist(out: Output = Output("<token>:hunpos.msd_hist", cls="token:msd",
         tag_mapping: Optional tag mapping for the POS tags.
         encoding: Encoding to use when communicating with the Hunpos binary.
     """
-    main(out, word, sentence, binary, model, morphtable=morphtable, patterns=None, tag_mapping=tag_mapping,
-         encoding=encoding)
+    main(
+        out,
+        word,
+        sentence,
+        binary,
+        model,
+        morphtable=morphtable,
+        patterns=None,
+        tag_mapping=tag_mapping,
+        encoding=encoding,
+    )
 
 
 def main(
@@ -134,8 +158,9 @@ def main(
 
     sentences, _orphans = sentence.get_children(word)
     token_word = list(word.read())
-    stdin = SENT_SEP.join(TOK_SEP.join(replace_word(token_word[token_index]) for token_index in sent)
-                          for sent in sentences)
+    stdin = SENT_SEP.join(
+        TOK_SEP.join(replace_word(token_word[token_index]) for token_index in sent) for sent in sentences
+    )
     args = [model.path]
     if morphtable:
         args.extend(["-m", morphtable.path])
@@ -152,8 +177,10 @@ def main(
 
 
 @annotator("Extract POS from MSD", language=["swe", "swe-1800"])
-def postag(out: Output = Output("<token>:hunpos.pos", cls="token:pos", description="Part-of-speech tags"),
-           msd: Annotation = Annotation("<token:msd>")) -> None:
+def postag(
+    out: Output = Output("<token>:hunpos.pos", cls="token:pos", description="Part-of-speech tags"),
+    msd: Annotation = Annotation("<token:msd>"),
+) -> None:
     """Extract POS from MSD.
 
     Args:
@@ -161,12 +188,15 @@ def postag(out: Output = Output("<token>:hunpos.pos", cls="token:pos", descripti
         msd: Input annotation with morphological descriptions.
     """
     from sparv.modules.misc import misc  # noqa: PLC0415
+
     misc.select(out, msd, index=0, separator=".")
 
 
 @modelbuilder("Hunpos model", language=["swe"])
-def hunpos_model(model: ModelOutput = ModelOutput("hunpos/suc3_suc-tags_default-setting_utf8.model"),
-                 binary: Binary = Binary("[hunpos.binary]")) -> None:
+def hunpos_model(
+    model: ModelOutput = ModelOutput("hunpos/suc3_suc-tags_default-setting_utf8.model"),
+    binary: Binary = Binary("[hunpos.binary]"),
+) -> None:
     """Download the Hunpos model.
 
     Args:
@@ -198,10 +228,12 @@ def hunpos_model(model: ModelOutput = ModelOutput("hunpos/suc3_suc-tags_default-
     # Search for keyword "--verbose" in help message
     if "--verbose" in stdout.decode():
         model.download(
-        "https://github.com/spraakbanken/sparv-models/raw/master/hunpos/suc3_suc-tags_default-setting_utf8-mivoq.model")
+            "https://github.com/spraakbanken/sparv-models/raw/master/hunpos/suc3_suc-tags_default-setting_utf8-mivoq.model"
+        )
     else:
         model.download(
-        "https://github.com/spraakbanken/sparv-models/raw/master/hunpos/suc3_suc-tags_default-setting_utf8.model")
+            "https://github.com/spraakbanken/sparv-models/raw/master/hunpos/suc3_suc-tags_default-setting_utf8.model"
+        )
 
     try:
         logger.info("Testing Hunpos model")

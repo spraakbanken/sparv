@@ -4,10 +4,11 @@ from sparv.api import Annotation, Output, SparvErrorMessage, annotator
 
 
 @annotator("Annotate tokens with IDs relative to their sentences")
-def make_ref(out: Output = Output("<token>:stanza.ref", cls="token:ref",
-                                  description="Token IDs relative to their sentences"),
-             sentence: Annotation = Annotation("<sentence>"),
-             token: Annotation = Annotation("<token>")) -> None:
+def make_ref(
+    out: Output = Output("<token>:stanza.ref", cls="token:ref", description="Token IDs relative to their sentences"),
+    sentence: Annotation = Annotation("<sentence>"),
+    token: Annotation = Annotation("<token>"),
+) -> None:
     """Annotate tokens with IDs relative to their sentences.
 
     Args:
@@ -16,6 +17,7 @@ def make_ref(out: Output = Output("<token>:stanza.ref", cls="token:ref",
         token: Token annotation.
     """
     from sparv.modules.misc import number  # noqa: PLC0415
+
     number.number_relative(out, sentence, token)
 
 

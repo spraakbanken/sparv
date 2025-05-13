@@ -24,11 +24,13 @@ logger = get_logger(__name__)
 
 
 @installer("Install lemgram SQL on remote host", language=["swe"], uninstaller="korp:uninstall_lemgrams")
-def install_lemgrams(sqlfile: ExportInput = ExportInput("korp.lemgram_index/lemgram_index.sql"),
-                     marker: OutputMarker = OutputMarker("korp.install_lemgram_marker"),
-                     uninstall_marker: MarkerOptional = MarkerOptional("korp.uninstall_lemgram_marker"),
-                     db_name: str = Config("korp.mysql_dbname"),
-                     host: Optional[str] = Config("korp.remote_host")) -> None:
+def install_lemgrams(
+    sqlfile: ExportInput = ExportInput("korp.lemgram_index/lemgram_index.sql"),
+    marker: OutputMarker = OutputMarker("korp.install_lemgram_marker"),
+    uninstall_marker: MarkerOptional = MarkerOptional("korp.uninstall_lemgram_marker"),
+    db_name: str = Config("korp.mysql_dbname"),
+    host: Optional[str] = Config("korp.remote_host"),
+) -> None:
     """Install lemgram SQL on remote host.
 
     Args:
@@ -49,7 +51,7 @@ def uninstall_lemgrams(
     marker: OutputMarker = OutputMarker("korp.uninstall_lemgram_marker"),
     install_marker: MarkerOptional = MarkerOptional("korp.install_lemgram_marker"),
     db_name: str = Config("korp.mysql_dbname"),
-    host: Optional[str] = Config("korp.remote_host")
+    host: Optional[str] = Config("korp.remote_host"),
 ) -> None:
     """Remove lemgram index data from database.
 
@@ -67,10 +69,12 @@ def uninstall_lemgrams(
 
 
 @exporter("Lemgram index SQL file for use in Korp", language=["swe"])
-def lemgram_sql(corpus: Corpus = Corpus(),
-                source_files: AllSourceFilenames = AllSourceFilenames(),
-                out: Export = Export("korp.lemgram_index/lemgram_index.sql"),
-                lemgram: AnnotationAllSourceFiles = AnnotationAllSourceFiles("<token>:saldo.lemgram")) -> None:
+def lemgram_sql(
+    corpus: Corpus = Corpus(),
+    source_files: AllSourceFilenames = AllSourceFilenames(),
+    out: Export = Export("korp.lemgram_index/lemgram_index.sql"),
+    lemgram: AnnotationAllSourceFiles = AnnotationAllSourceFiles("<token>:saldo.lemgram"),
+) -> None:
     """Create lemgram index SQL file."""
     corpus = corpus.upper()
     result = defaultdict(int)
@@ -91,11 +95,13 @@ def lemgram_sql(corpus: Corpus = Corpus(),
 
     rows = []
     for lg, freq in result.items():
-        rows.append({
-            "lemgram": lg,
-            "corpus": corpus,
-            "freq": freq
-        })
+        rows.append(
+            {
+                "lemgram": lg,
+                "corpus": corpus,
+                "freq": freq,
+            }
+        )
 
     logger.info("Creating SQL")
     mysql.add_row(MYSQL_TABLE, rows)
@@ -112,5 +118,5 @@ MYSQL_INDEX = {
     "primary": "lemgram corpus freq",
     "indexes": ["corpus"],  # Used by uninstaller
     "default charset": "utf8mb4",
-    "collate": "utf8mb4_bin"
+    "collate": "utf8mb4_bin",
 }

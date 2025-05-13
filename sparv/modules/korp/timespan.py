@@ -52,7 +52,7 @@ def uninstall_timespan(
     marker: OutputMarker = OutputMarker("korp.uninstall_timespan_marker"),
     install_marker: MarkerOptional = MarkerOptional("korp.install_timespan_marker"),
     db_name: str = Config("korp.mysql_dbname"),
-    host: Optional[str] = Config("korp.remote_host")
+    host: Optional[str] = Config("korp.remote_host"),
 ) -> None:
     """Remove timespan data from database.
 
@@ -119,7 +119,7 @@ def timespan_sql_with_dateinfo(
             "corpus": corpus_name,
             "datefrom": span[0],
             "dateto": span[1],
-            "tokens": datespans[span]
+            "tokens": datespans[span],
         }
         for span in datespans
     ]
@@ -128,7 +128,7 @@ def timespan_sql_with_dateinfo(
             "corpus": corpus_name,
             "datefrom": span[0],
             "dateto": span[1],
-            "tokens": datetimespans[span]
+            "tokens": datetimespans[span],
         }
         for span in datetimespans
     ]
@@ -137,10 +137,12 @@ def timespan_sql_with_dateinfo(
 
 
 @annotator("Timespan SQL data for use in Korp, for when the corpus has no date metadata.", order=2)
-def timespan_sql_no_dateinfo(corpus: Corpus = Corpus(),
-                             out: Export = Export("korp.timespan/timespan.sql"),
-                             source_files: AllSourceFilenames = AllSourceFilenames(),
-                             token: AnnotationAllSourceFiles = AnnotationAllSourceFiles("<token>")) -> None:
+def timespan_sql_no_dateinfo(
+    corpus: Corpus = Corpus(),
+    out: Export = Export("korp.timespan/timespan.sql"),
+    source_files: AllSourceFilenames = AllSourceFilenames(),
+    token: AnnotationAllSourceFiles = AnnotationAllSourceFiles("<token>"),
+) -> None:
     """Create timespan SQL data for use in Korp, for when the corpus has no date metadata.
 
     Args:
@@ -155,18 +157,22 @@ def timespan_sql_no_dateinfo(corpus: Corpus = Corpus(),
     for file in source_files:
         token_count += len(token(file))
 
-    rows_date = [{
-        "corpus": corpus_name,
-        "datefrom": "0" * 8,
-        "dateto": "0" * 8,
-        "tokens": token_count
-    }]
-    rows_datetime = [{
-        "corpus": corpus_name,
-        "datefrom": "0" * 14,
-        "dateto": "0" * 14,
-        "tokens": token_count
-    }]
+    rows_date = [
+        {
+            "corpus": corpus_name,
+            "datefrom": "0" * 8,
+            "dateto": "0" * 8,
+            "tokens": token_count,
+        }
+    ]
+    rows_datetime = [
+        {
+            "corpus": corpus_name,
+            "datefrom": "0" * 14,
+            "dateto": "0" * 14,
+            "tokens": token_count,
+        }
+    ]
 
     create_sql(corpus_name, out, rows_date, rows_datetime)
 
@@ -194,20 +200,26 @@ def create_sql(corpus_name: str, out: Export, rows_date: list[dict], rows_dateti
 MYSQL_TABLE = "timedata"
 MYSQL_TABLE_DATE = "timedata_date"
 
-MYSQL_TIMESPAN = {"columns": [("corpus", "varchar(64)", "", "NOT NULL"),
-                              ("datefrom", "datetime", "0000-00-00 00:00:00", "NOT NULL"),
-                              ("dateto", "datetime", "0000-00-00 00:00:00", "NOT NULL"),
-                              ("tokens", int, 0, "NOT NULL")],
-                  "primary": "corpus datefrom dateto",
-                  "indexes": [],
-                  "default charset": "utf8"
-                  }
+MYSQL_TIMESPAN = {
+    "columns": [
+        ("corpus", "varchar(64)", "", "NOT NULL"),
+        ("datefrom", "datetime", "0000-00-00 00:00:00", "NOT NULL"),
+        ("dateto", "datetime", "0000-00-00 00:00:00", "NOT NULL"),
+        ("tokens", int, 0, "NOT NULL"),
+    ],
+    "primary": "corpus datefrom dateto",
+    "indexes": [],
+    "default charset": "utf8",
+}
 
-MYSQL_TIMESPAN_DATE = {"columns": [("corpus", "varchar(64)", "", "NOT NULL"),
-                                   ("datefrom", "date", "0000-00-00", "NOT NULL"),
-                                   ("dateto", "date", "0000-00-00", "NOT NULL"),
-                                   ("tokens", int, 0, "NOT NULL")],
-                       "primary": "corpus datefrom dateto",
-                       "indexes": [],
-                       "default charset": "utf8"
-                       }
+MYSQL_TIMESPAN_DATE = {
+    "columns": [
+        ("corpus", "varchar(64)", "", "NOT NULL"),
+        ("datefrom", "date", "0000-00-00", "NOT NULL"),
+        ("dateto", "date", "0000-00-00", "NOT NULL"),
+        ("tokens", int, 0, "NOT NULL"),
+    ],
+    "primary": "corpus datefrom dateto",
+    "indexes": [],
+    "default charset": "utf8",
+}

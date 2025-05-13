@@ -17,27 +17,32 @@ from sparv.api import (
 logger = get_logger(__name__)
 
 
-@exporter("CSV export", config=[
-    Config("csv_export.delimiter", default="\t", description="Delimiter separating fields.", datatype=str),
-    Config(
-        "csv_export.source_annotations",
-        description="List of annotations and attributes from the source data to include. Everything will be "
-                    "included by default.",
-        datatype=list[str],
-    ),
-    Config("csv_export.annotations", description="Sparv annotations to include.", datatype=list[str])
-])
-def csv(source_file: SourceFilename = SourceFilename(),
-        out: Export = Export("csv_export/{file}.csv"),
-        token: Annotation = Annotation("<token>"),
-        word: Annotation = Annotation("[export.word]"),
-        sentence: Annotation = Annotation("<sentence>"),
-        annotations: ExportAnnotations = ExportAnnotations("csv_export.annotations"),
-        source_annotations: SourceAnnotations = SourceAnnotations("csv_export.source_annotations"),
-        remove_namespaces: bool = Config("export.remove_module_namespaces", False),
-        sparv_namespace: str = Config("export.sparv_namespace"),
-        source_namespace: str = Config("export.source_namespace"),
-        delimiter: str = Config("csv_export.delimiter")) -> None:
+@exporter(
+    "CSV export",
+    config=[
+        Config("csv_export.delimiter", default="\t", description="Delimiter separating fields.", datatype=str),
+        Config(
+            "csv_export.source_annotations",
+            description="List of annotations and attributes from the source data to include. Everything will be "
+            "included by default.",
+            datatype=list[str],
+        ),
+        Config("csv_export.annotations", description="Sparv annotations to include.", datatype=list[str]),
+    ],
+)
+def csv(
+    source_file: SourceFilename = SourceFilename(),
+    out: Export = Export("csv_export/{file}.csv"),
+    token: Annotation = Annotation("<token>"),
+    word: Annotation = Annotation("[export.word]"),
+    sentence: Annotation = Annotation("<sentence>"),
+    annotations: ExportAnnotations = ExportAnnotations("csv_export.annotations"),
+    source_annotations: SourceAnnotations = SourceAnnotations("csv_export.source_annotations"),
+    remove_namespaces: bool = Config("export.remove_module_namespaces", False),
+    sparv_namespace: str = Config("export.sparv_namespace"),
+    source_namespace: str = Config("export.source_namespace"),
+    delimiter: str = Config("csv_export.delimiter"),
+) -> None:
     """Export annotations to CSV format."""
     # Create export dir
     out_path = Path(out)
@@ -50,13 +55,22 @@ def csv(source_file: SourceFilename = SourceFilename(),
 
     # Get annotation spans, annotations list etc.
     annotation_list, token_attributes, export_names = util.export.get_annotation_names(
-        annotations, source_annotations, source_file=source_file, token_name=token_name,
-        remove_namespaces=remove_namespaces, sparv_namespace=sparv_namespace, source_namespace=source_namespace)
+        annotations,
+        source_annotations,
+        source_file=source_file,
+        token_name=token_name,
+        remove_namespaces=remove_namespaces,
+        sparv_namespace=sparv_namespace,
+        source_namespace=source_namespace,
+    )
     if token not in annotation_list:
-        logger.warning("The 'csv_export:csv' export requires the <token> annotation for the output to include "
-                       "the source text. Make sure to add <token> to the list of export annotations.")
-    span_positions, annotation_dict = util.export.gather_annotations(annotation_list, export_names,
-                                                                     source_file=source_file)
+        logger.warning(
+            "The 'csv_export:csv' export requires the <token> annotation for the output to include "
+            "the source text. Make sure to add <token> to the list of export annotations."
+        )
+    span_positions, annotation_dict = util.export.gather_annotations(
+        annotation_list, export_names, source_file=source_file
+    )
 
     # Make csv header
     csv_data = [_make_header(token_name, token_attributes, export_names, delimiter)]
@@ -66,8 +80,16 @@ def csv(source_file: SourceFilename = SourceFilename(),
         if instruction == "open":
             # Create token line
             if span.name == token_name:
-                csv_data.append(_make_token_line(word_annotation[span.index], token_name, token_attributes,
-                                                 annotation_dict, span.index, delimiter))
+                csv_data.append(
+                    _make_token_line(
+                        word_annotation[span.index],
+                        token_name,
+                        token_attributes,
+                        annotation_dict,
+                        span.index,
+                        delimiter,
+                    )
+                )
 
             # Create line with structural annotation
             else:

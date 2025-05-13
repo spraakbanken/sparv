@@ -63,17 +63,17 @@ logger = get_logger(__name__)
         ),
     ],
 )
-def dateformat(in_from: Annotation = Annotation("[dateformat.datetime_from]"),
-               in_to: Optional[Annotation] = Annotation("[dateformat.datetime_to]"),
-               out_from: Output = Output("[dateformat.out_annotation]:dateformat.datefrom",
-                                         description="From-dates"),
-               out_to: Optional[Output] = Output("[dateformat.out_annotation]:dateformat.dateto",
-                                                 description="To-dates"),
-               informat: str = Config("dateformat.datetime_informat"),
-               outformat: str = Config("dateformat.date_outformat"),
-               splitter: Optional[str] = Config("dateformat.splitter"),
-               pre_regex: Optional[str] = Config("dateformat.pre_regex"),
-               regex: Optional[str] = Config("dateformat.regex")) -> None:
+def dateformat(
+    in_from: Annotation = Annotation("[dateformat.datetime_from]"),
+    in_to: Optional[Annotation] = Annotation("[dateformat.datetime_to]"),
+    out_from: Output = Output("[dateformat.out_annotation]:dateformat.datefrom", description="From-dates"),
+    out_to: Optional[Output] = Output("[dateformat.out_annotation]:dateformat.dateto", description="To-dates"),
+    informat: str = Config("dateformat.datetime_informat"),
+    outformat: str = Config("dateformat.date_outformat"),
+    splitter: Optional[str] = Config("dateformat.splitter"),
+    pre_regex: Optional[str] = Config("dateformat.pre_regex"),
+    regex: Optional[str] = Config("dateformat.regex"),
+) -> None:
     """Convert existing dates/times to specified date output format.
 
     https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior
@@ -98,13 +98,16 @@ def dateformat(in_from: Annotation = Annotation("[dateformat.datetime_from]"),
 
 
 @annotator("Convert existing dates to format YYYY-MM-DD")
-def dateformat_pretty(in_date: Annotation = Annotation("[dateformat.datetime_from]"),
-                      out: Output = Output("[dateformat.out_annotation]:dateformat.date_pretty",
-                                           description="Date without timestamp 'YYYY-MM-DD'"),
-                      informat: str = Config("dateformat.datetime_informat"),
-                      splitter: Optional[str] = Config("dateformat.splitter"),
-                      pre_regex: Optional[str] = Config("dateformat.pre_regex"),
-                      regex: Optional[str] = Config("dateformat.regex")) -> None:
+def dateformat_pretty(
+    in_date: Annotation = Annotation("[dateformat.datetime_from]"),
+    out: Output = Output(
+        "[dateformat.out_annotation]:dateformat.date_pretty", description="Date without timestamp 'YYYY-MM-DD'"
+    ),
+    informat: str = Config("dateformat.datetime_informat"),
+    splitter: Optional[str] = Config("dateformat.splitter"),
+    pre_regex: Optional[str] = Config("dateformat.pre_regex"),
+    regex: Optional[str] = Config("dateformat.regex"),
+) -> None:
     """Convert existing dates to format YYYY-MM-DD.
 
     Args:
@@ -122,23 +125,29 @@ def dateformat_pretty(in_date: Annotation = Annotation("[dateformat.datetime_fro
     _formatter(in_date, None, out, None, informat, "%Y-%m-%d", splitter, pre_regex, regex)
 
 
-@annotator("Convert existing times to specified output format", config=[
-    Config("dateformat.time_outformat", "%H%M%S",
-           description="Desired format of the formatted times. Several formats can be specified separated "
-                       "by |. They will be tied to their respective in-format.",
-           datatype=str)
-])
-def timeformat(in_from: Annotation = Annotation("[dateformat.datetime_from]"),
-               in_to: Optional[Annotation] = Annotation("[dateformat.datetime_to]"),
-               out_from: Output = Output("[dateformat.out_annotation]:dateformat.timefrom",
-                                         description="From-times"),
-               out_to: Optional[Output] = Output("[dateformat.out_annotation]:dateformat.timeto",
-                                                 description="To-times"),
-               informat: str = Config("dateformat.datetime_informat"),
-               outformat: str = Config("dateformat.time_outformat"),
-               splitter: Optional[str] = Config("dateformat.splitter"),
-               pre_regex: Optional[str] = Config("dateformat.pre_regex"),
-               regex: Optional[str] = Config("dateformat.regex")) -> None:
+@annotator(
+    "Convert existing times to specified output format",
+    config=[
+        Config(
+            "dateformat.time_outformat",
+            "%H%M%S",
+            description="Desired format of the formatted times. Several formats can be specified separated "
+            "by |. They will be tied to their respective in-format.",
+            datatype=str,
+        )
+    ],
+)
+def timeformat(
+    in_from: Annotation = Annotation("[dateformat.datetime_from]"),
+    in_to: Optional[Annotation] = Annotation("[dateformat.datetime_to]"),
+    out_from: Output = Output("[dateformat.out_annotation]:dateformat.timefrom", description="From-times"),
+    out_to: Optional[Output] = Output("[dateformat.out_annotation]:dateformat.timeto", description="To-times"),
+    informat: str = Config("dateformat.datetime_informat"),
+    outformat: str = Config("dateformat.time_outformat"),
+    splitter: Optional[str] = Config("dateformat.splitter"),
+    pre_regex: Optional[str] = Config("dateformat.pre_regex"),
+    regex: Optional[str] = Config("dateformat.regex"),
+) -> None:
     """Convert existing dates/times to specified time output format.
 
     https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior
@@ -202,8 +211,17 @@ def resolution(
     out_resolution.write(resolutions)
 
 
-def _formatter(in_from: Annotation, in_to: Optional[Annotation], out_from: Output, out_to: Optional[Output],
-               in_format: str, out_format: str, splitter: str, pre_regex: str, regex: str) -> None:
+def _formatter(
+    in_from: Annotation,
+    in_to: Optional[Annotation],
+    out_from: Output,
+    out_to: Optional[Output],
+    in_format: str,
+    out_format: str,
+    splitter: str,
+    pre_regex: str,
+    regex: str,
+) -> None:
     """Take existing dates/times and input formats and convert to specified output format.
 
     Args:
@@ -226,6 +244,7 @@ def _formatter(in_from: Annotation, in_to: Optional[Annotation], out_from: Outpu
         SparvErrorMessage: If the input annotation does not match the output annotation.
         ValueError: If the input format is invalid.
     """
+
     def get_smallest_unit(informat: str) -> Optional[str]:
         smallest_unit = None  # No date
 
@@ -250,17 +269,19 @@ def _formatter(in_from: Annotation, in_to: Optional[Annotation], out_from: Outpu
         parts = informat.split("%")
         length = len(parts[0])  # First value is either blank or not part of date
 
-        lengths = {"Y": 4,
-                   "3Y": 3,
-                   "y": 2,
-                   "m": 2,
-                   "b": None,
-                   "B": None,
-                   "d": 2,
-                   "H": None,
-                   "I": None,
-                   "M": 2,
-                   "S": 2}
+        lengths = {
+            "Y": 4,
+            "3Y": 3,
+            "y": 2,
+            "m": 2,
+            "b": None,
+            "B": None,
+            "d": 2,
+            "H": None,
+            "I": None,
+            "M": 2,
+            "S": 2,
+        }
 
         for part in parts[1:]:
             add = lengths.get(part[0], None)
@@ -273,9 +294,12 @@ def _formatter(in_from: Annotation, in_to: Optional[Annotation], out_from: Outpu
 
     # Check that the input annotation matches the output
     if (in_from and in_from.annotation_name != out_from.annotation_name) or (
-        in_to and in_to.annotation_name != out_to.annotation_name):
-        raise SparvErrorMessage("The 'dateformat' attributes must be attached to the same annotation as the input"
-                                f" (in this case the '{in_from.annotation_name}' annotation)")
+        in_to and in_to.annotation_name != out_to.annotation_name
+    ):
+        raise SparvErrorMessage(
+            "The 'dateformat' attributes must be attached to the same annotation as the input"
+            f" (in this case the '{in_from.annotation_name}' annotation)"
+        )
 
     if not in_to:
         in_to = in_from
@@ -283,9 +307,9 @@ def _formatter(in_from: Annotation, in_to: Optional[Annotation], out_from: Outpu
     in_format = in_format.split("|")
     out_format = out_format.split("|")
 
-    assert len(out_format) == 1 or (
-        len(out_format) == len(in_format)
-    ), "The number of out-formats must be equal to one or the number of in-formats."
+    assert len(out_format) == 1 or (len(out_format) == len(in_format)), (
+        "The number of out-formats must be equal to one or the number of in-formats."
+    )
 
     ifrom = list(in_from.read())
     ofrom = in_from.create_empty_attribute()
@@ -350,8 +374,10 @@ def _formatter(in_from: Annotation, in_to: Optional[Annotation], out_from: Outpu
                         out_format[0] if len(out_format) == 1 else out_format[tries - 1]
                     )
                 else:
-                    outstrings = [fromdate.strftime(out_format[0] if len(out_format) == 1 else out_format[tries - 1])
-                                  for fromdate in fromdates]
+                    outstrings = [
+                        fromdate.strftime(out_format[0] if len(out_format) == 1 else out_format[tries - 1])
+                        for fromdate in fromdates
+                    ]
                     ofrom[index] = outstrings[0] + splitter + outstrings[1]
                 break
             except ValueError:

@@ -1,4 +1,5 @@
 """Compound analysis."""
+
 import itertools
 import operator
 import pathlib
@@ -75,24 +76,26 @@ def preloader(saldo_comp_model: Model, stats_model: Model) -> tuple:
     preloader_params=["saldo_comp_model", "stats_model"],
     preloader_target="preloaded_models",
 )
-def annotate(out_complemgrams: Output = Output("<token>:saldo.complemgram",
-                                               description="Compound analysis using lemgrams"),
-             out_compwf: Output = Output("<token>:saldo.compwf", description="Compound analysis using wordforms"),
-             out_baseform: Output = Output("<token>:saldo.baseform2",
-                                           description="Baseform including baseforms derived from compounds"),
-             word_annotation: Annotation = Annotation("<token:word>"),
-             msd_annotation: Annotation = Annotation("<token:msd>"),
-             baseform_annotation: Annotation = Annotation("<token>:saldo.baseform"),
-             saldo_comp_model: Model = Model("[saldo.comp_model]"),
-             nst_model: Model = Model("[saldo.comp_nst_model]"),
-             stats_model: Model = Model("[saldo.comp_stats_model]"),
-             comp_use_source: bool = Config("saldo.comp_use_source"),
-             complemgramfmt: str = util.constants.SCORESEP + "%.3e",
-             delimiter: str = util.constants.DELIM,
-             compdelim: str = util.constants.COMPSEP,
-             affix: str = util.constants.AFFIX,
-             cutoff: bool = True,
-             preloaded_models: Optional[tuple] = None) -> None:
+def annotate(
+    out_complemgrams: Output = Output("<token>:saldo.complemgram", description="Compound analysis using lemgrams"),
+    out_compwf: Output = Output("<token>:saldo.compwf", description="Compound analysis using wordforms"),
+    out_baseform: Output = Output(
+        "<token>:saldo.baseform2", description="Baseform including baseforms derived from compounds"
+    ),
+    word_annotation: Annotation = Annotation("<token:word>"),
+    msd_annotation: Annotation = Annotation("<token:msd>"),
+    baseform_annotation: Annotation = Annotation("<token>:saldo.baseform"),
+    saldo_comp_model: Model = Model("[saldo.comp_model]"),
+    nst_model: Model = Model("[saldo.comp_nst_model]"),
+    stats_model: Model = Model("[saldo.comp_stats_model]"),
+    comp_use_source: bool = Config("saldo.comp_use_source"),
+    complemgramfmt: str = util.constants.SCORESEP + "%.3e",
+    delimiter: str = util.constants.DELIM,
+    compdelim: str = util.constants.COMPSEP,
+    affix: str = util.constants.AFFIX,
+    cutoff: bool = True,
+    preloaded_models: Optional[tuple] = None,
+) -> None:
     """Divide compound words into prefix(es) and suffix.
 
     Args:
@@ -199,8 +202,9 @@ def download_saldo_comp(out: ModelOutput = ModelOutput("saldo/saldo.compound.pic
 
 
 @modelbuilder("SALDO compound model", order=2)
-def build_saldo_comp(out: ModelOutput = ModelOutput("saldo/saldo.compound.pickle"),
-                     saldom: Model = Model("saldo/saldom.xml")) -> None:
+def build_saldo_comp(
+    out: ModelOutput = ModelOutput("saldo/saldo.compound.pickle"), saldom: Model = Model("saldo/saldom.xml")
+) -> None:
     """Extract compound info from saldom.xml and save as a pickle file."""
     xml_lexicon = read_lmf(saldom.path)
     save_to_picklefile(out.path, xml_lexicon)
@@ -246,8 +250,7 @@ class SaldoCompLexicon:
         Returns:
             A list of tuples, each containing the prefix, lemgram, and list of SUC POS tags.
         """
-        return [(prefix, p[0], tuple(p[3])) for p in self.lookup(prefix) if
-                set(p[1]).intersection({"c", "ci"})]
+        return [(prefix, p[0], tuple(p[3])) for p in self.lookup(prefix) if set(p[1]).intersection({"c", "ci"})]
 
     def get_infixes(self, infix: str) -> list:
         """Look up a string and return possible analyses of that string as an infix (middle part of a word).
@@ -258,8 +261,7 @@ class SaldoCompLexicon:
         Returns:
             A list of tuples, each containing the infix, lemgram, and list of SUC POS tags.
         """
-        return [(infix, i[0], tuple(i[3])) for i in self.lookup(infix) if
-                set(i[1]).intersection({"c", "cm"})]
+        return [(infix, i[0], tuple(i[3])) for i in self.lookup(infix) if set(i[1]).intersection({"c", "cm"})]
 
     def get_suffixes(self, suffix: str, msd: Optional[str] = None) -> list:
         """Look up a string and return possible analyses of that string as a suffix.
@@ -271,11 +273,13 @@ class SaldoCompLexicon:
         Returns:
             A list of tuples, each containing the suffix, lemgram, and list of SUC POS tags.
         """
-        return [(suffix, s[0], tuple(s[3])) for s in self.lookup(suffix)
-                if (s[2] in {"nn", "vb", "av"} or s[2][-1] == "h")
-                and set(s[1]).difference({"c", "ci", "cm", "sms"})
-                and (msd in s[3] or not msd or [partial for partial in s[3] if partial.startswith(msd[:msd.find(".")])])
-                ]
+        return [
+            (suffix, s[0], tuple(s[3]))
+            for s in self.lookup(suffix)
+            if (s[2] in {"nn", "vb", "av"} or s[2][-1] == "h")
+            and set(s[1]).difference({"c", "ci", "cm", "sms"})
+            and (msd in s[3] or not msd or [partial for partial in s[3] if partial.startswith(msd[: msd.find(".")])])
+        ]
 
     @staticmethod
     def _split_triple(annotation_tag_words: str) -> tuple:
@@ -290,7 +294,7 @@ class SaldoCompLexicon:
         lemgram, msds, pos, tags = annotation_tag_words.split(PART_DELIM1)
         msds = msds.split(PART_DELIM2)
         tags = tags.split(PART_DELIM2)
-        tags = list({t[:t.find(".")] if t.find(".") != -1 else t for t in tags})
+        tags = list({t[: t.find(".")] if t.find(".") != -1 else t for t in tags})
         return lemgram, msds, pos, tags
 
 
@@ -385,10 +389,11 @@ class InFileLexicon:
         Returns:
             A list of tuples, each containing the suffix, "0" (instead of lemgram), and list of SUC POS tags.
         """
-        return [(suffix, "0", (s[1],)) for s in self.lookup(suffix.lower())
-                if (s[1][0:2] in {"NN", "VB", "AV"})
-                and (not msd or msd in s[1] or s[1].startswith(msd[:msd.find(".")]))
-                ]
+        return [
+            (suffix, "0", (s[1],))
+            for s in self.lookup(suffix.lower())
+            if (s[1][0:2] in {"NN", "VB", "AV"}) and (not msd or msd in s[1] or s[1].startswith(msd[: msd.find(".")]))
+        ]
 
 
 ################################################################################
@@ -487,8 +492,9 @@ def split_word(saldo_lexicon: SaldoCompLexicon, altlexicon: InFileLexicon, w: st
                     if this_span in invalid_spans:
                         continue
                     # Is there a possible suffix analysis?
-                    elif exception(comp[-1]) or not (saldo_lexicon.get_suffixes(comp[-1], msd)
-                                                   or altlexicon.get_suffixes(comp[-1], msd)):
+                    elif exception(comp[-1]) or not (
+                        saldo_lexicon.get_suffixes(comp[-1], msd) or altlexicon.get_suffixes(comp[-1], msd)
+                    ):
                         invalid_spans.add(this_span)
                         if multicomp and all((spans[-1], i) in invalid_spans for i in range(len(comps))):
                             invalid_spans.add(spans[-1])
@@ -504,8 +510,9 @@ def split_word(saldo_lexicon: SaldoCompLexicon, altlexicon: InFileLexicon, w: st
                         if this_span in invalid_spans:
                             abort = True
                             break
-                        elif exception(infix) or not (saldo_lexicon.get_infixes(infix)
-                                                    or altlexicon.get_prefixes(infix)):
+                        elif exception(infix) or not (
+                            saldo_lexicon.get_infixes(infix) or altlexicon.get_prefixes(infix)
+                        ):
                             invalid_spans.add(this_span)
                             if multicomp and all((spans[k], i) in invalid_spans for i in range(len(comps))):
                                 invalid_spans.add(spans[k])
@@ -543,12 +550,55 @@ def exception(w: str) -> bool:
         True if the word is an unwanted suffix, False otherwise.
     """
     return w.lower() in {
-        "il", "ör", "en", "ens", "ar", "ars",
-        "or", "ors", "ur", "urs", "lös", "tik", "bar",
-        "lik", "het", "hets", "lig", "ligt", "te", "tet", "tets",
-        "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l",
-        "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x",
-        "y", "z", "ä"}
+        "il",
+        "ör",
+        "en",
+        "ens",
+        "ar",
+        "ars",
+        "or",
+        "ors",
+        "ur",
+        "urs",
+        "lös",
+        "tik",
+        "bar",
+        "lik",
+        "het",
+        "hets",
+        "lig",
+        "ligt",
+        "te",
+        "tet",
+        "tets",
+        "a",
+        "b",
+        "c",
+        "d",
+        "e",
+        "f",
+        "g",
+        "h",
+        "i",
+        "j",
+        "k",
+        "l",
+        "m",
+        "n",
+        "o",
+        "p",
+        "q",
+        "r",
+        "s",
+        "t",
+        "u",
+        "v",
+        "w",
+        "x",
+        "y",
+        "z",
+        "ä",
+    }
 
 
 def three_consonant_rule(compound: list[str]) -> list[list[str]]:
@@ -602,7 +652,8 @@ def rank_compounds(
             tags = list(itertools.product(*[affix[2] for affix in c]))
             # Calculate probability score
             word_probs = max(
-                reduce(operator.mul, [(stats_lexicon.lookup_prob(i)) for i in zip(affixes, t)]) for t in tags)
+                reduce(operator.mul, [(stats_lexicon.lookup_prob(i)) for i in zip(affixes, t)]) for t in tags
+            )
             tag_prob = max(nst_model.prob("+".join(t)) for t in tags)
             score = word_probs * tag_prob
             ranklist.append((score, c))
@@ -718,7 +769,7 @@ def make_complem_and_compwf(
 
         # If the first letter is uppercase, check if one of the affixes may be a name
         if comp[0][0][0].isupper():
-            if not any([True for a in comp if "pm" in a[1][a[1].find("."):]] + [True for a in comp if "PM" in a[2]]):
+            if not any([True for a in comp if "pm" in a[1][a[1].find(".") :]] + [True for a in comp if "PM" in a[2]]):
                 wf = compdelim.join(affix[0].lower() for affix in comp)
             else:
                 wf = compdelim.join(affix[0] for affix in comp)
@@ -730,7 +781,7 @@ def make_complem_and_compwf(
 
     return (
         util.misc.cwbset(complem_list, delimiter, affix) if compounds and complem_list else affix,
-        util.misc.cwbset(compwf_list, delimiter, affix) if compounds else affix
+        util.misc.cwbset(compwf_list, delimiter, affix) if compounds else affix,
     )
 
 
@@ -756,15 +807,15 @@ def make_new_baseforms(
         A list of baseforms derived from the compounds, in the form string delimited by the specified delimiter.
     """
     baseform_list = []
-    msd_tag = msd_tag[:msd_tag.find(".")]
+    msd_tag = msd_tag[: msd_tag.find(".")]
     for probcomp in compounds:
         comp = probcomp[1]
 
-        base_suffix = comp[-1][0] if comp[-1][1] == "0" else comp[-1][1][:comp[-1][1].find(".")]
+        base_suffix = comp[-1][0] if comp[-1][1] == "0" else comp[-1][1][: comp[-1][1].find(".")]
         prefix = comp[0][0]
         # If first letter has upper case, check if one of the affixes is a name:
         if prefix[0] == prefix[0].upper():
-            if not any(True for a in comp if "pm" in a[1][a[1].find("."):]):
+            if not any(True for a in comp if "pm" in a[1][a[1].find(".") :]):
                 baseform = "".join(affix[0].lower() for affix in comp[:-1]) + base_suffix
             else:
                 baseform = "".join(affix[0] for affix in comp[:-1]) + base_suffix
@@ -773,7 +824,8 @@ def make_new_baseforms(
 
         # Check if this baseform with the MSD tag occurs in stats_lexicon
         if baseform not in baseform_list and (
-            stats_lexicon.lookup_word_tag_freq(baseform, msd_tag) > 0 or altlexicon.lookup(baseform.lower()) != []):
+            stats_lexicon.lookup_word_tag_freq(baseform, msd_tag) > 0 or altlexicon.lookup(baseform.lower()) != []
+        ):
             baseform_list.append(baseform)
 
     return util.misc.cwbset(baseform_list, delimiter, affix) if (compounds and baseform_list) else affix
@@ -800,7 +852,6 @@ def read_lmf(xml: pathlib.Path, tagset: str = "SUC") -> dict:
     for event, elem in context:
         if event == "end":
             if elem.tag == "LexicalEntry":
-
                 pos = elem.findtext("pos")
                 lem = elem.findtext("lem")
                 table = elem.find("table")

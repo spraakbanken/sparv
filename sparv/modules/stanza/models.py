@@ -16,24 +16,17 @@ def stanza_resources_file(resources_file: ModelOutput = ModelOutput("stanza/swe/
         resources_file: Path to the resources.json file to be created.
     """
     # Write resources.json file to keep Stanza from complaining
-    res = json.dumps({
-        "sv": {
-            "lang_name": "Swedish",
-            "tokenize": {
-                "orchid": {},
-                "best": {}
-            },
-            "default_processors": {
-                "tokenize": "orchid"
-            },
-            "default_dependencies": {},
-            "packages": {
-                "default": {
-                    "tokenize": "orchid"
-                }
-            },
+    res = json.dumps(
+        {
+            "sv": {
+                "lang_name": "Swedish",
+                "tokenize": {"orchid": {}, "best": {}},
+                "default_processors": {"tokenize": "orchid"},
+                "default_dependencies": {},
+                "packages": {"default": {"tokenize": "orchid"}},
+            }
         }
-    })
+    )
     resources_file.write(res)
 
 
@@ -90,8 +83,9 @@ def stanza_dep_model(_model: ModelOutput = ModelOutput("stanza/swe/dep/sv_talban
 
 
 @modelbuilder("Stanza models for other languages than Swedish", language=["eng"])
-def get_model(lang: Language = Language(),
-              resources_file: ModelOutput = ModelOutput("stanza/[metadata.language]/resources.json")) -> None:
+def get_model(
+    lang: Language = Language(), resources_file: ModelOutput = ModelOutput("stanza/[metadata.language]/resources.json")
+) -> None:
     """Download Stanza language models.
 
     Args:
@@ -99,10 +93,12 @@ def get_model(lang: Language = Language(),
         resources_file: Path to the resources.json file to be downloaded.
     """
     import stanza  # noqa: PLC0415
+
     lang_name = util.misc.get_language_name_by_part3(lang) or lang
     stanza_lang = util.misc.get_language_part1_by_part3(lang)
     logger.info("Downloading Stanza language model for %s", lang_name)
-    stanza.download(lang=stanza_lang, model_dir=str(resources_file.path.parent), verbose=False,
-                    logging_level=logging.WARNING)
+    stanza.download(
+        lang=stanza_lang, model_dir=str(resources_file.path.parent), verbose=False, logging_level=logging.WARNING
+    )
     zip_file = Model(f"stanza/{lang}/{stanza_lang}/default.zip")
     zip_file.remove()

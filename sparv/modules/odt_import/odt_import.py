@@ -22,27 +22,35 @@ from sparv.api import (
 logger = get_logger(__name__)
 
 
-@importer("odt import", file_extension="odt", outputs=["text"], text_annotation="text", config=[
-    Config("odt_import.prefix", description="Optional prefix to add to annotation names.", datatype=str),
-    Config(
-        "odt_import.keep_control_chars",
-        default=False,
-        description="Set to True if control characters should not be removed from the text.",
-        datatype=bool
-    ),
-    Config(
-        "odt_import.normalize",
-        default="NFC",
-        description="Normalize input using any of the following forms: 'NFC', 'NFKC', 'NFD', and 'NFKD'.",
-        datatype=str,
-        choices=("NFC", "NFKC", "NFD", "NFKD"),
-    )
-])
-def parse(source_file: SourceFilename = SourceFilename(),
-          source_dir: Source = Source(),
-          prefix: Optional[str] = Config("odt_import.prefix"),
-          keep_control_chars: bool = Config("odt_import.keep_control_chars"),
-          normalize: str = Config("odt_import.normalize")) -> None:
+@importer(
+    "odt import",
+    file_extension="odt",
+    outputs=["text"],
+    text_annotation="text",
+    config=[
+        Config("odt_import.prefix", description="Optional prefix to add to annotation names.", datatype=str),
+        Config(
+            "odt_import.keep_control_chars",
+            default=False,
+            description="Set to True if control characters should not be removed from the text.",
+            datatype=bool,
+        ),
+        Config(
+            "odt_import.normalize",
+            default="NFC",
+            description="Normalize input using any of the following forms: 'NFC', 'NFKC', 'NFD', and 'NFKD'.",
+            datatype=str,
+            choices=("NFC", "NFKC", "NFD", "NFKD"),
+        ),
+    ],
+)
+def parse(
+    source_file: SourceFilename = SourceFilename(),
+    source_dir: Source = Source(),
+    prefix: Optional[str] = Config("odt_import.prefix"),
+    keep_control_chars: bool = Config("odt_import.keep_control_chars"),
+    normalize: str = Config("odt_import.normalize"),
+) -> None:
     """Parse odt file as input to Sparv.
 
     Args:
@@ -151,7 +159,7 @@ class OdtParser:
         nsmap = {
             "text": "urn:oasis:names:tc:opendocument:xmlns:text:1.0",
             "drawing": "urn:oasis:names:tc:opendocument:xmlns:drawing:1.0",
-            "xmlns": "http://www.w3.org/1999/xlink"
-            }
+            "xmlns": "http://www.w3.org/1999/xlink",
+        }
         domain, tagname = tag.split(":")
         return f"{{{nsmap[domain]}}}{tagname}"

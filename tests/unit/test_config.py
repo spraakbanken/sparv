@@ -1,4 +1,5 @@
 """Unit tests for sparv.core.config."""
+
 import copy
 
 from sparv.core import config

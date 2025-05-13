@@ -40,8 +40,9 @@ def download_saldo_pickle(out: ModelOutput = ModelOutput("saldo/saldo.pickle")) 
 
 
 @modelbuilder("SALDO morphology model", order=2)
-def build_saldo_pickle(out: ModelOutput = ModelOutput("saldo/saldo.pickle"),
-                saldom: Model = Model("saldo/saldom.xml")) -> None:
+def build_saldo_pickle(
+    out: ModelOutput = ModelOutput("saldo/saldo.pickle"), saldom: Model = Model("saldo/saldom.xml")
+) -> None:
     """Save SALDO morphology as a pickle file.
 
     Args:
@@ -138,8 +139,9 @@ class SaldoLexicon:
             logger.info("Saving LMF lexicon in text format")
         with saldofile.open("w", encoding="UTF-8") as f:
             for word in sorted(lexicon):
-                annotations = [PART_DELIM.join([annotation, *sorted(postags)])
-                               for annotation, postags in lexicon[word].items()]
+                annotations = [
+                    PART_DELIM.join([annotation, *sorted(postags)]) for annotation, postags in lexicon[word].items()
+                ]
                 print(" ".join([word, *annotations]).encode(util.constants.UTF8), file=f)
         if verbose:
             logger.info("OK, saved")
@@ -242,8 +244,13 @@ def read_lmf(
                     x_insert = "1"
 
                 # Only vbm and certain paradigms allow gaps
-                gap_allowed = (pos == "vbm" or p in {
-                    "abm_x1_var_än", "knm_x_ju_ju", "pnm_x1_inte_ett_dugg", "pnm_x1_vad_än", "ppm_x1_för_skull"})
+                gap_allowed = pos == "vbm" or p in {
+                    "abm_x1_var_än",
+                    "knm_x_ju_ju",
+                    "pnm_x1_inte_ett_dugg",
+                    "pnm_x1_vad_än",
+                    "ppm_x1_för_skull",
+                }
 
                 table = elem.find("table")
                 multiwords = []
@@ -287,13 +294,7 @@ def read_lmf(
             if elem.tag in {"LexicalEntry", "frame", "resFrame"}:
                 root.clear()
 
-    testwords = ["äggtoddyarna",
-                 "Linköpingsbors",
-                 "katabatiska",
-                 "väg-",
-                 "formar",
-                 "in",
-                 "datorrelaterade"]
+    testwords = ["äggtoddyarna", "Linköpingsbors", "katabatiska", "väg-", "formar", "in", "datorrelaterade"]
     util.misc.test_lexicon(lexicon, testwords)
 
     if verbose:

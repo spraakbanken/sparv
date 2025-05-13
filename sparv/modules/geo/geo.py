@@ -20,15 +20,20 @@ from sparv.api import (
 logger = get_logger(__name__)
 
 
-@annotator("Annotate {chunk} with location data, based on locations contained within the text", language=["swe"],
-           wildcards=[Wildcard("chunk", Wildcard.ANNOTATION)])
-def contextual(out: Output = Output("{chunk}:geo.geo_context", description="Geographical places with coordinates"),
-               chunk: Annotation = Annotation("{chunk}"),
-               ne_type: Annotation = Annotation("swener.ne:swener.type"),
-               ne_subtype: Annotation = Annotation("swener.ne:swener.subtype"),
-               ne_name: Annotation = Annotation("swener.ne:swener.name"),
-               model: Model = Model("[geo.model]"),
-               language: Container = ()) -> None:
+@annotator(
+    "Annotate {chunk} with location data, based on locations contained within the text",
+    language=["swe"],
+    wildcards=[Wildcard("chunk", Wildcard.ANNOTATION)],
+)
+def contextual(
+    out: Output = Output("{chunk}:geo.geo_context", description="Geographical places with coordinates"),
+    chunk: Annotation = Annotation("{chunk}"),
+    ne_type: Annotation = Annotation("swener.ne:swener.type"),
+    ne_subtype: Annotation = Annotation("swener.ne:swener.subtype"),
+    ne_name: Annotation = Annotation("swener.ne:swener.name"),
+    model: Model = Model("[geo.model]"),
+    language: Container = (),
+) -> None:
     """Annotate chunks with location data, based on locations contained within the text.
 
     Args:
@@ -67,15 +72,21 @@ def contextual(out: Output = Output("{chunk}:geo.geo_context", description="Geog
     out.write(out_annotation)
 
 
-@annotator("Annotate {chunk} with location data, based on metadata containing location names", config=[
-    Config("geo.metadata_source", description="Source attribute for location metadata", datatype=str),
-    Config("geo.model", default="geo/geo.pickle", description="Path to model", datatype=str)
-], wildcards=[Wildcard("chunk", Wildcard.ANNOTATION)])
-def metadata(out: Output = Output("{chunk}:geo.geo_metadata", description="Geographical places with coordinates"),
-             chunk: Annotation = Annotation("{chunk}"),
-             source: Annotation = Annotation("[geo.metadata_source]"),
-             model: Model = Model("[geo.model]"),
-             language: Container = ()) -> None:
+@annotator(
+    "Annotate {chunk} with location data, based on metadata containing location names",
+    config=[
+        Config("geo.metadata_source", description="Source attribute for location metadata", datatype=str),
+        Config("geo.model", default="geo/geo.pickle", description="Path to model", datatype=str),
+    ],
+    wildcards=[Wildcard("chunk", Wildcard.ANNOTATION)],
+)
+def metadata(
+    out: Output = Output("{chunk}:geo.geo_metadata", description="Geographical places with coordinates"),
+    chunk: Annotation = Annotation("{chunk}"),
+    source: Annotation = Annotation("[geo.metadata_source]"),
+    model: Model = Model("[geo.model]"),
+    language: Container = (),
+) -> None:
     """Get location data based on metadata containing location names.
 
     Args:
@@ -102,8 +113,9 @@ def metadata(out: Output = Output("{chunk}:geo.geo_metadata", description="Geogr
         if same_target_source:
             location_source = source_annotation[i]
         else:
-            location_source = source_annotation[target_source_parents[i]] if target_source_parents[
-                i] is not None else None
+            location_source = (
+                source_annotation[target_source_parents[i]] if target_source_parents[i] is not None else None
+            )
 
         if location_source:
             location_data = geomodel.get(location_source.strip().lower())
@@ -159,8 +171,27 @@ def pickle_model(geonames: Model, alternative_names: Model, out: ModelOutput) ->
     model_file = geonames.read()
     for line in model_file.split("\n"):
         if line.strip():
-            geonameid, name, _, _, latitude, longitude, _feature_class, _feature_code, \
-                country, _, _admin1, _admin2, _admin3, _admin4, population, _, _, _, _ = line.split("\t")
+            (
+                geonameid,
+                name,
+                _,
+                _,
+                latitude,
+                longitude,
+                _feature_class,
+                _feature_code,
+                country,
+                _,
+                _admin1,
+                _admin2,
+                _admin3,
+                _admin4,
+                population,
+                _,
+                _,
+                _,
+                _,
+            ) = line.split("\t")
 
             result[geonameid] = {
                 "name": name,
@@ -168,7 +199,7 @@ def pickle_model(geonames: Model, alternative_names: Model, out: ModelOutput) ->
                 "latitude": latitude,
                 "longitude": longitude,
                 "country": country,
-                "population": population
+                "population": population,
             }
 
     # Parse file with alternative names of locations, paired with language codes
@@ -177,8 +208,16 @@ def pickle_model(geonames: Model, alternative_names: Model, out: ModelOutput) ->
     model_file = alternative_names.read()
     for line in model_file.split("\n"):
         if line.strip():
-            _altid, geonameid, isolanguage, altname, _is_preferred_name, _is_short_name, \
-                _is_colloquial, _is_historic = line.split("\t")
+            (
+                _altid,
+                geonameid,
+                isolanguage,
+                altname,
+                _is_preferred_name,
+                _is_short_name,
+                _is_colloquial,
+                _is_historic,
+            ) = line.split("\t")
             if geonameid in result:
                 result[geonameid]["alternative_names"].setdefault(isolanguage, [])
                 result[geonameid]["alternative_names"][isolanguage].append(altname)
@@ -213,7 +252,8 @@ def load_model(model: Model, language: Container = ()) -> dict:
             if lang in language or not language:
                 for altname in l["alternative_names"][lang]:
                     result[altname.lower()].add(
-                        (l["name"], l["latitude"], l["longitude"], l["country"], l["population"]))
+                        (l["name"], l["latitude"], l["longitude"], l["country"], l["population"])
+                    )
 
     logger.info("Read %d geographical names", len(result))
 

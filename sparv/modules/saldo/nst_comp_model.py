@@ -20,8 +20,9 @@ def download_nst_comp(out: ModelOutput = ModelOutput("saldo/nst_comp_pos.pickle"
 
 
 @modelbuilder("Compound POS model", order=2)
-def build_nst_comp(out: ModelOutput = ModelOutput("saldo/nst_comp_pos.pickle"),
-                   nst_lexicon: Model = Model("saldo/nst_utf8.txt")) -> None:
+def build_nst_comp(
+    out: ModelOutput = ModelOutput("saldo/nst_comp_pos.pickle"), nst_lexicon: Model = Model("saldo/nst_utf8.txt")
+) -> None:
     """Download NST lexicon and convert it to a compound POS model.
 
     The NST lexicon can be retrieved from SVN with credentials:

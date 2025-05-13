@@ -1,4 +1,5 @@
 """Classes used as default input for annotator functions."""
+
 # ruff: noqa: FURB189
 from __future__ import annotations
 

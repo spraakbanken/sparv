@@ -1,6 +1,5 @@
 """Summarizes and exports annotation version information."""
 
-
 from datetime import datetime
 from pathlib import Path
 
@@ -21,7 +20,7 @@ def yaml_export(out: Export = Export("version_info/info_[metadata.id].yaml")) ->
     """
     info_dict = {
         "Sparv version": sparv_version,
-        "Annotation date": datetime.today().strftime("%Y-%m-%d")
+        "Annotation date": datetime.today().strftime("%Y-%m-%d"),
     }
 
     # Write YAML file

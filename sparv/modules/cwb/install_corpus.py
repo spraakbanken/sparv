@@ -21,16 +21,17 @@ logger = get_logger(__name__)
 
 @installer("Install CWB datafiles", uninstaller="cwb:uninstall_corpus")
 def install_corpus(
-        corpus: Corpus = Corpus(),
-        marker: OutputMarker = OutputMarker("cwb.install_corpus_marker"),
-        uninstall_marker: MarkerOptional = MarkerOptional("cwb.uninstall_corpus_marker"),
-        host: Optional[str] = Config("cwb.remote_host"),
-        registry_file: ExportInput = ExportInput("cwb.encoded/registry/[metadata.id]"),
-        info_file: ExportInput = ExportInput("cwb.encoded/data/.info"),
-        target_data_dir: str = Config("cwb.remote_data_dir"),
-        target_registry_dir: str = Config("cwb.remote_registry_dir"),
-        # This argument is needed by Snakemake to trigger encoding of the corpus if needed
-        _marker: ExportInput = ExportInput("cwb.encoded/data/.marker")) -> None:
+    corpus: Corpus = Corpus(),
+    marker: OutputMarker = OutputMarker("cwb.install_corpus_marker"),
+    uninstall_marker: MarkerOptional = MarkerOptional("cwb.uninstall_corpus_marker"),
+    host: Optional[str] = Config("cwb.remote_host"),
+    registry_file: ExportInput = ExportInput("cwb.encoded/registry/[metadata.id]"),
+    info_file: ExportInput = ExportInput("cwb.encoded/data/.info"),
+    target_data_dir: str = Config("cwb.remote_data_dir"),
+    target_registry_dir: str = Config("cwb.remote_registry_dir"),
+    # This argument is needed by Snakemake to trigger encoding of the corpus if needed
+    _marker: ExportInput = ExportInput("cwb.encoded/data/.marker"),
+) -> None:
     """Install CWB datafiles, by rsyncing datadir and registry.
 
     Args:
@@ -44,23 +45,31 @@ def install_corpus(
         target_registry_dir: The target directory for the CWB registry files.
         _marker: The marker file to create after installation.
     """
-    sync_cwb(corpus=corpus, marker=marker, host=host, info_file=info_file, registry_file=registry_file,
-             target_data_dir=target_data_dir, target_registry_dir=target_registry_dir)
+    sync_cwb(
+        corpus=corpus,
+        marker=marker,
+        host=host,
+        info_file=info_file,
+        registry_file=registry_file,
+        target_data_dir=target_data_dir,
+        target_registry_dir=target_registry_dir,
+    )
     uninstall_marker.remove()
 
 
 @installer("Install CWB datafiles for a scrambled corpus", uninstaller="cwb:uninstall_corpus")
 def install_corpus_scrambled(
-        corpus: Corpus = Corpus(),
-        marker: OutputMarker = OutputMarker("cwb.install_corpus_scrambled_marker"),
-        uninstall_marker: MarkerOptional = MarkerOptional("cwb.uninstall_corpus_marker"),
-        host: Optional[str] = Config("cwb.remote_host"),
-        registry_file: ExportInput = ExportInput("cwb.encoded_scrambled/registry/[metadata.id]"),
-        info_file: ExportInput = ExportInput("cwb.encoded_scrambled/data/.info"),
-        target_data_dir: str = Config("cwb.remote_data_dir"),
-        target_registry_dir: str = Config("cwb.remote_registry_dir"),
-        # This argument is needed by Snakemake to trigger encoding of the corpus if needed
-        _scrambled_marker: ExportInput = ExportInput("cwb.encoded_scrambled/data/.scrambled_marker")) -> None:
+    corpus: Corpus = Corpus(),
+    marker: OutputMarker = OutputMarker("cwb.install_corpus_scrambled_marker"),
+    uninstall_marker: MarkerOptional = MarkerOptional("cwb.uninstall_corpus_marker"),
+    host: Optional[str] = Config("cwb.remote_host"),
+    registry_file: ExportInput = ExportInput("cwb.encoded_scrambled/registry/[metadata.id]"),
+    info_file: ExportInput = ExportInput("cwb.encoded_scrambled/data/.info"),
+    target_data_dir: str = Config("cwb.remote_data_dir"),
+    target_registry_dir: str = Config("cwb.remote_registry_dir"),
+    # This argument is needed by Snakemake to trigger encoding of the corpus if needed
+    _scrambled_marker: ExportInput = ExportInput("cwb.encoded_scrambled/data/.scrambled_marker"),
+) -> None:
     """Install scrambled CWB datafiles, by rsyncing datadir and registry.
 
     Args:
@@ -74,8 +83,15 @@ def install_corpus_scrambled(
         target_registry_dir: The target directory for the CWB registry files.
         _scrambled_marker: The marker file to create after installation.
     """
-    sync_cwb(corpus=corpus, marker=marker, host=host, info_file=info_file, registry_file=registry_file,
-             target_data_dir=target_data_dir, target_registry_dir=target_registry_dir)
+    sync_cwb(
+        corpus=corpus,
+        marker=marker,
+        host=host,
+        info_file=info_file,
+        registry_file=registry_file,
+        target_data_dir=target_data_dir,
+        target_registry_dir=target_registry_dir,
+    )
     uninstall_marker.remove()
 
 
@@ -87,7 +103,7 @@ def uninstall_corpus(
     install_scrambled_marker: MarkerOptional = MarkerOptional("cwb.install_corpus_scrambled_marker"),
     host: Optional[str] = Config("cwb.remote_host"),
     data_dir: str = Config("cwb.remote_data_dir"),
-    registry_dir: str = Config("cwb.remote_registry_dir")
+    registry_dir: str = Config("cwb.remote_registry_dir"),
 ) -> None:
     """Uninstall CWB data.
 

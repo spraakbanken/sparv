@@ -9,42 +9,50 @@ import pypdfium2 as pdfium
 from sparv.api import Config, Output, Source, SourceFilename, SourceStructure, SparvErrorMessage, Text, importer, util
 
 
-@importer("PDF Import", file_extension="pdf", outputs=["text", "page:number"], text_annotation="text", config=[
-    Config("pdf_import.prefix", description="Optional prefix to add to annotation names.", datatype=str),
-    Config(
-        "pdf_import.keep_hyphenation",
-        default=False,
-        description="Set to True to retain hyphenation in the text.",
-        datatype=bool,
-    ),
-    Config(
-        "pdf_import.line_break_after_hyphenation",
-        default=True,
-        description="Set to True to preserve line breaks after hyphenations, or, if keep_hyphenation is False, to add "
-        "line breaks after joining words.",
-        datatype=bool,
-    ),
-    Config(
-        "pdf_import.keep_control_chars",
-        default=False,
-        description="Set to True to retain control characters in the text.",
-        datatype=bool,
-    ),
-    Config(
-        "pdf_import.normalize",
-        default="NFC",
-        description="Normalize input text using one of the following forms: 'NFC', 'NFKC', 'NFD', or 'NFKD'.",
-        datatype=str,
-        choices=("NFC", "NFKC", "NFD", "NFKD"),
-    )
-])
-def parse(source_file: SourceFilename = SourceFilename(),
-          source_dir: Source = Source(),
-          prefix: Optional[str] = Config("pdf_import.prefix"),
-          keep_hyphenation: bool = Config("pdf_import.keep_hyphenation"),
-          line_break_after_hyphenation: bool = Config("pdf_import.line_break_after_hyphenation"),
-          keep_control_chars: bool = Config("pdf_import.keep_control_chars"),
-          normalize: str = Config("pdf_import.normalize")) -> None:
+@importer(
+    "PDF Import",
+    file_extension="pdf",
+    outputs=["text", "page:number"],
+    text_annotation="text",
+    config=[
+        Config("pdf_import.prefix", description="Optional prefix to add to annotation names.", datatype=str),
+        Config(
+            "pdf_import.keep_hyphenation",
+            default=False,
+            description="Set to True to retain hyphenation in the text.",
+            datatype=bool,
+        ),
+        Config(
+            "pdf_import.line_break_after_hyphenation",
+            default=True,
+            description="Set to True to preserve line breaks after hyphenations, or, if keep_hyphenation is False, to "
+            "add line breaks after joining words.",
+            datatype=bool,
+        ),
+        Config(
+            "pdf_import.keep_control_chars",
+            default=False,
+            description="Set to True to retain control characters in the text.",
+            datatype=bool,
+        ),
+        Config(
+            "pdf_import.normalize",
+            default="NFC",
+            description="Normalize input text using one of the following forms: 'NFC', 'NFKC', 'NFD', or 'NFKD'.",
+            datatype=str,
+            choices=("NFC", "NFKC", "NFD", "NFKD"),
+        ),
+    ],
+)
+def parse(
+    source_file: SourceFilename = SourceFilename(),
+    source_dir: Source = Source(),
+    prefix: Optional[str] = Config("pdf_import.prefix"),
+    keep_hyphenation: bool = Config("pdf_import.keep_hyphenation"),
+    line_break_after_hyphenation: bool = Config("pdf_import.line_break_after_hyphenation"),
+    keep_control_chars: bool = Config("pdf_import.keep_control_chars"),
+    normalize: str = Config("pdf_import.normalize"),
+) -> None:
     """Parse a PDF file as input to Sparv and retain page information.
 
     Args:
@@ -97,8 +105,10 @@ def parse(source_file: SourceFilename = SourceFilename(),
 
     # Check if any text was found in the PDF
     if not "".join(text.strip() for text in texts):
-        raise SparvErrorMessage(f"No text was found in the file '{source_file}.pdf'! This file cannot be processed "
-                                "with Sparv. Please ensure that every PDF source file contains machine-readable text.")
+        raise SparvErrorMessage(
+            f"No text was found in the file '{source_file}.pdf'! This file cannot be processed "
+            "with Sparv. Please ensure that every PDF source file contains machine-readable text."
+        )
 
     # Write page spans
     Output(f"{prefix}.page" if prefix else "page", source_file=source_file).write(pages)

@@ -1,4 +1,5 @@
 """Annotate words with lexical classes from Blingbring or SweFN."""
+
 from collections.abc import Iterable
 from typing import Optional
 
@@ -8,23 +9,34 @@ from sparv.api.util.constants import AFFIX, DELIM, SCORESEP
 logger = get_logger(__name__)
 
 
-@annotator("Annotate tokens with Blingbring classes", language=["swe"], config=[
-    Config("lexical_classes.bb_word_model", default="lexical_classes/blingbring.pickle",
-           description="Path to Blingbring model", datatype=str)
-])
-def blingbring_words(out: Output = Output("<token>:lexical_classes.blingbring",
-                                          description="Lexical classes for tokens from Blingbring"),
-                     model: Model = Model("[lexical_classes.bb_word_model]"),
-                     saldoids: Annotation = Annotation("<token:sense>"),
-                     pos: Annotation = Annotation("<token:pos>"),
-                     pos_limit: Iterable[str] = ("NN", "VB", "JJ", "AB"),
-                     class_set: str = "bring",
-                     disambiguate: bool = True,
-                     connect_ids: bool = False,
-                     delimiter: str = DELIM,
-                     affix: str = AFFIX,
-                     scoresep: str = SCORESEP,
-                     lexicon: Optional[util.misc.PickledLexicon] = None) -> None:
+@annotator(
+    "Annotate tokens with Blingbring classes",
+    language=["swe"],
+    config=[
+        Config(
+            "lexical_classes.bb_word_model",
+            default="lexical_classes/blingbring.pickle",
+            description="Path to Blingbring model",
+            datatype=str,
+        )
+    ],
+)
+def blingbring_words(
+    out: Output = Output(
+        "<token>:lexical_classes.blingbring", description="Lexical classes for tokens from Blingbring"
+    ),
+    model: Model = Model("[lexical_classes.bb_word_model]"),
+    saldoids: Annotation = Annotation("<token:sense>"),
+    pos: Annotation = Annotation("<token:pos>"),
+    pos_limit: Iterable[str] = ("NN", "VB", "JJ", "AB"),
+    class_set: str = "bring",
+    disambiguate: bool = True,
+    connect_ids: bool = False,
+    delimiter: str = DELIM,
+    affix: str = AFFIX,
+    scoresep: str = SCORESEP,
+    lexicon: Optional[util.misc.PickledLexicon] = None,
+) -> None:
     """Blingbring specific wrapper for annotate_words. See annotate_words for more info."""
     if class_set not in {"bring", "roget_head", "roget_subsection", "roget_section", "roget_class"}:
         logger.warning("Class '%s' not available. Fallback to 'bring'.")
@@ -43,27 +55,47 @@ def blingbring_words(out: Output = Output("<token>:lexical_classes.blingbring",
                     rogetid = rogetid.union(lexicon.lookup(sid, default={}).get(class_set, set()))
         return sorted(rogetid)
 
-    annotate_words(out, model, saldoids, pos, annotate_bring, pos_limit=pos_limit, disambiguate=disambiguate,
-                   connect_ids=connect_ids, delimiter=delimiter, affix=affix, scoresep=scoresep,
-                   lexicon=lexicon)
+    annotate_words(
+        out,
+        model,
+        saldoids,
+        pos,
+        annotate_bring,
+        pos_limit=pos_limit,
+        disambiguate=disambiguate,
+        connect_ids=connect_ids,
+        delimiter=delimiter,
+        affix=affix,
+        scoresep=scoresep,
+        lexicon=lexicon,
+    )
 
 
-@annotator("Annotate tokens with SweFN classes", language=["swe"], config=[
-    Config("lexical_classes.swefn_word_model", default="lexical_classes/swefn.pickle",
-           description="Path to SweFN model", datatype=str)
-])
-def swefn_words(out: Output = Output("<token>:lexical_classes.swefn",
-                                     description="Lexical classes for tokens from SweFN"),
-                model: Model = Model("[lexical_classes.swefn_word_model]"),
-                saldoids: Annotation = Annotation("<token:sense>"),
-                pos: Annotation = Annotation("<token:pos>"),
-                pos_limit: Iterable[str] = ("NN", "VB", "JJ", "AB"),
-                disambiguate: bool = True,
-                connect_ids: bool = False,
-                delimiter: str = DELIM,
-                affix: str = AFFIX,
-                scoresep: str = SCORESEP,
-                lexicon: Optional[util.misc.PickledLexicon] = None) -> None:
+@annotator(
+    "Annotate tokens with SweFN classes",
+    language=["swe"],
+    config=[
+        Config(
+            "lexical_classes.swefn_word_model",
+            default="lexical_classes/swefn.pickle",
+            description="Path to SweFN model",
+            datatype=str,
+        )
+    ],
+)
+def swefn_words(
+    out: Output = Output("<token>:lexical_classes.swefn", description="Lexical classes for tokens from SweFN"),
+    model: Model = Model("[lexical_classes.swefn_word_model]"),
+    saldoids: Annotation = Annotation("<token:sense>"),
+    pos: Annotation = Annotation("<token:pos>"),
+    pos_limit: Iterable[str] = ("NN", "VB", "JJ", "AB"),
+    disambiguate: bool = True,
+    connect_ids: bool = False,
+    delimiter: str = DELIM,
+    affix: str = AFFIX,
+    scoresep: str = SCORESEP,
+    lexicon: Optional[util.misc.PickledLexicon] = None,
+) -> None:
     """Swefn specific wrapper for annotate_words. See annotate_words for more info."""
 
     # SweFN annotation function
@@ -79,8 +111,20 @@ def swefn_words(out: Output = Output("<token>:lexical_classes.swefn",
                     swefnid = swefnid.union(lexicon.lookup(sid, default=set()))
         return sorted(swefnid)
 
-    annotate_words(out, model, saldoids, pos, annotate_swefn, pos_limit=pos_limit, disambiguate=disambiguate,
-                   connect_ids=connect_ids, delimiter=delimiter, affix=affix, scoresep=scoresep, lexicon=lexicon)
+    annotate_words(
+        out,
+        model,
+        saldoids,
+        pos,
+        annotate_swefn,
+        pos_limit=pos_limit,
+        disambiguate=disambiguate,
+        connect_ids=connect_ids,
+        delimiter=delimiter,
+        affix=affix,
+        scoresep=scoresep,
+        lexicon=lexicon,
+    )
 
 
 def annotate_words(
@@ -127,7 +171,6 @@ def annotate_words(
     wsd = saldoids.split()[1].split(".")[0] == "wsd"
 
     for token_index, token_sense in enumerate(sense):
-
         # Check if part of speech of this token is allowed
         if not pos_ok(token_pos, token_index, pos_limit):
             saldo_ids = None
@@ -135,8 +178,7 @@ def annotate_words(
             continue
 
         if wsd and SCORESEP in token_sense:
-            ranked_saldo = token_sense.strip(AFFIX).split(DELIM) \
-                if token_sense != AFFIX else None
+            ranked_saldo = token_sense.strip(AFFIX).split(DELIM) if token_sense != AFFIX else None
             saldo_tuples = [(i.split(SCORESEP)[0], i.split(SCORESEP)[1]) for i in ranked_saldo]
 
             if not disambiguate:
@@ -154,8 +196,7 @@ def annotate_words(
                 saldo_ids = [i[0] for i in saldo_ids]
 
         else:  # No WSD
-            saldo_ids = token_sense.strip(AFFIX).split(DELIM) \
-                if token_sense != AFFIX else None
+            saldo_ids = token_sense.strip(AFFIX).split(DELIM) if token_sense != AFFIX else None
 
         result = annotate(saldo_ids, lexicon, connect_ids, scoresep)
         out_annotation[token_index] = util.misc.cwbset(result, delimiter, affix) if result else affix

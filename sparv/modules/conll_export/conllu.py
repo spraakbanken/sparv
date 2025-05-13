@@ -1,4 +1,5 @@
 """CoNNL-U file export (modified SBX version)."""
+
 # ruff: noqa: PLR2004
 from pathlib import Path
 from typing import Optional
@@ -8,43 +9,87 @@ from sparv.api import Annotation, Config, Export, SourceAnnotations, SourceFilen
 logger = get_logger(__name__)
 
 
-@exporter("CoNLL-U (SBX version) export", language=["swe"], config=[
-    Config("conll_export.source_annotations", description="List of annotations and attributes from the source data to "
-           "include. Everything will be included by default.", datatype=list[str]),
-    Config("conll_export.conll_fields.sentid", default="<sentence>:misc.id", description="Sentence ID", datatype=str),
-    Config("conll_export.conll_fields.id", default="<token:ref>",
-           description="Annotation in ID field of CoNLL-U output", datatype=str),
-    Config("conll_export.conll_fields.lemma", default="<token:baseform>",
-           description="Annotation in LEMMA field of CoNLL-U output", datatype=str),
-    Config("conll_export.conll_fields.upos", default="<token:pos>",
-           description="Annotation in UPOS field of CoNLL-U output", datatype=str),
-    Config("conll_export.conll_fields.xpos", default="<token:msd>",
-           description="Annotation in XPOS field of CoNLL-U output", datatype=str),
-    Config("conll_export.conll_fields.feats", default="<token:ufeats>",
-           description="Annotation in FEATS field of CoNLL-U output", datatype=str),
-    Config("conll_export.conll_fields.head", default="<token:dephead_ref>",
-           description="Annotation in HEAD field of CoNLL-U output", datatype=str),
-    Config("conll_export.conll_fields.deprel", default="<token:deprel>",
-           description="Annotation in DEPREL field of CoNLL-U output", datatype=str),
-    Config("conll_export.conll_fields.deps", description="Annotation in DEPS field of CoNLL-U output", datatype=str),
-    Config("conll_export.conll_fields.misc", description="Annotation in MISC field of CoNLL-U output", datatype=str)
-])
-def conllu(source_file: SourceFilename = SourceFilename(),
-           out: Export = Export("conll_export/{file}.conllu"),
-           token: Annotation = Annotation("<token>"),
-           sentence: Annotation = Annotation("<sentence>"),
-           sentence_id: Annotation = Annotation("[conll_export.conll_fields.sentid]"),
-           source_annotations: SourceAnnotations = SourceAnnotations("conll_export.source_annotations"),
-           id_ref: Optional[Annotation] = Annotation("[conll_export.conll_fields.id]"),
-           form: Optional[Annotation] = Annotation("[export.word]"),
-           lemma: Optional[Annotation] = Annotation("[conll_export.conll_fields.lemma]"),
-           upos: Optional[Annotation] = Annotation("[conll_export.conll_fields.upos]"),
-           xpos: Optional[Annotation] = Annotation("[conll_export.conll_fields.xpos]"),
-           feats: Optional[Annotation] = Annotation("[conll_export.conll_fields.feats]"),
-           head: Optional[Annotation] = Annotation("[conll_export.conll_fields.head]"),
-           deprel: Optional[Annotation] = Annotation("[conll_export.conll_fields.deprel]"),
-           deps: Optional[Annotation] = Annotation("[conll_export.conll_fields.deps]"),
-           misc: Optional[Annotation] = Annotation("[conll_export.conll_fields.misc]")) -> None:
+@exporter(
+    "CoNLL-U (SBX version) export",
+    language=["swe"],
+    config=[
+        Config(
+            "conll_export.source_annotations",
+            description="List of annotations and attributes from the source data to "
+            "include. Everything will be included by default.",
+            datatype=list[str],
+        ),
+        Config(
+            "conll_export.conll_fields.sentid", default="<sentence>:misc.id", description="Sentence ID", datatype=str
+        ),
+        Config(
+            "conll_export.conll_fields.id",
+            default="<token:ref>",
+            description="Annotation in ID field of CoNLL-U output",
+            datatype=str,
+        ),
+        Config(
+            "conll_export.conll_fields.lemma",
+            default="<token:baseform>",
+            description="Annotation in LEMMA field of CoNLL-U output",
+            datatype=str,
+        ),
+        Config(
+            "conll_export.conll_fields.upos",
+            default="<token:pos>",
+            description="Annotation in UPOS field of CoNLL-U output",
+            datatype=str,
+        ),
+        Config(
+            "conll_export.conll_fields.xpos",
+            default="<token:msd>",
+            description="Annotation in XPOS field of CoNLL-U output",
+            datatype=str,
+        ),
+        Config(
+            "conll_export.conll_fields.feats",
+            default="<token:ufeats>",
+            description="Annotation in FEATS field of CoNLL-U output",
+            datatype=str,
+        ),
+        Config(
+            "conll_export.conll_fields.head",
+            default="<token:dephead_ref>",
+            description="Annotation in HEAD field of CoNLL-U output",
+            datatype=str,
+        ),
+        Config(
+            "conll_export.conll_fields.deprel",
+            default="<token:deprel>",
+            description="Annotation in DEPREL field of CoNLL-U output",
+            datatype=str,
+        ),
+        Config(
+            "conll_export.conll_fields.deps", description="Annotation in DEPS field of CoNLL-U output", datatype=str
+        ),
+        Config(
+            "conll_export.conll_fields.misc", description="Annotation in MISC field of CoNLL-U output", datatype=str
+        ),
+    ],
+)
+def conllu(
+    source_file: SourceFilename = SourceFilename(),
+    out: Export = Export("conll_export/{file}.conllu"),
+    token: Annotation = Annotation("<token>"),
+    sentence: Annotation = Annotation("<sentence>"),
+    sentence_id: Annotation = Annotation("[conll_export.conll_fields.sentid]"),
+    source_annotations: SourceAnnotations = SourceAnnotations("conll_export.source_annotations"),
+    id_ref: Optional[Annotation] = Annotation("[conll_export.conll_fields.id]"),
+    form: Optional[Annotation] = Annotation("[export.word]"),
+    lemma: Optional[Annotation] = Annotation("[conll_export.conll_fields.lemma]"),
+    upos: Optional[Annotation] = Annotation("[conll_export.conll_fields.upos]"),
+    xpos: Optional[Annotation] = Annotation("[conll_export.conll_fields.xpos]"),
+    feats: Optional[Annotation] = Annotation("[conll_export.conll_fields.feats]"),
+    head: Optional[Annotation] = Annotation("[conll_export.conll_fields.head]"),
+    deprel: Optional[Annotation] = Annotation("[conll_export.conll_fields.deprel]"),
+    deps: Optional[Annotation] = Annotation("[conll_export.conll_fields.deps]"),
+    misc: Optional[Annotation] = Annotation("[conll_export.conll_fields.misc]"),
+) -> None:
     """Export annotations to CoNLL-U format."""
     # CoNLLU specification: https://universaldependencies.org/format.html
     # ID: Word index, integer starting at 1 for each new sentence; may be a range for multiword tokens; may be a decimal
@@ -75,11 +120,12 @@ def conllu(source_file: SourceFilename = SourceFilename(),
     # want to use here.
     annotations = [sentence, sentence_id, token, *conll_fields]
     annotations = [(annot, None) for annot in annotations]
-    annotation_list, _, export_names = util.export.get_annotation_names(annotations, source_annotations,
-                                                                        remove_namespaces=True,
-                                                                        source_file=source_file, token_name=token_name)
-    span_positions, annotation_dict = util.export.gather_annotations(annotation_list, export_names,
-                                                                     source_file=source_file)
+    annotation_list, _, export_names = util.export.get_annotation_names(
+        annotations, source_annotations, remove_namespaces=True, source_file=source_file, token_name=token_name
+    )
+    span_positions, annotation_dict = util.export.gather_annotations(
+        annotation_list, export_names, source_file=source_file
+    )
 
     csv_data = ["# global.columns = ID FORM LEMMA UPOS XPOS FEATS HEAD DEPREL DEPS MISC"]
     # Go through spans_dict and add to csv, line by line
@@ -110,12 +156,8 @@ def conllu(source_file: SourceFilename = SourceFilename(),
 
 
 def _make_conll_token_line(
-        conll_fields: list[Annotation],
-        token: str,
-        annotation_dict: dict[str, dict],
-        index: int,
-        delimiter: str = "\t"
-    ) -> str:
+    conll_fields: list[Annotation], token: str, annotation_dict: dict[str, dict], index: int, delimiter: str = "\t"
+) -> str:
     """Create a line in CoNLL-format with the token and its annotations.
 
     Args:

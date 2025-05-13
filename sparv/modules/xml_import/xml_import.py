@@ -40,11 +40,17 @@ class XMLStructure(SourceStructureParser):
             "name": "scan_xml",
             "message": "What type of scan do you want to do?",
             "choices": [
-                {"name": "Scan ALL my files, since markup may differ between them "
-                         "(this might take some time if the corpus is big).", "value": "all"},
-                {"name": "Scan ONE of my files at random. All files contain the same markup, so scanning "
-                         "one is enough.", "value": "one"}
-            ]
+                {
+                    "name": "Scan ALL my files, since markup may differ between them "
+                    "(this might take some time if the corpus is big).",
+                    "value": "all",
+                },
+                {
+                    "name": "Scan ONE of my files at random. All files contain the same markup, so scanning "
+                    "one is enough.",
+                    "value": "one",
+                },
+            ],
         }
 
     def get_annotations(self, corpus_config: dict) -> list[str]:  # noqa: ARG002
@@ -115,7 +121,7 @@ class XMLStructure(SourceStructureParser):
             "xml_import.keep_unassigned_chars",
             False,
             description="Set to True to keep unassigned characters",
-            datatype=bool
+            datatype=bool,
         ),
         Config(
             "xml_import.normalize",
@@ -127,18 +133,20 @@ class XMLStructure(SourceStructureParser):
     ],
     structure=XMLStructure,
 )
-def parse(filename: SourceFilename = SourceFilename(),
-          source_dir: Source = Source(),
-          elements: list = Config("xml_import.elements"),
-          skip: list = Config("xml_import.skip"),
-          header_elements: list = Config("xml_import.header_elements"),
-          header_data: list = Config("xml_import.header_data"),
-          prefix: Optional[str] = Config("xml_import.prefix"),
-          remove_namespaces: bool = Config("xml_import.remove_namespaces"),
-          encoding: str = Config("xml_import.encoding"),
-          keep_control_chars: bool = Config("xml_import.keep_control_chars"),
-          keep_unassigned_chars: bool = Config("xml_import.keep_unassigned_chars"),
-          normalize: str = Config("xml_import.normalize")) -> None:
+def parse(
+    filename: SourceFilename = SourceFilename(),
+    source_dir: Source = Source(),
+    elements: list = Config("xml_import.elements"),
+    skip: list = Config("xml_import.skip"),
+    header_elements: list = Config("xml_import.header_elements"),
+    header_data: list = Config("xml_import.header_data"),
+    prefix: Optional[str] = Config("xml_import.prefix"),
+    remove_namespaces: bool = Config("xml_import.remove_namespaces"),
+    encoding: str = Config("xml_import.encoding"),
+    keep_control_chars: bool = Config("xml_import.keep_control_chars"),
+    keep_unassigned_chars: bool = Config("xml_import.keep_unassigned_chars"),
+    normalize: str = Config("xml_import.normalize"),
+) -> None:
     """Parse XML source file and create annotation files.
 
     Args:
@@ -157,8 +165,19 @@ def parse(filename: SourceFilename = SourceFilename(),
         normalize: Normalize input using any of the following forms: 'NFC', 'NFKC', 'NFD', and 'NFKD'.
             Defaults to 'NFC'.
     """
-    parser = SparvXMLParser(elements, skip, header_elements, header_data, source_dir, encoding, prefix,
-                            remove_namespaces, keep_control_chars, keep_unassigned_chars, normalize)
+    parser = SparvXMLParser(
+        elements,
+        skip,
+        header_elements,
+        header_data,
+        source_dir,
+        encoding,
+        prefix,
+        remove_namespaces,
+        keep_control_chars,
+        keep_unassigned_chars,
+        normalize,
+    )
     parser.parse(filename)
     parser.save()
 
@@ -166,9 +185,20 @@ def parse(filename: SourceFilename = SourceFilename(),
 class SparvXMLParser:
     """XML parser class for parsing XML."""
 
-    def __init__(self, elements: list, skip: list, header_elements: list, header_data: list, source_dir: Source,
-                 encoding: str = util.constants.UTF8, prefix: Optional[str] = None, remove_namespaces: bool = False,
-                 keep_control_chars: bool = False, keep_unassigned_chars: bool = False, normalize: str = "NFC") -> None:
+    def __init__(
+        self,
+        elements: list,
+        skip: list,
+        header_elements: list,
+        header_data: list,
+        source_dir: Source,
+        encoding: str = util.constants.UTF8,
+        prefix: Optional[str] = None,
+        remove_namespaces: bool = False,
+        keep_control_chars: bool = False,
+        keep_unassigned_chars: bool = False,
+        normalize: str = "NFC",
+    ) -> None:
         """Initialize XML parser.
 
         Args:
@@ -259,10 +289,9 @@ class SparvXMLParser:
             header_source_root, _, header_source_rest = header_source.partition("/")
             self.header_data.setdefault(header_source_root, {})
             self.header_data[header_source_root].setdefault(header_source_rest, [])
-            self.header_data[header_source_root][header_source_rest].append({
-                "source": header_source_attrib,
-                "target": elsplit(header_target)
-            })
+            self.header_data[header_source_root][header_source_rest].append(
+                {"source": header_source_attrib, "target": elsplit(header_target)}
+            )
             self.unprocessed_header_data_elems.add(header_source_root)
 
         self.skipped_elems = {elsplit(elem) for elem in skip}
@@ -319,9 +348,7 @@ class SparvXMLParser:
                 del header_data[name]
 
             attrs = {get_sparv_name(k): v for k, v in attrs.items()}
-            self.data[name]["elements"].append(
-                (start, start_subpos, end, end_subpos, name_orig, attrs)
-            )
+            self.data[name]["elements"].append((start, start_subpos, end, end_subpos, name_orig, attrs))
 
         def handle_raw_header(element: etree.Element, tag_name: str, start_pos: int, start_subpos: int) -> None:
             """Save full header XML as string."""
@@ -333,8 +360,18 @@ class SparvXMLParser:
                     remove_namespaces(e)
             self.data.setdefault(tag_name, {"attrs": {util.constants.HEADER_CONTENTS}, "elements": []})
             self.data[tag_name]["elements"].append(
-                (start_pos, start_subpos, start_pos, start_subpos, tag_name,
-                 {util.constants.HEADER_CONTENTS: etree.tostring(tmp_element, method="xml", encoding="UTF-8").decode()})
+                (
+                    start_pos,
+                    start_subpos,
+                    start_pos,
+                    start_subpos,
+                    tag_name,
+                    {
+                        util.constants.HEADER_CONTENTS: etree.tostring(
+                            tmp_element, method="xml", encoding="UTF-8"
+                        ).decode()
+                    },
+                )
             )
             handle_header_data(element, tag_name)
 
@@ -406,7 +443,7 @@ class SparvXMLParser:
                 The converted xpath.
             """
             sep = re.escape(util.constants.XML_NAMESPACE_SEP)
-            m = re.finditer(fr"([^/+:]+){sep}", path) or []
+            m = re.finditer(rf"([^/+:]+){sep}", path) or []
             for i in m:
                 uri = "{" + self.namespace_mapping[i.group(1)] + "}"
                 path = re.sub(re.escape(i.group(0)), uri, path, count=1)
@@ -416,11 +453,11 @@ class SparvXMLParser:
             """Remove namespaces from element and its attributes."""
             uri, _ = get_namespace(element.tag)
             if uri:
-                element.tag = element.tag[len("{" + uri + "}"):]
+                element.tag = element.tag[len("{" + uri + "}") :]
             for k in element.attrib.copy():
                 uri, _ = get_namespace(k)
                 if uri:
-                    element.set(k[len("{" + uri + "}"):], element.attrib[k])
+                    element.set(k[len("{" + uri + "}") :], element.attrib[k])
                     element.attrib.pop(k)
 
         def iter_tree(element: etree.Element, start_pos: int = 0, start_subpos: int = 0) -> None:
@@ -488,7 +525,7 @@ class SparvXMLParser:
                 "Some" if len(self.unprocessed_header_data_elems) > 1 else "One",
                 "s" if len(self.unprocessed_header_data_elems) > 1 else "",
                 "were" if len(self.unprocessed_header_data_elems) > 1 else "was",
-                "', '".join(self.unprocessed_header_data_elems)
+                "', '".join(self.unprocessed_header_data_elems),
             )
 
     def save(self) -> None:

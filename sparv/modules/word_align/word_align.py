@@ -4,7 +4,21 @@
 from sparv.api import util
 
 
-def align_texts(word1, word2, linktok1, linktok2, link1, link2, linkref2, out_wordlink, out_sentences, outindex1, outindex2, delimiter="|", affix="|"):
+def align_texts(
+    word1,
+    word2,
+    linktok1,
+    linktok2,
+    link1,
+    link2,
+    linkref2,
+    out_wordlink,
+    out_sentences,
+    outindex1,
+    outindex2,
+    delimiter="|",
+    affix="|",
+):
     """Make a word alignment between the current text (1) and a reference text (2). The texts need to be sentence aligned.
     word1 and word2 are existing annotations for the wordforms in the two texts
     linktok1 and linktok2 contain information about which words there are in each link
@@ -34,15 +48,16 @@ def align_texts(word1, word2, linktok1, linktok2, link1, link2, linkref2, out_wo
     # make final annotation including empty word links
     OUT_WORDLINK = {}
     for tokid in WORD1:
-        OUT_WORDLINK[tokid] = affix + delimiter.join(TMP_WORDLINK.get(tokid, -1)) + affix \
-            if TMP_WORDLINK.get(tokid, -1) != -1 else affix
+        OUT_WORDLINK[tokid] = (
+            affix + delimiter.join(TMP_WORDLINK.get(tokid, -1)) + affix if TMP_WORDLINK.get(tokid, -1) != -1 else affix
+        )
 
     util.write_annotation(out_wordlink, OUT_WORDLINK)
     # inspect_results("inspection.txt", WORD1, WORD2, linktok1, linktok2, link1, link2, OUT_WORDLINK, delimiter)
 
 
 def make_sent_aligned_text(WORD1, WORD2, linktok1, linktok2, link1, link2, out_sentences):
-    """ Make a sentence aligned text file (serves as input for fast_align)."""
+    """Make a sentence aligned text file (serves as input for fast_align)."""
     out_sent_linked = open(out_sentences, "w", encoding="utf-8")
     LINKTOK1 = util.read_annotation(linktok1)
     LINKTOK2 = util.read_annotation(linktok2)
@@ -58,7 +73,9 @@ def make_sent_aligned_text(WORD1, WORD2, linktok1, linktok2, link1, link2, out_s
             if linkkey1 in LINKTOK1 and linkkey2 in LINKTOK2:
                 text1 = [(w, WORD1[w]) for w in LINKTOK1[linkkey1].split()]
                 text2 = [(w, WORD2[w]) for w in LINKTOK2[linkkey2].split()]
-                out_sent_linked.write(" ".join(w for span, w in text1) + " ||| " + " ".join(w for span, w in text2) + "\n")
+                out_sent_linked.write(
+                    " ".join(w for span, w in text1) + " ||| " + " ".join(w for span, w in text2) + "\n"
+                )
                 all_text1.append([span for span, w in text1])
                 all_text2.append([span for span, w in text2])
 
@@ -66,7 +83,7 @@ def make_sent_aligned_text(WORD1, WORD2, linktok1, linktok2, link1, link2, out_s
 
 
 def word_align(sentencefile, indexfile1, indexfile2):
-    """ Word link the sentences in sentencefile. Return a string of word link indices."""
+    """Word link the sentences in sentencefile. Return a string of word link indices."""
     # align
     out1, _ = util.system.call_binary("word_alignment/fast_align", ["-i", sentencefile, "-d", "-o", "-v"])
     with open(indexfile1, "wb") as f:
@@ -76,7 +93,9 @@ def word_align(sentencefile, indexfile1, indexfile2):
     with open(indexfile2, "wb") as f:
         f.write(out2)
     # symmetrise
-    indices, _ = util.system.call_binary("word_alignment/atools", ["-i", indexfile1, "-j", indexfile2, "-c", "grow-diag-final-and"])
+    indices, _ = util.system.call_binary(
+        "word_alignment/atools", ["-i", indexfile1, "-j", indexfile2, "-c", "grow-diag-final-and"]
+    )
     return indices
 
 

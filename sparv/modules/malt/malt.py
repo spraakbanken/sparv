@@ -1,4 +1,5 @@
 """Dependency parsing using MaltParser."""
+
 import re
 import subprocess
 from typing import Optional
@@ -34,10 +35,7 @@ def preloader(maltjar: Binary, model: Model, encoding: str) -> dict:
         dict: Dictionary containing the process and a restart flag.
     """
     process = maltstart(maltjar, model, encoding, send_empty_sentence=True)
-    return {
-        "process": process,
-        "restart": False
-    }
+    return {"process": process, "restart": False}
 
 
 def cleanup(maltjar: Binary, model: Model, encoding: str, process_dict: dict) -> dict:
@@ -59,28 +57,47 @@ def cleanup(maltjar: Binary, model: Model, encoding: str, process_dict: dict) ->
     return process_dict
 
 
-@annotator("Dependency parsing using MaltParser", language=["swe"], config=[
-    Config("malt.jar", default="maltparser-1.7.2/maltparser-1.7.2.jar",
-           description="Path name of the executable .jar file", datatype=str),
-    Config("malt.model", default="malt/swemalt-1.7.2.mco", description="Path to Malt model", datatype=str)],
-    preloader=preloader, preloader_params=["maltjar", "model", "encoding"], preloader_target="process_dict",
-    preloader_cleanup=cleanup, preloader_shared=False)
-def annotate(maltjar: Binary = Binary("[malt.jar]"),
-             model: Model = Model("[malt.model]"),
-             out_dephead: Output = Output("<token>:malt.dephead", cls="token:dephead",
-                                          description="Positions of the dependency heads"),
-             out_dephead_ref: Output = Output("<token>:malt.dephead_ref", cls="token:dephead_ref",
-                                              description="Sentence-relative positions of the dependency heads"),
-             out_deprel: Output = Output("<token>:malt.deprel", cls="token:deprel",
-                                         description="Dependency relations to the head"),
-             word: Annotation = Annotation("<token:word>"),
-             pos: Annotation = Annotation("<token:pos>"),
-             msd: Annotation = Annotation("<token:msd>"),
-             ref: Annotation = Annotation("<token>:malt.ref"),
-             sentence: Annotation = Annotation("<sentence>"),
-             token: Annotation = Annotation("<token>"),
-             encoding: str = util.constants.UTF8,
-             process_dict: Optional[dict] = None) -> None:
+@annotator(
+    "Dependency parsing using MaltParser",
+    language=["swe"],
+    config=[
+        Config(
+            "malt.jar",
+            default="maltparser-1.7.2/maltparser-1.7.2.jar",
+            description="Path name of the executable .jar file",
+            datatype=str,
+        ),
+        Config("malt.model", default="malt/swemalt-1.7.2.mco", description="Path to Malt model", datatype=str),
+    ],
+    preloader=preloader,
+    preloader_params=["maltjar", "model", "encoding"],
+    preloader_target="process_dict",
+    preloader_cleanup=cleanup,
+    preloader_shared=False,
+)
+def annotate(
+    maltjar: Binary = Binary("[malt.jar]"),
+    model: Model = Model("[malt.model]"),
+    out_dephead: Output = Output(
+        "<token>:malt.dephead", cls="token:dephead", description="Positions of the dependency heads"
+    ),
+    out_dephead_ref: Output = Output(
+        "<token>:malt.dephead_ref",
+        cls="token:dephead_ref",
+        description="Sentence-relative positions of the dependency heads",
+    ),
+    out_deprel: Output = Output(
+        "<token>:malt.deprel", cls="token:deprel", description="Dependency relations to the head"
+    ),
+    word: Annotation = Annotation("<token:word>"),
+    pos: Annotation = Annotation("<token:pos>"),
+    msd: Annotation = Annotation("<token:msd>"),
+    ref: Annotation = Annotation("<token>:malt.ref"),
+    sentence: Annotation = Annotation("<sentence>"),
+    token: Annotation = Annotation("<token>"),
+    encoding: str = util.constants.UTF8,
+    process_dict: Optional[dict] = None,
+) -> None:
     """Run the malt parser, in an already started process defined in process_dict, or start a new process (default).
 
     Args:
@@ -110,8 +127,10 @@ def annotate(maltjar: Binary = Binary("[malt.jar]"),
 
     sentences, orphans = sentence.get_children(token)
     if orphans:
-        logger.warning("Found %d tokens not belonging to any sentence. These will not be annotated with "
-                       "dependency relations.", len(orphans))
+        logger.warning(
+            "Found %d tokens not belonging to any sentence. These will not be annotated with dependency relations.",
+            len(orphans),
+        )
 
     word_annotation = list(word.read())
     pos_annotation = list(pos.read())
@@ -134,8 +153,9 @@ def annotate(maltjar: Binary = Binary("[malt.jar]"),
         feats = re.sub(r"[ ,.]", "|", msd_annotation[token_index]).replace("+", "/")
         return TAG_SEP.join((str(nr), form, lemma, cpos, pos, feats))
 
-    stdin = SENT_SEP.join(TOK_SEP.join(conll_token(n + 1, token_index) for n, token_index in enumerate(sent))
-                          for sent in sentences)
+    stdin = SENT_SEP.join(
+        TOK_SEP.join(conll_token(n + 1, token_index) for n, token_index in enumerate(sent)) for sent in sentences
+    )
 
     if encoding:
         stdin = stdin.encode(encoding)
@@ -168,14 +188,13 @@ def annotate(maltjar: Binary = Binary("[malt.jar]"),
         stdout, _ = process.communicate(stdin)
         if encoding:
             stdout = stdout.decode(encoding)
-        malt_sentences = (malt_sent.split(TOK_SEP)
-                          for malt_sent in stdout.split(SENT_SEP))
+        malt_sentences = (malt_sent.split(TOK_SEP) for malt_sent in stdout.split(SENT_SEP))
 
     out_dephead_annotation = word.create_empty_attribute()
     out_dephead_ref_annotation = out_dephead_annotation.copy()
     out_deprel_annotation = out_dephead_annotation.copy()
-    for (sent, malt_sent) in zip(sentences, malt_sentences):
-        for (token_index, malt_tok) in zip(sent, malt_sent):
+    for sent, malt_sent in zip(sentences, malt_sentences):
+        for token_index, malt_tok in zip(sent, malt_sent):
             cols = [(None if col == UNDEF else col) for col in malt_tok.split(TAG_SEP)]
             out_deprel_annotation[token_index] = cols[DEPREL_COLUMN]
             head = int(cols[HEAD_COLUMN])
@@ -188,10 +207,11 @@ def annotate(maltjar: Binary = Binary("[malt.jar]"),
 
 
 @annotator("Annotate tokens with IDs relative to their sentences", language=["swe"])
-def make_ref(out: Output = Output("<token>:malt.ref", cls="token:ref",
-                                  description="Token IDs relative to their sentences"),
-             sentence: Annotation = Annotation("<sentence>"),
-             token: Annotation = Annotation("<token>")) -> None:
+def make_ref(
+    out: Output = Output("<token>:malt.ref", cls="token:ref", description="Token IDs relative to their sentences"),
+    sentence: Annotation = Annotation("<sentence>"),
+    token: Annotation = Annotation("<token>"),
+) -> None:
     """Annotate tokens with IDs relative to their sentences.
 
     Args:
@@ -200,6 +220,7 @@ def make_ref(out: Output = Output("<token>:malt.ref", cls="token:ref",
         token: Input token annotation.
     """
     from sparv.modules.misc import number  # noqa: PLC0415
+
     number.number_relative(out, sentence, token)
 
 
@@ -246,8 +267,9 @@ def maltstart(maltjar: Binary, model: Model, encoding: str, send_empty_sentence:
 
 
 @modelbuilder("Model for MaltParser", language=["swe"])
-def build_model(out: ModelOutput = ModelOutput("malt/swemalt-1.7.2.mco"),
-                _maltjar: Binary = Binary("[malt.jar]")) -> None:
+def build_model(
+    out: ModelOutput = ModelOutput("malt/swemalt-1.7.2.mco"), _maltjar: Binary = Binary("[malt.jar]")
+) -> None:
     """Download model for MaltParser.
 
     Won't download model unless maltjar has been installed.

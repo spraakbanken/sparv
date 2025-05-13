@@ -1,4 +1,5 @@
 """Create configuration files for the Korp backend and frontend."""
+
 import itertools
 import shlex
 import subprocess
@@ -77,13 +78,13 @@ LABELS = {
         Config(
             "korp.context",
             description="Contexts to use in Korp, from smaller to bigger. Leave blank to detect automatically.",
-            datatype=list[Union[dict, str]]
+            datatype=list[Union[dict, str]],
         ),
         Config(
             "korp.within",
             description="Search boundaries to use in Korp, from smaller to bigger. "
             "Leave blank to detect automatically.",
-            datatype=list[Union[dict, str]]
+            datatype=list[Union[dict, str]],
         ),
         Config("korp.custom_annotations", description="Custom Korp-annotations.", datatype=list[dict]),
         Config("korp.morphology", description="Pipe-separated list of morphologies used by the corpus", datatype=str),
@@ -379,7 +380,9 @@ def build_annotations(
                 else:
                     logger.warning(
                         "%r is missing a definition, and %r is not available as a "
-                        "preset. Annotation will not be included.", annotation.name, definition
+                        "preset. Annotation will not be included.",
+                        annotation.name,
+                        definition,
                     )
                     continue
             elif not is_token and presets[definition] == "positional":
@@ -425,11 +428,7 @@ def get_presets(remote_host: str, config_dir: str) -> dict[str, str]:
         cmd = ["ssh", remote_host, f"find {remote_path}"]
     else:
         cmd = ["find", f"{config_dir}/attributes/"]
-    logger.debug(
-        "Getting Korp annotation presets from %s%s",
-        remote_host + ":" if remote_host else "",
-        config_dir
-    )
+    logger.debug("Getting Korp annotation presets from %s%s", remote_host + ":" if remote_host else "", config_dir)
     s = subprocess.run(cmd, capture_output=True, encoding="utf-8", check=False)
     if s.returncode == 0:
         for p in s.stdout.splitlines():
@@ -502,9 +501,7 @@ def install_config(
     """
     corpus_dir = Path(config_dir) / "corpora"
     logger.info(
-        "Installing Korp corpus configuration file to %s%s",
-        remote_host + ":" if remote_host else "",
-        corpus_dir
+        "Installing Korp corpus configuration file to %s%s", remote_host + ":" if remote_host else "", corpus_dir
     )
     util.install.install_path(config_file, remote_host, corpus_dir)
     uninstall_marker.remove()
@@ -530,9 +527,7 @@ def uninstall_config(
     """
     corpus_file = Path(config_dir) / "corpora" / f"{corpus_id}.yaml"
     logger.info(
-        "Uninstalling Korp corpus configuration file from %s%s",
-        remote_host + ":" if remote_host else "",
-        corpus_file
+        "Uninstalling Korp corpus configuration file from %s%s", remote_host + ":" if remote_host else "", corpus_file
     )
     util.install.uninstall_path(corpus_file, host=remote_host)
     install_marker.remove()

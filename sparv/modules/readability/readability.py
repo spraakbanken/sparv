@@ -9,13 +9,15 @@ logger = get_logger(__name__)
 
 
 @annotator("Annotate text chunks with LIX values")
-def lix(text: Annotation = Annotation("<text>"),
-        sentence: Annotation = Annotation("<sentence>"),
-        word: Annotation = Annotation("<token:word>"),
-        pos: Annotation = Annotation("<token:pos>"),
-        out: Output = Output("<text>:readability.lix", description="LIX values for text chunks"),
-        skip_pos: Iterable[str] = ("MAD", "MID", "PAD"),
-        fmt: str = "%.2f") -> None:
+def lix(
+    text: Annotation = Annotation("<text>"),
+    sentence: Annotation = Annotation("<sentence>"),
+    word: Annotation = Annotation("<token:word>"),
+    pos: Annotation = Annotation("<token:pos>"),
+    out: Output = Output("<text>:readability.lix", description="LIX values for text chunks"),
+    skip_pos: Iterable[str] = ("MAD", "MID", "PAD"),
+    fmt: str = "%.2f",
+) -> None:
     """Create LIX annotation for text.
 
     Args:
@@ -77,12 +79,14 @@ def lix_calc(sentences: list[list[str]]) -> float:
 
 
 @annotator("Annotate text chunks with OVIX values")
-def ovix(text: Annotation = Annotation("<text>"),
-         word: Annotation = Annotation("<token:word>"),
-         pos: Annotation = Annotation("<token:pos>"),
-         out: Output = Output("<text>:readability.ovix", description="OVIX values for text chunks"),
-         skip_pos: Iterable[str] = ("MAD", "MID", "PAD"),
-         fmt: str = "%.2f") -> None:
+def ovix(
+    text: Annotation = Annotation("<text>"),
+    word: Annotation = Annotation("<token:word>"),
+    pos: Annotation = Annotation("<token:pos>"),
+    out: Output = Output("<text>:readability.ovix", description="OVIX values for text chunks"),
+    skip_pos: Iterable[str] = ("MAD", "MID", "PAD"),
+    fmt: str = "%.2f",
+) -> None:
     """Create OVIX annotation for text."""
     text_children, _orphans = text.get_children(word)
     logger.progress(total=len(text_children) + 1)
@@ -135,12 +139,14 @@ def ovix_calc(words: list[str]) -> float:
 
 
 @annotator("Annotate text chunks with nominal ratios")
-def nominal_ratio(text: Annotation = Annotation("<text>"),
-                  pos: Annotation = Annotation("<token:pos>"),
-                  out: Output = Output("<text>:readability.nk", description="Nominal ratios for text chunks"),
-                  noun_pos: Iterable[str] = ("NN", "PP", "PC"),
-                  verb_pos: Iterable[str] = ("PN", "AB", "VB"),
-                  fmt: str = "%.2f") -> None:
+def nominal_ratio(
+    text: Annotation = Annotation("<text>"),
+    pos: Annotation = Annotation("<token:pos>"),
+    out: Output = Output("<text>:readability.nk", description="Nominal ratios for text chunks"),
+    noun_pos: Iterable[str] = ("NN", "PP", "PC"),
+    verb_pos: Iterable[str] = ("PN", "AB", "VB"),
+    fmt: str = "%.2f",
+) -> None:
     """Create nominal ratio annotation for text."""
     text_children, _orphans = text.get_children(pos)
     logger.progress(total=len(text_children) + 1)

@@ -22,12 +22,13 @@ logger = get_logger(__name__)
 
 
 @annotator("Number {annotation} by position", wildcards=[Wildcard("annotation", Wildcard.ANNOTATION)])
-def number_by_position(out: Output = Output("{annotation}:misc.number_position",
-                                            description="Position of {annotation} within file"),
-                       chunk: Annotation = Annotation("{annotation}"),
-                       prefix: str = "",
-                       zfill: bool = False,
-                       start: int = START_DEFAULT) -> None:
+def number_by_position(
+    out: Output = Output("{annotation}:misc.number_position", description="Position of {annotation} within file"),
+    chunk: Annotation = Annotation("{annotation}"),
+    prefix: str = "",
+    zfill: bool = False,
+    start: int = START_DEFAULT,
+) -> None:
     """Number chunks by their position.
 
     Args:
@@ -65,6 +66,7 @@ def number_random(
         zfill: Whether to zero-fill the output number.
         start: Starting number for the output.
     """
+
     def _order(index: int, _value: tuple) -> float:
         """Return a random number based on the index."""
         random.seed(int(hexlify(str(index).encode()), 16))
@@ -73,16 +75,17 @@ def number_random(
     _read_chunks_and_write_new_ordering(out, chunk, _order, prefix, zfill, start)
 
 
-@annotator("Number {annotation}, with the order determined by {attribute}", wildcards=[
-    Wildcard("annotation", Wildcard.ANNOTATION),
-    Wildcard("attribute", Wildcard.ATTRIBUTE)
-])
-def number_by_attribute(out: Output = Output("{annotation}:misc.number_by_{attribute}",
-                                             description="Number determined by {attribute}"),
-                        chunk: Annotation = Annotation("{annotation}:{attribute}"),
-                        prefix: str = "",
-                        zfill: bool = False,
-                        start: int = START_DEFAULT) -> None:
+@annotator(
+    "Number {annotation}, with the order determined by {attribute}",
+    wildcards=[Wildcard("annotation", Wildcard.ANNOTATION), Wildcard("attribute", Wildcard.ATTRIBUTE)],
+)
+def number_by_attribute(
+    out: Output = Output("{annotation}:misc.number_by_{attribute}", description="Number determined by {attribute}"),
+    chunk: Annotation = Annotation("{annotation}:{attribute}"),
+    prefix: str = "",
+    zfill: bool = False,
+    start: int = START_DEFAULT,
+) -> None:
     """Number chunks, with the order determined by an attribute.
 
     Args:
@@ -92,6 +95,7 @@ def number_by_attribute(out: Output = Output("{annotation}:misc.number_by_{attri
         zfill: Whether to zero-fill the output number.
         start: Starting number for the output.
     """
+
     def _order(_index: int, value: str) -> tuple:
         """Return a tuple for natural sorting, based on the attribute value."""
         return _natural_sorting(value)
@@ -99,16 +103,17 @@ def number_by_attribute(out: Output = Output("{annotation}:misc.number_by_{attri
     _read_chunks_and_write_new_ordering(out, chunk, _order, prefix, zfill, start)
 
 
-@annotator("Renumber already numbered {annotation}:{attribute}, in new random order", wildcards=[
-    Wildcard("annotation", Wildcard.ANNOTATION),
-    Wildcard("attribute", Wildcard.ATTRIBUTE)
-])
-def renumber_by_shuffle(out: Output = Output("{annotation}:misc.renumber_by_shuffle_{attribute}",
-                                             description="New random order"),
-                        chunk: Annotation = Annotation("{annotation}:{attribute}"),
-                        prefix: str = "",
-                        zfill: bool = False,
-                        start: int = START_DEFAULT) -> None:
+@annotator(
+    "Renumber already numbered {annotation}:{attribute}, in new random order",
+    wildcards=[Wildcard("annotation", Wildcard.ANNOTATION), Wildcard("attribute", Wildcard.ATTRIBUTE)],
+)
+def renumber_by_shuffle(
+    out: Output = Output("{annotation}:misc.renumber_by_shuffle_{attribute}", description="New random order"),
+    chunk: Annotation = Annotation("{annotation}:{attribute}"),
+    prefix: str = "",
+    zfill: bool = False,
+    start: int = START_DEFAULT,
+) -> None:
     """Renumber already numbered chunks, in new random order.
 
     Retains the connection between parallelly numbered chunks by using the values as random seed.
@@ -120,6 +125,7 @@ def renumber_by_shuffle(out: Output = Output("{annotation}:misc.renumber_by_shuf
         zfill: Whether to zero-fill the output number.
         start: Starting number for the output.
     """
+
     def _order(_index: int, value: str) -> tuple:
         """Return a random number based on the attribute value."""
         random.seed(int(hexlify(value.encode()), 16))
@@ -128,18 +134,25 @@ def renumber_by_shuffle(out: Output = Output("{annotation}:misc.renumber_by_shuf
     _read_chunks_and_write_new_ordering(out, chunk, _order, prefix, zfill, start)
 
 
-@annotator("Number {annotation} by ({parent_annotation}:{parent_attribute} order, {annotation} order)", wildcards=[
-    Wildcard("annotation", Wildcard.ANNOTATION),
-    Wildcard("parent_annotation", Wildcard.ANNOTATION),
-    Wildcard("parent_attribute", Wildcard.ATTRIBUTE)
-])
-def number_by_parent(out: Output = Output("{annotation}:misc.number_by_parent_{parent_annotation}__{parent_attribute}",
-                                          description="Order based on parent order"),
-                     chunk: Annotation = Annotation("{annotation}"),
-                     parent_order: Annotation = Annotation("{parent_annotation}:{parent_attribute}"),
-                     prefix: str = "",
-                     zfill: bool = False,
-                     start: int = START_DEFAULT) -> None:
+@annotator(
+    "Number {annotation} by ({parent_annotation}:{parent_attribute} order, {annotation} order)",
+    wildcards=[
+        Wildcard("annotation", Wildcard.ANNOTATION),
+        Wildcard("parent_annotation", Wildcard.ANNOTATION),
+        Wildcard("parent_attribute", Wildcard.ATTRIBUTE),
+    ],
+)
+def number_by_parent(
+    out: Output = Output(
+        "{annotation}:misc.number_by_parent_{parent_annotation}__{parent_attribute}",
+        description="Order based on parent order",
+    ),
+    chunk: Annotation = Annotation("{annotation}"),
+    parent_order: Annotation = Annotation("{parent_annotation}:{parent_attribute}"),
+    prefix: str = "",
+    zfill: bool = False,
+    start: int = START_DEFAULT,
+) -> None:
     """Number chunks by (parent_order, chunk order).
 
     Args:
@@ -152,9 +165,11 @@ def number_by_parent(out: Output = Output("{annotation}:misc.number_by_parent_{p
     """
     parent_children, _orphans = parent_order.get_children(chunk)
 
-    child_order = {child_index: (parent_nr, child_index)
-                   for parent_index, parent_nr in enumerate(parent_order.read())
-                   for child_index in parent_children[parent_index]}
+    child_order = {
+        child_index: (parent_nr, child_index)
+        for parent_index, parent_nr in enumerate(parent_order.read())
+        for child_index in parent_children[parent_index]
+    }
 
     def _order(index: int, _value: tuple) -> tuple:
         """Return the order based on the parent order and child position."""
@@ -163,17 +178,20 @@ def number_by_parent(out: Output = Output("{annotation}:misc.number_by_parent_{p
     _read_chunks_and_write_new_ordering(out, chunk, _order, prefix, zfill, start)
 
 
-@annotator("Number {annotation} by relative position within {parent}", wildcards=[
-    Wildcard("annotation", Wildcard.ANNOTATION),
-    Wildcard("parent", Wildcard.ANNOTATION)
-])
-def number_relative(out: Output = Output("{annotation}:misc.number_rel_{parent}",
-                                         description="Relative position of {annotation} within {parent}"),
-                    parent: Annotation = Annotation("{parent}"),
-                    child: Annotation = Annotation("{annotation}"),
-                    prefix: str = "",
-                    zfill: bool = False,
-                    start: int = START_DEFAULT) -> None:
+@annotator(
+    "Number {annotation} by relative position within {parent}",
+    wildcards=[Wildcard("annotation", Wildcard.ANNOTATION), Wildcard("parent", Wildcard.ANNOTATION)],
+)
+def number_relative(
+    out: Output = Output(
+        "{annotation}:misc.number_rel_{parent}", description="Relative position of {annotation} within {parent}"
+    ),
+    parent: Annotation = Annotation("{parent}"),
+    child: Annotation = Annotation("{annotation}"),
+    prefix: str = "",
+    zfill: bool = False,
+    start: int = START_DEFAULT,
+) -> None:
     """Number chunks by their relative position within a parent.
 
     Args:
@@ -189,18 +207,18 @@ def number_relative(out: Output = Output("{annotation}:misc.number_rel_{parent}"
 
     for p in parent_children:
         for cnr, index in enumerate(p, start):
-            result[index] = "{prefix}{nr:0{length}d}".format(prefix=prefix,
-                                                             length=len(str(len(p) - 1 + start))
-                                                             if zfill else 0,
-                                                             nr=cnr)
+            result[index] = "{prefix}{nr:0{length}d}".format(
+                prefix=prefix, length=len(str(len(p) - 1 + start)) if zfill else 0, nr=cnr
+            )
     out.write(result)
 
 
 @annotator("Annotate tokens with numerical IDs relative to their sentences")
-def make_ref(out: Output = Output("<token>:misc.ref", cls="token:ref",
-                                  description="Token IDs relative to their sentences"),
-             sentence: Annotation = Annotation("<sentence>"),
-             token: Annotation = Annotation("<token>")) -> None:
+def make_ref(
+    out: Output = Output("<token>:misc.ref", cls="token:ref", description="Token IDs relative to their sentences"),
+    sentence: Annotation = Annotation("<sentence>"),
+    token: Annotation = Annotation("<token>"),
+) -> None:
     """Annotate tokens with numerical IDs relative to their sentences.
 
     Args:
@@ -211,12 +229,18 @@ def make_ref(out: Output = Output("<token>:misc.ref", cls="token:ref",
     number_relative(out, sentence, token)
 
 
-@annotator("Chunk count file with number of {annotation} chunks in corpus", order=1, wildcards=[
-           Wildcard("annotation", Wildcard.ANNOTATION)])
-def count_chunks(out: OutputCommonData = OutputCommonData("misc.{annotation}_count",
-                                                          description="Number of {annotation} chunks in corpus"),
-                 chunk: AnnotationAllSourceFiles = AnnotationAllSourceFiles("{annotation}"),
-                 files: AllSourceFilenames = AllSourceFilenames()) -> None:
+@annotator(
+    "Chunk count file with number of {annotation} chunks in corpus",
+    order=1,
+    wildcards=[Wildcard("annotation", Wildcard.ANNOTATION)],
+)
+def count_chunks(
+    out: OutputCommonData = OutputCommonData(
+        "misc.{annotation}_count", description="Number of {annotation} chunks in corpus"
+    ),
+    chunk: AnnotationAllSourceFiles = AnnotationAllSourceFiles("{annotation}"),
+    files: AllSourceFilenames = AllSourceFilenames(),
+) -> None:
     """Count the number of occurrences of 'chunk' in the corpus.
 
     Args:
@@ -289,9 +313,9 @@ def _read_chunks_and_write_new_ordering(
     nr_digits = len(str(len(new_order) - 1 + start))
     for nr, key in enumerate(sorted(new_order), start):
         for index in new_order[key]:
-            out_annotation[index] = "{prefix}{nr:0{length}d}".format(prefix=prefix,
-                                                                     length=nr_digits if zfill else 0,
-                                                                     nr=nr)
+            out_annotation[index] = "{prefix}{nr:0{length}d}".format(
+                prefix=prefix, length=nr_digits if zfill else 0, nr=nr
+            )
 
     out.write(out_annotation)
 

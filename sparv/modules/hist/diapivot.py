@@ -13,10 +13,13 @@ PART_DELIM1 = "^1"
 
 
 @annotator("Diapivot annotation", language=["swe-1800", "swe-fsv"])
-def diapivot_annotate(out: Output = Output("<token>:hist.diapivot", cls="token:lemgram",
-                                           description="SALDO lemgrams inferred from the diapivot model"),
-                      lemgram: Annotation = Annotation("<token>:hist.lemgram"),
-                      model: Model = Model("hist/diapivot.pickle")) -> None:
+def diapivot_annotate(
+    out: Output = Output(
+        "<token>:hist.diapivot", cls="token:lemgram", description="SALDO lemgrams inferred from the diapivot model"
+    ),
+    lemgram: Annotation = Annotation("<token>:hist.lemgram"),
+    model: Model = Model("hist/diapivot.pickle"),
+) -> None:
     """Annotate each lemgram with its corresponding saldo_id according to model.
 
     Args:
@@ -42,10 +45,15 @@ def diapivot_annotate(out: Output = Output("<token>:hist.diapivot", cls="token:l
 
 
 @annotator("Combine lemgrams from SALDO, Dalin, Swedberg and the diapivot", language=["swe-1800", "swe-fsv"])
-def combine_lemgrams(out: Output = Output("<token>:hist.combined_lemgrams", cls="token:lemgram",
-                                   description="SALDO lemgrams combined from SALDO, Dalin, Swedberg and the diapivot"),
-                     diapivot: Annotation = Annotation("<token>:hist.diapivot"),
-                     lemgram: Annotation = Annotation("<token>:hist.lemgram")) -> None:
+def combine_lemgrams(
+    out: Output = Output(
+        "<token>:hist.combined_lemgrams",
+        cls="token:lemgram",
+        description="SALDO lemgrams combined from SALDO, Dalin, Swedberg and the diapivot",
+    ),
+    diapivot: Annotation = Annotation("<token>:hist.diapivot"),
+    lemgram: Annotation = Annotation("<token>:hist.lemgram"),
+) -> None:
     """Combine lemgrams from SALDO, Dalin, Swedberg and the diapivot into a set of annotations.
 
     Args:
@@ -54,6 +62,7 @@ def combine_lemgrams(out: Output = Output("<token>:hist.combined_lemgrams", cls=
         lemgram: Existing lemgram annotation.
     """
     from sparv.modules.misc import misc  # noqa: PLC0415
+
     misc.merge_to_set(out, left=diapivot, right=lemgram, unique=True, sort=True)
 
 
@@ -165,7 +174,6 @@ def read_xml(xml: Path) -> dict[str, dict[str, str]]:
     for event, elem in context:
         if event == "end":
             if elem.tag == "LexicalEntry":
-
                 lemma = elem.find("Lemma")
                 dalin, saldo = [], ""
                 for form in lemma.findall("FormRepresentation"):
@@ -183,9 +191,7 @@ def read_xml(xml: Path) -> dict[str, dict[str, str]]:
             if elem.tag in {"LexicalEntry", "frame", "resFrame"}:
                 root.clear()
 
-    testwords = ["tigerhjerta..nn.1",
-                 "lågland..nn.1",
-                 "gud..nn.1"]
+    testwords = ["tigerhjerta..nn.1", "lågland..nn.1", "gud..nn.1"]
     util.misc.test_lexicon(lexicon, testwords)
 
     logger.info("OK, read")

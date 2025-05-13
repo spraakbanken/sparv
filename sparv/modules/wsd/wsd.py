@@ -23,32 +23,51 @@ logger = get_logger(__name__)
 SENT_SEP = "$SENT$"
 
 
-@annotator("Word sense disambiguation", language=["swe"], config=[
-    Config("wsd.sense_model", default="wsd/ALL_512_128_w10_A2_140403_ctx1.bin", description="Path to sense model",
-           datatype=str),
-    Config("wsd.context_model", default="wsd/lem_cbow0_s512_w10_NEW2_ctx.bin", description="Path to context model",
-           datatype=str),
-    Config("wsd.default_prob", -1.0, description="Default value for unanalyzed senses", datatype=float),
-    Config("wsd.jar", default="wsd/saldowsd.jar", description="Path name of the executable .jar file", datatype=str),
-    Config("wsd.prob_format", util.constants.SCORESEP + "%.3f", description="Format string for how to print the "
-                                                                            "sense probability", datatype=str),
-])
-def annotate(wsdjar: Binary = Binary("[wsd.jar]"),
-             sense_model: Model = Model("[wsd.sense_model]"),
-             context_model: Model = Model("[wsd.context_model]"),
-             out: Output = Output("<token>:wsd.sense", cls="token:sense",
-                                  description="Sense disambiguated SALDO identifiers"),
-             sentence: Annotation = Annotation("<sentence>"),
-             word: Annotation = Annotation("<token:word>"),
-             ref: Annotation = Annotation("<token:ref>"),
-             lemgram: Annotation = Annotation("<token>:saldo.lemgram"),
-             saldo: Annotation = Annotation("<token>:saldo.sense"),
-             pos: Annotation = Annotation("<token:pos>"),
-             token: Annotation = Annotation("<token>"),
-             prob_format: str = Config("wsd.prob_format"),
-             default_prob: float = Config("wsd.default_prob"),
-             source_file: SourceFilename = SourceFilename(),
-             encoding: str = util.constants.UTF8) -> None:
+@annotator(
+    "Word sense disambiguation",
+    language=["swe"],
+    config=[
+        Config(
+            "wsd.sense_model",
+            default="wsd/ALL_512_128_w10_A2_140403_ctx1.bin",
+            description="Path to sense model",
+            datatype=str,
+        ),
+        Config(
+            "wsd.context_model",
+            default="wsd/lem_cbow0_s512_w10_NEW2_ctx.bin",
+            description="Path to context model",
+            datatype=str,
+        ),
+        Config("wsd.default_prob", -1.0, description="Default value for unanalyzed senses", datatype=float),
+        Config(
+            "wsd.jar", default="wsd/saldowsd.jar", description="Path name of the executable .jar file", datatype=str
+        ),
+        Config(
+            "wsd.prob_format",
+            util.constants.SCORESEP + "%.3f",
+            description="Format string for how to print the sense probability",
+            datatype=str,
+        ),
+    ],
+)
+def annotate(
+    wsdjar: Binary = Binary("[wsd.jar]"),
+    sense_model: Model = Model("[wsd.sense_model]"),
+    context_model: Model = Model("[wsd.context_model]"),
+    out: Output = Output("<token>:wsd.sense", cls="token:sense", description="Sense disambiguated SALDO identifiers"),
+    sentence: Annotation = Annotation("<sentence>"),
+    word: Annotation = Annotation("<token:word>"),
+    ref: Annotation = Annotation("<token:ref>"),
+    lemgram: Annotation = Annotation("<token>:saldo.lemgram"),
+    saldo: Annotation = Annotation("<token>:saldo.sense"),
+    pos: Annotation = Annotation("<token:pos>"),
+    token: Annotation = Annotation("<token>"),
+    prob_format: str = Config("wsd.prob_format"),
+    default_prob: float = Config("wsd.default_prob"),
+    source_file: SourceFilename = SourceFilename(),
+    encoding: str = util.constants.UTF8,
+) -> None:
     """Run the word sense disambiguation tool (saldowsd.jar) to add probabilities to the saldo annotation.
 
     Unanalyzed senses (e.g. multiword expressions) receive the probability value given by default_prob.
@@ -78,8 +97,9 @@ def annotate(wsdjar: Binary = Binary("[wsd.jar]"),
     process = wsd_start(wsdjar, sense_model.path, context_model.path, encoding)
 
     # Construct input and send to WSD
-    stdin = build_input(sentences, word_annotation, ref_annotation, lemgram_annotation, saldo_annotation,
-                        pos_annotation, source_file)
+    stdin = build_input(
+        sentences, word_annotation, ref_annotation, lemgram_annotation, saldo_annotation, pos_annotation, source_file
+    )
 
     if encoding:
         stdin = stdin.encode(encoding)
@@ -103,16 +123,20 @@ def annotate(wsdjar: Binary = Binary("[wsd.jar]"),
 
 
 @modelbuilder("WSD models", language=["swe"])
-def build_model(sense_model: ModelOutput = ModelOutput("wsd/ALL_512_128_w10_A2_140403_ctx1.bin"),
-                context_model: ModelOutput = ModelOutput("wsd/lem_cbow0_s512_w10_NEW2_ctx.bin")) -> None:
+def build_model(
+    sense_model: ModelOutput = ModelOutput("wsd/ALL_512_128_w10_A2_140403_ctx1.bin"),
+    context_model: ModelOutput = ModelOutput("wsd/lem_cbow0_s512_w10_NEW2_ctx.bin"),
+) -> None:
     """Download models for SALDO-based word sense disambiguation."""
     # Download sense model
     sense_model.download(
-        "https://github.com/spraakbanken/sparv-wsd/raw/master/models/scouse/ALL_512_128_w10_A2_140403_ctx1.bin")
+        "https://github.com/spraakbanken/sparv-wsd/raw/master/models/scouse/ALL_512_128_w10_A2_140403_ctx1.bin"
+    )
 
     # Download context model
     context_model.download(
-        "https://github.com/spraakbanken/sparv-wsd/raw/master/models/scouse/lem_cbow0_s512_w10_NEW2_ctx.bin")
+        "https://github.com/spraakbanken/sparv-wsd/raw/master/models/scouse/lem_cbow0_s512_w10_NEW2_ctx.bin"
+    )
 
 
 def wsd_start(wsdjar: Binary, sense_model: Path, context_model: Path, encoding: str) -> subprocess.Popen:
@@ -128,14 +152,16 @@ def wsd_start(wsdjar: Binary, sense_model: Path, context_model: Path, encoding: 
         The started process.
     """
     java_opts = ["-Xmx6G"]
-    wsd_args = [("-appName", "se.gu.spraakbanken.wsd.VectorWSD"),
-                ("-format", "tab"),
-                ("-svFile", sense_model),
-                ("-cvFile", context_model),
-                ("-s1Prior", "1"),
-                ("-decay", "true"),
-                ("-contextWidth", "10"),
-                ("-verbose", "false")]
+    wsd_args = [
+        ("-appName", "se.gu.spraakbanken.wsd.VectorWSD"),
+        ("-format", "tab"),
+        ("-svFile", sense_model),
+        ("-cvFile", context_model),
+        ("-s1Prior", "1"),
+        ("-decay", "true"),
+        ("-contextWidth", "10"),
+        ("-verbose", "false"),
+    ]
 
     return util.system.call_java(wsdjar, wsd_args, options=java_opts, encoding=encoding, return_command=True)
 
@@ -175,8 +201,11 @@ def build_input(
                 word = re.sub(r"\s", "_", word)
             ref = ref_annotation[token_index]
             pos = pos_annotation[token_index].lower()
-            saldo = saldo_annotation[token_index].strip(util.constants.AFFIX) if saldo_annotation[
-                token_index] != util.constants.AFFIX else "_"
+            saldo = (
+                saldo_annotation[token_index].strip(util.constants.AFFIX)
+                if saldo_annotation[token_index] != util.constants.AFFIX
+                else "_"
+            )
             if "_" in saldo and len(saldo) > 1:
                 mwe = True
 
@@ -213,7 +242,7 @@ def process_output(
     # Split output into tokens
     for out_sent, in_sent in zip(out_sentences, in_sentences):
         out_tokens = [t for t in out_sent.split("\n") if t]
-        for (out_tok, in_tok) in zip(out_tokens, in_sent):
+        for out_tok, in_tok in zip(out_tokens, in_sent):
             out_prob = out_tok.split("\t")[6]
             out_prob = [i for i in out_prob.split("|") if i != "_"]
             out_meanings = [i for i in out_tok.split("\t")[5].split("|") if i != "_"]
@@ -251,7 +280,7 @@ def make_lemgram(lemgram: str, word: str, pos: str) -> tuple[str, str]:
         A tuple containing the lemgram and simple_lemgram.
     """
     lemgram = lemgram.strip(util.constants.AFFIX) if lemgram != util.constants.AFFIX else "_"
-    simple_lemgram = util.constants.DELIM.join({lem[:lem.rfind(".")] for lem in lemgram.split(util.constants.DELIM)})
+    simple_lemgram = util.constants.DELIM.join({lem[: lem.rfind(".")] for lem in lemgram.split(util.constants.DELIM)})
 
     # Fix simple lemgram for tokens without lemgram (word + pos)
     if not simple_lemgram:
