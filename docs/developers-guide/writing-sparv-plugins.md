@@ -9,7 +9,14 @@ pipeline with your own modules using plugins. A plugin is simply a Sparv module 
     The name of a Sparv module is the name of the Python package containing the module code. In addition to being a
     valid Python identifier, the name must start with a namespace representing the plugin author or organization,
     followed by an underscore. This is to avoid name clashes with other plugins and will be enforced in the future. In
-    the example below, we use the prefix "sbx_" (for Språkbanken Text).
+    the example below, we use the prefix `sbx_` (for Språkbanken Text).
+
+    In addition to the Sparv module name, which is what is used in the pipeline, the plugin also has a separate name
+    that is defined in the project file (`pyproject.toml`) for the plugin. This plugin name is not directly used by
+    Sparv but is important for external purposes, such as publishing the plugin on [PyPI](https://pypi.org/). It is
+    recommended that this name starts with `sparv-` (for discoverability), followed by the same namespace described
+    above. For example, `sparv-sbx-typo-correction`. Ideally, this name should also be used for the directory containing
+    the plugin and any version control repository hosting it (e.g., GitHub), ensuring consistency across all references.
 
 For your first plugin, we recommend looking at the [Sparv plugin
 template](https://github.com/spraakbanken/sparv-plugin-template). The template includes an example of a small annotation
