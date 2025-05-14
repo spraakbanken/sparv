@@ -7,7 +7,7 @@ name = "sparv-pipeline"
 dynamic = ["version"]
 description = "Språkbanken's text analysis tool"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = "MIT"
 authors = [
     { name = "Språkbanken Text", email = "sb-info@svenska.gu.se" }

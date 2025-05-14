@@ -6,7 +6,7 @@ need to fully utilize Sparv's analysis features.
 ## Prerequisites
 
 To install Sparv, you'll need a Unix-like environment (e.g. Linux, macOS or [Windows Subsystem for
-Linux](https://docs.microsoft.com/en-us/windows/wsl/about)) with [Python 3.9](https://python.org/) or later.
+Linux](https://docs.microsoft.com/en-us/windows/wsl/about)) with [Python 3.10](https://python.org/) or later.
 
 > [!NOTE]
 >
