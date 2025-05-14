@@ -1,6 +1,7 @@
 """Segmentation mostly based on NLTK."""
 
 import inspect
+import itertools
 import pickle
 import re
 from collections.abc import Generator
@@ -185,7 +186,7 @@ def do_segmentation(
     chunk_spans = chunk.read_spans() if chunk else []
     positions = positions.union({pos for span in chunk_spans for pos in span})
     positions = sorted({0, len(corpus_text)} | positions)
-    chunk_spans = list(zip(positions, positions[1:]))
+    chunk_spans = list(itertools.pairwise(positions))
 
     if existing_segments:
         segments = list(existing_segments.read_spans())
