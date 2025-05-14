@@ -4,7 +4,6 @@ import re
 import subprocess
 import xml.etree.ElementTree as etree  # noqa: N813
 import xml.sax.saxutils
-from typing import Optional
 
 from sparv.api import Annotation, Binary, Config, Output, Source, SparvErrorMessage, annotator, get_logger, util
 
@@ -42,7 +41,7 @@ def annotate(
     source: Source = Source(),
     binary: Binary = Binary("[swener.binary]"),
     timeout: int = Config("swener.timeout"),
-    _process_dict: Optional[dict] = None,
+    _process_dict: dict | None = None,
 ) -> None:
     """Tag named entities using HFST-SweNER.
 

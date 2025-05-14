@@ -1,7 +1,6 @@
 """Annotate words with lexical classes from Blingbring or SweFN."""
 
 from collections.abc import Iterable
-from typing import Optional
 
 from sparv.api import Annotation, Config, Model, Output, annotator, get_logger, util
 from sparv.api.util.constants import AFFIX, DELIM, SCORESEP
@@ -35,7 +34,7 @@ def blingbring_words(
     delimiter: str = DELIM,
     affix: str = AFFIX,
     scoresep: str = SCORESEP,
-    lexicon: Optional[util.misc.PickledLexicon] = None,
+    lexicon: util.misc.PickledLexicon | None = None,
 ) -> None:
     """Blingbring specific wrapper for annotate_words. See annotate_words for more info."""
     if class_set not in {"bring", "roget_head", "roget_subsection", "roget_section", "roget_class"}:
@@ -94,7 +93,7 @@ def swefn_words(
     delimiter: str = DELIM,
     affix: str = AFFIX,
     scoresep: str = SCORESEP,
-    lexicon: Optional[util.misc.PickledLexicon] = None,
+    lexicon: util.misc.PickledLexicon | None = None,
 ) -> None:
     """Swefn specific wrapper for annotate_words. See annotate_words for more info."""
 
@@ -139,7 +138,7 @@ def annotate_words(
     delimiter: str = DELIM,
     affix: str = AFFIX,
     scoresep: str = SCORESEP,
-    lexicon: Optional[util.misc.PickledLexicon] = None,
+    lexicon: util.misc.PickledLexicon | None = None,
 ) -> None:
     """Annotate words with blingbring classes (rogetID).
 

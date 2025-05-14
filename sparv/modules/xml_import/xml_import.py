@@ -8,7 +8,6 @@ import xml.etree.ElementTree as etree  # noqa: N813
 from collections.abc import Iterator
 from itertools import chain
 from pathlib import Path
-from typing import Optional
 
 from sparv.api import (
     Config,
@@ -140,7 +139,7 @@ def parse(
     skip: list = Config("xml_import.skip"),
     header_elements: list = Config("xml_import.header_elements"),
     header_data: list = Config("xml_import.header_data"),
-    prefix: Optional[str] = Config("xml_import.prefix"),
+    prefix: str | None = Config("xml_import.prefix"),
     remove_namespaces: bool = Config("xml_import.remove_namespaces"),
     encoding: str = Config("xml_import.encoding"),
     keep_control_chars: bool = Config("xml_import.keep_control_chars"),
@@ -193,7 +192,7 @@ class SparvXMLParser:
         header_data: list,
         source_dir: Source,
         encoding: str = util.constants.UTF8,
-        prefix: Optional[str] = None,
+        prefix: str | None = None,
         remove_namespaces: bool = False,
         keep_control_chars: bool = False,
         keep_unassigned_chars: bool = False,
@@ -375,7 +374,7 @@ class SparvXMLParser:
             )
             handle_header_data(element, tag_name)
 
-        def handle_header_data(element: etree.Element, tag_name: Optional[str] = None) -> None:
+        def handle_header_data(element: etree.Element, tag_name: str | None = None) -> None:
             """Extract header metadata."""
             if tag_name in self.unprocessed_header_data_elems:
                 self.unprocessed_header_data_elems.remove(tag_name)

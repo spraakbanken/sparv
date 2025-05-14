@@ -21,12 +21,12 @@ __config__ = [
     Config(
         "export.sparv_namespace",
         description="Prefix to add to the names of all automatically created annotations",
-        datatype=Optional[str],
+        datatype=str | None,
     ),
     Config(
         "export.source_namespace",
         description="Prefix to add to the names of all annotations from source",
-        datatype=Optional[str],
+        datatype=str | None,
     ),
     Config(
         "export.scramble_on", description="What annotation to use as the smallest unit when scrambling", datatype=str

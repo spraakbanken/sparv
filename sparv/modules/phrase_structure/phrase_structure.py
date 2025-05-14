@@ -1,7 +1,8 @@
 """Module for converting Mamba-Dep dependencies to phrase structure trees."""
 
+from __future__ import annotations
+
 from collections import defaultdict
-from typing import Optional, Union
 
 from sparv.api import Annotation, Output, annotator, get_logger
 
@@ -118,7 +119,7 @@ def flatten_tree(tree: list) -> list:
     return children
 
 
-def has_children(elem: Union[list, tuple]) -> bool:
+def has_children(elem: list | tuple) -> bool:
     """Return True if elem has any child elements."""
     if isinstance(elem, list):
         return True
@@ -138,7 +139,7 @@ def has_children(elem: Union[list, tuple]) -> bool:
 class Token:
     """Token containing a list of attributes."""
 
-    def __init__(self, t: Optional[tuple]) -> None:
+    def __init__(self, t: tuple | None) -> None:
         """Initialize a token with attributes."""
         if t:
             self.word = t[1]
@@ -148,7 +149,7 @@ class Token:
             self.position = int(self.ref)
             self.deprel = t[5]
             self.depheadid = t[4]
-            self.dephead: Optional[Token] = None
+            self.dephead: Token | None = None
         else:
             self.ref = "0"
             self.position = 0
@@ -156,7 +157,7 @@ class Token:
             self.word = ""
             self.pos = ""
             self.msd = ""
-            self.dephead: Optional[Token] = None
+            self.dephead: Token | None = None
         self.deps: list[Token] = []
 
     def get_deps_by_rel(self, r: str) -> list:
@@ -241,7 +242,7 @@ class Terminal:
         self.start = self.t.position
         self.end = self.start + 1
         self.label = self.t.pos
-        self.parent: Optional[Union[Nonterminal, Terminal]] = None
+        self.parent: Nonterminal | Terminal | None = None
 
     def head_position(self) -> int:
         """Return the position of the token."""
@@ -293,8 +294,8 @@ class Nonterminal:
         self,
         label: str,
         fun: str,
-        headchild: Union["Nonterminal", Terminal],
-        children: list[Union["Nonterminal", Terminal]],
+        headchild: Nonterminal | Terminal,
+        children: list[Nonterminal | Terminal],
     ) -> None:
         """Initialize a non-terminal node."""
         self.label = label
@@ -303,7 +304,7 @@ class Nonterminal:
         self.children = children
         self.start = min(c.start for c in self.children)
         self.end = max(c.end for c in self.children)
-        self.parent: Optional[Union[Nonterminal, Terminal]] = None
+        self.parent: Nonterminal | Terminal | None = None
 
     def head_position(self) -> int:
         """Return the position of the head child."""
@@ -381,7 +382,7 @@ def convert_sentence(sentence: Sentence) -> PSTree:
     return PSTree(convert(sentence.tokens[0]))
 
 
-def convert(token: Token) -> Union[Nonterminal, Terminal]:
+def convert(token: Token) -> Nonterminal | Terminal:
     """Recursively analyse the phrase structure of token.
 
     Args:
@@ -488,7 +489,7 @@ def convert(token: Token) -> Union[Nonterminal, Terminal]:
 ################################################################################
 
 
-def _add_head(in_list: list[Union[Terminal, Nonterminal]], h: Terminal) -> None:
+def _add_head(in_list: list[Terminal | Nonterminal], h: Terminal) -> None:
     """Add a head to the list of children based on its head position.
 
     Args:
@@ -503,7 +504,7 @@ def _add_head(in_list: list[Union[Terminal, Nonterminal]], h: Terminal) -> None:
     in_list.append(h)
 
 
-def _get_coord_label(in_list: list[Union[Terminal, Nonterminal]]) -> str:
+def _get_coord_label(in_list: list[Terminal | Nonterminal]) -> str:
     """Get the label for a coordinate structure.
 
     Args:
@@ -530,7 +531,7 @@ def _has_subject(token: Token) -> bool:
 #     return ("PRS" in token.msd) or ("PRT" in token.msd)
 
 
-def _find_first_by_pos(deps: list[Token], pos: str) -> Optional[Token]:
+def _find_first_by_pos(deps: list[Token], pos: str) -> Token | None:
     """Find the first Token in a list of dependencies with a specific POS tag.
 
     Args:

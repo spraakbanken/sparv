@@ -1,7 +1,6 @@
 """Create time span SQL data for use in Korp."""
 
 from collections import defaultdict
-from typing import Optional
 
 from sparv.api import (
     AllSourceFilenames,
@@ -30,7 +29,7 @@ def install_timespan(
     marker: OutputMarker = OutputMarker("korp.install_timespan_marker"),
     uninstall_marker: MarkerOptional = MarkerOptional("korp.uninstall_timespan_marker"),
     db_name: str = Config("korp.mysql_dbname"),
-    host: Optional[str] = Config("korp.remote_host"),
+    host: str | None = Config("korp.remote_host"),
 ) -> None:
     """Install time span SQL on remote host.
 
@@ -52,7 +51,7 @@ def uninstall_timespan(
     marker: OutputMarker = OutputMarker("korp.uninstall_timespan_marker"),
     install_marker: MarkerOptional = MarkerOptional("korp.install_timespan_marker"),
     db_name: str = Config("korp.mysql_dbname"),
-    host: Optional[str] = Config("korp.remote_host"),
+    host: str | None = Config("korp.remote_host"),
 ) -> None:
     """Remove timespan data from database.
 

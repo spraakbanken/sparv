@@ -5,7 +5,6 @@ import pickle
 import re
 from collections.abc import Generator
 from pathlib import Path
-from typing import Optional, Union
 
 import nltk
 
@@ -56,9 +55,9 @@ def tokenize(
     out: Output = Output("segment.token", cls="token", description="Token segments"),
     chunk: Annotation = Annotation("[segment.token_chunk]"),
     segmenter: str = Config("segment.token_segmenter"),
-    existing_segments: Optional[Annotation] = Annotation("[segment.existing_tokens]"),
-    model: Optional[Model] = Model("[segment.tokenizer_config]"),
-    token_list: Optional[Model] = Model("[segment.token_list]"),
+    existing_segments: Annotation | None = Annotation("[segment.existing_tokens]"),
+    model: Model | None = Model("[segment.tokenizer_config]"),
+    token_list: Model | None = Model("[segment.token_list]"),
 ) -> None:
     """Tokenize text."""
     do_segmentation(
@@ -100,10 +99,10 @@ def tokenize(
 def sentence(
     text: Text = Text(),
     out: Output = Output("segment.sentence", cls="sentence", description="Sentence segments"),
-    chunk: Optional[Annotation] = Annotation("[segment.sentence_chunk]"),
+    chunk: Annotation | None = Annotation("[segment.sentence_chunk]"),
     segmenter: str = Config("segment.sentence_segmenter"),
-    existing_segments: Optional[Annotation] = Annotation("[segment.existing_sentences]"),
-    model: Optional[Model] = Model("[segment.sentence_model]"),
+    existing_segments: Annotation | None = Annotation("[segment.existing_sentences]"),
+    model: Model | None = Model("[segment.sentence_model]"),
 ) -> None:
     """Split text into sentences."""
     do_segmentation(
@@ -133,10 +132,10 @@ def sentence(
 def paragraph(
     text: Text = Text(),
     out: Output = Output("segment.paragraph", cls="paragraph", description="Paragraph segments"),
-    chunk: Optional[Annotation] = Annotation("[segment.paragraph_chunk]"),
+    chunk: Annotation | None = Annotation("[segment.paragraph_chunk]"),
     segmenter: str = Config("segment.paragraph_segmenter"),
-    existing_segments: Optional[Annotation] = Annotation("[segment.existing_paragraphs]"),
-    model: Optional[Model] = None,
+    existing_segments: Annotation | None = Annotation("[segment.existing_paragraphs]"),
+    model: Model | None = None,
 ) -> None:
     """Split text into paragraphs."""
     do_segmentation(
@@ -148,10 +147,10 @@ def do_segmentation(
     text: Text,
     out: Output,
     segmenter: str,
-    chunk: Optional[Annotation] = None,
-    existing_segments: Optional[Annotation] = None,
-    model: Optional[Model] = None,
-    token_list: Optional[Model] = None,
+    chunk: Annotation | None = None,
+    existing_segments: Annotation | None = None,
+    model: Model | None = None,
+    token_list: Model | None = None,
 ) -> None:
     """Segment all chunks (e.g. sentences) into smaller "tokens" (e.g. words), and annotate them as "element" (e.g. w).
 
@@ -303,7 +302,7 @@ def build_tokenlist(
 
 
 def train_punkt_segmenter(
-    textfiles: Union[str, list[str]], modelfile: str, encoding: str = util.constants.UTF8, protocol: int = -1
+    textfiles: str | list[str], modelfile: str, encoding: str = util.constants.UTF8, protocol: int = -1
 ) -> None:
     """Train a Punkt sentence tokenizer.
 
@@ -407,7 +406,7 @@ class BetterWordTokenizer:
 
     re_punctuated_token = re.compile(r"\w.*\.$", re.UNICODE)
 
-    def __init__(self, model: Path, token_list: Optional[Path] = None) -> None:
+    def __init__(self, model: Path, token_list: Path | None = None) -> None:
         """Parse configuration file (model) and token_list (if supplied).
 
         Args:

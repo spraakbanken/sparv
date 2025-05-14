@@ -4,8 +4,7 @@ import importlib.util
 import logging
 import sys
 import traceback
-
-from importlib_metadata import entry_points
+from importlib.metadata import entry_points
 
 from sparv.core import io, log_handler, registry
 from sparv.core.misc import SparvErrorMessage
@@ -74,8 +73,6 @@ use_preloader = snakemake.params.use_preloader
 preloader_busy = False
 
 if use_preloader:
-    import socket
-
     from sparv.core import preload
 
     sock = None
@@ -90,7 +87,7 @@ if use_preloader:
             preload.send_data(sock, preload.PING)
             response = preload.receive_data(sock)  # Timeouts if busy
             sock.settimeout(None)
-    except (BlockingIOError, socket.timeout):
+    except (TimeoutError, BlockingIOError):
         use_preloader = False
         preloader_busy = True
         if sock is not None:

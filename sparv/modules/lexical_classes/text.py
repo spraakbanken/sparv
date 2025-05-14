@@ -2,7 +2,6 @@
 
 import operator
 from collections import defaultdict
-from typing import Optional
 
 from sparv.api import Annotation, Config, Model, Output, annotator, get_logger, util
 from sparv.api.util.constants import AFFIX, DELIM, SCORESEP
@@ -29,7 +28,7 @@ def blingbring_text(
     lexical_classes_token: Annotation = Annotation("<token>:lexical_classes.blingbring"),
     text: Annotation = Annotation("<text>"),
     token: Annotation = Annotation("<token>"),
-    saldoids: Optional[Annotation] = Annotation("<token:sense>"),
+    saldoids: Annotation | None = Annotation("<token:sense>"),
     cutoff: int = 3,
     types: bool = False,
     delimiter: str = DELIM,
@@ -86,7 +85,7 @@ def swefn_text(
     lexical_classes_token: Annotation = Annotation("<token>:lexical_classes.swefn"),
     text: Annotation = Annotation("<text>"),
     token: Annotation = Annotation("<token>"),
-    saldoids: Optional[Annotation] = Annotation("<token:sense>"),
+    saldoids: Annotation | None = Annotation("<token:sense>"),
     cutoff: int = 3,
     types: bool = False,
     delimiter: str = DELIM,
@@ -115,7 +114,7 @@ def annotate_text(
     lexical_classes_token: Annotation,
     text: Annotation,
     token: Annotation,
-    saldoids: Optional[Annotation],
+    saldoids: Annotation | None,
     cutoff: int,
     types: bool,
     delimiter: str,

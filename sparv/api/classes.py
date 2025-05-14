@@ -9,9 +9,9 @@ import pickle
 import time
 import zipfile
 from abc import ABC, abstractmethod
-from collections.abc import Iterable, Iterator, Sequence
+from collections.abc import Callable, Iterable, Iterator, Sequence
 from pathlib import Path
-from typing import Any, Callable, Union  # Union still needed in some cases for Python 3.9 compatibility
+from typing import Any
 
 import requests
 
@@ -1765,7 +1765,7 @@ class ExportInput(str):
         self.all_files = all_files
 
 
-class ExportAnnotations(Sequence[tuple[Annotation, Union[str, None]]]):
+class ExportAnnotations(Sequence[tuple[Annotation, str | None]]):
     """Iterable with annotations to include in export.
 
     An iterable containing annotations to be included in the export, as specified in the corpus configuration. When
@@ -1818,7 +1818,7 @@ class ExportAnnotationNames(ExportAnnotations):
         super().__init__(config_name)
 
 
-class ExportAnnotationsAllSourceFiles(Sequence[tuple[AnnotationAllSourceFiles, Union[str, None]]]):
+class ExportAnnotationsAllSourceFiles(Sequence[tuple[AnnotationAllSourceFiles, str | None]]):
     """List of annotations to include in export.
 
     An iterable containing annotations to be included in the export, as specified in the corpus configuration. When
@@ -1846,7 +1846,7 @@ class ExportAnnotationsAllSourceFiles(Sequence[tuple[AnnotationAllSourceFiles, U
         return len(self.items)
 
 
-class SourceAnnotations(Sequence[tuple[Annotation, Union[str, None]]]):
+class SourceAnnotations(Sequence[tuple[Annotation, str | None]]):
     """An iterable containing source annotations to include in the export, as specified in the corpus configuration."""
 
     def __init__(self, config_name: str, source_file: str | None = None, _headers: bool = False) -> None:
@@ -1916,7 +1916,7 @@ class HeaderAnnotations(SourceAnnotations):
         super().__init__(config_name, source_file, _headers=True)
 
 
-class SourceAnnotationsAllSourceFiles(Sequence[tuple[AnnotationAllSourceFiles, Union[str, None]]]):
+class SourceAnnotationsAllSourceFiles(Sequence[tuple[AnnotationAllSourceFiles, str | None]]):
     """Iterable with source annotations to include in export.
 
     An iterable containing source annotations to include in the export, as specified in the corpus configuration. Unlike

@@ -6,9 +6,8 @@ import itertools
 import json
 import re
 from collections import defaultdict
-from collections.abc import Iterable, Sequence
+from collections.abc import Callable, Iterable, Sequence
 from typing import Any as AnyType
-from typing import Callable
 
 import typing_inspect
 

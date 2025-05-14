@@ -1,7 +1,6 @@
 """Export annotated corpus data to pretty-printed xml."""
 
 from pathlib import Path
-from typing import Optional
 
 from sparv.api import (
     AllSourceFilenames,
@@ -228,7 +227,7 @@ def install(
     marker: OutputMarker = OutputMarker("xml_export.install_export_pretty_marker"),
     uninstall_marker: MarkerOptional = MarkerOptional("xml_export.uninstall_export_pretty_marker"),
     export_path: str = Config("xml_export.export_path"),
-    host: Optional[str] = Config("xml_export.export_host"),
+    host: str | None = Config("xml_export.export_host"),
 ) -> None:
     """Copy compressed XML to a target path, optionally on a remote host.
 
@@ -250,7 +249,7 @@ def uninstall(
     marker: OutputMarker = OutputMarker("xml_export.uninstall_export_pretty_marker"),
     install_marker: MarkerOptional = MarkerOptional("xml_export.install_export_pretty_marker"),
     export_path: str = Config("xml_export.export_path"),
-    host: Optional[str] = Config("xml_export.export_host"),
+    host: str | None = Config("xml_export.export_host"),
 ) -> None:
     """Remove compressed XML from remote location.
 

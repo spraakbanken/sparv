@@ -4,7 +4,6 @@ import unicodedata
 import xml.etree.ElementTree as etree  # noqa: N813
 import zipfile
 from pathlib import Path
-from typing import Optional
 
 from sparv.api import (
     Config,
@@ -47,7 +46,7 @@ logger = get_logger(__name__)
 def parse(
     source_file: SourceFilename = SourceFilename(),
     source_dir: Source = Source(),
-    prefix: Optional[str] = Config("odt_import.prefix"),
+    prefix: str | None = Config("odt_import.prefix"),
     keep_control_chars: bool = Config("odt_import.keep_control_chars"),
     normalize: str = Config("odt_import.normalize"),
 ) -> None:

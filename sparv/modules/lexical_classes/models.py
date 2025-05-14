@@ -5,7 +5,6 @@ import subprocess
 import xml.etree.ElementTree as etree  # noqa: N813
 from collections import defaultdict
 from pathlib import Path
-from typing import Optional, Union
 
 from sparv.api import Model, ModelOutput, SparvErrorMessage, get_logger, modelbuilder, util
 
@@ -217,12 +216,12 @@ def read_swefn(xml: Path, verbose: bool = True) -> dict:
 
 
 def create_freq_pickle(
-    corpus: Union[str, list],
+    corpus: str | list,
     annotation: str,
     model: str,
     cwb_bin_dir: str,
     cwb_registry: str,
-    class_set: Optional[set] = None,
+    class_set: set | None = None,
     score_separator: str = util.constants.SCORESEP,
 ) -> None:
     """Build pickle with relative frequency for a given annotation in one or more reference corpora.

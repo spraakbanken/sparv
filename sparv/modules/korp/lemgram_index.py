@@ -1,7 +1,6 @@
 """Create files needed for the lemgram search in Korp."""
 
 from collections import defaultdict
-from typing import Optional
 
 from sparv.api import (
     AllSourceFilenames,
@@ -29,7 +28,7 @@ def install_lemgrams(
     marker: OutputMarker = OutputMarker("korp.install_lemgram_marker"),
     uninstall_marker: MarkerOptional = MarkerOptional("korp.uninstall_lemgram_marker"),
     db_name: str = Config("korp.mysql_dbname"),
-    host: Optional[str] = Config("korp.remote_host"),
+    host: str | None = Config("korp.remote_host"),
 ) -> None:
     """Install lemgram SQL on remote host.
 
@@ -51,7 +50,7 @@ def uninstall_lemgrams(
     marker: OutputMarker = OutputMarker("korp.uninstall_lemgram_marker"),
     install_marker: MarkerOptional = MarkerOptional("korp.install_lemgram_marker"),
     db_name: str = Config("korp.mysql_dbname"),
-    host: Optional[str] = Config("korp.remote_host"),
+    host: str | None = Config("korp.remote_host"),
 ) -> None:
     """Remove lemgram index data from database.
 

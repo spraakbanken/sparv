@@ -3,11 +3,11 @@
 import json
 import subprocess
 import sys
+from importlib.metadata import Distribution, entry_points
 from pathlib import Path
 
 import rich
 import rich.box
-from importlib_metadata import Distribution, entry_points
 from rich.table import Table
 
 from sparv.core.console import console

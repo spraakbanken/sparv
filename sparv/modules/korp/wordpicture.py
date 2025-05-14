@@ -2,7 +2,6 @@
 
 import re
 from collections import defaultdict
-from typing import Optional, Union
 
 from sparv.api import (
     AllSourceFilenames,
@@ -39,7 +38,7 @@ def install_wordpicture(
     marker: OutputMarker = OutputMarker("korp.install_wordpicture_marker"),
     uninstall_marker: MarkerOptional = MarkerOptional("korp.uninstall_wordpicture_marker"),
     db_name: str = Config("korp.mysql_dbname"),
-    host: Optional[str] = Config("korp.remote_host"),
+    host: str | None = Config("korp.remote_host"),
 ) -> None:
     """Install Korp's Word Picture SQL on remote host.
 
@@ -62,7 +61,7 @@ def uninstall_wordpicture(
     install_marker: MarkerOptional = MarkerOptional("korp.install_wordpicture_marker"),
     db_name: str = Config("korp.mysql_dbname"),
     table_name: str = Config("korp.wordpicture_table"),
-    host: Optional[str] = Config("korp.remote_host"),
+    host: str | None = Config("korp.remote_host"),
 ) -> None:
     """Remove Korp's Word Picture data from database.
 
@@ -205,7 +204,7 @@ def wordpicture(
         def _match(pattern: str, value: str) -> bool:
             return bool(re.match(rf"^{pattern}$", value))
 
-        def _findrel(head: Union[dict, str], rel: str, dep: Union[dict, str]) -> list:
+        def _findrel(head: dict | str, rel: str, dep: dict | str) -> list:
             result = []
             if isinstance(head, dict):
                 for d in head["dep"]:
@@ -427,7 +426,7 @@ def wordpicture_sql(
     out: Export = Export("korp.wordpicture/wordpicture.sql"),
     wordpicture: AnnotationDataAllSourceFiles = AnnotationDataAllSourceFiles("korp.wordpicture"),
     no_sentences: bool = Config("korp.wordpicture_no_sentences"),
-    source_files: Optional[AllSourceFilenames] = AllSourceFilenames(),
+    source_files: AllSourceFilenames | None = AllSourceFilenames(),
     table_name: str = Config("korp.wordpicture_table"),
     split: bool = False,
 ) -> None:

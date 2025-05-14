@@ -2,7 +2,6 @@
 
 import re
 import subprocess
-from typing import Optional
 
 from sparv.api import Annotation, Binary, Config, Model, ModelOutput, Output, annotator, get_logger, modelbuilder, util
 
@@ -96,7 +95,7 @@ def annotate(
     sentence: Annotation = Annotation("<sentence>"),
     token: Annotation = Annotation("<token>"),
     encoding: str = util.constants.UTF8,
-    process_dict: Optional[dict] = None,
+    process_dict: dict | None = None,
 ) -> None:
     """Run the malt parser, in an already started process defined in process_dict, or start a new process (default).
 

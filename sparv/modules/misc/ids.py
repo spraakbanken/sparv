@@ -4,7 +4,6 @@ import math
 import random
 from binascii import hexlify
 from pathlib import Path
-from typing import Optional
 
 from sparv.api import (
     AllSourceFilenames,
@@ -27,8 +26,8 @@ def file_id(
     out: OutputDataAllSourceFiles = OutputDataAllSourceFiles(
         "misc.fileid", cls="fileid", description="Unique IDs for every source file"
     ),
-    source_files: Optional[AllSourceFilenames] = AllSourceFilenames(),
-    source_files_list: Optional[str] = None,
+    source_files: AllSourceFilenames | None = AllSourceFilenames(),
+    source_files_list: str | None = None,
     prefix: str = "",
     add: bool = False,
 ) -> None:
@@ -108,7 +107,7 @@ def ids(
     logger.progress()
 
 
-def _get_id_length(max_ids: Optional[int] = None) -> int:
+def _get_id_length(max_ids: int | None = None) -> int:
     """Get the length of the ID based on the maximum number of IDs.
 
     Args:

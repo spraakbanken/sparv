@@ -1,7 +1,5 @@
 """POS tagging, lemmatisation and dependency parsing with Stanza."""
 
-from typing import Optional
-
 from sparv.api import Annotation, Config, Language, Model, Output, Text, annotator, get_logger, util
 from sparv.core.misc import SparvErrorMessage
 
@@ -14,10 +12,10 @@ logger = get_logger(__name__)
 def annotate(
     corpus_text: Text = Text(),
     lang: Language = Language(),
-    sentence_chunk: Optional[Annotation] = Annotation("[stanza.sentence_chunk]"),
-    sentence_annotation: Optional[Annotation] = Annotation("[stanza.sentence_annotation]"),
-    token_annotation: Optional[Annotation] = Annotation("[stanza.token_annotation]"),
-    out_sentence: Optional[Output] = Output("stanza.sentence", cls="sentence", description="Sentence segments"),
+    sentence_chunk: Annotation | None = Annotation("[stanza.sentence_chunk]"),
+    sentence_annotation: Annotation | None = Annotation("[stanza.sentence_annotation]"),
+    token_annotation: Annotation | None = Annotation("[stanza.token_annotation]"),
+    out_sentence: Output | None = Output("stanza.sentence", cls="sentence", description="Sentence segments"),
     out_token: Output = Output("stanza.token", cls="token", description="Token segments"),
     out_upos: Output = Output("<token>:stanza.upos", cls="token:upos", description="Part-of-speeches in UD"),
     out_pos: Output = Output("<token>:stanza.pos", cls="token:pos", description="Part-of-speeches from Stanza"),

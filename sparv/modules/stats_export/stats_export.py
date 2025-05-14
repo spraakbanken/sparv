@@ -3,7 +3,6 @@
 import csv
 from collections import defaultdict
 from pathlib import Path
-from typing import Optional
 
 from sparv.api import (
     AllSourceFilenames,
@@ -114,7 +113,7 @@ def install_freq_list(
     freq_list: ExportInput = ExportInput("stats_export.frequency_list/stats_[metadata.id].csv"),
     marker: OutputMarker = OutputMarker("stats_export.install_freq_list_marker"),
     uninstall_marker: MarkerOptional = MarkerOptional("stats_export.uninstall_freq_list_marker"),
-    host: Optional[str] = Config("stats_export.remote_host"),
+    host: str | None = Config("stats_export.remote_host"),
     target_dir: str = Config("stats_export.remote_dir"),
 ) -> None:
     """Install frequency list on server by rsyncing.
@@ -136,7 +135,7 @@ def uninstall_freq_list(
     corpus_id: Corpus = Corpus(),
     marker: OutputMarker = OutputMarker("stats_export.uninstall_freq_list_marker"),
     install_marker: MarkerOptional = MarkerOptional("stats_export.install_freq_list_marker"),
-    host: Optional[str] = Config("stats_export.remote_host"),
+    host: str | None = Config("stats_export.remote_host"),
     remote_dir: str = Config("stats_export.remote_dir"),
 ) -> None:
     """Uninstall word frequency list.

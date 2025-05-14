@@ -6,9 +6,10 @@ import copy
 import inspect
 import re
 from collections import OrderedDict, defaultdict
+from collections.abc import Callable
 from itertools import combinations
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 import snakemake
 from snakemake.io import expand

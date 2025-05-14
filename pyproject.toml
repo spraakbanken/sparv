@@ -16,7 +16,6 @@ dependencies = [
     "appdirs==1.4.4",
     "argcomplete==3.6.2",
     "docx2python==1.27.1",
-    "importlib-metadata==8.6.1", # For Python <3.10 compatibility
     "jsonschema==4.23.0",
     "nltk==3.9.1",
     "packaging>=21.0",
@@ -113,7 +112,6 @@ allowed-confusables = ["–"]  # "Confusable" Unicode characters to ignore when 
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]  # Pyflakes: unused-import
-"sparv/modules/*.py" = ["FA100", "UP045"]  # For Python 3.9 compatibility in modules
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"

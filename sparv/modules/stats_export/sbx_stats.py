@@ -1,7 +1,6 @@
 """SBX specific annotation and export functions related to the stats export."""
 
 from pathlib import Path
-from typing import Optional
 
 from sparv.api import (
     AllSourceFilenames,
@@ -500,8 +499,8 @@ def install_sbx_freq_list(
     freq_list: ExportInput = ExportInput("stats_export.frequency_list_sbx/stats_[metadata.id].csv"),
     marker: OutputMarker = OutputMarker("stats_export.install_sbx_freq_list_marker"),
     uninstall_marker: MarkerOptional = MarkerOptional("stats_export.uninstall_sbx_freq_list_marker"),
-    host: Optional[str] = Config("stats_export.remote_host"),
-    target_dir: Optional[str] = Config("stats_export.remote_dir"),
+    host: str | None = Config("stats_export.remote_host"),
+    target_dir: str | None = Config("stats_export.remote_dir"),
 ) -> None:
     """Install frequency list on server by rsyncing, or install to an SVN repository.
 
@@ -536,8 +535,8 @@ def install_sbx_freq_list_compressed(
     ),
     marker: OutputMarker = OutputMarker("stats_export.install_sbx_freq_list_compressed_marker"),
     uninstall_marker: MarkerOptional = MarkerOptional("stats_export.uninstall_sbx_freq_list_compressed_marker"),
-    host: Optional[str] = Config("stats_export.remote_host"),
-    target_dir: Optional[str] = Config("stats_export.remote_dir"),
+    host: str | None = Config("stats_export.remote_host"),
+    target_dir: str | None = Config("stats_export.remote_dir"),
 ) -> None:
     """Install compressed frequency list on server by rsyncing, or install to an SVN repository.
 
@@ -569,8 +568,8 @@ def install_sbx_freq_list_date(
     freq_list: ExportInput = ExportInput("stats_export.frequency_list_sbx_date/stats_[metadata.id].csv"),
     marker: OutputMarker = OutputMarker("stats_export.install_sbx_freq_list_date_marker"),
     uninstall_marker: MarkerOptional = MarkerOptional("stats_export.uninstall_sbx_freq_list_date_marker"),
-    host: Optional[str] = Config("stats_export.remote_host"),
-    target_dir: Optional[str] = Config("stats_export.remote_dir"),
+    host: str | None = Config("stats_export.remote_host"),
+    target_dir: str | None = Config("stats_export.remote_dir"),
 ) -> None:
     """Install frequency list with dates on server by rsyncing, or install to an SVN repository.
 
@@ -605,8 +604,8 @@ def install_sbx_freq_list_date_compressed(
     ),
     marker: OutputMarker = OutputMarker("stats_export.install_sbx_freq_list_date_compressed_marker"),
     uninstall_marker: MarkerOptional = MarkerOptional("stats_export.uninstall_sbx_freq_list_date_compressed_marker"),
-    host: Optional[str] = Config("stats_export.remote_host"),
-    target_dir: Optional[str] = Config("stats_export.remote_dir"),
+    host: str | None = Config("stats_export.remote_host"),
+    target_dir: str | None = Config("stats_export.remote_dir"),
 ) -> None:
     """Install compressed frequency list with dates on server by rsyncing, or install to an SVN repository.
 
@@ -636,8 +635,8 @@ def uninstall_sbx_freq_list(
     corpus_id: Corpus = Corpus(),
     marker: OutputMarker = OutputMarker("stats_export.uninstall_sbx_freq_list_marker"),
     install_marker: MarkerOptional = MarkerOptional("stats_export.install_sbx_freq_list_marker"),
-    host: Optional[str] = Config("stats_export.remote_host"),
-    remote_dir: Optional[str] = Config("stats_export.remote_dir"),
+    host: str | None = Config("stats_export.remote_host"),
+    remote_dir: str | None = Config("stats_export.remote_dir"),
 ) -> None:
     """Uninstall SBX word frequency list.
 
@@ -672,8 +671,8 @@ def uninstall_sbx_freq_list_compressed(
     corpus_id: Corpus = Corpus(),
     marker: OutputMarker = OutputMarker("stats_export.uninstall_sbx_freq_list_compressed_marker"),
     install_marker: MarkerOptional = MarkerOptional("stats_export.install_sbx_freq_list_compressed_marker"),
-    host: Optional[str] = Config("stats_export.remote_host"),
-    remote_dir: Optional[str] = Config("stats_export.remote_dir"),
+    host: str | None = Config("stats_export.remote_host"),
+    remote_dir: str | None = Config("stats_export.remote_dir"),
     compression: str = Config("stats_export.compression"),
 ) -> None:
     """Uninstall compressed SBX word frequency list.
@@ -710,8 +709,8 @@ def uninstall_sbx_freq_list_date(
     corpus_id: Corpus = Corpus(),
     marker: OutputMarker = OutputMarker("stats_export.uninstall_sbx_freq_list_date_marker"),
     install_marker: MarkerOptional = MarkerOptional("stats_export.install_sbx_freq_list_date_marker"),
-    host: Optional[str] = Config("stats_export.remote_host"),
-    remote_dir: Optional[str] = Config("stats_export.remote_dir"),
+    host: str | None = Config("stats_export.remote_host"),
+    remote_dir: str | None = Config("stats_export.remote_dir"),
 ) -> None:
     """Uninstall SBX word frequency list with dates.
 
@@ -746,8 +745,8 @@ def uninstall_sbx_freq_list_date_compressed(
     corpus_id: Corpus = Corpus(),
     marker: OutputMarker = OutputMarker("stats_export.uninstall_sbx_freq_list_date_compressed_marker"),
     install_marker: MarkerOptional = MarkerOptional("stats_export.install_sbx_freq_list_date_compressed_marker"),
-    host: Optional[str] = Config("stats_export.remote_host"),
-    remote_dir: Optional[str] = Config("stats_export.remote_dir"),
+    host: str | None = Config("stats_export.remote_host"),
+    remote_dir: str | None = Config("stats_export.remote_dir"),
     compression: str = Config("stats_export.compression"),
 ) -> None:
     """Uninstall compressed SBX word frequency list with dates.

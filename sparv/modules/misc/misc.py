@@ -2,7 +2,6 @@
 
 import operator
 import re
-from typing import Optional, Union
 
 from sparv.api import Annotation, Config, Output, SourceFilename, SparvErrorMessage, Text, Wildcard, annotator, util
 from sparv.api.util.tagsets import pos_to_upos, suc_to_feats, tagmappings
@@ -24,7 +23,7 @@ def text_spans(
     text: Text = Text(),
     chunk: Annotation = Annotation("<token>"),
     out: Output = Output("<token>:misc.word", cls="token:word", description="Text content of every token"),
-    keep_formatting_chars: Optional[bool] = Config("misc.keep_formatting_chars"),
+    keep_formatting_chars: bool | None = Config("misc.keep_formatting_chars"),
 ) -> None:
     """Add the text content for each token span as a new annotation.
 
@@ -71,7 +70,7 @@ def text_headtail(
     chunk: Annotation = Annotation("<token>"),
     out_head: Output = Output("<token>:misc.head", description="Whitespace characters preceding every token"),
     out_tail: Output = Output("<token>:misc.tail", description="Whitespace characters following every token"),
-    truncate_after: Optional[int] = Config("misc.head_tail_max_length"),
+    truncate_after: int | None = Config("misc.head_tail_max_length"),
 ) -> None:
     """Extract "head" and "tail" whitespace characters for tokens.
 
@@ -161,7 +160,7 @@ def fake_text_headtail(
 
 
 @annotator("Convert part-of-speech tags, specified by the mapping")
-def translate_tag(out: Output, tag: Annotation, mapping: Union[dict, str]) -> None:
+def translate_tag(out: Output, tag: Annotation, mapping: dict | str) -> None:
     """Convert part-of-speech tags, specified by the mapping.
 
     Example mappings: parole_to_suc, suc_to_simple, ...

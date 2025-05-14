@@ -2,7 +2,6 @@
 
 import re
 import unicodedata
-from typing import Optional
 
 import pypdfium2 as pdfium
 
@@ -47,7 +46,7 @@ from sparv.api import Config, Output, Source, SourceFilename, SourceStructure, S
 def parse(
     source_file: SourceFilename = SourceFilename(),
     source_dir: Source = Source(),
-    prefix: Optional[str] = Config("pdf_import.prefix"),
+    prefix: str | None = Config("pdf_import.prefix"),
     keep_hyphenation: bool = Config("pdf_import.keep_hyphenation"),
     line_break_after_hyphenation: bool = Config("pdf_import.line_break_after_hyphenation"),
     keep_control_chars: bool = Config("pdf_import.keep_control_chars"),

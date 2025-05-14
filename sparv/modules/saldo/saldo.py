@@ -4,7 +4,6 @@ import itertools
 import operator
 import re
 from collections.abc import Iterable
-from typing import Optional
 
 from sparv.api import Annotation, Config, Model, Output, annotator, get_logger, util
 
@@ -105,17 +104,17 @@ def annotate(
     out_lemgram: Output = Output("<token>:saldo.lemgram", cls="token:lemgram", description="SALDO lemgrams"),
     out_baseform: Output = Output("<token>:saldo.baseform", cls="token:baseform", description="Baseforms from SALDO"),
     models: Iterable[Model] = (Model("[saldo.model]"),),
-    msd: Optional[Annotation] = Annotation("<token:msd>"),
+    msd: Annotation | None = Annotation("<token:msd>"),
     delimiter: str = Config("saldo.delimiter"),
     affix: str = Config("saldo.affix"),
-    precision: Optional[str] = Config("saldo.precision"),
+    precision: str | None = Config("saldo.precision"),
     precision_filter: str = Config("saldo.precision_filter"),
     min_precision: float = Config("saldo.min_precision"),
     skip_multiword: bool = Config("saldo.skip_multiword"),
     max_gaps: int = Config("saldo.max_mwe_gaps"),
     allow_multiword_overlap: bool = Config("saldo.allow_multiword_overlap"),
-    word_separator: Optional[str] = Config("saldo.word_separator"),
-    models_preloaded: Optional[dict] = None,
+    word_separator: str | None = Config("saldo.word_separator"),
+    models_preloaded: dict | None = None,
 ) -> None:
     """Use the Saldo lexicon model to annotate msd-tagged words.
 
@@ -175,17 +174,17 @@ def main(
     out_lemgram: Output,
     out_baseform: Output,
     models: Iterable[Model],
-    msd: Optional[Annotation],
+    msd: Annotation | None,
     delimiter: str,
     affix: str,
-    precision: Optional[str],
+    precision: str | None,
     precision_filter: str,
     min_precision: float,
     skip_multiword: bool,
     max_gaps: int,
     allow_multiword_overlap: bool,
-    word_separator: Optional[str],
-    models_preloaded: Optional[dict],
+    word_separator: str | None,
+    models_preloaded: dict | None,
 ) -> None:
     """Do SALDO annotations with models."""
     logger.progress()
@@ -296,7 +295,7 @@ def _find_single_word(
     thewords: list,
     lexicon_list: list,
     msdtag: str,
-    precision: Optional[str],
+    precision: str | None,
     min_precision: float,
     precision_filter: str,
     annotation_info: dict,

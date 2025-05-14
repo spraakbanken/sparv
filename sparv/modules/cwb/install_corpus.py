@@ -1,7 +1,6 @@
 """Module for installing cwb binary files on remote host."""
 
 from pathlib import Path
-from typing import Optional
 
 from sparv.api import (
     Config,
@@ -24,7 +23,7 @@ def install_corpus(
     corpus: Corpus = Corpus(),
     marker: OutputMarker = OutputMarker("cwb.install_corpus_marker"),
     uninstall_marker: MarkerOptional = MarkerOptional("cwb.uninstall_corpus_marker"),
-    host: Optional[str] = Config("cwb.remote_host"),
+    host: str | None = Config("cwb.remote_host"),
     registry_file: ExportInput = ExportInput("cwb.encoded/registry/[metadata.id]"),
     info_file: ExportInput = ExportInput("cwb.encoded/data/.info"),
     target_data_dir: str = Config("cwb.remote_data_dir"),
@@ -62,7 +61,7 @@ def install_corpus_scrambled(
     corpus: Corpus = Corpus(),
     marker: OutputMarker = OutputMarker("cwb.install_corpus_scrambled_marker"),
     uninstall_marker: MarkerOptional = MarkerOptional("cwb.uninstall_corpus_marker"),
-    host: Optional[str] = Config("cwb.remote_host"),
+    host: str | None = Config("cwb.remote_host"),
     registry_file: ExportInput = ExportInput("cwb.encoded_scrambled/registry/[metadata.id]"),
     info_file: ExportInput = ExportInput("cwb.encoded_scrambled/data/.info"),
     target_data_dir: str = Config("cwb.remote_data_dir"),
@@ -101,7 +100,7 @@ def uninstall_corpus(
     marker: OutputMarker = OutputMarker("cwb.uninstall_corpus_marker"),
     install_marker: MarkerOptional = MarkerOptional("cwb.install_corpus_marker"),
     install_scrambled_marker: MarkerOptional = MarkerOptional("cwb.install_corpus_scrambled_marker"),
-    host: Optional[str] = Config("cwb.remote_host"),
+    host: str | None = Config("cwb.remote_host"),
     data_dir: str = Config("cwb.remote_data_dir"),
     registry_dir: str = Config("cwb.remote_registry_dir"),
 ) -> None:
@@ -134,7 +133,7 @@ def uninstall_corpus(
 def sync_cwb(
     corpus: Corpus,
     marker: OutputMarker,
-    host: Optional[str],
+    host: str | None,
     info_file: ExportInput,
     registry_file: ExportInput,
     target_data_dir: str,

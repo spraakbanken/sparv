@@ -1,7 +1,6 @@
 """Part of Speech annotation using Hunpos."""
 
 import re
-from typing import Optional
 
 from sparv.api import (
     Annotation,
@@ -35,9 +34,9 @@ def msdtag(
     sentence: Annotation = Annotation("<sentence>"),
     binary: Binary = Binary("[hunpos.binary]"),
     model: Model = Model("[hunpos.model]"),
-    morphtable: Optional[Model] = Model("[hunpos.morphtable]"),
-    patterns: Optional[Model] = Model("[hunpos.patterns]"),
-    tag_mapping: Optional[str] = Config("hunpos.tag_mapping"),
+    morphtable: Model | None = Model("[hunpos.morphtable]"),
+    patterns: Model | None = Model("[hunpos.patterns]"),
+    tag_mapping: str | None = Config("hunpos.tag_mapping"),
     encoding: str = Config("hunpos.encoding"),
 ) -> None:
     """POS/MSD tag modern Swedish texts using the Hunpos tagger.
@@ -75,8 +74,8 @@ def msdtag_hist(
     sentence: Annotation = Annotation("<sentence>"),
     binary: Binary = Binary("[hunpos.binary]"),
     model: Model = Model("[hunpos.model_hist]"),
-    morphtable: Optional[Model] = Model("[hunpos.morphtable_hist]"),
-    tag_mapping: Optional[str] = Config("hunpos.tag_mapping_hist"),
+    morphtable: Model | None = Model("[hunpos.morphtable_hist]"),
+    tag_mapping: str | None = Config("hunpos.tag_mapping_hist"),
     encoding: str = Config("hunpos.encoding"),
 ) -> None:
     """POS/MSD tag modern Swedish texts using the Hunpos tagger.
@@ -110,9 +109,9 @@ def main(
     sentence: Annotation,
     binary: str,
     model: Model,
-    morphtable: Optional[Model] = None,
-    patterns: Optional[Model] = None,
-    tag_mapping: Optional[str] = None,
+    morphtable: Model | None = None,
+    patterns: Model | None = None,
+    tag_mapping: str | None = None,
     encoding: str = util.constants.UTF8,
 ) -> None:
     """POS/MSD tag using the Hunpos tagger.

@@ -3,7 +3,6 @@
 import pickle
 import xml.etree.ElementTree as etree  # noqa: N813
 from pathlib import Path
-from typing import Optional
 
 from sparv.api import Annotation, Model, ModelOutput, Output, annotator, get_logger, modelbuilder, util
 
@@ -128,7 +127,7 @@ class PivotLexicon:
             annotation_tag_pairs = self.lexicon.get(lem, []) + self.lexicon.get(lem.lower(), [])
         return list(map(_split_val, annotation_tag_pairs))
 
-    def get_exact_match(self, word: str) -> Optional[str]:
+    def get_exact_match(self, word: str) -> str | None:
         """Get only exact matches from lexicon.
 
         Args:

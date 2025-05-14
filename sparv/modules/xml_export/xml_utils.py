@@ -9,7 +9,6 @@ import xml.etree.ElementTree as etree  # noqa: N813
 from collections.abc import Sequence
 from pathlib import Path
 from shutil import copyfileobj
-from typing import Optional
 
 from sparv.api import SparvErrorMessage, get_logger, util
 from sparv.api.classes import Corpus, ExportInput, OutputMarker
@@ -27,8 +26,8 @@ def make_pretty_xml(
     word_annotation: list[str],
     fileid: str,
     include_empty_attributes: bool,
-    sparv_namespace: Optional[str] = None,
-    xml_namespaces: Optional[dict] = None,
+    sparv_namespace: str | None = None,
+    xml_namespaces: dict | None = None,
 ) -> str:
     """Create a pretty formatted XML string from span_positions.
 
@@ -268,7 +267,7 @@ def combine(
     out: str,
     source_files: Sequence[str],
     xml_input: str,
-    version_info_file: Optional[str] = None,
+    version_info_file: str | None = None,
     compress: bool = False,
 ) -> None:
     """Combine XML files into one single XML file, optionally compressing it."""

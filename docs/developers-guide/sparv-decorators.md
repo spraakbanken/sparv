@@ -187,7 +187,7 @@ def install(
     xmlfile: ExportInput = ExportInput("xml_export.combined/[metadata.id].xml.bz2"),
     out: OutputMarker = OutputMarker("xml_export.install_export_pretty_marker"),
     export_path: str = Config("xml_export.export_path"),
-    host: Optional[str] = Config("xml_export.export_host"),
+    host: str | None = Config("xml_export.export_host"),
 ):
     ...
 ```
@@ -228,7 +228,7 @@ def uninstall(
     xmlfile: ExportInput = ExportInput("xml_export.combined/[metadata.id].xml.bz2"),
     out: OutputMarker = OutputMarker("xml_export.uninstall_export_pretty_marker"),
     export_path: str = Config("xml_export.export_path"),
-    host: Optional[str] = Config("xml_export.export_host"),
+    host: str | None = Config("xml_export.export_host"),
 ):
     ...
 ```

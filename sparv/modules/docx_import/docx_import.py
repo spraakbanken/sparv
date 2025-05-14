@@ -1,7 +1,6 @@
 """Import module for docx source files."""
 
 import unicodedata
-from typing import Optional
 
 from docx2python import docx2python
 from docx2python.iterators import iter_at_depth
@@ -34,7 +33,7 @@ from sparv.api import Config, Output, Source, SourceFilename, SourceStructure, S
 def parse(
     source_file: SourceFilename = SourceFilename(),
     source_dir: Source = Source(),
-    prefix: Optional[str] = Config("docx_import.prefix"),
+    prefix: str | None = Config("docx_import.prefix"),
     keep_control_chars: bool = Config("docx_import.keep_control_chars"),
     normalize: str = Config("docx_import.normalize"),
 ) -> None:

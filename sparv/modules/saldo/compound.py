@@ -9,7 +9,6 @@ import time
 import xml.etree.ElementTree as etree  # noqa: N813
 from collections.abc import Generator
 from functools import reduce
-from typing import Optional
 
 import nltk
 
@@ -94,7 +93,7 @@ def annotate(
     compdelim: str = util.constants.COMPSEP,
     affix: str = util.constants.AFFIX,
     cutoff: bool = True,
-    preloaded_models: Optional[tuple] = None,
+    preloaded_models: tuple | None = None,
 ) -> None:
     """Divide compound words into prefix(es) and suffix.
 
@@ -263,7 +262,7 @@ class SaldoCompLexicon:
         """
         return [(infix, i[0], tuple(i[3])) for i in self.lookup(infix) if set(i[1]).intersection({"c", "cm"})]
 
-    def get_suffixes(self, suffix: str, msd: Optional[str] = None) -> list:
+    def get_suffixes(self, suffix: str, msd: str | None = None) -> list:
         """Look up a string and return possible analyses of that string as a suffix.
 
         Args:
@@ -379,7 +378,7 @@ class InFileLexicon:
         """
         return [(prefix, "0", (s[1],)) for s in self.lookup(prefix.lower())]
 
-    def get_suffixes(self, suffix: str, msd: Optional[str] = None) -> list:
+    def get_suffixes(self, suffix: str, msd: str | None = None) -> list:
         """Lookup a string and return possible analyses of that string as a suffix.
 
         Args:
@@ -672,7 +671,7 @@ def deep_len(lst: list) -> int:
 
 
 def compound(
-    saldo_lexicon: SaldoCompLexicon, altlexicon: InFileLexicon, w: str, msd: Optional[str] = None
+    saldo_lexicon: SaldoCompLexicon, altlexicon: InFileLexicon, w: str, msd: str | None = None
 ) -> list[list[tuple[tuple, ...]]]:
     """Create a list of compound analyses for word w.
 

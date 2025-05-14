@@ -1,7 +1,6 @@
 """Export annotated corpus data to scrambled xml."""
 
 from pathlib import Path
-from typing import Optional
 
 from sparv.api import (
     AllSourceFilenames,
@@ -194,7 +193,7 @@ def install_scrambled(
     marker: OutputMarker = OutputMarker("xml_export.install_export_scrambled_marker"),
     uninstall_marker: MarkerOptional = MarkerOptional("xml_export.uninstall_export_scrambled_marker"),
     export_path: str = Config("xml_export.export_scrambled_path"),
-    host: Optional[str] = Config("xml_export.export_scrambled_host"),
+    host: str | None = Config("xml_export.export_scrambled_host"),
 ) -> None:
     """Copy compressed combined scrambled XML to a target path, optionally on a remote host.
 
@@ -216,7 +215,7 @@ def uninstall_scrambled(
     marker: OutputMarker = OutputMarker("xml_export.uninstall_export_scrambled_marker"),
     install_marker: MarkerOptional = MarkerOptional("xml_export.install_export_scrambled_marker"),
     export_path: str = Config("xml_export.export_scrambled_path"),
-    host: Optional[str] = Config("xml_export.export_scrambled_host"),
+    host: str | None = Config("xml_export.export_scrambled_host"),
 ) -> None:
     """Remove compressed XML from remote location.
 

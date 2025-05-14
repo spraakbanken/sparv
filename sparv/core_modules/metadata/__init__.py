@@ -2,7 +2,6 @@
 
 import operator
 import re
-from typing import Union
 
 from sparv.api import Config, wizard
 from sparv.core import registry
@@ -13,7 +12,7 @@ __config__ = [
     Config(
         "metadata.language",
         description="Language of source files (ISO 639-3)",
-        datatype=Union[str, None],
+        datatype=str | None,
         choices=lambda: [*sorted({l.split("-")[0] for l in registry.languages}), None],
     ),
     Config(

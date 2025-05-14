@@ -2,7 +2,6 @@
 
 import datetime
 import re
-from typing import Optional
 
 from dateutil.relativedelta import relativedelta
 
@@ -65,14 +64,14 @@ logger = get_logger(__name__)
 )
 def dateformat(
     in_from: Annotation = Annotation("[dateformat.datetime_from]"),
-    in_to: Optional[Annotation] = Annotation("[dateformat.datetime_to]"),
+    in_to: Annotation | None = Annotation("[dateformat.datetime_to]"),
     out_from: Output = Output("[dateformat.out_annotation]:dateformat.datefrom", description="From-dates"),
-    out_to: Optional[Output] = Output("[dateformat.out_annotation]:dateformat.dateto", description="To-dates"),
+    out_to: Output | None = Output("[dateformat.out_annotation]:dateformat.dateto", description="To-dates"),
     informat: str = Config("dateformat.datetime_informat"),
     outformat: str = Config("dateformat.date_outformat"),
-    splitter: Optional[str] = Config("dateformat.splitter"),
-    pre_regex: Optional[str] = Config("dateformat.pre_regex"),
-    regex: Optional[str] = Config("dateformat.regex"),
+    splitter: str | None = Config("dateformat.splitter"),
+    pre_regex: str | None = Config("dateformat.pre_regex"),
+    regex: str | None = Config("dateformat.regex"),
 ) -> None:
     """Convert existing dates/times to specified date output format.
 
@@ -104,9 +103,9 @@ def dateformat_pretty(
         "[dateformat.out_annotation]:dateformat.date_pretty", description="Date without timestamp 'YYYY-MM-DD'"
     ),
     informat: str = Config("dateformat.datetime_informat"),
-    splitter: Optional[str] = Config("dateformat.splitter"),
-    pre_regex: Optional[str] = Config("dateformat.pre_regex"),
-    regex: Optional[str] = Config("dateformat.regex"),
+    splitter: str | None = Config("dateformat.splitter"),
+    pre_regex: str | None = Config("dateformat.pre_regex"),
+    regex: str | None = Config("dateformat.regex"),
 ) -> None:
     """Convert existing dates to format YYYY-MM-DD.
 
@@ -139,14 +138,14 @@ def dateformat_pretty(
 )
 def timeformat(
     in_from: Annotation = Annotation("[dateformat.datetime_from]"),
-    in_to: Optional[Annotation] = Annotation("[dateformat.datetime_to]"),
+    in_to: Annotation | None = Annotation("[dateformat.datetime_to]"),
     out_from: Output = Output("[dateformat.out_annotation]:dateformat.timefrom", description="From-times"),
-    out_to: Optional[Output] = Output("[dateformat.out_annotation]:dateformat.timeto", description="To-times"),
+    out_to: Output | None = Output("[dateformat.out_annotation]:dateformat.timeto", description="To-times"),
     informat: str = Config("dateformat.datetime_informat"),
     outformat: str = Config("dateformat.time_outformat"),
-    splitter: Optional[str] = Config("dateformat.splitter"),
-    pre_regex: Optional[str] = Config("dateformat.pre_regex"),
-    regex: Optional[str] = Config("dateformat.regex"),
+    splitter: str | None = Config("dateformat.splitter"),
+    pre_regex: str | None = Config("dateformat.pre_regex"),
+    regex: str | None = Config("dateformat.regex"),
 ) -> None:
     """Convert existing dates/times to specified time output format.
 
@@ -174,7 +173,7 @@ def timeformat(
 @annotator("Get datetime resolutions from informat")
 def resolution(
     out_resolution: OutputCommonData = OutputCommonData("dateformat.resolution", description="Datetime resolution"),
-    informat: Optional[str] = Config("dateformat.datetime_informat"),
+    informat: str | None = Config("dateformat.datetime_informat"),
 ) -> None:
     """Get the datetime resolution from the informat defined in the corpus config.
 
@@ -213,9 +212,9 @@ def resolution(
 
 def _formatter(
     in_from: Annotation,
-    in_to: Optional[Annotation],
+    in_to: Annotation | None,
     out_from: Output,
-    out_to: Optional[Output],
+    out_to: Output | None,
     in_format: str,
     out_format: str,
     splitter: str,
@@ -245,7 +244,7 @@ def _formatter(
         ValueError: If the input format is invalid.
     """
 
-    def get_smallest_unit(informat: str) -> Optional[str]:
+    def get_smallest_unit(informat: str) -> str | None:
         smallest_unit = None  # No date
 
         if "%y" not in informat and "%Y" not in informat:
@@ -265,7 +264,7 @@ def _formatter(
 
         return smallest_unit
 
-    def get_date_length(informat: str) -> Optional[int]:
+    def get_date_length(informat: str) -> int | None:
         parts = informat.split("%")
         length = len(parts[0])  # First value is either blank or not part of date
 

@@ -12,7 +12,7 @@ from collections.abc import Container, Iterable
 from collections.abc import Iterable as TypingIterable
 from enum import Enum
 from types import ModuleType
-from typing import Any, Callable, List, Tuple, TypeVar, get_type_hints  # noqa: UP035
+from typing import Any, Callable, List, Tuple, TypeVar  # noqa: UP035
 
 import typing_inspect
 
@@ -134,7 +134,8 @@ def find_modules(no_import: bool = False, find_custom: bool = False) -> list:
     Raises:
         SparvErrorMessage: If a module cannot be imported due to an error.
     """
-    from importlib_metadata import entry_points
+    from importlib.metadata import entry_points
+
     from packaging.requirements import Requirement
 
     from sparv import __version__ as sparv_version
@@ -685,8 +686,11 @@ def _add_to_registry(annotator: dict, skip_language_check: bool = False) -> None
     has_marker = False  # Needed by installers and uninstallers
 
     # Convert type hints from strings to actual types (needed because of __future__.annotations)
-    # TODO: Use the eval_str parameter for inspect.signature instead, once we target Python 3.10
-    annotator["function"].__annotations__ = get_type_hints(annotator["function"])
+    signature = inspect.signature(annotator["function"], eval_str=True)
+    annotator["function"].__annotations__ = {
+        **{param.name: param.annotation for param in signature.parameters.values()},
+        "return": signature.return_annotation,
+    }
 
     for val in inspect.signature(annotator["function"]).parameters.values():
         if isinstance(val.default, BaseOutput):

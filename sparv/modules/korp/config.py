@@ -5,7 +5,6 @@ import shlex
 import subprocess
 from collections import defaultdict
 from pathlib import Path
-from typing import Optional, Union
 
 from sparv.api import (
     AnnotationName,
@@ -78,13 +77,13 @@ LABELS = {
         Config(
             "korp.context",
             description="Contexts to use in Korp, from smaller to bigger. Leave blank to detect automatically.",
-            datatype=list[Union[dict, str]],
+            datatype=list[dict | str],
         ),
         Config(
             "korp.within",
             description="Search boundaries to use in Korp, from smaller to bigger. "
             "Leave blank to detect automatically.",
-            datatype=list[Union[dict, str]],
+            datatype=list[dict | str],
         ),
         Config("korp.custom_annotations", description="Custom Korp-annotations.", datatype=list[dict]),
         Config("korp.morphology", description="Pipe-separated list of morphologies used by the corpus", datatype=str),
@@ -107,9 +106,9 @@ LABELS = {
 def config(
     corpus_id: Corpus = Corpus(),
     name: dict = Config("metadata.name"),
-    korp_name: Optional[dict] = Config("korp.name"),
-    description: Optional[dict] = Config("metadata.description"),
-    short_description: Optional[dict] = Config("metadata.short_description"),
+    korp_name: dict | None = Config("korp.name"),
+    description: dict | None = Config("metadata.description"),
+    short_description: dict | None = Config("metadata.short_description"),
     language: str = Config("metadata.language"),
     modes: list = Config("korp.modes"),
     protected: bool = Config("korp.protected"),
@@ -117,24 +116,24 @@ def config(
     source_annotations: SourceAnnotationsAllSourceFiles = SourceAnnotationsAllSourceFiles("korp.source_annotations"),
     cwb_annotations: ExportAnnotationNames = ExportAnnotationNames("cwb.annotations"),
     cwb_source_annotations: SourceAnnotationsAllSourceFiles = SourceAnnotationsAllSourceFiles("cwb.source_annotations"),
-    annotation_definitions: Optional[dict] = Config("korp.annotation_definitions"),
-    custom_annotations: Optional[list] = Config("korp.custom_annotations"),
-    morphology: Optional[list] = Config("korp.morphology"),
-    reading_mode: Optional[dict] = Config("korp.reading_mode"),
+    annotation_definitions: dict | None = Config("korp.annotation_definitions"),
+    custom_annotations: list | None = Config("korp.custom_annotations"),
+    morphology: list | None = Config("korp.morphology"),
+    reading_mode: dict | None = Config("korp.reading_mode"),
     hidden_annotations: list[AnnotationName] = Config("korp.hidden_annotations"),
-    filters: Optional[list] = Config("korp.filters"),
-    sentence: Optional[AnnotationName] = AnnotationName("<sentence>"),
-    paragraph: Optional[AnnotationName] = AnnotationName("<paragraph>"),
-    installations: Optional[list] = Config("install"),
-    exports: Optional[list] = Config("export.default"),
-    scramble_on: Optional[AnnotationName] = AnnotationName("[cwb.scramble_on]"),
-    context: Optional[list] = Config("korp.context"),
-    within: Optional[list] = Config("korp.within"),
+    filters: list | None = Config("korp.filters"),
+    sentence: AnnotationName | None = AnnotationName("<sentence>"),
+    paragraph: AnnotationName | None = AnnotationName("<paragraph>"),
+    installations: list | None = Config("install"),
+    exports: list | None = Config("export.default"),
+    scramble_on: AnnotationName | None = AnnotationName("[cwb.scramble_on]"),
+    context: list | None = Config("korp.context"),
+    within: list | None = Config("korp.within"),
     token: AnnotationName = AnnotationName("<token>"),
     remove_namespaces: bool = Config("export.remove_module_namespaces", False),
     sparv_namespace: str = Config("export.sparv_namespace"),
     source_namespace: str = Config("export.source_namespace"),
-    remote_host: Optional[str] = Config("korp.remote_host"),
+    remote_host: str | None = Config("korp.remote_host"),
     config_dir: str = Config("korp.config_dir"),
     keep_undefined_annotations: bool = Config("korp.keep_undefined_annotations"),
     out: Export = Export("korp.config/[metadata.id].yaml"),
@@ -325,7 +324,7 @@ def build_annotations(
     presets: dict,
     include: list,
     token: str,
-    text_annotation: Optional[str] = None,
+    text_annotation: str | None = None,
     cwb_annotations: bool = True,
     keep_undefined_annotations: bool = False,
 ) -> tuple[list[dict], list[dict], list[dict]]:
@@ -370,7 +369,7 @@ def build_annotations(
         export_name_cwb = cwb_escape(export_name.replace(":", "_"))
         is_token = annotation.annotation_name == token.name
         is_text = text_annotation and annotation.annotation_name == text_annotation
-        definition: Union[str, dict] = annotation_definitions.get(annotation.name, export_name_cwb)
+        definition: str | dict = annotation_definitions.get(annotation.name, export_name_cwb)
 
         if isinstance(definition, str):  # Referring to a preset
             # Check that preset exists
@@ -441,9 +440,7 @@ def get_presets(remote_host: str, config_dir: str) -> dict[str, str]:
     return presets
 
 
-def build_description(
-    description: Union[dict, str, None], short_description: Union[dict, str, None]
-) -> Union[dict[str, str], str]:
+def build_description(description: dict | str | None, short_description: dict | str | None) -> dict[str, str] | str:
     """Combine description and short_description if they exist.
 
     Args:
@@ -484,7 +481,7 @@ def build_description(
 
 @installer("Install Korp corpus configuration file.", uninstaller="korp:uninstall_config", priority=-1)
 def install_config(
-    remote_host: Optional[str] = Config("korp.remote_host"),
+    remote_host: str | None = Config("korp.remote_host"),
     config_dir: str = Config("korp.config_dir"),
     config_file: ExportInput = ExportInput("korp.config/[metadata.id].yaml"),
     marker: OutputMarker = OutputMarker("korp.install_config_marker"),
@@ -510,7 +507,7 @@ def install_config(
 
 @uninstaller("Uninstall Korp corpus configuration file.")
 def uninstall_config(
-    remote_host: Optional[str] = Config("korp.remote_host"),
+    remote_host: str | None = Config("korp.remote_host"),
     config_dir: str = Config("korp.config_dir"),
     corpus_id: Corpus = Corpus(),
     marker: OutputMarker = OutputMarker("korp.uninstall_config_marker"),

@@ -2,7 +2,6 @@
 
 # ruff: noqa: PLR2004
 from pathlib import Path
-from typing import Optional
 
 from sparv.api import Annotation, Config, Export, SourceAnnotations, SourceFilename, exporter, get_logger, util
 
@@ -79,16 +78,16 @@ def conllu(
     sentence: Annotation = Annotation("<sentence>"),
     sentence_id: Annotation = Annotation("[conll_export.conll_fields.sentid]"),
     source_annotations: SourceAnnotations = SourceAnnotations("conll_export.source_annotations"),
-    id_ref: Optional[Annotation] = Annotation("[conll_export.conll_fields.id]"),
-    form: Optional[Annotation] = Annotation("[export.word]"),
-    lemma: Optional[Annotation] = Annotation("[conll_export.conll_fields.lemma]"),
-    upos: Optional[Annotation] = Annotation("[conll_export.conll_fields.upos]"),
-    xpos: Optional[Annotation] = Annotation("[conll_export.conll_fields.xpos]"),
-    feats: Optional[Annotation] = Annotation("[conll_export.conll_fields.feats]"),
-    head: Optional[Annotation] = Annotation("[conll_export.conll_fields.head]"),
-    deprel: Optional[Annotation] = Annotation("[conll_export.conll_fields.deprel]"),
-    deps: Optional[Annotation] = Annotation("[conll_export.conll_fields.deps]"),
-    misc: Optional[Annotation] = Annotation("[conll_export.conll_fields.misc]"),
+    id_ref: Annotation | None = Annotation("[conll_export.conll_fields.id]"),
+    form: Annotation | None = Annotation("[export.word]"),
+    lemma: Annotation | None = Annotation("[conll_export.conll_fields.lemma]"),
+    upos: Annotation | None = Annotation("[conll_export.conll_fields.upos]"),
+    xpos: Annotation | None = Annotation("[conll_export.conll_fields.xpos]"),
+    feats: Annotation | None = Annotation("[conll_export.conll_fields.feats]"),
+    head: Annotation | None = Annotation("[conll_export.conll_fields.head]"),
+    deprel: Annotation | None = Annotation("[conll_export.conll_fields.deprel]"),
+    deps: Annotation | None = Annotation("[conll_export.conll_fields.deps]"),
+    misc: Annotation | None = Annotation("[conll_export.conll_fields.misc]"),
 ) -> None:
     """Export annotations to CoNLL-U format."""
     # CoNLLU specification: https://universaldependencies.org/format.html

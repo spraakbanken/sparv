@@ -5,7 +5,6 @@ from __future__ import annotations
 import re
 from collections import OrderedDict
 from pathlib import Path
-from typing import Optional
 
 from sparv.api import (
     AllSourceFilenames,
@@ -242,8 +241,8 @@ def encode(
     remove_namespaces: bool = Config("export.remove_module_namespaces", False),
     sparv_namespace: str = Config("export.sparv_namespace"),
     source_namespace: str = Config("export.source_namespace"),
-    skip_compression: Optional[bool] = Config("cwb.skip_compression"),
-    skip_validation: Optional[bool] = Config("cwb.skip_validation"),
+    skip_compression: bool | None = Config("cwb.skip_compression"),
+    skip_validation: bool | None = Config("cwb.skip_validation"),
 ) -> None:
     """Encode CWB corpus from VRT files.
 
@@ -301,8 +300,8 @@ def encode_scrambled(
     remove_namespaces: bool = Config("export.remove_module_namespaces", False),
     sparv_namespace: str = Config("export.sparv_namespace"),
     source_namespace: str = Config("export.source_namespace"),
-    skip_compression: Optional[bool] = Config("cwb.skip_compression"),
-    skip_validation: Optional[bool] = Config("cwb.skip_validation"),
+    skip_compression: bool | None = Config("cwb.skip_compression"),
+    skip_validation: bool | None = Config("cwb.skip_validation"),
 ) -> None:
     """Encode CWB corpus from scrambled VRT files.
 
