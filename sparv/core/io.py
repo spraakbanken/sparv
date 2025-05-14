@@ -82,7 +82,7 @@ def write_annotation(source_file: str, annotation: BaseOutput, values: list) -> 
         spans = read_annotation(source_file, annotation, with_annotation_name=True, spans=True)
         annotation_values = {elem: [] for elem in elem_attrs}
 
-        for value, (_, annotation_name) in zip(values, spans):
+        for value, (_, annotation_name) in zip(values, spans, strict=True):
             annotation_values[annotation_name].append(value)
 
         for annotation_name in annotation_values:  # noqa: PLC0206
@@ -236,7 +236,9 @@ def read_annotation_attributes(
     assert len({split_annotation(annotation)[0] for annotation in annotations}) == 1, (
         "All attributes need to be for the same annotation"
     )
-    return zip(*[read_annotation(source_file, annotation, with_annotation_name) for annotation in annotations])
+    return zip(
+        *[read_annotation(source_file, annotation, with_annotation_name) for annotation in annotations], strict=True
+    )
 
 
 def _read_single_annotation(

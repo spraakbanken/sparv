@@ -453,7 +453,7 @@ def split_word(saldo_lexicon: SaldoCompLexicon, altlexicon: InFileLexicon, w: st
             splitpoint = tuple(i + 1 for i in indices)
 
             # Create list of affix spans
-            spans = list(zip((0, *splitpoint), (*splitpoint, None)))
+            spans = list(zip((0, *splitpoint), (*splitpoint, None), strict=True))
 
             # Abort if current compound contains an affix known to be invalid
             abort = False
@@ -651,7 +651,8 @@ def rank_compounds(
             tags = list(itertools.product(*[affix[2] for affix in c]))
             # Calculate probability score
             word_probs = max(
-                reduce(operator.mul, [(stats_lexicon.lookup_prob(i)) for i in zip(affixes, t)]) for t in tags
+                reduce(operator.mul, [(stats_lexicon.lookup_prob(i)) for i in zip(affixes, t, strict=True)])
+                for t in tags
             )
             tag_prob = max(nst_model.prob("+".join(t)) for t in tags)
             score = word_probs * tag_prob

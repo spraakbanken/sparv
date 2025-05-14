@@ -196,8 +196,8 @@ def annotate_swe(
         stanza_utils.check_sentence_respect(len([s for s in sentences if s]), len(doc.sentences))
         word_count_real = sum(len(s) for s in sentences)
         word_count = 0
-        for sent, tagged_sent in zip(sentences, doc.sentences):
-            for w_index, w in zip(sent, tagged_sent.words):
+        for sent, tagged_sent in zip(sentences, doc.sentences, strict=True):
+            for w_index, w in zip(sent, tagged_sent.words, strict=True):
                 feats_str = util.misc.cwbset(w.feats.split("|") if w.feats else "")
                 msd[w_index] = w.xpos
                 pos[w_index] = w.upos
@@ -285,8 +285,8 @@ def msdtag(
     doc = stanza_utils.run_stanza(nlp, document, batch_size)
     stanza_utils.check_sentence_respect(len([s for s in sentences if s]), len(doc.sentences))
     word_count = 0
-    for sent, tagged_sent in zip(sentences, doc.sentences):
-        for w_index, w in zip(sent, tagged_sent.words):
+    for sent, tagged_sent in zip(sentences, doc.sentences, strict=True):
+        for w_index, w in zip(sent, tagged_sent.words, strict=True):
             word_count += 1
             feats_str = util.misc.cwbset(w.feats.split("|") if w.feats else "")
             msd[w_index] = w.xpos
@@ -424,8 +424,8 @@ def dep_parse(
         )
 
         doc = stanza_utils.run_stanza(nlp, Document(document), batch_size, max_sentence_length)
-        for sent, tagged_sent in zip(sentences, doc.sentences):
-            for w_index, w in zip(sent, tagged_sent.words):
+        for sent, tagged_sent in zip(sentences, doc.sentences, strict=True):
+            for w_index, w in zip(sent, tagged_sent.words, strict=True):
                 dephead_str = str(sent[w.head - 1]) if w.head > 0 else "-"
                 dephead_ref_str = str(w.head) if w.head > 0 else ""
                 dephead[w_index] = dephead_str

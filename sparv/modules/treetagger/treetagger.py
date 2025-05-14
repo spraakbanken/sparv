@@ -90,8 +90,8 @@ def annotate(
     # Write pos and upos annotations.
     out_upos_annotation = word.create_empty_attribute()
     out_pos_annotation = word.create_empty_attribute()
-    for sent, tagged_sent in zip(sentences, stdout.strip().split(SENT_SEP)):
-        for token_id, tagged_token in zip(sent, tagged_sent.strip().split(TOK_SEP)):
+    for sent, tagged_sent in zip(sentences, stdout.strip().split(SENT_SEP), strict=True):
+        for token_id, tagged_token in zip(sent, tagged_sent.strip().split(TOK_SEP), strict=True):
             cols = tagged_token.strip().split(TAG_SEP)
             if len(cols) >= TAG_COLUMN + 1:
                 tag = cols[TAG_COLUMN]
@@ -105,8 +105,8 @@ def annotate(
 
     # Write lemma annotations.
     out_lemma_annotation = word.create_empty_attribute()
-    for sent, tagged_sent in zip(sentences, stdout.strip().split(SENT_SEP)):
-        for token_id, tagged_token in zip(sent, tagged_sent.strip().split(TOK_SEP)):
+    for sent, tagged_sent in zip(sentences, stdout.strip().split(SENT_SEP), strict=True):
+        for token_id, tagged_token in zip(sent, tagged_sent.strip().split(TOK_SEP), strict=True):
             cols = tagged_token.strip().split(TAG_SEP)
             if len(cols) >= LEM_COLUMN + 1:
                 lem = cols[LEM_COLUMN]

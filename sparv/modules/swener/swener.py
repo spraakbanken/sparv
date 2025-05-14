@@ -147,7 +147,7 @@ def parse_swener_output(
         token_spans = list(token.read_spans())
 
         # Loop through the NE-tagged sentences and parse each one with ElementTree
-        for sent, tagged_sent in zip(sentences, output.strip().split(SENT_SEP)):
+        for sent, tagged_sent in zip(sentences, output.strip().split(SENT_SEP), strict=True):
             xml_sent = "<sroot>" + tagged_sent + "</sroot>"
 
             # Filter out tags on the format <EnamexXxxXxx> since they seem to always overlap with <ENAMEX> elements,

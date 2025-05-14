@@ -192,8 +192,8 @@ def annotate(
     out_dephead_annotation = word.create_empty_attribute()
     out_dephead_ref_annotation = out_dephead_annotation.copy()
     out_deprel_annotation = out_dephead_annotation.copy()
-    for sent, malt_sent in zip(sentences, malt_sentences):
-        for token_index, malt_tok in zip(sent, malt_sent):
+    for sent, malt_sent in zip(sentences, malt_sentences, strict=True):
+        for token_index, malt_tok in zip(sent, malt_sent, strict=True):
             cols = [(None if col == UNDEF else col) for col in malt_tok.split(TAG_SEP)]
             out_deprel_annotation[token_index] = cols[DEPREL_COLUMN]
             head = int(cols[HEAD_COLUMN])

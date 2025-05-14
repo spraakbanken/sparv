@@ -208,7 +208,7 @@ def ufeatstag(
     msd_tags = msd.read()
     out_annotation = []
 
-    for pos_tag, msd_tag in zip(pos_tags, msd_tags):
+    for pos_tag, msd_tag in zip(pos_tags, msd_tags, strict=True):
         feats = suc_to_feats(pos_tag, msd_tag)
         out_annotation.append(util.misc.cwbset(feats))
 
@@ -377,7 +377,7 @@ def replace_list(chunk: Annotation, out: Output, find: str = "", sub: str = "") 
     sub = sub.split()
     if len(find) != len(sub):
         raise SparvErrorMessage("Find and sub must have the same number of words.")
-    translate = dict(zip(find, sub))
+    translate = dict(zip(find, sub, strict=True))
     out.write(translate.get(val, val) for val in chunk.read())
 
 
@@ -536,7 +536,7 @@ def merge_to_set(out: Output, left: Annotation, right: Annotation, unique: bool 
     le = left.read()
     ri = right.read()
     out_annotation = []
-    for left_annot, right_annot in zip(le, ri):
+    for left_annot, right_annot in zip(le, ri, strict=True):
         annots = util.misc.set_to_list(left_annot) + util.misc.set_to_list(right_annot)
         if unique:
             annots = list(dict.fromkeys(annots))

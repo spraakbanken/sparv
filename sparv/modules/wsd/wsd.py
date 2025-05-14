@@ -240,9 +240,9 @@ def process_output(
     out_sentences = [i for i in out_sentences if i]
 
     # Split output into tokens
-    for out_sent, in_sent in zip(out_sentences, in_sentences):
+    for out_sent, in_sent in zip(out_sentences, in_sentences, strict=True):
         out_tokens = [t for t in out_sent.split("\n") if t]
-        for out_tok, in_tok in zip(out_tokens, in_sent):
+        for out_tok, in_tok in zip(out_tokens, in_sent, strict=True):
             out_prob = out_tok.split("\t")[6]
             out_prob = [i for i in out_prob.split("|") if i != "_"]
             out_meanings = [i for i in out_tok.split("\t")[5].split("|") if i != "_"]

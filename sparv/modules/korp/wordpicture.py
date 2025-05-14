@@ -150,7 +150,7 @@ def wordpicture(
 
     triples = []
 
-    for sentid, sent in zip(sentence_ids, sentence_tokens):
+    for sentid, sent in zip(sentence_ids, sentence_tokens, strict=True):
         incomplete = {}  # Tokens looking for heads, with head as key
         tokens = {}  # Tokens in same sentence, with token_index as key
         skip_sentence = False
@@ -237,7 +237,7 @@ def wordpicture(
                         else:
                             # This pattern is a complex relation with intermediate tokens
                             # Map keys from relation pattern to corresponding token objects
-                            lookup = dict(zip(map(str, sorted(r)), (v, d[0], d[1])))
+                            lookup = dict(zip(map(str, sorted(r)), (v, d[0], d[1]), strict=True))
                             i = set(rel[0]).intersection(set(rel[1])).pop()
                             rel2 = [x[1] for x in sorted(rel[1].items())]
                             # Find the shared token (i.e. the one with the same index in both dictionaries)
@@ -247,12 +247,16 @@ def wordpicture(
                             if index1 == 2 and index2 == 0:  # noqa: PLR2004
                                 result = _findrel(d[1], rel2[1], rel2[2])
                                 if result:
-                                    lookup.update(dict(zip(map(str, sorted(rel[1])), (d[1], rel2[1], result[0]))))
+                                    lookup.update(
+                                        dict(zip(map(str, sorted(rel[1])), (d[1], rel2[1], result[0]), strict=True))
+                                    )
                             # The shared token is the head in both relations
                             elif index1 == 0 and index2 == 0:
                                 result = _findrel(v, rel2[1], rel2[2])
                                 if result:
-                                    lookup.update(dict(zip(map(str, sorted(rel[1])), (v, rel2[1], result[0]))))
+                                    lookup.update(
+                                        dict(zip(map(str, sorted(rel[1])), (v, rel2[1], result[0]), strict=False))
+                                    )
 
                             pp = rel[-1]
                             # More than 3 indices means that we successfully resolved additional intermediate tokens

@@ -183,9 +183,9 @@ def process_tokens(sentences: list, token_spans: list, text_data: str, nlp_args:
     token_positions = []
 
     stanza_utils.check_sentence_respect(len([s for s in sentences if s]), len(doc.sentences))
-    for sent_span, tagged_sent in zip(sentences, doc.sentences):
+    for sent_span, tagged_sent in zip(sentences, doc.sentences, strict=True):
         current_sentence_len = 0
-        for w_index, tagged_w in zip(sent_span, tagged_sent.words):
+        for w_index, tagged_w in zip(sent_span, tagged_sent.words, strict=True):
             token = Token(tagged_w, offset=0, token_dephead_count=token_dephead_count)
             all_tokens.append(token)
             current_sentence_len += 1
@@ -243,7 +243,7 @@ def process_sentences(sentence_spans: list, text_data: str, nlp_args: dict, stan
     previous_sentence_end_position = -2
 
     stanza_utils.check_sentence_respect(len(sentence_spans), len(doc.sentences))
-    for sent_span, tagged_sent in zip(sentence_spans, doc.sentences):
+    for sent_span, tagged_sent in zip(sentence_spans, doc.sentences, strict=True):
         # Calculate the difference between the positions in the document and the ones from Stanza.
         # -2 is to compensate for two line breaks between sentences in the Stanza input
         offset += sent_span[0] - previous_sentence_end_position - 2

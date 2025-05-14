@@ -552,9 +552,11 @@ class SparvXMLParser:
 
             # Sort spans and annotations by span position (required by Sparv)
             if attributes and spans:
-                attr_names, attr_values = list(zip(*attributes.items()))
-                spans, *attr_values = list(zip(*sorted(zip(spans, *attr_values), key=operator.itemgetter(0))))
-                attributes = dict(zip(attr_names, attr_values))
+                attr_names, attr_values = list(zip(*attributes.items(), strict=True))
+                spans, *attr_values = list(
+                    zip(*sorted(zip(spans, *attr_values, strict=True), key=operator.itemgetter(0)), strict=True)
+                )
+                attributes = dict(zip(attr_names, attr_values, strict=True))
             else:
                 spans.sort()
 

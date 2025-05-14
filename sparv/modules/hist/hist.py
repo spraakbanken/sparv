@@ -394,7 +394,7 @@ def _annotate_standard(
     # Join input_annotation and extra_input with delimiter
     annotations = input_annotation.read()
     if extra_input:
-        annotations = [delimiter.join([x, y]) for x, y in zip(annotations, extra_input.read())]
+        annotations = [delimiter.join([x, y]) for x, y in zip(annotations, extra_input.read(), strict=True)]
 
     out_annotation = []
     for token_index, annot in enumerate(annotations):

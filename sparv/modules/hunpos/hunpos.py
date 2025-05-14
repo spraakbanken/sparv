@@ -166,8 +166,8 @@ def main(
     stdout, _ = util.system.call_binary(binary, args, stdin, encoding=encoding)
 
     out_annotation = word.create_empty_attribute()
-    for sent, tagged_sent in zip(sentences, stdout.strip().split(SENT_SEP)):
-        for token_index, tagged_token in zip(sent, tagged_sent.strip().split(TOK_SEP)):
+    for sent, tagged_sent in zip(sentences, stdout.strip().split(SENT_SEP), strict=True):
+        for token_index, tagged_token in zip(sent, tagged_sent.strip().split(TOK_SEP), strict=True):
             tag = tagged_token.strip().split(TAG_SEP)[TAG_COLUMN]
             tag = tag_mapping.get(tag, tag)
             out_annotation[token_index] = tag
