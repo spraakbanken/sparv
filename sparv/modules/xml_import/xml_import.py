@@ -93,7 +93,8 @@ class XMLStructure(SourceStructureParser):
         Config(
             "xml_import.header_elements",
             [],
-            description="Elements containing header metadata. Contents will not be included in corpus text.",
+            description="Elements containing header metadata. Contents will not be included in the analyzed corpus "
+            "text, but can be included as-is in some output formats.",
             datatype=list[str],
         ),
         Config(
