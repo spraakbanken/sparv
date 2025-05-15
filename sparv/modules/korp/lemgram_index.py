@@ -72,7 +72,7 @@ def lemgram_sql(
     corpus: Corpus = Corpus(),
     source_files: AllSourceFilenames = AllSourceFilenames(),
     out: Export = Export("korp.lemgram_index/lemgram_index.sql"),
-    lemgram: AnnotationAllSourceFiles = AnnotationAllSourceFiles("<token>:saldo.lemgram"),
+    lemgram: AnnotationAllSourceFiles = AnnotationAllSourceFiles("<token:lemgram>"),
 ) -> None:
     """Create lemgram index SQL file."""
     corpus = corpus.upper()

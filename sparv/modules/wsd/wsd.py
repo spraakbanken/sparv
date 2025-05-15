@@ -59,7 +59,7 @@ def annotate(
     sentence: Annotation = Annotation("<sentence>"),
     word: Annotation = Annotation("<token:word>"),
     ref: Annotation = Annotation("<token:ref>"),
-    lemgram: Annotation = Annotation("<token>:saldo.lemgram"),
+    lemgram: Annotation = Annotation("<token:lemgram>"),
     saldo: Annotation = Annotation("<token>:saldo.sense"),
     pos: Annotation = Annotation("<token:pos>"),
     token: Annotation = Annotation("<token>"),

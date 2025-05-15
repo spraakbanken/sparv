@@ -88,7 +88,7 @@ def wordpicture(
     out: OutputData = OutputData("korp.wordpicture", description="Wordpicture data"),
     word: Annotation = Annotation("<token:word>"),
     pos: Annotation = Annotation("<token:pos>"),
-    lemgram: Annotation = Annotation("<token>:saldo.lemgram"),
+    lemgram: Annotation = Annotation("<token:lemgram>"),
     dephead: Annotation = Annotation("<token:dephead>"),
     deprel: Annotation = Annotation("<token:deprel>"),
     sentence_id: Annotation = Annotation("<sentence>:misc.id"),

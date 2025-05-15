@@ -80,7 +80,7 @@ def first_baseform(
 
 @annotator("Extract the first lemgram annotation from a set of lemgrams", language=["swe"])
 def first_lemgram(
-    lemgram: Annotation = Annotation("<token>:saldo.lemgram"),
+    lemgram: Annotation = Annotation("<token:lemgram>"),
     out: Output = Output("<token>:stats_export.lemgram_first", description="First lemgram from a set of lemgrams"),
 ) -> None:
     """Extract the first lemgram annotation from a set of lemgrams.
