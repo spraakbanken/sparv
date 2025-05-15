@@ -46,6 +46,7 @@
 - The `logs` directory is now always created relative to the corpus directory instead of the directory where `sparv` is
   run.
 - Detailed error messages are now always printed to the log file, no matter the log level.
+- The `outputs` parameter to importers can now take a list of multiple `Config` objects, instead of just one.
 
 ### Fixed
 

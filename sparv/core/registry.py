@@ -327,7 +327,7 @@ def _annotator(
     a_type: Annotator,
     name: str | None = None,
     file_extension: str | None = None,
-    outputs: list[str] | Config | None = None,
+    outputs: list[str | Config] | Config | None = None,
     text_annotation: str | None = None,
     structure: type[SourceStructureParser] | None = None,
     language: list[str] | None = None,
@@ -352,7 +352,8 @@ def _annotator(
         file_extension: (importer) The file extension of the type of source this importer handles, e.g. "xml" or
             "txt".
         outputs: (importer) A list of annotations and attributes that the importer is guaranteed to generate.
-            May also be a Config instance referring to such a list.
+            The list may also contain one or more Config instances referring to such lists. Alternatively, 'outputs'
+            may refer to a single Config instance referring to such a list.
             It may generate more outputs than listed, but only the annotations listed here will be available
             to use as input for annotator functions.
         text_annotation: (importer) An annotation from 'outputs' that should be used as the value for the
@@ -475,7 +476,7 @@ def importer(
     description: str,
     file_extension: str,
     name: str | None = None,
-    outputs: list[str] | Config | None = None,
+    outputs: list[str | Config] | Config | None = None,
     text_annotation: str | None = None,
     structure: type[SourceStructureParser] | None = None,
     config: list[Config] | None = None,
@@ -487,7 +488,8 @@ def importer(
         file_extension: The file extension of the type of source this importer handles, e.g. "xml" or "txt".
         name: Optional name to use instead of the function name.
         outputs: A list of annotations and attributes that the importer is guaranteed to generate.
-            May also be a Config instance referring to such a list.
+            The list may also contain one or more Config instances referring to such lists. Alternatively, 'outputs'
+            may refer to a single Config instance referring to such a list.
             It may generate more outputs than listed, but only the annotations listed here will be available
             to use as input for annotator functions.
         text_annotation: An annotation from 'outputs' that should be used as the value for the

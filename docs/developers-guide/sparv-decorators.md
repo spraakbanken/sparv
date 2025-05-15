@@ -82,9 +82,9 @@ class.
   by a blank line.
 - `file_extension`: The file extension of the type of source this importer handles, e.g., "xml" or "txt".
 - `name`: An optional name to use instead of the function name.
-- `outputs`: A list of annotations and attributes that the importer is guaranteed to generate. This may also be a
-  `Config` instance referring to such a list. The importer may generate more outputs than listed, but only the
-  annotations listed here will be available to use as input for annotator functions.
+- `outputs`: A list specifying the annotations and attributes that the importer is guaranteed to generate. This list can
+  include annotation names directly, one or more `Config` instances that refer to such lists or single annotations.
+  Alternatively, `outputs` can point to a single `Config` instance that refers to such a list.
 - `config`: A list of `Config` instances defining configuration options for the importer.
 
 **Example:**

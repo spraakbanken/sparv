@@ -213,8 +213,27 @@ def rule_helper(
             rule.outputs.append(paths.work_dir / "{file}" / io.STRUCTURE_FILE)
             # If importer guarantees other outputs, add them to outputs list
             if rule.import_outputs:
-                if isinstance(rule.import_outputs, Config):
-                    rule.import_outputs = sparv_config.get(rule.import_outputs, rule.import_outputs.default)
+                # import_outputs is either a list of annotations and/or Config objects, or a single Config object
+                import_outputs = rule.import_outputs
+                if isinstance(import_outputs, Config):
+                    import_outputs = sparv_config.get(import_outputs, import_outputs.default)
+                    if isinstance(import_outputs, str):
+                        import_outputs = [import_outputs]
+                elif isinstance(import_outputs, str):
+                    import_outputs = [import_outputs]
+                elif isinstance(import_outputs, list):
+                    expanded: list[str] = []
+                    for item in import_outputs:
+                        if isinstance(item, Config):
+                            expanded_item = sparv_config.get(item, item.default)
+                            if isinstance(expanded_item, list):
+                                expanded.extend(expanded_item)
+                            elif isinstance(expanded_item, str):
+                                expanded.append(expanded_item)
+                        elif isinstance(item, str):
+                            expanded.append(item)
+                    import_outputs = expanded
+                rule.import_outputs = import_outputs
                 annotations_ = set()
                 renames = {}
                 # Annotation list needs to be sorted to handle plain annotations before attributes
