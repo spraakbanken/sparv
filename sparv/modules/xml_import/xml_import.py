@@ -74,7 +74,7 @@ class XMLStructure(SourceStructureParser):
 @importer(
     "XML import",
     file_extension="xml",
-    outputs=Config("xml_import.elements", [], datatype=list[str]),
+    outputs=[Config("xml_import.elements"), Config("xml_import.header_data")],
     config=[
         Config(
             "xml_import.elements",
