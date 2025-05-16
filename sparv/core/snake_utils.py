@@ -241,7 +241,9 @@ def rule_helper(
                     # Handle annotations renamed during import
                     if target:
                         source_ann, source_attr = BaseAnnotation(ann).split()
-                        if not source_attr:
+                        if BaseAnnotation(target).has_attribute():  # E.g. header annotations
+                            ann = target  # noqa: PLW2901
+                        elif not source_attr:
                             renames[ann] = target
                             ann = target  # noqa: PLW2901
                         else:
