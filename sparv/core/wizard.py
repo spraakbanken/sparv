@@ -574,7 +574,7 @@ class Wizard:
                             f"({len(selected_annotations[module].get(a, []))})" if
                             selected_annotations[
                                 module].get(a) else "   ",
-                            self.snake_storage.all_annotators[module][a]["rule"].description,
+                            self.snake_storage.all_annotators[module][a]["rule"].description.splitlines()[0],
                             width=self.annotator_max_len + (
                                 0 if not self.snake_storage.all_annotators[module][a][
                                     "rule"].configs else 2)),
@@ -799,7 +799,7 @@ class Wizard:
                             f"({len(selected_annotations[module].get(a, []))})" if
                             selected_annotations[
                                 module].get(a) else "   ",
-                            self.snake_storage.all_annotators[module][a]["rule"].description,
+                            self.snake_storage.all_annotators[module][a]["rule"].description.splitlines()[0],
                             width=self.annotator_max_len),
                         "value": (module, a),
                         "short": f"{module}:{a}"
