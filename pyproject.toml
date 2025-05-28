@@ -37,6 +37,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
+    "bs4",
     "mkdocs-material==9.6.11",
     "mkdocs-github-admonitions-plugin==0.0.3",
     "mkdocstrings-python==1.16.10",

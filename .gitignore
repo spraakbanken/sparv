@@ -28,7 +28,7 @@ build/
 dist/
 *.egg-info/
 *.egg
-docs/site/
+docs/site*/
 
 # Testing / logs
 .pytest_cache/

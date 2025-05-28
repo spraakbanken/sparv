@@ -20,7 +20,8 @@
 
 \usepackage{titlesec} % Allows customizing section commands
 
-\usepackage{array} % For custom column widths in tables
+\usepackage{array} % For custom column widths in tables and increasing row height in tables
+\renewcommand{\arraystretch}{1.6} % Increase row height in tables
 \usepackage{calc} % for calculating minipage widths
 
 % Remove the "Chapter" prefix from chapter titles
@@ -63,7 +64,7 @@
     % stepnumber=2,
     % numbersep=5pt,
     showspaces=false,
-    showstringspaces=false,
+    showstringspaces=false, % Remove unnecessary space markers
     showtabs=false,
     tabsize=2,
     captionpos=b,
