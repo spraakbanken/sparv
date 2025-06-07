@@ -338,8 +338,8 @@ To uninstall a plugin, use the following command:
 sparv plugins uninstall [plugin-name]
 ```
 
-The `[plugin-name]` can be either the package name (e.g. `sparv-sbx-uppercase`), or the plugin name used within Sparv
-(e.g. `sbx_uppercase`).
+The `[plugin-name]` can be either the distribution name (e.g. `sparv-sbx-uppercase`), or the plugin name used within
+Sparv (e.g. `sbx_uppercase`).
 
 For example:
 

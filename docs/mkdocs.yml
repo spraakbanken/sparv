@@ -54,13 +54,13 @@ nav:
     - Available Analyses: user-manual/available-analyses.md
     - Using Sparv as a Library: user-manual/using-sparv-as-a-library.md
   - Developer's Guide:
+    - Introduction: developers-guide/intro.md
     - General Concepts: developers-guide/general-concepts.md
     - Writing Sparv Plugins: developers-guide/writing-sparv-plugins.md
-    - Sparv Decorators: developers-guide/sparv-decorators.md
-    - Sparv Classes: developers-guide/sparv-classes.md
-    - Config Parameters: developers-guide/config-parameters.md
-    - Wildcards: developers-guide/wildcards.md
-    - Utilities: developers-guide/utilities.md
+    - Reference:
+      - Sparv Decorators: developers-guide/sparv-decorators.md
+      - Sparv Classes: developers-guide/sparv-classes.md
+      - Utilities: developers-guide/utilities.md
   - Changelog: changelog.md
 not_in_nav: |  # Don't warn about certain files not being included in the navigation
   /index.md
