@@ -141,7 +141,7 @@ preset](corpus-configuration.md#annotation-presets) called `SWE_DEFAULT`.
 |    |            |
 |:---|:-----------|
 |**Description**  | Tokens and their POS tags are looked up in the SALDO lexicon in order to enrich them with compound information. More information (in Swedish) is found in the [Språkbanken Text FAQ ("Hur fungerar Sparvs sammansättningsanalys?")](https://spraakbanken.gu.se/faq/hur-fungerar-sparvs-sammansattningsanalys). Lemmas are enriched in this analysis.|
-|**Model**        | - [SALDO morphology](https://spraakbanken.gu.se/resurser/saldo) <br />- [NST pronunciation lexicon for Swedish](https://www.nb.no/sprakbanken/en/resource-catalogue/oai-nb-no-sbr-22/) <br />- [word frequency statistics from Korp](https://svn.spraakdata.gu.se/sb-arkiv/pub/frekvens/stats_all.txt)|
+|**Model**        | - [SALDO morphology](https://spraakbanken.gu.se/resurser/saldo) <br />- [NST pronunciation lexicon for Swedish](https://www.nb.no/sprakbanken/en/resource-catalogue/oai-nb-no-sbr-22/) <br />- [word frequency statistics from Korp](https://svn.spraakdata.gu.se/sb-arkiv/pub/frekvens/stats_all.txt.zip)|
 |**Annotations**  | - `<token>:saldo.complemgram` (compound lemgrams including a comparison score) <br />- `<token>:saldo.compwf` (compound word forms) <br />- `<token>:saldo.baseform2` (lemma)|
 |**Annotators**   | `saldo:compound`|
 
