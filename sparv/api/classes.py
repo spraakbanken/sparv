@@ -1395,10 +1395,11 @@ class Config(str):
     This class represents a configuration key and optionally its default value. You can specify the datatype and allowed
     values, which will be used for validating the config and generating the Sparv config JSON schema.
 
-    For further information on how to use this class, see the [Config Parameters](config-parameters.md) page.
+    For further information on how to use this class, see the [Config
+    Parameters](writing-sparv-plugins.md#config-parameters) section.
     """
 
-    def __new__(cls, name: str, *args: Any, **kwargs: Any) -> str:  # noqa: ARG004
+    def __new__(cls, name: str, *args: Any, **kwargs: Any) -> Config:  # noqa: ARG004
         """Create a new instance of the class.
 
         Args:
@@ -1477,7 +1478,7 @@ class Wildcard(str):
     ANNOTATION_ATTRIBUTE = 3
     OTHER = 0
 
-    def __new__(cls, name: str, *args: Any, **kwargs: Any) -> str:  # noqa: ARG004
+    def __new__(cls, name: str, *args: Any, **kwargs: Any) -> Wildcard:  # noqa: ARG004
         """Create a new instance of the class.
 
         Args:
@@ -1495,7 +1496,10 @@ class Wildcard(str):
             name: The name of the wildcard.
             type: The type of the wildcard, by reference to the constants defined in this class
                 (`Wildcard.ANNOTATION`, `Wildcard.ATTRIBUTE`, `Wildcard.ANNOTATION_ATTRIBUTE`,
-                or `Wildcard.OTHER`).
+                or `Wildcard.OTHER`). `Wildcard.ANNOTATION` is used for annotation names (spans), `Wildcard.ATTRIBUTE`
+                is used for attribute names, and `Wildcard.ANNOTATION_ATTRIBUTE` is used for wildcards that cover both
+                the annotation name and an attribute. `Wildcard.OTHER` is used for other types of wildcards, unrelated
+                to annotations or attributes.
             description: The description of the wildcard.
         """
         self.name = name
@@ -1744,7 +1748,7 @@ class ExportInput(str):
     input for another function.
     """
 
-    def __new__(cls, val: str, *args: Any, **kwargs: Any) -> str:  # noqa: ARG004
+    def __new__(cls, val: str, *args: Any, **kwargs: Any) -> ExportInput:  # noqa: ARG004
         """Create a new instance of the class.
 
         Args:

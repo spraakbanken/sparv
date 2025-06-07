@@ -156,7 +156,7 @@ def install_git(source_file: str | Path, repo_path: str | Path, commit_message: 
 
     Raises:
         SparvErrorMessage: If the source file does not exist, if repo_path is not set, or if it is not possible to add
-        the file to the Git repository.
+            the file to the Git repository.
     """
     source_file = Path(source_file)
     repo_path = Path(repo_path)
@@ -201,7 +201,7 @@ def uninstall_git(file_path: str | Path, commit_message: str | None = None) -> N
 
     Raises:
         SparvErrorMessage: If repo_path is not set, if the file does not exist in the Git repository, or if it is not
-        possible to remove the file from the Git repository.
+            possible to remove the file from the Git repository.
     """
     file_path = Path(file_path)
     if not file_path.exists():

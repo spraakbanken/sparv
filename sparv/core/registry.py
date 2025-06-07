@@ -272,16 +272,18 @@ def add_module_to_registry(module: ModuleType, module_name: str, skip_language_c
 
 
 def wizard(config_keys: list[str], source_structure: bool = False) -> Callable:
-    """Return a wizard decorator.
+    """Decorate a function to register it as a wizard.
+
+    A wizard is a function that is used to generate questions for the corpus config wizard.
+
+    Note:
+        The wizard functionality is deprecated and will be removed in a future version of Sparv.
 
     Args:
         config_keys: A list of config keys to be set or changed by the decorated function.
-        source_structure: Set to `True` if the decorated function needs access to a SourceStructureParser instance
+        source_structure: Set to `True` if the decorated function needs access to a `SourceStructureParser` instance
           (holding information on the structure of the source files).
-
-    Returns:
-        A decorator that adds the wrapped function to the wizard registry.
-    """
+    """  # noqa: DOC201
 
     def decorator(f: Callable) -> Callable:
         """Add wrapped function to wizard registry.
@@ -433,28 +435,29 @@ def annotator(
     preloader_cleanup: Callable | None = None,
     preloader_shared: bool = True,
 ) -> Callable:
-    """Return a decorator for annotator functions, adding them to the annotator registry.
+    """Decorate a function to register it as an annotator.
+
+    An annotator is a function that processes input data and generates new annotations.
 
     Args:
-        description: Description of annotator.
+        description: A description of the annotator, used for displaying help texts in the CLI. The first line should be
+            a short summary of what the annotator does. Optionally, a longer description can be added below the first
+            line, separated by a blank line.
         name: Optional name to use instead of the function name.
-        language: List of supported languages.
-        config: List of Config instances defining config options for the annotator.
+        language: A list of supported languages. If no list is provided, all languages are supported.
+        config: A list of `Config` instances defining configuration parameters for the annotator.
         priority: Functions with higher priority (higher number) will be preferred when scheduling which functions to
             run. The default priority is 0.
-        order: If several annotators have the same output, this integer value will help decide which to try to use
+        order: If multiple annotators produce the same output, this integer value helps determine which to try to use
             first. A lower number indicates higher priority.
-        wildcards: List of wildcards used in the annotator function's arguments.
-        preloader: Reference to a preloader function, used to preload models or processes.
-        preloader_params: List of names of parameters for the annotator, which will be used as arguments for the
+        wildcards: A list of wildcards used in the annotator function's arguments.
+        preloader: A reference to a preloader function, used to preload models or processes.
+        preloader_params: A list of names of parameters for the annotator, which will be used as arguments for the
             preloader.
-        preloader_target: The name of the annotator parameter which should receive the return value of the preloader.
-        preloader_cleanup: Reference to an optional cleanup function, which will be executed after each annotator use.
-        preloader_shared: Set to False if the preloader result should not be shared among preloader processes.
-
-    Returns:
-        A decorator.
-    """
+        preloader_target: The name of the annotator parameter that should receive the return value of the preloader.
+        preloader_cleanup: A reference to an optional cleanup function, which will be executed after each annotator use.
+        preloader_shared: Set to `False` if the preloader result should not be shared among preloader processes.
+    """  # noqa: DOC201 - Don't document the return value, to prevent it from being included in the documentation.
     return _annotator(
         description=description,
         a_type=Annotator.annotator,
@@ -481,25 +484,34 @@ def importer(
     structure: type[SourceStructureParser] | None = None,
     config: list[Config] | None = None,
 ) -> Callable:
-    """Return a decorator for importer functions.
+    """Decorate a function to register it as an importer.
+
+    An importer is a function that is responsible for importing corpus files of a specific file format. Its task is to
+    read a corpus file, extract the corpus text and any existing markup (if applicable), and write annotation files for
+    the corpus text and markup.
+
+    Importers do not use the `Output` class to specify their outputs. Instead, outputs are listed using the `outputs`
+    argument of the decorator. Any output that needs to be used as explicit input by another part of the pipeline must
+    be listed here, although additional unlisted outputs may also be created.
+
+    Two outputs are implicit (and thus not listed in `outputs`) but required for every importer: the corpus text, saved
+    using the `Text` class, and a list of the annotations created from existing markup, saved using the
+    `SourceStructure` class.
 
     Args:
-        description: Description of importer.
+        description: A description of the importer, used for displaying help texts in the CLI. The first line should be
+            a short summary of what the importer does. Optionally, a longer description can be added below the first
+            line, separated by a blank line.
         file_extension: The file extension of the type of source this importer handles, e.g. "xml" or "txt".
-        name: Optional name to use instead of the function name.
-        outputs: A list of annotations and attributes that the importer is guaranteed to generate.
-            The list may also contain one or more Config instances referring to such lists. Alternatively, 'outputs'
-            may refer to a single Config instance referring to such a list.
-            It may generate more outputs than listed, but only the annotations listed here will be available
-            to use as input for annotator functions.
+        name: An optional name to use instead of the function name.
+        outputs: A list specifying the annotations and attributes that the importer is guaranteed to generate. This list
+            can include annotation names directly, or one or more `Config` instances that refer to such lists or single
+            annotations. Alternatively, `outputs` can point to a single `Config` instance that refers to such a list.
         text_annotation: An annotation from 'outputs' that should be used as the value for the
             import.text_annotation config variable, unless it or classes.text has been set manually.
         structure: A class used to parse and return the structure of source files.
-        config: List of Config instances defining config options for the importer.
-
-    Returns:
-        A decorator.
-    """
+        config: A list of `Config` instances defining config parameters for the importer.
+    """  # noqa: DOC201
     return _annotator(
         description=description,
         a_type=Annotator.importer,
@@ -521,22 +533,28 @@ def exporter(
     order: int | None = None,
     abstract: bool = False,
 ) -> Callable:
-    """Return a decorator for exporter functions.
+    """Decorate a function to register it as an exporter.
+
+    An exporter is a function that is responsible for generating final outputs, in Sparv referred to as *exports*.
+    These outputs typically combine information from multiple annotations into a single file. The output produced by an
+    exporter is generally not used as input for any other module. An export can consist of any kind of data, such as a
+    frequency list, XML files, or a database dump. It can create one file per source file, combine information from all
+    source files into a single output file, or follow any other structure as needed.
 
     Args:
-        description: Description of exporter.
-        name: Optional name to use instead of the function name.
-        config: List of Config instances defining config options for the exporter.
-        language: List of supported languages.
+        description: A description of the exporter, used for displaying help texts in the CLI. The first line should be
+            a short summary of what the exporter does. Optionally, a longer description can be added below the first
+            line, separated by a blank line.
+        name: An optional name to use instead of the function name.
+        config: A list of `Config` instances defining config parameters for the exporter.
+        language: A list of supported languages. If no list is provided, all languages are supported.
         priority: Functions with higher priority (higher number) will be preferred when scheduling which functions to
             run. The default priority is 0.
-        order: If several exporters have the same output, this integer value will help decide which to try to use first.
-            A lower number indicates higher priority.
-        abstract: Set to True if this exporter has no output.
-
-    Returns:
-        A decorator
-    """
+        order: If several exporters produce the same output, this integer value will help decide which to try to use
+            first. A lower number indicates higher priority.
+        abstract: Set to `True` if this exporter does not produce any output files itself, but instead triggers other
+            processors to produce their output files by using their output as input.
+    """  # noqa: DOC201
     return _annotator(
         description=description,
         a_type=Annotator.exporter,
@@ -557,20 +575,28 @@ def installer(
     priority: int | None = None,
     uninstaller: str | None = None,
 ) -> Callable:
-    """Return a decorator for installer functions.
+    """Decorate a function to register it as an installer.
+
+    An installer is a function that is responsible for deploying the corpus or related files to a remote location. For
+    example, it can copy XML output to a web server or insert SQL data into a database.
+
+    Every installer must create a marker of the type `OutputMarker` at the end of a successful installation. Simply call
+    the `write()` method on the marker to create the required marker.
+
+    It is recommended that an installer removes any related uninstaller's marker to enable uninstallation. Use the
+    `MarkerOptional` class to refer to the uninstaller's marker without triggering an unnecessary installation.
 
     Args:
-        description: Description of installer.
-        name: Optional name to use instead of the function name.
-        config: List of Config instances defining config options for the installer.
-        language: List of supported languages.
+        description: A description of the installer, used for displaying help texts in the CLI. The first line should be
+            a short summary of what the installer does. Optionally, a longer description can be added below the first
+            line, separated by a blank line.
+        name: An optional name to use instead of the function name.
+        config: A list of `Config` instances defining config parameters for the installer.
+        language: A list of supported languages. If no list is provided, all languages are supported.
         priority: Functions with higher priority (higher number) will be preferred when scheduling which functions to
             run. The default priority is 0.
-        uninstaller: Name of related uninstaller.
-
-    Returns:
-        A decorator.
-    """
+        uninstaller: The name of the related uninstaller.
+    """  # noqa: DOC201
     return _annotator(
         description=description,
         a_type=Annotator.installer,
@@ -589,19 +615,27 @@ def uninstaller(
     language: list[str] | None = None,
     priority: int | None = None,
 ) -> Callable:
-    """Return a decorator for uninstaller functions.
+    """Decorate a function to register it as an uninstaller.
+
+    An uninstaller is a function that undoes the actions performed by an installer, such as removing corpus files from a
+    remote location or deleting corpus data from a database.
+
+    Every uninstaller must create a marker of the type `OutputMarker` at the end of a successful uninstallation. Simply
+    call the `write()` method on the marker to create the required marker.
+
+    It is recommended that an uninstaller removes any related installer's marker to enable re-installation. Use the
+    `MarkerOptional` class to refer to the installer's marker without triggering an unnecessary installation.
 
     Args:
-        description: Description of uninstaller.
-        name: Optional name to use instead of the function name.
-        config: List of Config instances defining config options for the uninstaller.
-        language: List of supported languages.
+        description: A description of the uninstaller, used for displaying help texts in the CLI. The first line should be
+            a short summary of what the uninstaller does. Optionally, a longer description can be added below the first
+            line, separated by a blank line.
+        name: An optional name to use instead of the function name.
+        config: A list of `Config` instances defining config parameters for the uninstaller.
+        language: A list of supported languages. If no list is provided, all languages are supported.
         priority: Functions with higher priority (higher number) will be preferred when scheduling which functions to
             run. The default priority is 0.
-
-    Returns:
-        A decorator.
-    """
+    """  # noqa: DOC201
     return _annotator(
         description=description,
         a_type=Annotator.uninstaller,
@@ -620,21 +654,25 @@ def modelbuilder(
     priority: int | None = None,
     order: int | None = None,
 ) -> Callable:
-    """Return a decorator for modelbuilder functions.
+    """Decorate a function to register it as a model builder.
+
+    A model builder is a function that sets up one or more models that other Sparv processors (typically annotators) rely
+    on. Setting up a model might involve tasks such as downloading a file, unzipping it, converting it to a different
+    format, and saving it in Sparv's data directory. Models are generally not specific to a single corpus; once a model
+    is set up on your system, it will be available for any corpus.
 
     Args:
-        description: Description of modelbuilder.
-        name: Optional name to use instead of the function name.
-        config: List of Config instances defining config options for the modelbuilder.
-        language: List of supported languages.
+        description: A description of the model builder, used for displaying help texts in the CLI. The first line
+            should be a short summary of what the model builder does. Optionally, a longer description can be added
+            below the first line, separated by a blank line.
+        name: An optional name to use instead of the function name.
+        config: A list of `Config` instances defining config parameters for the model builder.
+        language: A list of supported languages. If no list is provided, all languages are supported.
         priority: Functions with higher priority (higher number) will be preferred when scheduling which functions to
             run. The default priority is 0.
-        order: If several modelbuilders have the same output, this integer value will help decide which to try to use
+        order: If several model builders have the same output, this integer value will help decide which to try to use
             first. A lower number indicates higher priority.
-
-    Returns:
-        A decorator.
-    """
+    """  # noqa: DOC201
     return _annotator(
         description=description,
         a_type=Annotator.modelbuilder,
@@ -814,7 +852,7 @@ def find_implicit_classes() -> None:
 def handle_config(
     cfg: Config, module_name: str, rule_name: str | None = None, language: list[str] | None = None
 ) -> None:
-    """Handle Config instances.
+    """Handle Config instances, either from a module's __config__ attribute or from a processor decorator.
 
     Args:
         cfg: The Config instance.
