@@ -187,7 +187,7 @@ def annotate(
         stdout, _ = process.communicate(stdin)
         if encoding:
             stdout = stdout.decode(encoding)
-        malt_sentences = (malt_sent.split(TOK_SEP) for malt_sent in stdout.split(SENT_SEP))
+        malt_sentences = (malt_sent.split(TOK_SEP) for malt_sent in stdout.rstrip("\n").split(SENT_SEP))
 
     out_dephead_annotation = word.create_empty_attribute()
     out_dephead_ref_annotation = out_dephead_annotation.copy()
