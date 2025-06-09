@@ -7,6 +7,7 @@ import os
 import shlex
 import shutil
 import subprocess
+from collections.abc import Iterable
 from pathlib import Path
 
 from sparv.api import SparvErrorMessage, get_logger
@@ -94,7 +95,7 @@ def call_java(
 
 
 def call_binary(
-    name: str,
+    name: str | Path | Iterable[str | Path],
     arguments: list | tuple = (),
     stdin: str | list | tuple = "",
     raw_command: str | None = None,
@@ -108,8 +109,8 @@ def call_binary(
     """Call a binary with specified arguments and `stdin`.
 
     Args:
-        name: The binary to execute (can include absolute or relative path). Accepts a string or a list of strings,
-            using the first found binary.
+        name: The binary to execute (can include absolute or relative path). Accepts a string, a Path, or an iterable
+            of strings or Paths, using the first found binary.
         arguments: List of arguments to pass to the binary.
         stdin: Input to pass to the process's `stdin`.
         raw_command: A raw command to execute through the shell (implies `use_shell=True`).
@@ -170,7 +171,7 @@ def call_binary(
 
 
 def find_binary(
-    name: str | list[str],
+    name: str | Path | Iterable[str | Path],
     search_paths: list | tuple = (),
     executable: bool = True,
     allow_dir: bool = False,
@@ -179,7 +180,8 @@ def find_binary(
     """Locate the binary for a given program.
 
     Args:
-        name: The name of the binary, either as a string or a list of strings with alternative names.
+        name: The name of the binary, either as a string or Path, or an iterable of strings or Paths with alternative
+            names.
         search_paths: A list of additional paths to search, besides those in the environment variable `PATH`.
         executable: If `False`, does not fail when the binary is not executable.
         allow_dir: If `True`, allows the target to be a directory instead of a file.
@@ -191,7 +193,7 @@ def find_binary(
     Raises:
         SparvErrorMessage: If `raise_error` is `True` and the binary could not be found.
     """
-    if isinstance(name, str):
+    if isinstance(name, (str, Path)):
         name = [name]
     name = list(map(os.path.expanduser, name))
     search_paths = [*list(search_paths), ".", paths.bin_dir, *os.getenv("PATH").split(":")]
