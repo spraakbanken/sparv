@@ -29,36 +29,7 @@ from . import xml_utils
 logger = get_logger(__name__)
 
 
-@exporter(
-    "XML export with one token element per line",
-    config=[
-        Config(
-            "xml_export.filename",
-            default="{file}_export.xml",
-            description="Filename pattern for resulting XML files, with '{file}' representing the source name.",
-            datatype=str,
-            pattern=r".*\{file\}.*",
-        ),
-        Config("xml_export.annotations", description="Sparv annotations to include.", datatype=list[str]),
-        Config(
-            "xml_export.source_annotations",
-            description="List of annotations and attributes from the source data to include. Everything will be "
-            "included by default.",
-            datatype=list[str],
-        ),
-        Config(
-            "xml_export.header_annotations",
-            description="List of headers from the source data to include. All headers will be included by default.",
-            datatype=list[str],
-        ),
-        Config(
-            "xml_export.include_empty_attributes",
-            default=False,
-            description="Whether to include attributes even when they are empty.",
-            datatype=bool,
-        ),
-    ],
-)
+@exporter("XML export with one token element per line")
 def pretty(
     source_file: SourceFilename = SourceFilename(),
     fileid: AnnotationData = AnnotationData("<fileid>"),

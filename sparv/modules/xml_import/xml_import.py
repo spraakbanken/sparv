@@ -79,28 +79,55 @@ class XMLStructure(SourceStructureParser):
         Config(
             "xml_import.elements",
             [],
-            description="List of elements and attributes in source file. Only needed for "
-            "renaming or when used as input to other annotations, as everything "
-            "is parsed whether listed or not.",
+            description="List of elements and attributes present in the source files.\n\n"
+            "All elements and attributes are parsed whether listed here or not, so this is only needed when using "
+            "an element or attribute from the source files as input for another module, to let Sparv know where it "
+            "comes from.\n\n"
+            "Another use for this setting is to rename elements and attributes during import, using the following "
+            "syntax:\n\n"
+            "  - element as new_element_name\n"
+            "  - element:attribute as new_attribute_name\n\n"
+            "Note that this is usually not needed, as renames can be done during the export step instead.",
             datatype=list[str],
         ),
         Config(
             "xml_import.skip",
             [],
-            description="Elements and attributes to skip. Use elementname:@contents to skip contents as well.",
+            description="List of elements and attributes to skip during import.\n\n"
+            "Use `elementname:@contents` to skip contents as well.\n\n"
+            "Using this without also skipping the contents is usually not needed, as you can control what is included "
+            "during the export step instead.",
             datatype=list[str],
         ),
         Config(
             "xml_import.header_elements",
             [],
-            description="Elements containing header metadata. Contents will not be included in the analyzed corpus "
-            "text, but can be included as-is in some output formats.",
+            description="List of elements whose contents should not be included in the corpus text, but may be "
+            "included as-is in some output formats, e.g. XML.\n\n"
+            "This is mainly used for header elements. If the main goal is to exclude elements or their contents, see "
+            "`xml_import.skip` instead.\n\n"
+            "For XML output, use the `xml_export.header_annotations` setting to specify which of these elements "
+            "should be included or excluded. By default, all header elements are included.",
             datatype=list[str],
         ),
         Config(
             "xml_import.header_data",
             [],
-            description="List of header elements and attributes from which to extract metadata.",
+            description="List of header elements and attributes from which to extract metadata.\n\n"
+                "Use the following syntax:\n\n"
+                "  - element:attribute as target_annotation:target_attribute\n"
+                "  - element as target_annotation:target_attribute\n"
+                "  - element/nested_element/nested_element:attribute as target_annotation:target_attribute\n\n"
+                "Where `element` is the name of the header element, `attribute` is the name of the "
+                "attribute to extract, and `target_annotation` is the name of the annotation to which the "
+                "value should be bound under the name `target_attribute`. The `target_annotation` needs to be a parent "
+                "or ancestor of the header.\n\n"
+                "If the source `attribute` is omitted, the text content of the element will be used as the value.\n\n"
+                "When using nested elements, the first `element` should is the name of the root header element, and "
+                "the rest of the path is the nested element(s).\n\n"
+                "This setting is separate from the `xml_import.header_elements` setting, and can be used with or "
+                "without it. Without `xml_import.header_elements`, the header data will both be extracted as metadata "
+                "and included in the corpus text.",
             datatype=list[str],
         ),
         Config("xml_import.prefix", description="Optional prefix to add to annotation names.", datatype=str),
@@ -114,13 +141,13 @@ class XMLStructure(SourceStructureParser):
         Config(
             "xml_import.keep_control_chars",
             False,
-            description="Set to True if control characters should not be removed from the text.",
+            description="Set to `true` if control characters should not be removed from the text.",
             datatype=bool,
         ),
         Config(
             "xml_import.keep_unassigned_chars",
             False,
-            description="Set to True to keep unassigned characters",
+            description="Set to `true` to keep unassigned characters.",
             datatype=bool,
         ),
         Config(
