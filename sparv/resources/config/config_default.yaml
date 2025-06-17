@@ -63,5 +63,5 @@ segment:
     paragraph_segmenter: blanklines
     # Chunk to use for automatic sentence segmentation (typically <text> or <paragraph>)
     sentence_chunk: <paragraph>, <text>
-    # Chunk to use for automatic tokenisation
+    # Chunk to use for automatic tokenization
     token_chunk: <sentence>

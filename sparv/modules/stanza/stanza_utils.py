@@ -96,4 +96,4 @@ def check_token_respect(sparv_token_len: int, stanza_token_len: int) -> None:
         SparvErrorMessage: If Stanza did not respect the given tokenization.
     """
     if sparv_token_len != stanza_token_len:
-        raise SparvErrorMessage("Stanza pipeline did not seem to respect the given tokenisation!")
+        raise SparvErrorMessage("Stanza pipeline did not seem to respect the given tokenization!")

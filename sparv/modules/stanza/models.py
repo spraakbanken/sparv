@@ -56,12 +56,12 @@ def stanza_pos_model(_model: ModelOutput = ModelOutput("stanza/swe/pos/sv_talban
     zip_model.remove()
 
 
-@modelbuilder("Stanza lemmatisation model for Swedish", language=["swe"])
+@modelbuilder("Stanza lemmatization model for Swedish", language=["swe"])
 def stanza_lem_model(_model: ModelOutput = ModelOutput("stanza/swe/lem/sv_suc_lemmatizer.pt")) -> None:
     """Download and unzip the Stanza POS-tagging model.
 
     Args:
-        _model: The lemmatisation model to be downloaded.
+        _model: The lemmatization model to be downloaded.
     """
     zip_model = Model("stanza/swe/lem/lem_stanza.zip")
     zip_model.download("https://svn.spraakdata.gu.se/sb-arkiv/!svn/bc/230835/pub/stanza/lem_stanza.zip")

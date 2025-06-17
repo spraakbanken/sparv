@@ -1,4 +1,4 @@
-"""POS tagging, lemmatisation and dependency parsing with Stanza."""
+"""POS tagging, lemmatization and dependency parsing with Stanza."""
 
 from sparv.api import Config
 
@@ -58,7 +58,7 @@ __config__ = [
     Config(
         "stanza.swe_lem_model",
         default="stanza/swe/lem/sv_suc_lemmatizer.pt",
-        description="Stanza lemmatisation model for Swedish",
+        description="Stanza lemmatization model for Swedish",
         datatype=str,
     ),
     Config(

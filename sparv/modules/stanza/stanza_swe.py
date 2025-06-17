@@ -1,4 +1,4 @@
-"""POS tagging, lemmatisation and dependency parsing with Stanza."""
+"""POS tagging, lemmatization and dependency parsing with Stanza."""
 
 import warnings
 
@@ -61,7 +61,7 @@ def annotate_swe(
         sentence: Input annotation for sentences.
         pos_model: Model for part-of-speech tagging.
         pos_pretrain_model: Pretrain model for part-of-speech tagging.
-        lem_model: Model for lemmatisation.
+        lem_model: Model for lemmatization.
         dep_model: Model for dependency parsing.
         dep_pretrain_model: Pretrain model for dependency parsing.
         resources_file: Stanza resources file.

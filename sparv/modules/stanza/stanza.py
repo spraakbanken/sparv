@@ -1,4 +1,4 @@
-"""POS tagging, lemmatisation and dependency parsing with Stanza."""
+"""POS tagging, lemmatization and dependency parsing with Stanza."""
 
 from sparv.api import Annotation, Config, Language, Model, Output, Text, annotator, get_logger, util
 from sparv.core.misc import SparvErrorMessage
