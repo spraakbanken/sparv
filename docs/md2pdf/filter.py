@@ -30,8 +30,13 @@ def fix_document(key: str, value: str | list | dict | None, _format: str, _meta:
     # Remove internal links, just keep the text
     if key == "Link":
         url = value[2][0]
-        if url.startswith(("user-manual", "developers-guide")):
+        if url.startswith(("user-manual", "developers-guide")) or ".md#" in url:
             return value[1]
+
+    elif key == "Image":
+        # Remove images containing the "intro-logo" class and the watch release screenshot
+        if ["intro-logo"] in value[0] or "../images/watch-releases.png" in value[2]:
+            return []
 
     # Reformat the text inside block quotes (standard admonitions)
     elif key == "BlockQuote":

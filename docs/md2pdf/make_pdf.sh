@@ -32,6 +32,7 @@ IFS=$'\n\t'        # Set safe IFS (don't split on spaces or tabs)
 MKDOCS_OUTPUT_DIR="site_mod"
 # List of files that were created automatically from docstrings (with mkdocs)
 AUTO_FILES="
+../$MKDOCS_OUTPUT_DIR/developers-guide/sparv-decorators/index.html
 ../$MKDOCS_OUTPUT_DIR/developers-guide/sparv-classes/index.html
 ../$MKDOCS_OUTPUT_DIR/developers-guide/utilities/index.html
 "
@@ -60,19 +61,17 @@ OUTPUT_DIR="output"
 mkdir -p "$OUTPUT_DIR"
 
 #-----------------------------------------------------------------------------------------------------------------------
-# Function to generate PDF with or without title page
+# Function to create the markdown files for user manual and developer's guide
 #-----------------------------------------------------------------------------------------------------------------------
-function generate_pdf {
-    local titlepage=$1 # Whether to include the title page
-    local mode=$2  # File format to be generated: pdf, tex, pandoc
-    local output_file
-
+function create_markdown {
+    echo "Creating markdown files for user manual and developer's guide ..."
     # Convert AUTO_FILES to a Bash array
     readarray -t auto_filenames < <(for file in $AUTO_FILES; do basename "$(dirname "$file")"; done)
 
     # Define file mappings for the two parts of the documentation
     declare -A files=(
-        ["user-manual.md"]="$(grep -P 'user-manual/.*\.md' ../mkdocs.yml -o | grep -v 'intro\.md' | sed 's/^/..\//')"
+        ["user-manual.md"]="$(grep -P 'user-manual/.*\.md' ../mkdocs.yml -o | sed 's/^/..\//')"
+        # ["user-manual.md"]="$(grep -P 'user-manual/.*\.md' ../mkdocs.yml -o | grep -v 'intro\.md' | sed 's/^/..\//')"
         ["dev-guide.md"]="$(grep -P 'developers-guide/.*\.md' ../mkdocs.yml -o | sed 's/^/..\//')"
     )
 
@@ -95,13 +94,36 @@ function generate_pdf {
             if $in_auto_files; then
                 # Append the content of the auto-generated file instead of the original md file
                 cat "${OUTPUT_DIR}/${basename}.md" >> "${OUTPUT_DIR}/${output}"
+            elif [[ "$f" == *"user-manual/intro.md" ]]; then
+                # Remove unwanted paragraphs from the file usermanual intro
+                awk '
+                BEGIN {p=1}
+                # Remove the "This documentation is also available in PDF format..." paragraph
+                /^This documentation is also available in PDF format\./ {p=0}
+                /^$/ {if(!p){p=1; next}}
+                # Remove the !!! abstract "Cite Sparv" block and its content
+                /^!!! abstract "Cite Sparv"/ {p=0; next}
+                p && !/^    / {p=1}
+                p
+                ' "$f" >> "${OUTPUT_DIR}/${output}"
+            
             else
                 cat "$f" >> "${OUTPUT_DIR}/${output}"
             fi
             echo -e "\n" >> "${OUTPUT_DIR}/${output}"
         done
+        # Shift headings by 1 level using Pandoc
         pandoc "${OUTPUT_DIR}/${output}" --shift-heading-level-by=1 -o "${OUTPUT_DIR}/${output}"
     done
+}
+
+#-----------------------------------------------------------------------------------------------------------------------
+# Function to generate PDF with or without title page
+#-----------------------------------------------------------------------------------------------------------------------
+function generate_pdf {
+    local titlepage=$1 # Whether to include the title page
+    local mode=$2  # File format to be generated: pdf, tex, pandoc
+    local output_file
 
     # Add title page to the output file if needed
     if [ "$titlepage" = true ]; then
@@ -111,6 +133,8 @@ function generate_pdf {
         output_file="GU-ISS-sparv-documentation"
         echo "" > "${OUTPUT_DIR}/${output_file}.md"
     fi
+    
+    echo "Generating '${OUTPUT_DIR}/${output_file}.${mode}' ..."
 
     # Concatenate the user manual and developer's guide and convert to PDF
     echo -e "# User Manual\n" >> "${OUTPUT_DIR}/${output_file}.md"
@@ -132,7 +156,6 @@ function generate_pdf {
 function markdown_to_pdf {
     local filename=$1 # Name of the input/output file without extension
     local mode=$2  # File format to be generated: pdf, tex, pandoc
-    echo "Generating '${OUTPUT_DIR}/${filename}.${mode}' ..."
 
     case $mode in
         tex)
@@ -197,7 +220,7 @@ done
 #-----------------------------------------------------------------------------------------------------------------------
 # Build mkdocs documentation
 #-----------------------------------------------------------------------------------------------------------------------
-echo "Building mkdocs documentation..."
+echo "Building mkdocs documentation ..."
 # Copy and modify mkdocs configuration
 cp ../mkdocs.yml ../mkdocs_mod.yaml
 perl -p -i -e 's/docstring_section_style: .+$/docstring_section_style: list/' ../mkdocs_mod.yaml
@@ -245,6 +268,9 @@ done
 # Generate documentation files
 #-----------------------------------------------------------------------------------------------------------------------
 
+# Create the markdown files for user manual and developer's guide
+create_markdown
+
 # Generate PDFs (or .tex/.pandoc files) with and without title page
 generate_pdf true "$MODE"
 generate_pdf false "$MODE"
@@ -253,7 +279,7 @@ generate_pdf false "$MODE"
 # Clean up intermediate files
 #-----------------------------------------------------------------------------------------------------------------------
 if [ "$CLEAN" -eq 1 ]; then
-    echo "Cleaning up intermediate files..."
+    echo "Cleaning up ..."
     if [ "$MODE" != "md" ]; then
         rm -f ${OUTPUT_DIR}/*.md
     fi
