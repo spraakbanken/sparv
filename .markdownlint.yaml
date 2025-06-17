@@ -1,0 +1,8 @@
+MD033:  # Don't use inline HTML
+  allowed_elements:
+    - br
+    - style
+
+MD013:  # Line length
+  line_length: 120
+  tables: false
