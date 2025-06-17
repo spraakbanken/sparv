@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "sparv-pipeline"
 dynamic = ["version"]
-description = "Språkbanken's text analysis tool"
+description = "Språkbanken's analysis platform"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
@@ -64,6 +64,7 @@ line-length = 120
 
 [tool.ruff]
 line-length = 120
+output-format = "grouped"
 
 [tool.ruff.lint]
 select = [
