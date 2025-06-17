@@ -48,7 +48,7 @@ preset](corpus-configuration.md#annotation-presets) called `SWE_DEFAULT`.
 |:---|:-----------|
 |**Description** | Sentence segments are analysed to enrich tokens with part-of-speech tags and morphosyntactic information.|
 |**Tool**        | [Stanza](https://stanfordnlp.github.io/stanza/)|
-|**Model**       | https://spraakbanken.gu.se/resurser/stanzamorph|
+|**Model**       | <https://spraakbanken.gu.se/resurser/stanzamorph>|
 |**Tagset**      | - [SUC MSD tags](https://spraakbanken.gu.se/korp/markup/msdtags.html) <br />- [Universal features](https://universaldependencies.org/u/feat/index.html)|
 |**Annotations** | - `<token>:stanza.pos` (part-of-speech tag) <br />- `<token>:stanza.msd` (morphosyntactic tag) <br />- `<token>:stanza.ufeats` (universal features)|
 |**Annotators**  | `stanza:msdtag`|
@@ -80,7 +80,7 @@ preset](corpus-configuration.md#annotation-presets) called `SWE_DEFAULT`.
 |:---|:-----------|
 |**Description**  | Sentence segments are analysed to enrich tokens with dependency information.|
 |**Tool**         | [Stanza](https://stanfordnlp.github.io/stanza/)|
-|**Model**        | https://spraakbanken.gu.se/resurser/stanzasynt|
+|**Model**        | <https://spraakbanken.gu.se/resurser/stanzasynt>|
 |**Tagset**       | [Mamba-Dep](https://svn.spraakdata.gu.se/sb-arkiv/pub/mamba.html)|
 |**Annotations**  | - `<token>:stanza.ref` (the token position within the sentence) <br />- `<token>:stanza.dephead_ref` (dependency head, the ref of the word which the current word modifies or is dependent of) <br />- `<token>:stanza.deprel` (dependency relation, the relation of the current word to its dependency head)|
 |**Annotators**   | - `stanza:dep_parse` <br />- `stanza:make_ref`|
@@ -122,7 +122,7 @@ preset](corpus-configuration.md#annotation-presets) called `SWE_DEFAULT`.
 |:---|:-----------|
 |**Description**  | Sentence segments are analysed to enrich tokens with lemmas.|
 |**Tool**         | [Stanza](https://stanfordnlp.github.io/stanza/)|
-|**Model**        | https://spraakbanken.gu.se/resurser/stanzasynt|
+|**Model**        | <https://spraakbanken.gu.se/resurser/stanzasynt>|
 |**Annotations**  | - `<token>:stanza.baseform` (lemma)|
 |**Annotators**   | `stanza:annotate_swe`|
 

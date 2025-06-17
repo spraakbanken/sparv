@@ -1,6 +1,6 @@
 # Sparv – Språkbanken's Analysis Platform
 
-![](../images/sparv_detailed.png){ align=right .intro-logo }
+![Sparv logo](../images/sparv_detailed.png){ align=right .intro-logo }
 Sparv is a powerful command line tool designed for annotating text with a wide range of linguistic
 annotations. Developed by [Språkbanken Text](https://spraakbanken.gu.se/), Sparv provides a comprehensive solution for
 text analysis, supporting various source formats, annotations, and export formats.
@@ -28,12 +28,11 @@ Sparv release on GitHub](https://github.com/spraakbanken/sparv/releases/latest).
     Manual](https://gup.ub.gu.se/publication/318405?lang=en)* &nbsp;
     [![BibTeX](../images/bibtex.png)](https://spraakbanken.gu.se/en/research/publications/bibtex/318405)
 
-> [!TIP]
-> ![](../images/watch-releases.png){ align=right } Stay updated on new Sparv releases by subscribing to our
-> GitHub repository:
+> [!TIP] ![Watch releases screenshot](../images/watch-releases.png){ align=right } Stay updated on new Sparv releases by
+> subscribing to our GitHub repository:
 >
 > 1. Log in to GitHub
-> 2. Go to https://github.com/spraakbanken/sparv
+> 2. Go to <https://github.com/spraakbanken/sparv>
 > 3. Click "Watch" in the upper right corner
 > 4. Select "Custom"
 > 5. Check the "Releases" box
