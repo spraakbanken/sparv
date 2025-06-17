@@ -1,4 +1,4 @@
-# Sparv Processors
+# Sparv Decorators
 
 Sparv is built around a modular pipeline of processors, each responsible for a specific task in the corpus
 processing workflow. Processors are implemented as Python functions and registered using Sparv's decorators. These
@@ -80,7 +80,7 @@ def parse(
 
 ```python
 @exporter(
-    "Corpus word frequency list (withouth Swedish annotations)",
+    "Corpus word frequency list (without Swedish annotations)",
     order=2,
     config=[
         Config("stats_export.delimiter", default="\t", description="Delimiter separating columns"),
@@ -125,6 +125,7 @@ def install(
     corpus: Corpus = Corpus(),
     xmlfile: ExportInput = ExportInput("xml_export.combined/[metadata.id].xml.bz2"),
     out: OutputMarker = OutputMarker("xml_export.install_export_pretty_marker"),
+    uninstall_marker: MarkerOptional = MarkerOptional("xml_export.uninstall_export_pretty_marker"),
     export_path: str = Config("xml_export.export_path"),
     host: str | None = Config("xml_export.export_host"),
 ):
@@ -151,6 +152,7 @@ def uninstall(
     corpus: Corpus = Corpus(),
     xmlfile: ExportInput = ExportInput("xml_export.combined/[metadata.id].xml.bz2"),
     out: OutputMarker = OutputMarker("xml_export.uninstall_export_pretty_marker"),
+    install_marker: MarkerOptional = MarkerOptional("xml_export.install_export_pretty_marker"),
     export_path: str = Config("xml_export.export_path"),
     host: str | None = Config("xml_export.export_host"),
 ):

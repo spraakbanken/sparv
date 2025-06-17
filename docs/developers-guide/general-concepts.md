@@ -11,7 +11,7 @@ generating output files that contain the source text and annotations.
 
 Sparv comes with a set of built-in modules, but can also be extended with custom modules, so-called *plugins*.
 Technically, a plugin is a Python package that contains one or more functions decorated with Sparv
-[decorators](sparv-decorators.md) that indicates their purpose. A function's parameters specify the input needed to run
+[decorators](sparv-decorators.md) that indicate their purpose. A function's parameters specify the input needed to run
 the function and the output it produces. The Sparv core automatically discovers all decorated functions, scans their
 parameters, and builds a registry of available modules and their dependencies and outputs.
 
@@ -22,14 +22,14 @@ parameters, and builds a registry of available modules and their dependencies an
 
 ## Annotations
 
-The most common processor is the [*annotator*](sparv-decorators.md#annotator), which produces one or more annotations.
-Annotations are structured data that represent linguistic or other information about the source text. They can be either
-*span annotations* or *attribute annotations*. A span annotation specifies the start and end positions of text segments,
-while an attribute annotation adds attributes to existing spans, providing additional information about the text
-segments. For example, a function that segments a text into tokens produces a *span annotation* that specifies where
-each token begins and ends in the source text. A function that produces part-of-speech tags, on the other hand, relies
-on the token spans produced by another function and adds an *attribute annotation* for each token span, indicating
-whether the token is a noun, verb, or another part of speech.
+The most common processor is the [*annotator*](sparv-decorators.md#sparv.core.registry.annotator), which produces one or
+more annotations. Annotations are structured data that represent linguistic or other information about the source text.
+They can be either *span annotations* or *attribute annotations*. A span annotation specifies the start and end
+positions of text segments, while an attribute annotation adds attributes to existing spans, providing additional
+information about the text segments. For example, a function that segments a text into tokens produces a *span
+annotation* that specifies where each token begins and ends in the source text. A function that produces part-of-speech
+tags, on the other hand, relies on the token spans produced by another function and adds an *attribute annotation* for
+each token span, indicating whether the token is a noun, verb, or another part of speech.
 
 Annotations are named according to a strict convention. The name of a *span annotation* consists of the following parts:
 
@@ -49,9 +49,9 @@ annotation. For example, the part-of-speech annotation produced by the `stanza` 
 Processors often require the output of other processors to function. For example, a part-of-speech tagger typically
 needs a tokenized text as input, so it depends on a tokenizer that produces token spans. Similarly, a lemmatizer may
 require part-of-speech annotations to generate the correct base forms of words. In Sparv, these dependencies are defined
-through each processor function's parameters. By using special [Sparv classes](sparv-classes.md) as default arguments in
-a function's signature, the Sparv core can automatically track which annotations are produced by which functions and in
-what order processors need to run.
+through the parameters of each processor function. By using special [Sparv classes](sparv-classes.md) as default
+arguments in a function's signature, the Sparv core can automatically track which annotations are produced by which
+functions and in what order processors need to run.
 
 Dependencies can be specified in two ways:
 

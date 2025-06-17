@@ -114,7 +114,7 @@ The configuration file consists of several sections, each containing configurati
 we specify the corpus language (Swedish). Second, in the `import` section, we specify which of
 Sparv's importer modules to use (we want the one for XML). Finally, in the `export` section, we list what
 automatic annotations we want Sparv to add. For this simple corpus we only ask for sentence segmentation and
-tokenisation.
+tokenization.
 
 ## Running Sparv
 

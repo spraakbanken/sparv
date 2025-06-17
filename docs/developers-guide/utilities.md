@@ -68,8 +68,8 @@ Mappings of part-of-speech tags between different tag sets.
 
 ### pos_to_upos()
 
-Map POS tags to Universal Dependency POS tags. This function only works if there is a conversion function in
-`util.tagsets.pos_to_upos` for the specified language and tag set.
+Map part-of-speech tags to Universal Dependency part-of-speech tags. This function only works if there is a conversion
+function in `util.tagsets.pos_to_upos` for the specified language and tag set.
 
 **Parameters**:
 

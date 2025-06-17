@@ -355,8 +355,8 @@ of your config file. Sparv provides default class settings, but you can override
 To illustrate how you can use classes in your configuration file, consider the following example:
 
 If you want to include part-of-speech tags from Stanza, you could add `segment.token:stanza.pos` to the export
-annotations list. This indicates that you want POS tags from Stanza as attributes for the tokens produced by the
-`segment` module.
+annotations list. This indicates that you want part-of-speech tags from Stanza as attributes for the tokens produced by
+the `segment` module.
 
 ```yaml
 export:

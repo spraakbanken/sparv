@@ -1,7 +1,7 @@
 # Installation and Setup
 
 This section walks you through setting up Sparv on your computer, including any additional software you may
-need to fully utilize Sparv's analysis features.
+need to fully utilize all of Sparv's analysis features.
 
 ## Prerequisites
 
@@ -228,7 +228,7 @@ supported languages, their ISO 639-3 codes, and the tools Sparv can use for thei
 
 |    |           |
 |:---|:----------|
-|**Purpose**                       |POS-tagging and lemmatisation for [various languages](#analyzing-languages-other-than-swedish)|
+|**Purpose**                       |POS-tagging and lemmatization for [various languages](#analyzing-languages-other-than-swedish)|
 |**Download**                      |[TreeTagger webpage](https://www.cis.uni-muenchen.de/~schmid/tools/TreeTagger/)|
 |**License**                       |[TreeTagger license](https://www.cis.uni-muenchen.de/~schmid/tools/TreeTagger/Tagger-Licence) (freely available for research, education, and evaluation)|
 |**Version compatible with Sparv** |3.2.3 (may work with newer versions)|
@@ -253,7 +253,7 @@ contents in the `bin/stanford_parser` directory within your [Sparv data director
 
 |    |           |
 |:---|:----------|
-|**Purpose**                       |Tokenisation, POS-tagging, lemmatisation and named entity recognition for [various languages](#analyzing-languages-other-than-swedish)|
+|**Purpose**                       |Tokenization, POS-tagging, lemmatization and named entity recognition for [various languages](#analyzing-languages-other-than-swedish)|
 |**Download**                      |[FreeLing on GitHub](https://github.com/TALP-UPC/FreeLing/releases/tag/4.2)|
 |**License**                       |[AGPL-3.0](https://www.gnu.org/licenses/agpl-3.0.en.html)|
 |**Version compatible with Sparv** |4.2|

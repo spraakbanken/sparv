@@ -13,8 +13,8 @@ suggested project structure.
 ## Naming Requirements
 
 The name of a Sparv module or plugin is the name of the *Python package directory* containing the module code. In
-addition to being a valid Python identifier, the name must start with a namespace representing the plugin author or
-organization, followed by an underscore. This is to avoid name clashes with other plugins and will be enforced in the
+addition to being a valid Python identifier, the name must start with a namespace (representing the plugin author or
+organization), followed by an underscore. This is to avoid name clashes with other plugins and will be enforced in the
 future. In the example below, we use the prefix `sbx_` (for Språkbanken Text).
 
 In addition to the Sparv module name, which is what is used in the pipeline, the plugin also has a separate
@@ -43,8 +43,8 @@ distribution name (used for packaging and publishing). The `sbx_uppercase` direc
 containing the actual module code, and its name (`sbx_uppercase`) is also the Sparv module name, which is used when
 referencing the module in the Sparv pipeline.
 
-The `uppercase.py` file contains the [module code](#module-code) for the Sparv processors, while the mandatory [init
-file](#init-file) `__init__.py` file is used to make the processors discoverable by Sparv.
+The `uppercase.py` file contains the [module code](#module-code) for the Sparv processors, while the mandatory
+[`__init__.py` file](#__init__py) is used to make the processors discoverable by Sparv.
 
 The [project file](#pyprojecttoml) `pyproject.toml` in the root directory contains metadata about the plugin (though
 this metadata is not directly used by Sparv). It is what makes the plugin installable.
@@ -55,7 +55,7 @@ including them if you plan to publish your plugin.
 ## pyproject.toml
 
 The `pyproject.toml` file is required to install a plugin and connect it to Sparv. Here is a minimal
-example (taken from the [Sparv plugin template](https://github.com/spraakbanken/sparv-plugin-template)):
+example, taken from the [Sparv plugin template](https://github.com/spraakbanken/sparv-plugin-template):
 
 ```toml title="pyproject.toml"
 [project]
@@ -78,7 +78,7 @@ dependencies, specifying the major version of Sparv the plugin is developed for.
 For more information about the `pyproject.toml` file, check the [Python Packaging User
 Guide](https://packaging.python.org/en/latest/specifications/declaring-project-metadata/).
 
-## Init File
+## \_\_init\_\_.py
 
 Each Sparv module requires an [`__init__.py`](https://docs.python.org/3/reference/import.html#regular-packages) file,
 which is essential for Sparv to register the module. It is important that this file imports all the Python scripts
@@ -258,13 +258,19 @@ in the same decorator as the function using it, or in a different decorator, or 
 
 Whichever method you choose, the configuration parameters are declared as a list of `Config` objects. Each `Config`
 object specifies the name of the parameter, a description, and optionally a default value. There are also several
-validation parameters available. The description is mandatory, and will be visible in the help texts when running
-`sparv modules`.
+parameters for specifying constraints on the configuration value, described in the Config Validation section below. The
+description is mandatory, and will be visible in the help texts when running `sparv modules`.
 
 Once declared, these configuration parameters can be referenced in the function signatures of Sparv processors, either
-by using the `Config` class, or by using the `[...]` syntax in other Sparv class parameters. The following example
-demonstrates how to declare and use configuration parameters in a Sparv processor, showing both ways of referencing
-configuration values:
+by using the `Config` class, or by using a special placeholder syntax in other Sparv class parameters. This placeholder
+syntax uses square brackets to refer to a configuration key, for example: `Model("[wsd.sense_model]")`. When Sparv
+runs the processor, it will automatically substitute the value of the configuration parameter `wsd.sense_model` in
+place of the placeholder. This can be used in any Sparv class except `Config`, and the placeholder can also be part of
+a larger string, such as `Model("wsd/[wsd.sense_model]")`. Which way you choose to reference the configuration depends
+on whether you want a Sparv class or simply the value of the configuration parameter.
+
+The following example demonstrates how to declare and use configuration parameters in a Sparv processor, showing both
+ways of referencing configuration values:
 
 ```python
 from sparv.api import Binary, Config, Model, annotator
@@ -286,10 +292,6 @@ def annotate(
 ):
     ...
 ```
-
-The `[...]` syntax can be used in any Sparv class except `Config`, and will automatically resolve to the configuration
-parameter with the specified name. The `[...]` reference can also be part of a larger string, such as
-`Model("wsd/[wsd.sense_model]")`.
 
 Note that when using the `Config` class, the type hint in the function signature should be a standard Python type
 indicating the expected type of the configuration value.
@@ -385,7 +387,7 @@ and exporters:
 |:--------------------------|:----------------------------------------------------------------------------|
 | `default`                 | Exports to create by default when running 'sparv run'.                      |
 | `source_annotations`      | List of annotations from the source file to be kept.                        |
-| `annotations`             | List of automatic annotations to include.                                   |
+| `annotations`             | List of automatic annotations to include in the export.                     |
 | `word`                    | The token strings to be included in the export.                             |
 | `remove_module_namespaces`| Set to False if module namespaces should be kept in the export.             |
 | `sparv_namespace`         | A string representing the namespace to be added to all annotations created by Sparv. |
@@ -448,9 +450,9 @@ annotations with different wildcard values. Wildcards are placeholders that can 
 referenced in the pipeline. For example, the annotator `misc.number_by_position` uses wildcards. Its output is defined
 as `Output("{annotation}:misc.number_position")`. Here, the wildcard `{annotation}` can be replaced with any annotation,
 and the annotator will generate a new attribute for the spans of that annotation. If a user requests the annotation
-`<sentence>:misc.number_position` (by including it in one of the export lists in the corpus config), Sparv will annotate
-every span of the `<sentence>` annotation with a number attribute. Similarly, requesting `document:misc.number_position`
-will add a number attribute to the `document` annotation.
+`<sentence>:misc.number_position` (by including it in one of the export lists in the corpus configuration), Sparv will
+annotate every span of the `<sentence>` annotation with a number attribute. Similarly, requesting
+`document:misc.number_position` will add a number attribute to the `document` annotation.
 
 Wildcards are similar to config variables as they provide customization to annotators. However, the main difference is
 that a config variable is explicitly set in the corpus configuration, while a wildcard receives its value automatically
@@ -521,6 +523,8 @@ def annotate_backoff(
 
 Preloader functions are used by the `sparv preload` command to speed up the annotation process. They work by preloading
 the Python module along with models or processes that would otherwise need to be loaded each time the annotator is run.
+These preloaded resources are kept in memory for as long as the `sparv preload` process is running, so that subsequent
+annotator calls can reuse them without reloading, significantly improving performance for expensive initializations.
 
 A preloader function takes a subset of the arguments from an annotator and returns a value that is passed to the
 annotator. Here is an example:
@@ -546,7 +550,7 @@ def pos_tag(
     model: Model = Model("pos.model"),
     model_preloaded: dict | None = None,
 ):
-    """Annotate tokens with POS tags."""
+    """Annotate tokens with part-of-speech tags."""
     if model_preloaded:
         model = model_preloaded
     else:

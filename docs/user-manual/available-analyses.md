@@ -57,7 +57,7 @@ preset](corpus-configuration.md#annotation-presets) called `SWE_DEFAULT`.
 
 |    |            |
 |:---|:-----------|
-|**Description**  | SUC POS tags are translated to UPOS. Not used by default because the translations are not very reliable.|
+|**Description**  | SUC part-of-speech tags are translated to UPOS. Not used by default because the translations are not very reliable.|
 |**Model**        | Method has no model. A translation table is used.|
 |**Tagset**       | [Universal POS tags](https://universaldependencies.org/u/pos/index.html)|
 |**Annotations**  | - `<token>:misc.upos` (universal part-of-speech tag)|
@@ -116,7 +116,7 @@ preset](corpus-configuration.md#annotation-presets) called `SWE_DEFAULT`.
 |**Annotations**  | - `<token>:saldo.baseform` (lemma) <br />- `<token>:saldo.lemgram` (lemgrams, identifying the inflectional table) <br />- `<token>:saldo.sense` (identify senses in SALDO)|
 |**Annotators**   | `saldo:annotate`|
 
-### Lemmatisation with Stanza
+### Lemmatization with Stanza
 
 |    |            |
 |:---|:-----------|
@@ -191,7 +191,7 @@ preset](corpus-configuration.md#annotation-presets) called `SWE_DEFAULT`.
 
 |    |            |
 |:---|:-----------|
-|**Description**  | Sentences (and paragraphs if existing) are enriched with place names (and their geographic coordinates) occurring within them. This is based on the place names found by the named entity tagger. Geographical coordinates are looked up in the GeoNames database.|
+|**Description**  | Sentences (and paragraphs, if present) are enriched with place names (and their geographic coordinates) occurring within them. This is based on the place names found by the named entity tagger. Geographical coordinates are looked up in the GeoNames database.|
 |**Model**        | [GeoNames](https://www.geonames.org/)|
 |**Annotations**  | - `<sentence>:geo.geo_context` (places and their coordinates occurring within the sentence) <br />- `<paragraph>:geo.geo_context` (places and their coordinates occurring within the paragraph)|
 |**Annotators**   | `geo:contextual`|
@@ -235,9 +235,9 @@ following analyses for texts written in Old Swedish:
 
 [Same analysis](#sentence-segmentation-with-punktsentencetokenizer) as for contemporary Swedish.
 
-### Tokenisation
+### Tokenization
 
-[Same analysis](#tokenisation) as for contemporary Swedish.
+[Same analysis](#tokenization) as for contemporary Swedish.
 
 ### Spelling variations
 

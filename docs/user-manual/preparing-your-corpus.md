@@ -45,7 +45,7 @@ apply to all source files:
   files is generally better than having one or two large files. Additionally, very large files can cause memory issues,
   especially when processing multiple files simultaneously. On the other hand, having too many small files can slow down
   processing due to the overhead required for each file, such as loading models. While it is difficult to
-  specify an exact optimal file size as it depends on your hardware, we recommend keeping files between 1-10 MB.
+  specify an exact optimal file size, as it depends on your hardware, we recommend keeping files between 1-10 MB.
 
 - If your corpus is in XML format, ensure your **XML is valid**. Further guidelines for XML files are provided in the
   next section.
