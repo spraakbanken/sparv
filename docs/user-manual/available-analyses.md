@@ -95,6 +95,7 @@ preset](corpus-configuration.md#annotation-presets) called `SWE_DEFAULT`.
 |**Tagset**       | [Mamba-Dep](https://svn.spraakdata.gu.se/sb-arkiv/pub/mamba.html)|
 |**Annotations**  | - `<token>:malt.ref` (the token position within the sentence) <br />- `<token>:malt.dephead_ref` (dependency head, the ref of the word which the current word modifies or is dependent of) <br />- `<token>:malt.deprel` (dependency relation, the relation of the current word to its dependency head)|
 |**Annotators**   | - `malt:annotate` <br />- `malt:make_ref`|
+|**Installation** | See the [installation and Setup section](installation-and-setup.md#maltparser) for more information.|
 
 ### Phrase structure parsing
 
@@ -135,6 +136,7 @@ preset](corpus-configuration.md#annotation-presets) called `SWE_DEFAULT`.
 |**Model**        | - [ALL_512_128_w10_A2_140403_ctx1.bin](https://github.com/spraakbanken/sparv-wsd/blob/master/models/scouse/ALL_512_128_w10_A2_140403_ctx1.bin) <br />- [lem_cbow0_s512_w10_NEW2_ctx.bin](https://github.com/spraakbanken/sparv-wsd/blob/master/models/scouse/lem_cbow0_s512_w10_NEW2_ctx.bin)|
 |**Annotations**  | - `<token>:wsd.sense` (identifies senses in SALDO along with their likelihoods)|
 |**Annotators**   | `wsd:annotate`|
+|**Installation** | See the [installation and Setup section](installation-and-setup.md#sparv-wsd) for more information.|
 
 ### Compound analysis with SALDO
 
@@ -165,6 +167,7 @@ preset](corpus-configuration.md#annotation-presets) called `SWE_DEFAULT`.
 |**Tagset**       | [HFST-SweNER tags](https://svn.spraakdata.gu.se/sb-arkiv/pub/swener-tags.html)|
 |**Annotations**  | - `swener.ne` (named entity segment) <br />- `swener.ne:swener.name` (text in the entire named entity segment) <br />- `swener.ne:swener.ex` (named entity; name expression, numerical expression or time expression) <br />- `swener.ne:swener.type` (named entity type) <br />- `swener.ne:swener.subtype` (named entity subtype)|
 |**Annotators**   | `swener:annotate`|
+|**Installation** | See the [installation and Setup section](installation-and-setup.md#hfst-swener) for more information.|
 
 ### Readability metrics
 
@@ -209,6 +212,7 @@ specifically adapted for this language variety:
 |**Tagset**       | [SUC MSD tags](https://spraakbanken.gu.se/korp/markup/msdtags.html)|
 |**Annotations**  | - `<token>:hunpos.msd` (morphosyntactic tag) <br />- `<token>:hunpos.pos` (part-of-speech tag)|
 |**Annotators**   | - `hunpos:msdtag_hist` <br />- `hunpos:postag`|
+|**Installation** | See the [installation and Setup section](installation-and-setup.md#hunpos) for more information.|
 
 ### Lexicon-based analyses
 
@@ -281,6 +285,7 @@ We recommend using the [annotation preset](corpus-configuration.md#annotation-pr
 |**Tagset**       | - Different language-dependent POS tag sets are used. Please check the [TreeTagger web page](https://www.cis.uni-muenchen.de/~schmid/tools/TreeTagger/) for more information. <br />- [Universal POS tags](https://universaldependencies.org/u/pos/index.html)|
 |**Annotations**  | - `<token>:treetagger.baseform` (lemma) <br />- `<token>:treetagger.pos` (part-of-speech tag, may include morphosyntactic information) <br />- `<token>:treetagger.upos` (universal part-of-speech tags, translated from `<token>:treetagger.pos`)|
 |**Annotators**   | `treetagger:annotate`|
+|**Installation** | See the [installation and Setup section](installation-and-setup.md#treetagger) for more information.|
 
 ### Analyses from FreeLing
 
@@ -295,6 +300,7 @@ or `SBX_FREELING_FULL` (for languages supporting named entity recognition).
 |**Tagset**       | - Different language-dependent POS tagsets (often [EAGLES](http://www.ilc.cnr.it/EAGLES96/annotate/node9.html)). Please check the [FreeLing documentation](https://freeling-user-manual.readthedocs.io/en/v4.2/tagsets/) for more information. <br />- [Universal POS tags](https://universaldependencies.org/u/pos/index.html)|
 |**Annotations**  | - `freeling.sentence` (sentence segments from FreeLing) <br />- `freeling.token` (token segments from FreeLing) <br />- `freeling.token:freeling.baseform` (lemma) <br />- `freeling.token:freeling.pos` (part-of-speech tag, often including some morphosyntactic information) <br />- `freeling.token:freeling.upos` (universal part-of-speech tags) <br />- `freeling.token:freeling.ne_type` (named entity type (only available for some languages)|
 |**Annotators**   | `freeling:annotate` or `freeling:annotate_full` (depending on the language)|
+|**Installation** | See the [installation and Setup section](installation-and-setup.md#freeling) for more information.|
 
 ### Analyses from Stanza (for English)
 
@@ -321,3 +327,4 @@ We recommend using the [annotation preset](corpus-configuration.md#annotation-pr
 |**Tagset**       | - [Penn Treebank tagset](https://www.sketchengine.eu/penn-treebank-tagset/) <br />- [Universal POS tags](https://universaldependencies.org/u/pos/index.html)|
 |**Annotations**  | - `stanford.sentence` (sentence segments from Stanford Parser) <br />- `stanford.token` (token segments from Stanford Parser) <br />- `stanford.token:stanford.baseform` (lemma) <br />- `stanford.token:stanford.pos` (part-of-speech tag) <br />- `stanford.token:stanford.upos` (universal part-of-speech tags) <br />- `stanford.token:stanford.ne_type` (named entity type) <br />- `stanford.token:stanford.ref` (the token position within the sentence) <br />- `stanford.token:stanford.dephead_ref` (dependency head, the ref of the word which the current word modifies or is dependent of) <br />- `stanford.token:stanford.deprel` (dependency relation, the relation of the current word to its dependency head)|
 |**Annotators**   | - `stanford:annotate` <br />- `stanford:make_ref`|
+|**Installation** | See the [installation and Setup section](installation-and-setup.md#stanford-parser) for more information.|
