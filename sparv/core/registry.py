@@ -202,7 +202,7 @@ def find_modules(no_import: bool = False, find_custom: bool = False) -> list:
             # Check compatibility with Sparv version
             for requirement in entry_point.dist.requires:
                 req = Requirement(requirement)
-                if req.name == "sparv-pipeline":
+                if req.name in {"sparv", "sparv-pipeline"}:
                     req.specifier.prereleases = True  # Accept pre-release versions of Sparv
                     if sparv_version not in req.specifier:
                         console.print(

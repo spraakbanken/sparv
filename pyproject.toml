@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "sparv-pipeline"
+name = "sparv"
 dynamic = ["version"]
 description = "Språkbanken's analysis platform"
 readme = "README.md"

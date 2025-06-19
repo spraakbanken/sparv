@@ -16,7 +16,7 @@ Linux](https://docs.microsoft.com/en-us/windows/wsl/about)) with [Python 3.10](h
 
 ## Installing Sparv
 
-Sparv is available on [PyPI](https://pypi.org/project/sparv-pipeline/) and can be installed via
+Sparv is available on [PyPI](https://pypi.org/project/sparv/) and can be installed via
 [pip](https://pip.pypa.io/en/stable/installation/) or [pipx](https://pipx.pypa.io/stable/).
 We recommend using pipx, as it installs Sparv in an isolated environment but allows it to be run from any location.
 
@@ -30,7 +30,7 @@ python3 -m pipx ensurepath
 Then, install Sparv:
 
 ```sh
-pipx install sparv-pipeline
+pipx install sparv
 ```
 
 To verify that Sparv was installed successfully, run the command `sparv`. You should see the Sparv help information
@@ -357,9 +357,9 @@ To uninstall Sparv completely, follow these steps:
 3. Run one of the following commands, depending on whether you installed Sparv using pipx or pip:
 
     ```sh
-    pipx uninstall sparv-pipeline
+    pipx uninstall sparv
     ```
 
     ```sh
-    pip uninstall sparv-pipeline
+    pip uninstall sparv
     ```

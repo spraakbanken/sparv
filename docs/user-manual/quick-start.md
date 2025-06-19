@@ -33,7 +33,7 @@ python3 -m pipx ensurepath
 Once pipx is installed, run the following command to install Sparv:
 
 ```sh
-pipx install sparv-pipeline
+pipx install sparv
 ```
 
 Verify that the installation was successful by running `sparv`, which should display Sparv's command-line help:

@@ -65,15 +65,15 @@ description = "Uppercase converter (example plug-in for Sparv)"
 readme = "README.md"
 license = "MIT"
 dependencies = [
-    "sparv-pipeline~=5.0"
+    "sparv~=5.0"
 ]
 entry-points."sparv.plugin" = { sbx_uppercase = "sbx_uppercase" }
 ```
 
-Ensure there is a `sparv.plugin` entry point (the last line above) that points to the package directory containing
-the code, as this is how Sparv discovers the plugin. It is also advisable to add `sparv-pipeline` to the list of
-dependencies, specifying the major version of Sparv the plugin is developed for. `"sparv-pipeline~=5.0"` under
-`dependencies` means the plugin is compatible with any version of Sparv 5, but not with Sparv 4 or Sparv 6.
+Ensure there is a `sparv.plugin` entry point (the last line above) that points to the package directory containing the
+code, as this is how Sparv discovers the plugin. It is also advisable to add `sparv` to the list of dependencies,
+specifying the major version of Sparv the plugin is developed for. `"sparv~=5.0"` under `dependencies` means the plugin
+is compatible with any version of Sparv 5, but not with Sparv 4 or Sparv 6.
 
 For more information about the `pyproject.toml` file, check the [Python Packaging User
 Guide](https://packaging.python.org/en/latest/specifications/declaring-project-metadata/).
