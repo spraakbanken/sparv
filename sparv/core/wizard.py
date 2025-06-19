@@ -1,11 +1,12 @@
 """Sparv corpus set-up wizard."""
+# ruff: noqa
 import os
 import re
 import sys
 import textwrap
 from collections import defaultdict
 from pathlib import Path
-from typing import Callable, List, Optional, Tuple, Union
+from typing import Callable, Optional, Union
 
 import questionary.prompts.common
 from prompt_toolkit.shortcuts import clear as clear_screen
@@ -14,8 +15,9 @@ from questionary import prompt
 
 from sparv.api import SourceStructureParser, Wildcard
 from sparv.api.util.misc import dump_yaml
-from sparv.core import registry, paths, config, snake_utils
+from sparv.core import config, registry, snake_utils
 from sparv.core.console import console
+from sparv.core.paths import paths
 
 questionary.prompts.common.SELECTED_POINTER = "\u276f"
 
@@ -32,7 +34,7 @@ DONE = "✅ DONE"
 class BasicSourceStructure(SourceStructureParser):
     """Simple SourceStructureParser implementation which doesn't scan source files."""
 
-    def get_annotations(self, corpus_config: dict) -> List[str]:
+    def get_annotations(self, corpus_config: dict) -> list[str]:
         """Return annotations."""
         return self.annotations
 
@@ -94,7 +96,7 @@ class Wizard:
                 elif rule_storage.exporter and rule_made:
                     self.exporters[module_name][f_name] = rule_storage
 
-    def q(self, questions: Union[List[dict], dict], clear: bool = False, save_prompt: bool = True):
+    def q(self, questions: Union[list[dict], dict], clear: bool = False, save_prompt: bool = True):
         """Ask questions and handle interruptions.
 
         Args:
@@ -122,18 +124,17 @@ class Wizard:
 
         # Handle interruptions
         if not answer:
-            if save_prompt:
-                if prompt([{
-                    "type": "confirm",
-                    "name": "answer",
-                    "message": "Do you want to save your progress so far to be able to resume the wizard later?"
-                }], style=style).get("answer"):
-                    self.save_config()
+            if save_prompt and prompt([{
+                "type": "confirm",
+                "name": "answer",
+                "message": "Do you want to save your progress so far to be able to resume the wizard later?"
+            }], style=style).get("answer"):
+                self.save_config()
             sys.exit()
         return answer
 
     @staticmethod
-    def set_defaults(questions: Union[List[dict], dict]):
+    def set_defaults(questions: Union[list[dict], dict]):
         """Add default values to questions based on existing config."""
 
         def handle_checkbox_choices(choices, config_value):
@@ -161,11 +162,11 @@ class Wizard:
                 config_value = None
             if config_value is not None:
                 question_type = question["type"]
-                if question_type in ("text", "password", "input"):
+                if question_type in {"text", "password", "input"}:
                     question["default"] = config_value
-                elif question_type in ("select", "list") and question.get("choices"):
+                elif question_type in {"select", "list"} and question.get("choices"):
                     default_obj = None
-                    for i, item in enumerate(question["choices"]):
+                    for item in question["choices"]:
                         if (isinstance(item, dict) and item["value"] == config_value) or item == config_value:
                             default_obj = item
                             break
@@ -179,7 +180,7 @@ class Wizard:
 
         return questions
 
-    def get_module_wizard(self, module_wizard: Tuple[Callable, list, bool]) -> List[dict]:
+    def get_module_wizard(self, module_wizard: tuple[Callable, list, bool]) -> list[dict]:
         """Get wizard from module."""
         args = [self.corpus_config]
         if module_wizard[2]:
@@ -193,24 +194,22 @@ class Wizard:
             out_file.write(dump_yaml({k: v for k, v in self.corpus_config.items() if not k.startswith("_")}))
         print("Your corpus configuration has been saved as 'config.yaml'.")
 
-    def load_config(self):
+    def load_config(self) -> bool:
         """Load default config and any existing corpus config."""
         if os.path.isfile(self.config_file):
             use_config_file = self.q({
                 "type": "confirm",
                 "name": "answer",
-                "message": "A corpus configuration file with the name '{}' already exists in the current directory. "
+                "message": f"A corpus configuration file with the name '{paths.config_file}' already exists in the current directory. "
                            "Its contents will be used by the wizard where possible. If you'd rather start with a "
                            "clean slate, abort now and remove or rename the old config file before starting the wizard "
-                           "again. Select Y to continue or N to abort.".format(paths.config_file)
+                           "again. Select Y to continue or N to abort."
             }, clear=True, save_prompt=False)["answer"]
             if use_config_file:
                 self.corpus_config = config.read_yaml(self.config_file)
                 config.load_config(self.config_file)
-                if not self.corpus_config:
-                    # If config is completely empty, treat as if config is missing
-                    return False
-                return True
+                # If config is completely empty, treat as if config is missing
+                return bool(self.corpus_config)
             else:
                 sys.exit()
         else:
@@ -220,8 +219,8 @@ class Wizard:
 
     def update_config(self, answers: dict):
         """Add answers to corpus_config dict and update full config."""
-        for answer in answers:
-            config.set_value(answer, answers[answer], config_dict=self.corpus_config)
+        for answer_key, answer in answers.items():
+            config.set_value(answer_key, answer, config_dict=self.corpus_config)
         config.update_config(self.corpus_config)
 
     def prerequisites(self):
@@ -370,7 +369,7 @@ class Wizard:
 
             if choice == "done":
                 break
-            elif choice == "exporter_configs":
+            if choice == "exporter_configs":
                 self.configure_exporters()
             elif choice == "class":
                 self.select_classes(selected_annotations, always_ask=True)
@@ -455,10 +454,10 @@ class Wizard:
             "message": "What is the name of the existing annotation in your source files that encapsulates a "
                        "'text'? This is the text unit for which all text level annotations will apply. "
                        "Usually, no text content should exist outside of this annotation.",
-            "choices": self.source_structure.get_plain_annotations(self.corpus_config) + [{
-                "name": "Enter manually",
-                "value": "__sparv_manual_entry"
-            }]
+            "choices": [
+                *self.source_structure.get_plain_annotations(self.corpus_config),
+                {"name": "Enter manually", "value": "__sparv_manual_entry"}
+            ]
         }))
         if text_annotation["import.text_annotation"] == "__sparv_manual_entry":
             text_annotation = self.q({
@@ -552,8 +551,7 @@ class Wizard:
                                 "type": "text",
                                 "name": config_key,
                                 "message": "The following config variable needs to be set.\n"
-                                           "Description: {}\n{}:".format(config.get_config_description(config_key),
-                                                                         config_key)
+                                           f"Description: {config.get_config_description(config_key)}\n{config_key}:"
                             } for config_key in missing_config if not config_key.startswith("<")
                         ], clear=True)
 
@@ -572,16 +570,16 @@ class Wizard:
                 for a in sorted(used_annotators[module]):
                     config_annotators.append({
                         "name": "{:{width}} {}  {}".format(
-                            "{}:{}".format(module, a),
-                            "({})".format(len(selected_annotations[module].get(a, []))) if
+                            f"{module}:{a}",
+                            f"({len(selected_annotations[module].get(a, []))})" if
                             selected_annotations[
                                 module].get(a) else "   ",
-                            self.snake_storage.all_annotators[module][a]["rule"].description,
+                            self.snake_storage.all_annotators[module][a]["rule"].description.splitlines()[0],
                             width=self.annotator_max_len + (
                                 0 if not self.snake_storage.all_annotators[module][a][
                                     "rule"].configs else 2)),
                         "value": (module, a),
-                        "short": "{}:{}".format(module, a),
+                        "short": f"{module}:{a}",
                         "disabled": not self.snake_storage.all_annotators[module][a]["rule"].configs
                     })
                     if config_annotator == (module, a):
@@ -592,57 +590,49 @@ class Wizard:
                 "name": "annotator",
                 "message": "The following annotators will be used for your corpus, either directly or indirectly by the"
                            " annotators you selected. You may edit their config variables if you wish.",
-                "choices": [{
-                    "name": DONE,
-                    "value": "_done"
-                }] + config_annotators
+                "choices": [{"name": DONE, "value": "_done"}, *config_annotators]
             }, **{"default": preselected} if preselected else {}), clear=True)["annotator"]
 
             if config_annotator == "_done":
                 break
-            else:
-                module_name, f_name = config_annotator
-                max_cfg_len = max(len(cfg) for cfg in
-                                  self.snake_storage.all_annotators[module_name][f_name]["rule"].configs)
-                config_choice = None
-                preselected_key = None
-                while True:
-                    config_choices = []
-                    for cfg in self.snake_storage.all_annotators[module_name][f_name]["rule"].configs:
-                        config_choices.append({
-                            "name": "{:{width}}  {}".format(cfg, config.get_config_description(cfg),
-                                                            width=max_cfg_len),
-                            "value": cfg
-                        })
-                        if config_choice == cfg:
-                            preselected_key = config_choices[-1]
 
-                    config_choice = self.q(dict({
-                        "type": "select",
-                        "name": "config",
-                        "message": "What configuration variable do you want to edit?",
-                        "choices": [
-                           {
-                               "name": DONE,
-                               "value": "_done"
-                           }
-                        ] + config_choices
-                    }, **{"default": preselected_key} if preselected_key else {}), clear=True)["config"]
+            module_name, f_name = config_annotator
+            max_cfg_len = max(len(cfg) for cfg in
+                              self.snake_storage.all_annotators[module_name][f_name]["rule"].configs)
+            config_choice = None
+            preselected_key = None
+            while True:
+                config_choices = []
+                for cfg in self.snake_storage.all_annotators[module_name][f_name]["rule"].configs:
+                    config_choices.append({
+                        "name": "{:{width}}  {}".format(cfg, config.get_config_description(cfg),
+                                                        width=max_cfg_len),
+                        "value": cfg
+                    })
+                    if config_choice == cfg:
+                        preselected_key = config_choices[-1]
 
-                    if config_choice == "_done":
-                        break
-                    else:
-                        config_value = self.q([{
-                            "type": "text",
-                            "name": "value",
-                            "default": config.get(config_choice) or "",
-                            "message": "Set value of config variable '{}':".format(config_choice)
-                        }])["value"]
+                config_choice = self.q(dict({
+                    "type": "select",
+                    "name": "config",
+                    "message": "What configuration variable do you want to edit?",
+                    "choices": [{"name": DONE, "value": "_done"}, *config_choices]
+                }, **{"default": preselected_key} if preselected_key else {}), clear=True)["config"]
 
-                        # Only save value if changed
-                        if config_value != (config.get(config_choice) or ""):
-                            config.set_value(config_choice, config_value)
-                            config.set_value(config_choice, config_value, config_dict=self.corpus_config)
+                if config_choice == "_done":
+                    break
+
+                config_value = self.q([{
+                    "type": "text",
+                    "name": "value",
+                    "default": config.get(config_choice) or "",
+                    "message": f"Set value of config variable '{config_choice}':"
+                }])["value"]
+
+                # Only save value if changed
+                if config_value != (config.get(config_choice) or ""):
+                    config.set_value(config_choice, config_value)
+                    config.set_value(config_choice, config_value, config_dict=self.corpus_config)
 
     def select_wildcards(self, selected_annotations, always_ask: bool = False):
         """Find any annotations with wildcards and prompt the user to define values for these."""
@@ -673,7 +663,7 @@ class Wizard:
                     if wildcards:
                         self.has_wildcard_choices = True
                         wc_dict = {wc.name: wc for wc in wildcards}
-                        wildcard_max_len = max([len(wc.name) for wc in wildcards])
+                        wildcard_max_len = max(len(wc.name) for wc in wildcards)
                         selected_wildcards = {}
                         for a in selected_annotations[module][f_name]:
                             if "wildcards" in a:
@@ -805,14 +795,14 @@ class Wizard:
                         continue
                     annotators.append({
                         "name": "{:{width}} {}  {}".format(
-                            "{}:{}".format(module, a),
-                            "({})".format(len(selected_annotations[module].get(a, []))) if
+                            f"{module}:{a}",
+                            f"({len(selected_annotations[module].get(a, []))})" if
                             selected_annotations[
                                 module].get(a) else "   ",
-                            self.snake_storage.all_annotators[module][a]["rule"].description,
+                            self.snake_storage.all_annotators[module][a]["rule"].description.splitlines()[0],
                             width=self.annotator_max_len),
                         "value": (module, a),
-                        "short": "{}:{}".format(module, a)
+                        "short": f"{module}:{a}"
                     })
                     if annotator_choice == (module, a):
                         preselected = annotators[-1]
@@ -823,14 +813,9 @@ class Wizard:
                 "message": "The following is a list of annotators available for the language you've chosen. "
                            "Select an annotator below to display its available annotations. "
                            "Select DONE when you're done.",
-                "choices": [
-                               {
-                                   "name": DONE,
-                                   "value": "_done"
-                               },
-                           ] + annotators
+                "choices": [{"name": DONE, "value": "_done"}, *annotators]
                 }, **{"default": preselected} if preselected else {}), clear=True)["annotator"]
-            if not annotator_choice == "_done":
+            if annotator_choice != "_done":
                 module, annotator = annotator_choice
                 max_len2 = max(len(a[0].original_name) for a in
                                self.snake_storage.all_annotators[module][annotator]["annotations"])
@@ -881,12 +866,7 @@ class Wizard:
                 "type": "select",
                 "name": "exporter",
                 "message": "Which exporter would you like to configure?",
-                "choices": [
-                    {
-                        "name": DONE,
-                        "value": "_done"
-                    },
-                ] + self.exporters_with_wizard
+                "choices": [{"name": DONE, "value": "_done"}, *self.exporters_with_wizard]
             }, clear=True)["exporter"]
             if exporter_choice != "_done":
                 questions = []

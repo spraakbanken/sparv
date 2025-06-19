@@ -1,14 +1,19 @@
 """Sparv preloader."""
+
+from __future__ import annotations
+
 import logging
 import multiprocessing
+import multiprocessing.synchronize
 import os
 import pickle
 import socket
 import struct
 import time
+from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Dict, Iterator
+from typing import Any
 
 from rich.logging import RichHandler
 
@@ -39,7 +44,10 @@ if compression:
 class Preloader:
     """Class representing a preloader."""
 
-    def __init__(self, function, target, preloader, params, cleanup, shared):
+    def __init__(
+        self, function: Callable, target: str, preloader: Callable, params: dict, cleanup: Callable, shared: bool
+    ) -> None:
+        """Initialize a preloader."""
         self.function = function
         self.target = target
         self.preloader = preloader
@@ -50,7 +58,15 @@ class Preloader:
 
 
 def connect_to_socket(socket_path: str, timeout: bool = False) -> socket.socket:
-    """Connect to a socket and return it."""
+    """Connect to a socket and return it.
+
+    Args:
+        socket_path: Path to the socket file.
+        timeout: Whether to use a 1 second timeout when connecting or not.
+
+    Returns:
+        A connected socket.
+    """
     s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     if timeout:
         s.settimeout(1)
@@ -61,7 +77,14 @@ def connect_to_socket(socket_path: str, timeout: bool = False) -> socket.socket:
 
 @contextmanager
 def socketcontext(socket_path: str) -> Iterator[socket.socket]:
-    """Context manager for socket."""
+    """Context manager for socket.
+
+    Args:
+        socket_path: Path to the socket file.
+
+    Yields:
+        A connected socket.
+    """
     s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     s.connect(socket_path)
     try:
@@ -70,48 +93,78 @@ def socketcontext(socket_path: str) -> Iterator[socket.socket]:
         s.close()
 
 
-def receive_data(sock):
-    """Receive pickled data from socket and unpickle."""
+def receive_data(sock: socket.socket) -> Any:
+    """Receive pickled data from socket and unpickle.
+
+    Args:
+        sock: Socket object.
+
+    Returns:
+        Unpickled data.
+    """
     # Get data length
-    buf_length = recvall(sock, 4)
-    if not buf_length or len(buf_length) < 4:
+    data_length_bytes = 4
+    buf_length = recvall(sock, data_length_bytes)
+    if not buf_length or len(buf_length) < data_length_bytes:
         return None
-    length, = struct.unpack(">I", buf_length)
+    (length,) = struct.unpack(">I", buf_length)
 
     # Get data
     data = recvall(sock, length)
 
-    # Unpickle data
-    data = pickle.loads(data)
-
-    return data
+    # Unpickle data and return
+    return pickle.loads(data)
 
 
-def send_data(sock, data):
-    """Send pickled data over socket."""
+def send_data(sock: socket.socket, data: Any) -> None:
+    """Send pickled data over socket.
+
+    Args:
+        sock: Socket object.
+        data: Data to send.
+    """
     datap = pickle.dumps(data)
     sock.sendall(struct.pack(">I", len(datap)))
     sock.sendall(datap)
 
 
-def get_preloader_info(socket_path):
-    """Get information about preloaded modules."""
+def get_preloader_info(socket_path: str) -> dict:
+    """Get information about preloaded modules.
+
+    Args:
+        socket_path: Path to the socket file.
+
+    Returns:
+        Information about preloaded modules.
+    """
     with socketcontext(socket_path) as sock:
         send_data(sock, INFO)
-        response = receive_data(sock)
-    return response
+        return receive_data(sock)
 
 
-def get_preloader_status(socket_path):
-    """Get preloader status."""
+def get_preloader_status(socket_path: str) -> Any:
+    """Get preloader status.
+
+    Args:
+        socket_path: Path to the socket file.
+
+    Returns:
+        Preloader status.
+    """
     with socketcontext(socket_path) as sock:
         send_data(sock, STATUS)
-        response = receive_data(sock)
-    return response
+        return receive_data(sock)
 
 
-def stop(socket_path):
-    """Send stop signal to Sparv preloader."""
+def stop(socket_path: str) -> bool:
+    """Send stop signal to Sparv preloader.
+
+    Args:
+        socket_path: Path to the socket file.
+
+    Returns:
+        True if the preloader was succesfully stopped, False if the connection was refused.
+    """
     try:
         with socketcontext(socket_path) as sock:
             send_data(sock, STOP)
@@ -120,10 +173,17 @@ def stop(socket_path):
         return False
 
 
-def recvall(sock, size: int):
+def recvall(sock: socket.socket, size: int) -> bytes | None:
     """Receive data of a specific size from socket.
 
     If 'size' number of bytes are not received, None is returned.
+
+    Args:
+        sock: Socket object.
+        size: Number of bytes to receive.
+
+    Returns:
+        Received data.
     """
     buf = b""
     while size:
@@ -135,25 +195,33 @@ def recvall(sock, size: int):
     return buf
 
 
-def handle(client_sock, annotators: Dict[str, Preloader]):
-    """Handle request and execute preloaded function."""
+def handle(client_sock: socket.socket, annotators: dict[str, Preloader]) -> bool | None:
+    """Handle request and execute preloaded function.
+
+    Args:
+        client_sock: Client socket.
+        annotators: Dictionary of preloaded annotators.
+
+    Returns:
+        False if stop signal received, otherwise None.
+    """
     # Get data
     data = receive_data(client_sock)
     if data is None:
-        return
+        return None
 
     # Check if we got a command instead of annotator info
     if isinstance(data, str):
         if data == STOP:
             return False
-        elif data == INFO:
+        if data == INFO:
             send_data(client_sock, {k: v.params for k, v in annotators.items()})
-            return
-        elif data == PING:
+            return None
+        if data == PING:
             try:
                 send_data(client_sock, PONG)
             except BrokenPipeError:
-                return
+                return None
             data = receive_data(client_sock)
 
     log.info("Running %s...", data[0])
@@ -164,22 +232,24 @@ def handle(client_sock, annotators: Dict[str, Preloader]):
     data[1][annotator.target] = annotator.preloaded
 
     # Set up logging over socket
-    log_handler.setup_logging(data[2]["log_server"],
-                              log_level=data[2]["log_level"],
-                              log_file_level=data[2]["log_file_level"],
-                              file=data[3],
-                              job=data[0])
+    log_handler.setup_logging(
+        data[2]["log_server"],
+        log_level=data[2]["log_level"],
+        log_file_level=data[2]["log_file_level"],
+        file=data[3],
+        job=data[0],
+    )
 
     # Call annotator function
     try:
         annotator.function(**data[1])
     except SparvErrorMessage as e:
         send_data(client_sock, e)
-        return
+        return None
     except Exception as e:
         console.print_exception()
         send_data(client_sock, e)
-        return
+        return None
     finally:
         # Clear log handlers
         logger = logging.getLogger("sparv")
@@ -191,12 +261,26 @@ def handle(client_sock, annotators: Dict[str, Preloader]):
 
     # Run cleanup if available
     if annotator.cleanup:
-        annotator.preloaded = annotator.cleanup(**{**annotator.params, **{annotator.target: annotator.preloaded}})
+        annotator.preloaded = annotator.cleanup(**{**annotator.params, annotator.target: annotator.preloaded})
+
+    return None
 
 
-def worker(worker_no: int, server_socket, annotators: Dict[str, Preloader], stop_event):
-    """Listen to the socket server and handle incoming requests."""
-    log.info(f"Worker {worker_no} started")
+def worker(
+    worker_no: int,
+    server_socket: socket.socket,
+    annotators: dict[str, Preloader],
+    stop_event: multiprocessing.synchronize.Event,
+) -> None:
+    """Listen to the socket server and handle incoming requests.
+
+    Args:
+        worker_no: Worker number.
+        server_socket: Server socket.
+        annotators: Dictionary of preloaded annotators.
+        stop_event: Event to signal when stopping.
+    """
+    log.info("Worker %d started", worker_no)
 
     # Load any non-shared preloaders
     for annotator in annotators.values():
@@ -216,13 +300,26 @@ def worker(worker_no: int, server_socket, annotators: Dict[str, Preloader], stop
             if result is False:
                 stop_event.set()
                 return
-        except:
+        except:  # noqa: E722
             log.exception("Error during handling")
         client_sock.close()
 
 
-def serve(socket_path: str, processes: int, storage: SnakeStorage, stop_signal: multiprocessing.Event):
-    """Start the Sparv preloader socket server."""
+def serve(
+    socket_path: str, processes: int, storage: SnakeStorage, stop_signal: multiprocessing.synchronize.Event
+) -> None:
+    """Start the Sparv preloader socket server.
+
+    Args:
+        socket_path: Path to the socket file.
+        processes: Number of processes to start.
+        storage: SnakeStorage object.
+        stop_signal: Event to signal when stopping.
+
+    Raises:
+        SparvErrorMessage: If the socket already exists, or if an annotator in the preloader config is unknown, or if
+            the annotator doesn't support preloading.
+    """
     socket_file = Path(socket_path)
     if socket_file.exists():
         raise SparvErrorMessage(f"Socket {socket_path} already exists.")
@@ -236,19 +333,22 @@ def serve(socket_path: str, processes: int, storage: SnakeStorage, stop_signal: 
 
     preload_config = config.get("preload")
     if not preload_config:
-        raise SparvErrorMessage("Preloader config is missing. Use the 'preload' section "
-                                "in your config file to list annotators to preload.")
+        raise SparvErrorMessage(
+            "Preloader config is missing. Use the 'preload' section in your config file to list annotators to preload."
+        )
     rules = {}
     for rule in storage.all_rules:
         if rule.has_preloader:
             rules[rule.target_name] = rule
 
-    log.info("Loading annotators: " + ", ".join(preload_config))
+    log.info("Loading annotators: %s", ", ".join(preload_config))
 
     for annotator in preload_config:
         if annotator not in rules:
-            raise SparvErrorMessage(f"Unknown annotator '{annotator}' in preloader config. Either it doesn't exist "
-                                    "or it doesn't support preloading.")
+            raise SparvErrorMessage(
+                f"Unknown annotator '{annotator}' in preloader config. Either it doesn't exist "
+                "or it doesn't support preloading."
+            )
         rule = rules[annotator]
         preloader_params = {}
         for param in rule.annotator_info["preloader_params"]:
@@ -260,7 +360,7 @@ def serve(socket_path: str, processes: int, storage: SnakeStorage, stop_signal: 
             rule.annotator_info["preloader"],
             preloader_params,
             rule.annotator_info["preloader_cleanup"],
-            rule.annotator_info["preloader_shared"]
+            rule.annotator_info["preloader_shared"],
         )
         if annotator_obj.shared:
             annotator_obj.preloaded = annotator_obj.preloader(**annotator_obj.params)
@@ -284,10 +384,14 @@ def serve(socket_path: str, processes: int, storage: SnakeStorage, stop_signal: 
     del annotators
     del annotator_obj
 
-    log.info(f"The Sparv preloader is ready and waiting for connections using the socket at {socket_file.absolute()}. "
-             "Run Sparv with the command 'sparv run --socket /path/to/socket' to use the preloader. "
-             "Press Ctrl-C to exit, or run 'sparv preload stop --socket /path/to/socket'. You can also stop the "
-             f"preloader by sending an interrupt signal to the process with id {os.getpid()}.")
+    log.info(
+        "The Sparv preloader is ready and waiting for connections using the socket at %s. "
+        "Run Sparv with the command 'sparv run --socket /path/to/socket' to use the preloader. "
+        "Press Ctrl-C to exit, or run 'sparv preload stop --socket /path/to/socket'. You can also stop the "
+        "preloader by sending an interrupt signal to the process with id %d.",
+        socket_file.absolute(),
+        os.getpid(),
+    )
 
     # Periodically check whether stop_event is set or not and stop all processes when set
     while True:

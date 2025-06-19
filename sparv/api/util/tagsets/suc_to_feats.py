@@ -4,7 +4,6 @@ This tag conversion was taken from this ruby script: https://github.com/spraakba
 It might be worth improving this in the future, but it's good enough for now.
 """
 
-
 MSD_TO_FEATS = {
     "UTR": "Gender=Com",
     "NEU": "Gender=Neut",
@@ -34,25 +33,33 @@ MSD_TO_FEATS = {
     "SMS": "Compound=Yes",
     "SUB": "Case=Nom",
     "OBJ": "Case=Acc",
-    "SUB+OBJ": "Case=Acc,Nom"
+    "SUB+OBJ": "Case=Acc,Nom",
 }
 
 
-def suc_to_feats(pos, msd, delim="."):
-    """Convert SUC MSD tags into UCoNNL feature list."""
+def suc_to_feats(pos: str, msd: str, delim: str = ".") -> list[str]:
+    """Convert SUC MSD tags into UCoNNL feature list.
+
+    Args:
+        pos: The part-of-speech tag.
+        msd: The MSD tag.
+        delim: The delimiter used in the MSD tag.
+
+    Returns:
+        A list of UCoNNL features.
+    """
     non_mapping_msds_for_debug = []
     feats = []
     msd = [i for i in msd.split(delim) if i != "-"]
 
     # If it's not punctuation and if there are MSDs apart from POS
-    if pos not in ["MAD", "MID", "PAD"] and len(msd) > 1:
+    if pos not in {"MAD", "MID", "PAD"} and len(msd) > 1:
         feats = []
         for i in msd:
             if MSD_TO_FEATS.get(i):
                 feats.append(MSD_TO_FEATS[i])
-            else:
-                if i not in non_mapping_msds_for_debug:
-                    non_mapping_msds_for_debug.append(i)
+            elif i not in non_mapping_msds_for_debug:
+                non_mapping_msds_for_debug.append(i)
         if pos == "PC":
             feats.append("VerbForm=Part")
         if pos == "VB" and "Abbr=Yes" not in feats and "Compound=Yes" not in feats and not _findfeat(feats, "VerbForm"):
@@ -63,9 +70,14 @@ def suc_to_feats(pos, msd, delim="."):
     return sorted(feats)
 
 
-def _findfeat(feats, to_find):
-    """Check if 'to_find' is a feature (key) in 'feats'."""
-    for feat in feats:
-        if f"{to_find}=" in feat:
-            return True
-    return False
+def _findfeat(feats: list[str], to_find: str) -> bool:
+    """Check if 'to_find' is a feature (key) in 'feats'.
+
+    Args:
+        feats: List of features.
+        to_find: Feature to find.
+
+    Returns:
+        True if 'to_find' is a feature in 'feats'.
+    """
+    return any(f"{to_find}=" in feat for feat in feats)

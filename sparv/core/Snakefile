@@ -1,4 +1,7 @@
 """Snakefile used by Snakemake."""
+
+from __future__ import annotations
+
 import multiprocessing
 import os
 import signal
@@ -13,8 +16,9 @@ from snakemake.logging import logger
 
 from sparv.api import SparvErrorMessage, util
 from sparv.core import config as sparv_config
-from sparv.core import paths, registry, snake_utils, snake_prints
+from sparv.core import registry, snake_prints, snake_utils
 from sparv.core.console import console
+from sparv.core.paths import paths
 
 # Remove Snakemake's default log handler
 if config.get("run_by_sparv") and logger.log_handler and logger.log_handler[0] == logger.text_handler:
@@ -30,22 +34,29 @@ selected_targets = config.get("targets", [])  # Explicitly selected rule names
 # Dynamic Creation of Snakemake Rules
 # ==============================================================================
 
+
 def make_rules(config_missing: bool) -> None:
-    """Load all Sparv modules and create Snakemake rules."""
+    """Load all Sparv modules and create Snakemake rules.
+
+    Args:
+        config_missing: Whether the config file is missing.
+
+    Raises:
+        SparvErrorMessage: If a connection to the preloader socket could not be established.
+    """
     # Get preloader info
     if config.get("socket") and not config.get("preloader"):
-        from sparv.core import preload
+        from sparv.core import preload  # noqa: PLC0415
         try:
             snake_storage.preloader_info = preload.get_preloader_info(config["socket"])
         except ConnectionRefusedError:
             raise SparvErrorMessage("Could not connect to the socket '{}'".format(config["socket"]))
 
-
     # Create rules for all available annotation functions
     for module_name in registry.modules:
         for f_name, f in registry.modules[module_name].functions.items():
             make_rule(module_name, f_name, f, config_missing)
-    
+
     # Create custom rules
     for custom_rule_obj in sparv_config.get("custom_annotations", []):
         module_name, f_name = custom_rule_obj["annotator"].split(":")
@@ -53,7 +64,7 @@ def make_rules(config_missing: bool) -> None:
         make_rule(module_name, f_name, annotator, config_missing, custom_rule_obj)
 
     # Check and set rule orders (but not when language is set to __all__ for schema purposes)
-    if not config.get("language") == "__all__":
+    if config.get("language") != "__all__":
         ordered_rules = snake_utils.check_ruleorder(snake_storage)
         for rule1, rule2 in ordered_rules:
             # ruleorder:  rule1.rule_name > rule2.rule_name
@@ -66,9 +77,22 @@ def make_rules(config_missing: bool) -> None:
             print()
 
 
-def make_rule(module_name: str, f_name: str, annotator_info: dict, config_missing: bool = False,
-              custom_rule_obj: dict = None) -> None:
-    """Create single Snakemake rule."""
+def make_rule(
+    module_name: str,
+    f_name: str,
+    annotator_info: dict,
+    config_missing: bool = False,
+    custom_rule_obj: dict | None = None,
+) -> None:
+    """Create single Snakemake rule.
+
+    Args:
+        module_name: Name of the module.
+        f_name: Name of the function.
+        annotator_info: Information about the annotator.
+        config_missing: Whether the config file is missing.
+        custom_rule_obj: Custom rule object.
+    """
     # Init rule storage
     rule_storage = snake_utils.RuleStorage(module_name, f_name, annotator_info)
 
@@ -108,12 +132,16 @@ def make_rule(module_name: str, f_name: str, annotator_info: dict, config_missin
             # single job, due to how Snakemake creates processes for run-jobs.
             script: "run_snake.py"
 
-        # Create rule to run this annotation on all input files
+        # Create rule to run this annotation on all source files
         make_all_files_rule(rule_storage)
 
 
 def make_all_files_rule(rule_storage: snake_utils.RuleStorage) -> None:
-    """Create named rule to run an annotation on all input files."""
+    """Create named rule to run an annotation on all source files.
+
+    Args:
+        rule_storage: Rule storage object.
+    """
     # Only create rule when explicitly called
     if config.get("run_by_sparv") and rule_storage.target_name not in selected_targets:
         return
@@ -124,14 +152,15 @@ def make_all_files_rule(rule_storage: snake_utils.RuleStorage) -> None:
     dependencies = rule_storage.outputs if not rule_storage.abstract else rule_storage.inputs
 
     # Prepend work dir to paths if needed (usually included in the {file} wildcard but here it needs to be explicit)
-    rule_outputs = [paths.work_dir / o if not (paths.work_dir in o.parents or paths.export_dir in o.parents)
-                    else o
-                    for o in dependencies]
+    rule_outputs = [
+        paths.work_dir / o if not (paths.work_dir in o.parents or paths.export_dir in o.parents) else o
+        for o in dependencies
+    ]
 
     # Expand {file} wildcard to every corpus file
-    rule_outputs = expand(rule_outputs,
-                          file=snake_utils.get_file_values(config, snake_storage),
-                          **snake_utils.get_wildcard_values(config))
+    rule_outputs = expand(
+        rule_outputs, file=snake_utils.get_file_values(config, snake_storage), **snake_utils.get_wildcard_values(config)
+    )
 
     rule:
         name: rule_storage.target_name
@@ -139,40 +168,46 @@ def make_all_files_rule(rule_storage: snake_utils.RuleStorage) -> None:
 
     if not rule_storage.abstract:
         # Set rule dependencies for every file, so Snakemake knows which rule to use in case of ambiguity.
-        # Converting the values of rule_outputs to snakemake.io.IOFile objects is not enough, since file paths must match
-        # for that to work (which they don't do once we've expanded the {file} wildcard).
+        # Converting the values of rule_outputs to snakemake.io.IOFile objects is not enough, since file paths must
+        # match for that to work (which they don't do once we've expanded the {file} wildcard).
         this_sm_rule = workflow.get_rule(rule_storage.target_name)
         for f in this_sm_rule.input:
             this_sm_rule.dependencies[f] = sm_rule
 
 
-def update_autocompletion_cache():
+def update_autocompletion_cache() -> None:
     """If needed, update the cache of available targets (exporters/installers/rules etc.) used by tab autocompletion."""
-
     # Only update cache if it exists
     if paths.autocomplete_cache.is_file():
-        import pickle
+        import pickle  # noqa: PLC0415
 
         # Collect data for cache
         new_cache = dict.fromkeys(("export", "install", "uninstall", "model"))
         for target_type in new_cache:
-            new_cache[target_type] = sorted(
-                [t[0] for t in getattr(snake_storage, f"{target_type}_targets") if not t[0].startswith("custom.")]
-            )
+            # TODO: Use f-strings after upgrading to Snakemake 8. f-strings don't work in Snakefiles with Python 3.12.
+            new_cache[target_type] = {
+                t[0]: t[1].split("\n", 1)[0]
+                for t in getattr(snake_storage, target_type + "_targets")
+                if not t[0].startswith("custom.")
+            }
 
-        new_cache["annotate"] = []
+        new_cache["annotate"] = {}
         for target_type in ("named", "custom", "import"):
-            new_cache["annotate"].extend(
-                [t[0] for t in getattr(snake_storage, f"{target_type}_targets") if not t[0].startswith("custom.")]
+            new_cache["annotate"].update(
+                {
+                    t[0]: t[1].split("\n", 1)[0]
+                    for t in getattr(snake_storage, target_type + "_targets")
+                    if not t[0].startswith("custom.")
+                }
             )
-            new_cache["annotate"].sort()
+            new_cache["annotate"]
 
         # Create or update cache file if needed
         cache_file = paths.autocomplete_cache
         language = sparv_config.get("metadata.language")
 
         try:
-            with open(cache_file, "rb") as cache_in:
+            with cache_file.open("rb") as cache_in:
                 current_cache = pickle.load(cache_in)
         except:
             current_cache = {}
@@ -183,7 +218,7 @@ def update_autocompletion_cache():
             current_cache[language] = new_cache
             current_cache["default_language"] = default_language
             try:
-                with open(cache_file, "wb") as cache_out:
+                with cache_file.open("wb") as cache_out:
                     pickle.dump(current_cache, cache_out)
             except:
                 pass
@@ -226,8 +261,8 @@ registry.find_implicit_classes()
 # Collect list of all explicitly used annotations (with class expansion)
 for key in registry.annotation_sources:
     registry.explicit_annotations.update(
-        registry.expand_variables(a[0])[0]
-        for a in util.misc.parse_annotation_list(sparv_config.get(key, [])))
+        registry.expand_variables(a[0])[0] for a in util.misc.parse_annotation_list(sparv_config.get(key, []))
+    )
 
 # Load modules and create automatic rules
 make_rules(config_missing)
@@ -239,8 +274,9 @@ update_autocompletion_cache()
 sparv_config.validate_module_config()
 
 # Validate config
-if not "schema" in selected_targets:
+if "schema" not in selected_targets:
     from sparv.core import schema
+
     json_schema = schema.build_json_schema(sparv_config.config_structure)
     schema.validate(sparv_config.config, json_schema)
 
@@ -249,13 +285,13 @@ reverse_config_usage = snake_utils.get_reverse_config_usage()
 
 # Abort if all selected targets require source files but no files are available
 if not config_missing and selected_targets and not snake_storage.source_files:
-    named_targets = set(i for i, _ in snake_storage.named_targets)
+    named_targets = {i for i, _ in snake_storage.named_targets}
     named_targets.update(("export_corpus", "install_corpus"))
     if set(selected_targets).issubset(named_targets):
         raise SparvErrorMessage("No source files available!")
 
 # Sort GPUs visible to modules by available memory
-gpus = util.system.gpus()
+gpus = util.system.gpus(reorder=False)
 if gpus:
     os.environ["CUDA_VISIBLE_DEVICES"] = ",".join(map(str, gpus))
 
@@ -279,10 +315,15 @@ rule config:
 rule modules:
     run:
         if config.get("types") or config.get("names"):
-            snake_prints.print_module_info(config.get("types", []), config.get("names", []), snake_storage,
-                                           reverse_config_usage)
+            snake_prints.print_modules_info(
+                config.get("types", []),
+                config.get("names", []),
+                snake_storage,
+                reverse_config_usage,
+                config["json"]
+            )
         else:
-            snake_prints.print_module_summary(snake_storage)
+            snake_prints.print_modules_summary(snake_storage, config["json"])
 
 
 # Rule to list all annotation classes
@@ -302,7 +343,7 @@ rule presets:
     run:
         resolved_presets = {}
         for preset, annots in sparv_config.presets.items():
-            preset_annotations, _ = sparv_config.resolve_presets(sparv_config.presets[preset], {}, {})
+            preset_annotations, _ = sparv_config.resolve_presets(annots, {})
             resolved_presets[preset] = preset_annotations
         snake_prints.prettyprint_yaml(resolved_presets)
 
@@ -343,8 +384,10 @@ rule list_targets:
         for target, desc in sorted(snake_storage.custom_targets):
             table.add_row("  " + target, desc)
         console.print(table)
-        note = Text.from_markup("[i]Note:[/i] Custom rules need to be declared in the 'custom_annotations' section "
-                                "of your corpus configuration before they can be used.")
+        note = Text.from_markup(
+            "[i]Note:[/i] Custom rules need to be declared in the 'custom_annotations' section "
+            "of your corpus configuration before they can be used."
+        )
         ReprHighlighter().highlight(note)
         console.print(Padding(note, (0, 4)))
 
@@ -354,12 +397,16 @@ rule list_exports:
     run:
         selected_export_names = sparv_config.get("export.default", [])
         selected_exports = [(t, d, l) for t, d, l in sorted(snake_storage.export_targets) if t in selected_export_names]
-        other_exports = [(t, d, l) for t, d, l in sorted(snake_storage.export_targets) if not t in selected_export_names]
+        other_exports = [(t, d, l) for t, d, l in sorted(snake_storage.export_targets) if t not in selected_export_names]
 
         if selected_exports:
             print()
-            table = Table(title="Selected corpus exports (output formats)", box=box.SIMPLE, show_header=False,
-                          title_justify="left")
+            table = Table(
+                title="Selected corpus exports (output formats)",
+                box=box.SIMPLE,
+                show_header=False,
+                title_justify="left",
+            )
             table.add_column(no_wrap=True)
             table.add_column()
             for target, desc, language in selected_exports:
@@ -386,25 +433,30 @@ rule list_exports:
                     table.add_row(target, desc)
             console.print(table)
 
-        console.print("[i]Note:[/i] Use the 'export.default' section in your corpus configuration to select what "
-                      "exports should be produced when running 'sparv run' without arguments. If 'export.default' is "
-                      "not specified, 'xml_export:pretty' is run by default.")
+        console.print(
+            "[i]Note:[/i] Use the 'export.default' section in your corpus configuration to select what "
+            "exports should be produced when running 'sparv run' without arguments. If 'export.default' is "
+            "not specified, 'xml_export:pretty' is run by default."
+        )
 
 
-# Rule to list all input files
+# Rule to list all source files
 rule files:
     run:
-        from rich.columns import Columns
-        print("Available input files:\n")
+        from rich.columns import Columns  # noqa: E402
+
+        print("Available source files:\n")
         # Convert to Text to get rid of syntax highlighting
-        console.print(Columns([Text(f) for f in sorted(snake_storage.source_files)], column_first=True,
-                              padding=(0, 3)))
+        console.print(
+            Columns([Text(f) for f in sorted(snake_storage.source_files)], column_first=True, padding=(0, 3))
+        )
 
 
 # Rule to remove dirs created by Sparv
 rule clean:
     run:
-        import shutil
+        import shutil  # noqa: E402
+
         to_remove = []
         if config.get("export") or config.get("all"):
             to_remove.append(paths.export_dir)
@@ -421,7 +473,7 @@ rule clean:
             full_path = Path.cwd() / d
             if full_path.is_dir():
                 shutil.rmtree(full_path)
-                snake_utils.print_sparv_info(f"'{d}' directory removed")
+                snake_utils.print_sparv_info("'{}' directory removed".format(d))
                 something_removed = True
         if not something_removed:
             snake_utils.print_sparv_info("Nothing to remove")
@@ -441,8 +493,12 @@ rule list_uninstalls:
 
 # Rule for making exports defined in corpus config
 if "export_corpus" in selected_targets:
-    export_targets = snake_utils.get_export_targets(snake_storage, workflow,
-        file=snake_utils.get_file_values(config, snake_storage), wildcards=snake_utils.get_wildcard_values(config))
+    export_targets = snake_utils.get_export_targets(
+        snake_storage,
+        workflow,
+        file=snake_utils.get_file_values(config, snake_storage),
+        wildcards=snake_utils.get_wildcard_values(config)
+    )
 
     rule export_corpus:
         input: [f for r in export_targets for f in r[1]]
@@ -458,10 +514,12 @@ if "export_corpus" in selected_targets:
 if "install_corpus" in selected_targets:
     install_inputs = snake_utils.get_install_outputs(snake_storage, config.get("install_types"))
     if not install_inputs:
-        raise SparvErrorMessage("Please specify what you would like to install, either by supplying arguments "
-                                "(e.g. 'sparv install xml_export:install') or by adding installers to "
-                                "the 'install' section of your corpus config file.\n"
-                                "You can list available installers with 'sparv install -l'.")
+        raise SparvErrorMessage(
+            "Please specify what you would like to install, either by supplying arguments "
+            "(e.g. 'sparv install xml_export:install') or by adding installers to "
+            "the 'install' section of your corpus config file.\n"
+            "You can list available installers with 'sparv install -l'."
+        )
     else:
         rule install_corpus:
             input:
@@ -472,12 +530,14 @@ if "install_corpus" in selected_targets:
 if "uninstall_corpus" in selected_targets:
     uninstall_inputs = snake_utils.get_install_outputs(snake_storage, config.get("uninstall_types"), uninstall=True)
     if not uninstall_inputs:
-        raise SparvErrorMessage("Please specify what you would like to uninstall, either by supplying arguments "
-                                "(e.g. 'sparv uninstall xml_export:uninstall') or by adding uninstallers to "
-                                "the 'uninstall' section of your corpus config file. If the 'uninstall' setting is not "
-                                "set, any uninstallers connected to the installers in the 'install' section will be "
-                                "used instead.\n"
-                                "You can list available uninstallers with 'sparv uninstall -l'.")
+        raise SparvErrorMessage(
+            "Please specify what you would like to uninstall, either by supplying arguments "
+            "(e.g. 'sparv uninstall xml_export:uninstall') or by adding uninstallers to "
+            "the 'uninstall' section of your corpus config file. If the 'uninstall' setting is not "
+            "set, any uninstallers connected to the installers in the 'install' section will be "
+            "used instead.\n"
+            "You can list available uninstallers with 'sparv uninstall -l'."
+        )
     else:
         rule uninstall_corpus:
             input:
@@ -491,14 +551,23 @@ rule list_models:
             if sparv_config.get("metadata.language") not in registry.languages:
                 console.print("Unsupported language: " + sparv_config.get("metadata.language"))
                 return
-            table = Table(title="Models for current language ({})".format(
-                registry.languages[sparv_config.get("metadata.language")]),
-                          box=box.SIMPLE, show_header=False, title_justify="left")
+            table = Table(
+                title="Models for {}{}".format(
+                    registry.languages[sparv_config.get("metadata.language")],
+                    " ({})".format(sparv_config.get("metadata.variety")) if sparv_config.get("metadata.variety") else ""
+                ),
+                box=box.SIMPLE,
+                show_header=False,
+                title_justify="left",
+            )
             table.add_column(no_wrap=True)
             table.add_column()
             for target, desc, language in sorted(snake_storage.model_targets):
-                if language and registry.check_language(sparv_config.get("metadata.language"), language,
-                                                        sparv_config.get("metadata.variety")):
+                if language and registry.check_language(
+                    sparv_config.get("metadata.language"),
+                    language,
+                    sparv_config.get("metadata.variety")
+                ):
                     table.add_row(target, desc)
             console.print(table)
 
@@ -510,31 +579,40 @@ rule list_models:
                 table.add_row(target, desc)
         console.print(table)
 
-        if not sparv_config.get("metadata.language") in registry.languages:
-            console.print("To list or build models for a specific language, use the '--language' argument together "
-                          "with the language code of one of the supported languages below:")
+        if sparv_config.get("metadata.language") not in registry.languages:
+            console.print(
+                "To list or build models for a specific language, use the '--language' argument together "
+                "with the language code of one of the supported languages below:"
+            )
             table = Table(box=box.SIMPLE, show_header=False)
             for language, name in sorted(registry.languages.items(), key=lambda x: x[1]):
                 table.add_row(name, language)
             console.print(table)
 
         print()
-        console.print("[i]Note:[/i] The 'build-models' command is entirely optional, as Sparv will download and build "
-                      "models automatically when needed.")
+        console.print(
+            "[i]Note:[/i] The 'build-models' command is entirely optional, as Sparv will download and build "
+            "models automatically when needed."
+        )
 
 
 # Rule to list all annotations files that can be created
 rule list_files:
     run:
-        outputs = set([(rule.type, o) for rule in snake_storage.all_rules
-                       for o in (rule.outputs if not rule.abstract else rule.inputs)])
+        outputs = {
+            (rule.type, o)
+            for rule in snake_storage.all_rules
+            for o in (rule.outputs if not rule.abstract else rule.inputs)
+        }
 
         print()
-        print("This is a list of files than can be created by Sparv. Please note that wildcards must be replaced "
-              "with paths.")
+        print(
+            "This is a list of files than can be created by Sparv. Please note that wildcards must be replaced "
+            "with paths."
+        )
         print()
         console.print("[i]Annotation files[/i]\n")
-        for i in sorted(o for t, o in outputs if t in ("annotator", "importer")):
+        for i in sorted(o for t, o in outputs if t in {"annotator", "importer"}):
             print("    {}".format(i))
         print()
         console.print("[i]Export files[/i]\n")
@@ -562,33 +640,41 @@ if "preload" in selected_targets:
     rule preload:
         run:
             from sparv.core import preload
+
             if config["preload_command"] == "start":
                 preload.serve(config["socket"], config["processes"], snake_storage, stop_signal)
             elif config["preload_command"] == "stop":
                 if not Path(config["socket"]).is_socket():
-                    raise SparvErrorMessage(f"Socket file '{config['socket']}' doesn't exist or isn't a socket.")
+                    raise SparvErrorMessage("Socket file '{}' doesn't exist or isn't a socket.".format(config["socket"]))
                 elif not preload.stop(config.get("socket")):
-                    raise SparvErrorMessage(f"Could not connect to socket '{config.get('socket')}'.")
+                    raise SparvErrorMessage("Could not connect to socket '{}'.".format(config.get("socket")))
 
 
 rule preload_list:
     run:
         print()
-        table = Table(title="Annotators available for preloading", box=box.SIMPLE, show_header=False,
-            title_justify="left")
+        table = Table(
+            title="Annotators available for preloading",
+            box=box.SIMPLE,
+            show_header=False,
+            title_justify="left"
+        )
         table.add_column(no_wrap=True)
         table.add_column()
 
         for module, annotators in sorted(snake_storage.all_preloaders.items()):
             for a in sorted(annotators):
-                table.add_row(f"{module}:{a}", registry.modules[module].functions[a]["description"])
+                table.add_row("{}:{}".format(module, a), registry.modules[module].functions[a]["description"])
 
         console.print(table)
 
 
 rule schema:
     run:
-        import json
-        from sparv.core import schema
+        import json  # noqa: E402
+
+        from sparv.core import schema  # noqa: E402
+
         json_schema = schema.build_json_schema(sparv_config.config_structure)
-        print(json.dumps(json_schema, indent=2))
+        params = {"separators": (",", ":")} if config["compact"] else {"indent": 2}
+        print(json.dumps(json_schema, **params))

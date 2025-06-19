@@ -1,6 +1,7 @@
 """Provide a Console instance for pretty printing."""
+
 from rich.console import Console
-from rich.themes import Theme
+from rich.theme import Theme
 
 # Remove some automatic highlighting from default theme, to improve our log output
 _theme = Theme(
@@ -8,7 +9,7 @@ _theme = Theme(
         "repr.ipv6": "none",
         "repr.eui48": "none",
         "repr.eui64": "none",
-        "repr.number": "none"
+        "repr.number": "none",
     }
 )
 

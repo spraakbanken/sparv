@@ -1,24 +1,26 @@
 """Main Sparv executable."""
+
+# ruff: noqa: PLC0415, T201
+from __future__ import annotations
+
 import argparse
+import queue
 import sys
 from pathlib import Path
+from typing import Any
 
 # PYTHON_ARGCOMPLETE_OK
 import argcomplete
+from rich_argparse import RawDescriptionRichHelpFormatter, RichHelpFormatter
 
 from sparv import __version__
-
-# Check Python version
-if sys.version_info < (3, 8, 0):
-    print("Python 3.8 or newer is required.")
-    sys.exit(1)
 
 
 class CustomArgumentParser(argparse.ArgumentParser):
     """ArgumentParser with custom help message and better handling of misspelled commands."""
 
-    def __init__(self, *args, **kwargs):
-        """Init parser."""
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Initialize parser."""
         no_help = kwargs.pop("no_help", False)
         # Don't add default help message
         kwargs["add_help"] = False
@@ -27,11 +29,13 @@ class CustomArgumentParser(argparse.ArgumentParser):
         if not no_help:
             self.add_argument("-h", "--help", action="help", help="Show this help message and exit")
 
-    def _check_value(self, action, value):
-        """Check if command is valid, and if not, try to guess what the user meant."""
+    @staticmethod
+    def _check_value(action: argparse.Action, value: Any) -> None:
+        """Check if command is valid, and if not, try to guess what the user meant."""  # noqa: DOC501
         if action.choices is not None and value not in action.choices:
             # Check for possible misspelling
             import difflib
+
             close_matches = difflib.get_close_matches(value, action.choices, n=1)
             if close_matches:
                 message = f"unknown command: '{value}' - maybe you meant '{close_matches[0]}'"
@@ -41,57 +45,72 @@ class CustomArgumentParser(argparse.ArgumentParser):
             raise argparse.ArgumentError(action, message)
 
 
-class CustomHelpFormatter(argparse.RawDescriptionHelpFormatter):
-    """Custom help formatter for argparse, silencing subparser lists."""
+# Add highlights for our custom description
+RawDescriptionRichHelpFormatter.highlights.extend((r"\n   (?P<args>\S+)", r"\n(?P<groups>.+:)\n"))
 
-    def _format_action(self, action):
-        result = super()._format_action(action)
+
+class CustomHelpFormatter(RawDescriptionRichHelpFormatter):
+    """Custom help formatter for argparse, silencing subparser lists.
+
+    We have our own hardcoded list of subparsers in the description, so we don't want argparse to list them again.
+    """
+
+    def _rich_format_action(self, action: argparse.Action) -> str:
+        """Format action for help message, skipping subparser actions."""  # noqa: DOC201
         if isinstance(action, argparse._SubParsersAction):
             return ""
-        return result
+        return super()._rich_format_action(action)
 
 
 class Completer:
     """Reads and returns cached autocompletion data."""
 
-    def __init__(self, completion_type):
+    def __init__(self, completion_type: str) -> None:
+        """Initialize completer."""
         self.type = completion_type
 
-    def __call__(self, parsed_args, **kwargs):
-        # Read config file to find corpus language
+    def __call__(self, parsed_args: argparse.Namespace, **_kwargs: Any) -> dict[str, str]:
+        """Return dictionary of completions."""
+        # Abort if no config file in current directory
         config_file = Path(parsed_args.dir or Path.cwd(), "config.yaml")
-        cache_data = {}
+        if not config_file.is_file():
+            return {}
 
-        if config_file.is_file():
-            import appdirs
-            import yaml
-            try:
-                from yaml import CSafeLoader as SafeLoader
-            except ImportError:
-                from yaml import SafeLoader
+        # Abort if no cache is found
+        import appdirs
 
-            with open(config_file, encoding="utf-8") as f:
-                data = yaml.load(f, Loader=SafeLoader)
-            language = data.get("metadata", {}).get("language")
+        cache_file = Path(appdirs.user_config_dir("sparv"), "autocomplete")
+        if not cache_file.is_file():
+            return {}
 
-            cache_file = Path(appdirs.user_config_dir("sparv"), "autocomplete")
+        import pickle
 
-            if cache_file.is_file():
-                import pickle
-                try:
-                    with open(cache_file, "rb") as cache:
-                        cache_data = pickle.load(cache)
-                        if not language:
-                            language = cache_data.get("default_language")
-                        cache_data = cache_data.get(language, {})
-                except EOFError:  # Cache placeholder created but not yet populated
-                    pass
+        import yaml
 
-            # run-rule includes everything
-            if self.type == "annotate":
-                return [v for t in cache_data.values() for v in t]
+        try:
+            from yaml import CSafeLoader as SafeLoader
+        except ImportError:
+            from yaml import SafeLoader
 
-            return cache_data.get(self.type, [])
+        # Get corpus language from config file
+        with config_file.open(encoding="utf-8") as f:
+            data = yaml.load(f, Loader=SafeLoader)
+        language = data.get("metadata", {}).get("language")
+
+        try:
+            with cache_file.open("rb") as cache:
+                cache_data = pickle.load(cache)
+                if not language:
+                    language = cache_data.get("default_language")
+                cache_data = cache_data.get(language, {})
+        except EOFError:  # Cache placeholder created but not yet populated
+            pass
+
+        # run-rule includes everything
+        if self.type == "annotate":
+            return {v: t[v] for t in cache_data.values() for v in t}
+
+        return cache_data.get(self.type, [])
 
 
 class SortedCompletionFinder(argcomplete.CompletionFinder):
@@ -100,179 +119,361 @@ class SortedCompletionFinder(argcomplete.CompletionFinder):
     We use this instead of letting bash sort the completions, to sort flags separately.
     """
 
-    def filter_completions(self, completions: list):
+    def filter_completions(self, completions: list) -> list:
+        """Sort completions and return them.
+
+        Args:
+            completions: List of completions.
+
+        Returns:
+            Sorted list of completions.
+        """
         completions = super().filter_completions(completions)
         completions.sort()
         return completions
 
 
-def main():
-    """Run Sparv Pipeline (main entry point for Sparv)."""
+def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) -> bool:
+    """Handle command line arguments and run the appropriate command.
+
+    If argv is None, the command line arguments are read from sys.argv.
+
+    Args:
+        argv: List of command line arguments.
+        log_queue: Queue for storing log messages.
+
+    Returns:
+        True if the command was successful, False otherwise.
+    """
+    if argv:
+        sys.argv = ["sparv", *argv]
+        json_log = True
+    else:
+        json_log = False
 
     # Set up command line arguments
-    parser = CustomArgumentParser(prog="sparv",
-                                  description="Sparv Pipeline",
-                                  allow_abbrev=False,
-                                  formatter_class=CustomHelpFormatter)
-    parser.add_argument("-v", "--version", action="version", version=f"Sparv Pipeline v{__version__}",
-                        help="Show Sparv's version number and exit")
+    parser = CustomArgumentParser(
+        prog="sparv", description="Sparv", allow_abbrev=False, formatter_class=CustomHelpFormatter
+    )
+    parser.add_argument(
+        "-v",
+        "--version",
+        action="version",
+        version=f"Sparv v{__version__}",
+        help="Show Sparv's version number and exit",
+    )
     parser.add_argument("-d", "--dir", help="Specify corpus directory")
+
+    # Help messages for subparsers
+    help = {  # noqa: A001
+        "run": "Annotate a corpus and generate export files",
+        "install": "Install a corpus",
+        "uninstall": "Uninstall a corpus",
+        "clean": {
+            "short": "Remove output directories",
+            "long": "Remove output directories (by default only the sparv-workdir directory)",
+        },
+        "config": "Display the corpus configuration",
+        "files": "List available corpus source files that can be annotated by Sparv",
+        "modules": "List available modules and annotations",
+        "presets": "List available annotation presets",
+        "classes": "List available annotation classes",
+        "languages": "List supported languages",
+        "setup": {
+            "short": "Set up the Sparv data directory",
+            "long": "Set up the Sparv data directory. Run without arguments for interactive setup. Use the '--dir' "
+            "option for non-interactive setup.",
+        },
+        "wizard": "Run config wizard to create a corpus config",
+        "build-models": {
+            "short": "Download and build the Sparv models (optional)",
+            "long": (
+                "Download and build the Sparv models. This is optional, as models will be downloaded and built "
+                "automatically the first time they are needed."
+            ),
+        },
+        "run-module": "Run annotator module independently (experimental)",
+        "run-rule": "Run specified rule(s) for creating annotations",
+        "create-file": {
+            "short": "Create specified file(s)",
+            "long": "Create specified file(s). The full path must be supplied and wildcards must be replaced.",
+        },
+        "preload": "Preload annotators and models",
+        "autocomplete": "Enable tab completion in bash/zsh",
+        "schema": "Print a JSON schema for the Sparv config format",
+        "plugins": "Manage Sparv plugins",
+    }
+
     description = [
         "",
         "Annotating a corpus:",
-        "   run              Annotate a corpus and generate export files",
-        "   install          Install a corpus",
-        "   uninstall        Uninstall a corpus",
-        "   clean            Remove output directories",
+        f"   run              {help['run']}",
+        f"   install          {help['install']}",
+        f"   uninstall        {help['uninstall']}",
+        f"   clean            {help['clean']['short']}",
         "",
         "Inspecting corpus details:",
-        "   config           Display the corpus config",
-        "   files            List available corpus source files (input for Sparv)",
+        f"   config           {help['config']}",
+        f"   files            {help['files']}",
         "",
         "Show annotation info:",
-        "   modules          List available modules and annotations",
-        "   presets          List available annotation presets",
-        "   classes          List available annotation classes",
-        "   languages        List supported languages",
+        f"   modules          {help['modules']}",
+        f"   presets          {help['presets']}",
+        f"   classes          {help['classes']}",
+        f"   languages        {help['languages']}",
         "",
-        "Setting up the Sparv Pipeline:",
-        "   setup            Set up the Sparv data directory",
-        "   wizard           Run config wizard to create a corpus config",
-        "   build-models     Download and build the Sparv models (optional)",
+        "Setting up Sparv:",
+        f"   setup            {help['setup']['short']}",
+        f"   plugins          {help['plugins']}",
+        f"   wizard           {help['wizard']}",
+        f"   build-models     {help['build-models']['short']}",
         "",
         "Advanced commands:",
-        "   run-rule         Run specified rule(s) for creating annotations",
-        "   create-file      Create specified file(s)",
-        "   run-module       Run annotator module independently",
-        "   preload          Preload annotators and models",
-        "   autocomplete     Enable tab completion in bash",
-        "   schema           Print a JSON schema for the Sparv config format",
+        f"   run-rule         {help['run-rule']}",
+        f"   create-file      {help['create-file']['short']}",
+        # f"   run-module       {help['run-module']}",
+        f"   preload          {help['preload']}",
+        f"   autocomplete     {help['autocomplete']}",
+        f"   schema           {help['schema']}",
         "",
         "See 'sparv <command> -h' for help with a specific command",
-        "For full documentation, visit https://spraakbanken.gu.se/sparv/docs/"
+        "For full documentation, visit https://spraakbanken.gu.se/sparv/docs/",
     ]
-    subparsers = parser.add_subparsers(dest="command", title="commands", metavar="<command>",
-                                       description="\n".join(description))
+    subparsers = parser.add_subparsers(
+        dest="command", title="commands", metavar="<command>", description="\n".join(description)
+    )
     subparsers.required = True
 
     # Annotate
-    run_parser = subparsers.add_parser("run", description="Annotate a corpus and generate export files.")
+    run_parser = subparsers.add_parser(
+        "run", help=help["run"], description=help["run"], formatter_class=RichHelpFormatter
+    )
     run_parser.add_argument(
-        "output", nargs="*", default=[], help="The type of output format to generate",
+        "output",
+        nargs="*",
+        default=[],
+        help="The type of output format to generate",
     ).completer = Completer("export")
     run_parser.add_argument("-l", "--list", action="store_true", help="List available output formats")
 
-    install_parser = subparsers.add_parser("install", description="Install a corpus.")
+    install_parser = subparsers.add_parser(
+        "install", help=help["install"], description=help["install"], formatter_class=RichHelpFormatter
+    )
     install_parser.add_argument(
         "type", nargs="*", default=[], help="The type of installation to perform"
     ).completer = Completer("install")
     install_parser.add_argument("-l", "--list", action="store_true", help="List installations to be made")
 
-    uninstall_parser = subparsers.add_parser("uninstall", description="Uninstall a corpus.")
+    uninstall_parser = subparsers.add_parser(
+        "uninstall", help=help["uninstall"], description=help["uninstall"], formatter_class=RichHelpFormatter
+    )
     uninstall_parser.add_argument(
         "type", nargs="*", default=[], help="The type of uninstallation to perform"
     ).completer = Completer("uninstall")
     uninstall_parser.add_argument("-l", "--list", action="store_true", help="List uninstallations to be made")
 
-    clean_parser = subparsers.add_parser("clean", description="Remove output directories (by default only the "
-                                                              "sparv-workdir directory).")
+    clean_parser = subparsers.add_parser(
+        "clean", help=help["clean"]["short"], description=help["clean"]["long"], formatter_class=RichHelpFormatter
+    )
     clean_parser.add_argument("-e", "--export", action="store_true", help="Remove export directory")
     clean_parser.add_argument("-l", "--logs", action="store_true", help="Remove logs directory")
     clean_parser.add_argument("-a", "--all", action="store_true", help="Remove workdir, export and logs directories")
 
     # Inspect
-    config_parser = subparsers.add_parser("config", description="Display the corpus configuration.")
+    config_parser = subparsers.add_parser(
+        "config", help=help["config"], description=help["config"], formatter_class=RichHelpFormatter
+    )
     config_parser.add_argument("options", nargs="*", default=[], help="Specific options(s) in config to display")
-    subparsers.add_parser("files", description="List available corpus source files that can be annotated by Sparv.")
+
+    subparsers.add_parser("files", help=help["files"], description=help["files"], formatter_class=RichHelpFormatter)
 
     # Annotation info
-    modules_parser = subparsers.add_parser("modules", description="List available modules and annotations.")
+    modules_parser = subparsers.add_parser(
+        "modules", help=help["modules"], description=help["modules"], formatter_class=RichHelpFormatter
+    )
     modules_parser.add_argument("--annotators", action="store_true", help="List info for annotators")
     modules_parser.add_argument("--importers", action="store_true", help="List info for importers")
     modules_parser.add_argument("--exporters", action="store_true", help="List info for exporters")
     modules_parser.add_argument("--installers", action="store_true", help="List info for installers")
     modules_parser.add_argument("--uninstallers", action="store_true", help="List info for uninstallers")
     modules_parser.add_argument("--all", action="store_true", help="List info for all module types")
-    modules_parser.add_argument("names", nargs="*", default=[], help="Specific module(s) to display")
+    modules_parser.add_argument("--json", action="store_true", help="Print output in JSON format")
+    modules_parser.add_argument("names", nargs="*", default=[], help="Specific module(s) or annotator(s) to display")
 
-    subparsers.add_parser("presets", description="Display all available annotation presets.")
-    subparsers.add_parser("classes", description="Display all available annotation classes.")
-    subparsers.add_parser("languages", description="List supported languages.")
+    subparsers.add_parser(
+        "presets", help=help["presets"], description=help["presets"], formatter_class=RichHelpFormatter
+    )
+    subparsers.add_parser(
+        "classes", help=help["classes"], description=help["classes"], formatter_class=RichHelpFormatter
+    )
+    subparsers.add_parser(
+        "languages", help=help["languages"], description=help["languages"], formatter_class=RichHelpFormatter
+    )
 
     # Setup
-    setup_parser = subparsers.add_parser("setup", description="Set up the Sparv data directory. Run without arguments "
-                                                              "for interactive setup.")
+    setup_parser = subparsers.add_parser(
+        "setup", help=help["setup"]["short"], description=help["setup"]["long"], formatter_class=RichHelpFormatter
+    )
     setup_parser.add_argument("-d", "--dir", help="Directory to use as Sparv data directory")
-    setup_parser.add_argument("--reset", action="store_true", help="Reset data directory setting.")
+    setup_parser.add_argument("--reset", action="store_true", help="Reset data directory setting")
 
-    models_parser = subparsers.add_parser("build-models",
-                                          description=("Download and build the Sparv models. This is optional, as "
-                                                       "models will be downloaded and built automatically the first "
-                                                       "time they are needed."))
-    models_parser.add_argument(
-        "model", nargs="*", default=[], help="The model(s) to be built"
-    ).completer = Completer("model")
+    models_parser = subparsers.add_parser(
+        "build-models",
+        help=help["build-models"]["short"],
+        description=help["build-models"]["long"],
+        formatter_class=RichHelpFormatter,
+    )
+    models_parser.add_argument("model", nargs="*", default=[], help="The model(s) to be built").completer = Completer(
+        "model"
+    )
     models_parser.add_argument("-l", "--list", action="store_true", help="List available models")
     models_parser.add_argument("--language", help="Language (ISO 639-3) if different from current corpus language")
     models_parser.add_argument("--all", action="store_true", help="Build all models for the current language")
-    subparsers.add_parser("wizard", description="Run config wizard to create a corpus config")
+
+    subparsers.add_parser("wizard", help=help["wizard"], description=help["wizard"], formatter_class=RichHelpFormatter)
 
     # Advanced commands
-    runmodule = subparsers.add_parser("run-module", no_help=True)
-    runmodule.add_argument("--log", metavar="LOGLEVEL", help="Set the log level (default: 'info')", default="info",
-                           choices=["debug", "info", "warning", "error", "critical"])
+    runmodule = subparsers.add_parser(
+        "run-module",
+        no_help=True,
+        help=help["run-module"],
+        description=help["run-module"],
+        formatter_class=RichHelpFormatter,
+    )
+    runmodule.add_argument(
+        "--log",
+        metavar="LOGLEVEL",
+        help="Set the log level (default: 'info')",
+        default="info",
+        choices=["debug", "info", "warning", "error", "critical"],
+    )
 
-    runrule_parser = subparsers.add_parser("run-rule", description="Run specified rule(s) for creating annotations.")
-    runrule_parser.add_argument("targets", nargs="*", default=["list"],
-                                help="Annotation(s) to create").completer = Completer("annotate")
+    runrule_parser = subparsers.add_parser(
+        "run-rule", help=help["run-rule"], description=help["run-rule"], formatter_class=RichHelpFormatter
+    )
+    runrule_parser.add_argument(
+        "targets", nargs="*", default=["list"], help="Annotation(s) to create"
+    ).completer = Completer("annotate")
     runrule_parser.add_argument("-l", "--list", action="store_true", help="List available rules")
-    runrule_parser.add_argument("-w", "--wildcards", nargs="*", metavar="WILDCARD",
-                                help="Supply values for wildcards using the format 'name=value'")
+    runrule_parser.add_argument(
+        "-w",
+        "--wildcards",
+        nargs="*",
+        metavar="WILDCARD",
+        help="Supply values for wildcards using the format 'name=value'",
+    )
     runrule_parser.add_argument("--force", action="store_true", help="Force recreation of target")
-    createfile_parser = subparsers.add_parser("create-file", description=("Create specified file(s). "
-                                              "The full path must be supplied and wildcards must be replaced."))
+
+    createfile_parser = subparsers.add_parser(
+        "create-file",
+        help=help["create-file"]["short"],
+        description=help["create-file"]["long"],
+        formatter_class=RichHelpFormatter,
+    )
     createfile_parser.add_argument("targets", nargs="*", default=["list"], help="File(s) to create")
     createfile_parser.add_argument("-l", "--list", action="store_true", help="List available files that can be created")
     createfile_parser.add_argument("--force", action="store_true", help="Force recreation of target")
 
-    preloader_parser = subparsers.add_parser("preload", description="Preload annotators and models")
+    preloader_parser = subparsers.add_parser(
+        "preload", help=help["preload"], description=help["preload"], formatter_class=RichHelpFormatter
+    )
     preloader_parser.add_argument("preload_command", nargs="?", default="start", choices=["start", "stop"])
     preloader_parser.add_argument("--socket", default="sparv.socket", help="Path to socket file")
     preloader_parser.add_argument("-j", "--processes", help="Number of processes to use", default=1, type=int)
     preloader_parser.add_argument("-l", "--list", action="store_true", help="List annotators available for preloading")
 
-    autocomplete_parser = subparsers.add_parser("autocomplete", description="Enable tab completion in bash")
-    autocomplete_parser.add_argument("--enable", action="store_true", help="Output script to be sourced in bash")
-    autocomplete_parser.add_argument("--enable-old", action="store_true",
-                                     help="Output script to be sourced in bash, for bash version 4.3 and below")
+    autocomplete_parser = subparsers.add_parser(
+        "autocomplete", help=help["autocomplete"], description=help["autocomplete"], formatter_class=RichHelpFormatter
+    )
+    autocomplete_parser.add_argument("--enable", action="store_true", help="Output script to be sourced in bash/zsh")
+    autocomplete_parser.add_argument(
+        "--enable-old", action="store_true", help="Output script to be sourced in bash, for bash version 4.3 and below"
+    )
 
-    subparsers.add_parser("schema", description="Print a JSON schema for the Sparv config format")
+    schema_parser = subparsers.add_parser(
+        "schema", help=help["schema"], description=help["schema"], formatter_class=RichHelpFormatter
+    )
+    schema_parser.add_argument("--compact", action="store_true", help="Don't indent output")
+
+    # Plugins
+    plugins_parser = subparsers.add_parser(
+        "plugins", help=help["plugins"], description=help["plugins"], formatter_class=RichHelpFormatter
+    )
+    plugins_subparsers = plugins_parser.add_subparsers(
+        dest="plugins_command", title="plugin commands", metavar="<plugin_command>"
+    )
+
+    # Sub-command: install
+    plugins_install_parser = plugins_subparsers.add_parser(
+        "install", help="Install a Sparv plugin", formatter_class=RichHelpFormatter
+    )
+    plugins_install_parser.add_argument("plugin", help="The plugin to install (PyPI package name, URL or local path)")
+    plugins_install_parser.add_argument(
+        "-e",
+        "--editable",
+        action="store_true",
+        help="Install the plugin in editable mode (only when installing from a local directory)",
+    )
+    plugins_install_parser.add_argument("-v", "--verbose", action="store_true", help="Show more details")
+
+    # Sub-command: list
+    plugins_list_parser = plugins_subparsers.add_parser(
+        "list", help="List installed Sparv plugins", formatter_class=RichHelpFormatter
+    )
+    plugins_list_parser.add_argument("-v", "--verbose", action="store_true", help="Show more details")
+
+    # Sub-command: uninstall
+    plugins_uninstall_parser = plugins_subparsers.add_parser(
+        "uninstall", help="Uninstall a Sparv plugin", formatter_class=RichHelpFormatter
+    )
+    plugins_uninstall_parser.add_argument("plugin", help="The name of the plugin to uninstall")
+    plugins_uninstall_parser.add_argument("-v", "--verbose", action="store_true", help="Show more details")
 
     # Add common arguments
     for subparser in [run_parser, runrule_parser]:
-        subparser.add_argument("-f", "--file", nargs="+", default=[], help="Only annotate specified input file(s)")
+        subparser.add_argument("-f", "--file", nargs="+", default=[], help="Only annotate specified source file(s)")
     for subparser in [run_parser, runrule_parser, createfile_parser, models_parser, install_parser, uninstall_parser]:
-        subparser.add_argument("-n", "--dry-run", action="store_true",
-                               help="Print summary of tasks without running them")
-        subparser.add_argument("-j", "--cores", type=int, nargs="?", const=0, metavar="N",
-                               help="Use at most N cores in parallel; if N is omitted, use all available CPU cores",
-                               default=1)
-        subparser.add_argument("-k", "--keep-going", action="store_true",
-                               help="Keep going with independent tasks if a task fails")
-        subparser.add_argument("--log", metavar="LOGLEVEL", const="info",
-                               help="Set the log level (default: 'warning' if --log is not specified, "
-                                    "'info' if LOGLEVEL is not specified)",
-                               nargs="?", choices=["debug", "info", "warning", "error"])
-        subparser.add_argument("--log-to-file", metavar="LOGLEVEL", const="info",
-                               help="Set log level for logging to file (default: 'warning' if --log-to-file is not "
-                                    "specified, 'info' if LOGLEVEL is not specified)",
-                               nargs="?", choices=["debug", "info", "warning", "error"])
+        subparser.add_argument(
+            "-n", "--dry-run", action="store_true", help="Print summary of tasks without running them"
+        )
+        subparser.add_argument(
+            "-j",
+            "--cores",
+            type=int,
+            nargs="?",
+            const=0,
+            metavar="N",
+            help="Use at most N cores in parallel; if N is omitted, use all available CPU cores",
+            default=1,
+        )
+        subparser.add_argument(
+            "-k", "--keep-going", action="store_true", help="Keep going with independent tasks if a task fails"
+        )
+        subparser.add_argument(
+            "--log",
+            metavar="LOGLEVEL",
+            const="info",
+            help="Set the log level (default: 'warning' if --log is not specified, "
+            "'info' if LOGLEVEL is not specified)",
+            nargs="?",
+            choices=["debug", "info", "warning", "error"],
+        )
+        subparser.add_argument(
+            "--log-to-file",
+            metavar="LOGLEVEL",
+            const="info",
+            help="Set log level for logging to file (default: 'warning' if --log-to-file is not "
+            "specified, 'info' if LOGLEVEL is not specified)",
+            nargs="?",
+            choices=["debug", "info", "warning", "error"],
+        )
         subparser.add_argument("--stats", action="store_true", help="Show summary of time spent per annotator")
         subparser.add_argument("--json-log", action="store_true", help="Use JSON format for logging")
         subparser.add_argument("--debug", action="store_true", help="Show debug messages")
         subparser.add_argument("--socket", help="Path to socket file created by the 'preload' command")
-        subparser.add_argument("--force-preloader", action="store_true",
-                               help="Try to wait for preloader when it's busy")
+        subparser.add_argument(
+            "--force-preloader", action="store_true", help="Try to wait for preloader when it's busy"
+        )
         subparser.add_argument("--simple", action="store_true", help="Show less details while running")
 
     # Add extra arguments to 'run' that we want to come last
@@ -281,7 +482,7 @@ def main():
     # Backward compatibility
     if len(sys.argv) > 1 and sys.argv[1] == "make":
         print("No rule to make target")
-        sys.exit(1)
+        return False
 
     # Handle autocompletion
     SortedCompletionFinder()(parser)
@@ -292,11 +493,13 @@ def main():
     # The "run-module" command is handled by a separate script
     if args.command == "run-module":
         from sparv.core import run
+
         run.main(unknown_args, log_level=args.log)
-        sys.exit()
-    elif args.command == "autocomplete":
+        return True
+    if args.command == "autocomplete":
         if args.enable or args.enable_old:
             import appdirs
+
             try:
                 # Create empty autocomplete cache if it doesn't exist
                 # The cache contents will only be populated if this file exists
@@ -309,89 +512,113 @@ def main():
             print(argcomplete.shellcode(["sparv"], complete_arguments=complete_arguments))
         else:
             print(
-                "To enable tab autocompletion for Sparv in bash, source the output of the 'sparv autocomplete --enable'"
-                " command in your shell by running the following:\n\n"
+                "To enable tab autocompletion for Sparv in bash or zsh, source the output of the 'sparv autocomplete "
+                "--enable' command in your shell by running the following:\n\n"
                 '    eval "$(sparv autocomplete --enable)"\n\n'
-                "To enable permanently, add the above line to ~/.bashrc by running the following in your terminal:\n\n"
-                "    echo 'eval \"$(sparv autocomplete --enable)\"' >> ~/.bashrc\n\n"
+                "To enable permanently, add the above line to ~/.bashrc (for bash) or ~/.zshrc (for zsh) by running "
+                "one of the following commands in your terminal:\n\n"
+                "    echo 'eval \"$(sparv autocomplete --enable)\"' >> ~/.bashrc\n"
+                "    echo 'eval \"$(sparv autocomplete --enable)\"' >> ~/.zshrc\n\n"
                 "For bash version 4.3 and below, use the flag '--enable-old' instead.\n\n"
+                "For zsh, instead of editing ~/.zshrc, you can save the output of the command to a file in "
+                "one of the directories in $fpath.\n\n"
                 "Note: Autocompletion of some arguments, such as available exporters, will not be available until some "
                 "part of the Sparv pipeline (e.g. 'sparv run') has been run at least once since enabling "
                 "autocompletion."
             )
-        sys.exit(0)
-    else:
-        import snakemake
-        from snakemake.logging import logger
-        from snakemake.utils import available_cpu_count
-        from sparv.core import log_handler, paths, setup
-        args = parser.parse_args()
+        return True
+    import snakemake
+    from snakemake.logging import logger
+    from snakemake.utils import available_cpu_count
 
-    if args.command not in ("setup",):
+    from sparv.core import log_handler, setup
+    from sparv.core.paths import paths
+
+    args = parser.parse_args()
+
+    if args.command != "setup":
         # Make sure that Sparv data dir is set
         if not paths.get_data_path():
-            print(f"The path to Sparv's data directory needs to be configured, either by running 'sparv setup' or by "
-                  f"setting the environment variable '{paths.data_dir_env}'.")
-            sys.exit(1)
+            print(
+                f"The path to Sparv's data directory needs to be configured, either by running 'sparv setup' or by "
+                f"setting the environment variable '{paths.data_dir_env}'."
+            )
+            return False
 
         # Check if Sparv data dir is outdated (or not properly set up yet)
         version_check = setup.check_sparv_version()
         if version_check is None:
-            print("The Sparv data directory has been configured but not yet set up completely. Run 'sparv setup' to "
-                  "complete the process.")
-            sys.exit(1)
-        elif not version_check:
-            print("Sparv has been updated and Sparv's data directory may need to be upgraded. Please run the "
-                  "'sparv setup' command.")
-            sys.exit(1)
+            print(
+                "The Sparv data directory has been configured but not yet set up completely. Run 'sparv setup' to "
+                "complete the process."
+            )
+            return False
+        if not version_check:
+            print(
+                "Sparv has been updated and Sparv's data directory may need to be upgraded. Please run the "
+                "'sparv setup' command."
+            )
+            return False
 
     if args.command == "setup":
         if args.reset:
-            setup.reset()
-        else:
-            setup.run(args.dir)
-        sys.exit(0)
-    elif args.command == "wizard":
+            return setup.reset()
+        return setup.run(args.dir)
+    if args.command == "wizard":
         from sparv.core.wizard import Wizard
+
         wizard = Wizard()
         wizard.run()
-        sys.exit(0)
+        return True
+    if args.command == "plugins":
+        from sparv.core import plugins
+
+        if args.plugins_command == "install":
+            plugins.install_plugin(args.plugin, editable=args.editable, verbose=args.verbose)
+        elif args.plugins_command == "uninstall":
+            plugins.uninstall_plugin(args.plugin, verbose=args.verbose)
+        elif args.plugins_command == "list":
+            plugins.list_installed_plugins(args.verbose)
+        elif args.plugins_command is None:
+            plugins.list_installed_plugins()
+        return True
 
     # Check that a corpus config file is available in the working dir
     try:
         config_exists = Path(args.dir or Path.cwd(), paths.config_file).is_file()
     except PermissionError as e:
         print(f"{e.strerror}: {e.filename!r}")
-        sys.exit(1)
+        return False
 
-    if args.command not in ("autocomplete", "build-models", "languages", "schema"):
+    if args.command not in {"autocomplete", "build-models", "languages", "schema"}:
         if not config_exists:
             print(f"No config file ({paths.config_file}) found in working directory.")
-            sys.exit(1)
+            return False
     # For the 'build-models' command there needs to be a config file or a language parameter
-    elif args.command == "build-models":
-        if not config_exists and not args.language:
-            print("Models are built for a specific language. Please provide one with the --language param or run this "
-                  f"from a directory that has a config file ({paths.config_file}).")
-            sys.exit(1)
+    elif args.command == "build-models" and not config_exists and not args.language:
+        print(
+            "Models are built for a specific language. Please provide one with the --language param or run this "
+            f"from a directory that has a config file ({paths.config_file})."
+        )
+        return False
 
     snakemake_args = {
         "workdir": args.dir,
-        "rerun_triggers": ["mtime", "input"],  # Rerun based on file modification times and changes to the set of input files
-        "force_incomplete": True  # Always rerun incomplete files
+        "rerun_triggers": ["mtime", "input"],  # Rerun based on file modification times and changes to
+        # the set of source files
+        "force_incomplete": True,  # Always rerun incomplete files
     }
     config = {"run_by_sparv": True}
     simple_target = False
     log_level = ""
     log_file_level = ""
-    json_log = False
     simple_mode = False
     stats = False
     pass_through = False
     dry_run = False
     keep_going = False
 
-    if args.command in ("modules", "config", "files", "clean", "presets", "classes", "languages", "preload", "schema"):
+    if args.command in {"modules", "config", "files", "clean", "presets", "classes", "languages", "preload", "schema"}:
         snakemake_args["targets"] = [args.command]
         simple_target = True
         if args.command == "clean":
@@ -402,6 +629,7 @@ def main():
             config["options"] = args.options
         elif args.command == "modules":
             config["types"] = []
+            config["json"] = args.json
             if args.names:
                 config["names"] = args.names
             for t in ["annotators", "importers", "exporters", "installers", "uninstallers", "all"]:
@@ -417,20 +645,18 @@ def main():
                 snakemake_args["targets"] = ["preload_list"]
         elif args.command == "schema":
             config["targets"] = ["schema"]
+            config["compact"] = args.compact
             # For the schema we include modules from all languages
             config["language"] = "__all__"
 
-    elif args.command in ("run", "run-rule", "create-file", "install", "uninstall", "build-models"):
+    elif args.command in {"run", "run-rule", "create-file", "install", "uninstall", "build-models"}:
         try:
             cores = args.cores or available_cpu_count()
         except NotImplementedError:
             cores = 1
-        snakemake_args.update({
-            "dryrun": args.dry_run,
-            "cores": cores,
-            "keepgoing": args.keep_going,
-            "resources": {"threads": args.cores}
-        })
+        snakemake_args.update(
+            {"dryrun": args.dry_run, "cores": cores, "keepgoing": args.keep_going, "resources": {"threads": args.cores}}
+        )
         # Never show progress bar for list commands or dry run
         if args.list or args.dry_run:
             simple_target = True
@@ -497,7 +723,7 @@ def main():
 
         log_level = args.log or "warning"
         log_file_level = args.log_to_file or "warning"
-        json_log = args.json_log
+        json_log = json_log or args.json_log
         simple_mode = args.simple
         socket = args.socket
 
@@ -506,17 +732,21 @@ def main():
             socket_path = Path(socket).resolve()
             if not socket_path.is_socket():
                 print(f"Socket file '{socket}' doesn't exist or isn't a socket.")
-                sys.exit(1)
+                return False
             socket = str(socket_path)
 
-        config.update({"debug": args.debug,
-                       "file": vars(args).get("file", []),
-                       "log_level": log_level,
-                       "log_file_level": log_file_level,
-                       "socket": socket,
-                       "force_preloader": args.force_preloader,
-                       "targets": snakemake_args["targets"],
-                       "threads": args.cores})
+        config.update(
+            {
+                "debug": args.debug,
+                "file": vars(args).get("file", []),
+                "log_level": log_level,
+                "log_file_level": log_file_level,
+                "socket": socket,
+                "force_preloader": args.force_preloader,
+                "targets": snakemake_args["targets"],
+                "threads": args.cores,
+            }
+        )
 
     if simple_target:
         # Force Snakemake to use threads to prevent unnecessary processes for simple targets
@@ -534,19 +764,30 @@ def main():
         dry_run=dry_run,
         keep_going=keep_going,
         json=json_log,
+        log_queue=log_queue,
+        root_dir=args.dir,
     )
     snakemake_args["log_handler"] = [progress.log_handler]
 
     config["log_server"] = progress.log_server
 
     # Run Snakemake
-    success = snakemake.snakemake(paths.sparv_path / "core" / "Snakefile", config=config, **snakemake_args)
+    success: bool = snakemake.snakemake(paths.sparv_path / "core" / "Snakefile", config=config, **snakemake_args)
 
     progress.stop()
     progress.cleanup()
 
-    sys.exit(0 if success else 1)
+    return success
+
+
+def cli() -> None:
+    """Run main function and exit with the appropriate exit code.
+
+    This is the entry point for the CLI, called when running 'sparv' from the command line.
+    We need this simply to translate the return value from main() to a proper exit code.
+    """
+    sys.exit(0 if main() else 1)
 
 
 if __name__ == "__main__":
-    main()
+    cli()

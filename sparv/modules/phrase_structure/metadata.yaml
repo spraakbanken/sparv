@@ -1,0 +1,93 @@
+id: sbx-swe-phrasestructure-sparv
+name:
+  swe: Svensk frasstrukturparsning
+  eng: Swedish phrase structure parsing
+short_description:
+  swe: Svensk frasstrukturparsning baserad på Mamba-Dep dependensanalys
+  eng: Swedish phrase structure parsing based on Mamba-Dep dependency analysis
+task: phrase structure parsing
+language_codes:
+  - swe
+annotations:
+  - phrase_structure.phrase
+  - phrase_structure.phrase:phrase_structure.name
+  - phrase_structure.phrase:phrase_structure.func
+example_output: |-
+  ```xml
+  <phrase func="ROOT" name="S">
+    <phrase func="SS" name="NP">
+      <token>Alfred</token>
+      <token>Bernhard</token>
+      <token>Nobel</token>
+    </phrase>
+    <token>var</token>
+    <phrase func="SP" name="NP">
+      <phrase func="DT" name="NP">
+        <token>en</token>
+        <phrase func="AT" name="ADJP">
+          <token>svensk</token>
+          <phrase func="CJ" name="NP">
+            <token>kemist</token>
+          </phrase>
+        </phrase>
+        <token>och</token>
+      </phrase>
+      <token>stiftare</token>
+      <phrase func="ET" name="PrP">
+        <token>av</token>
+        <phrase func="PA" name="NP">
+          <token>Nobelpriset</token>
+          <token>.</token>
+        </phrase>
+      </phrase>
+    </phrase>
+  </phrase>
+  ```
+standard_reference: ''
+other_references: []
+trained_on: "[TalbankenSBX](https://spraakbanken.gu.se/resurser/talbanken)"
+tagset: "See description below"
+evaluation_results: ''
+description:
+  swe: |-
+    Konverterar svenska frasstrukturer från Mamba-Dep dependensanalys med hjälp av en regel-baserad heuristik. Nedan är
+    fulla listan av möjliga frastrukturer:
+
+    NP: noun phrase  
+    NP-wh: noun phrase with a relativizer, e.g. "whose mother"  
+    PrP: prepositional phrase  
+    PrP-wh: prepositional phrase with a relativizer, t.e. "in which"  
+    SBAR: subordinate clause introduced by a subordinator  
+    S: clause  
+    S-wh: clause introduced by a relativizer  
+    S-imp: clause in the imperative  
+    VP-sup: verb phrase using the supine  
+    VP-att: verb phrase with the infinitive, including the infinitive marker "att"  
+    VP-inf: verb phrase with the infinitive, without an infinitive marker  
+    VP-fin: finite verb phrase  
+    ADJP: adjective phrase  
+    ADVP: adverb phrase  
+    ADVP-wh: adverb phrase with a relativizer  
+    QP: numeral phrase
+  eng: |-
+    Converts swedish phrase structures from Mamba-Dep dependency analysis using a rule-based heuristic. Below is the
+    complete list of possible phrase structure labels:
+
+    NP: noun phrase  
+    NP-wh: noun phrase with a relativizer, e.g. "whose mother"  
+    PrP: prepositional phrase  
+    PrP-wh: prepositional phrase with a relativizer, t.e. "in which"  
+    SBAR: subordinate clause introduced by a subordinator  
+    S: clause  
+    S-wh: clause introduced by a relativizer  
+    S-imp: clause in the imperative  
+    VP-sup: verb phrase using the supine  
+    VP-att: verb phrase with the infinitive, including the infinitive marker "att"  
+    VP-inf: verb phrase with the infinitive, without an infinitive marker  
+    VP-fin: finite verb phrase  
+    ADJP: adjective phrase  
+    ADVP: adverb phrase  
+    ADVP-wh: adverb phrase with a relativizer  
+    QP: numeral phrase
+created: 2018-03-28
+updated: 2018-03-28

@@ -1,22 +1,34 @@
 # Writing Sparv Plugins
-The Sparv Pipeline is made up of different modules like importers, annotators and exporters. Although many modules are
-shipped with the main Sparv package, none of these modules are hard-coded into the Sparv Pipeline, and therefore it can
-easily be extended with plugins. A plugin is a Sparv module that is not part of the main Sparv package. Writing a plugin
-is the recommended way of adding a new module to Sparv.
 
-> [!NOTE] When writing a plugin please always prefix your Python package with a namespace followed by an underscore to
-> mark which organisation or developer the plugin belongs to. This is necessary to avoid clashes in package names and
-> obligatory plugin namespaces will be enforced in the future. In the example below we used the prefix "sbx_" (for
-> Språkbanken Text).
+This section provides a practical guide to creating your own Sparv plugins. If you are new to the concepts of Sparv
+modules, processors, and the plugin system, please refer to the previous sections for background. Here, we focus on the
+concrete steps and best practices for developing, structuring, and distributing Sparv plugins.
 
-When writing your first plugin we recommend that you take a look at the [Sparv plugin
-template](https://github.com/spraakbanken/sparv-plugin-template). The template contains an example of a small annotation
-module that converts tokens to uppercase. We will use this template in the examples below.
+## Getting Started
 
+To help you get started quickly, we recommend using the official [Sparv plugin
+template](https://github.com/spraakbanken/sparv-plugin-template), which provides a minimal working example and a
+suggested project structure.
+
+## Naming Requirements
+
+The name of a Sparv module or plugin is the name of the *Python package directory* containing the module code. In
+addition to being a valid Python identifier, the name must start with a namespace (representing the plugin author or
+organization), followed by an underscore. This is to avoid name clashes with other plugins and will be enforced in the
+future. In the example below, we use the prefix `sbx_` (for Språkbanken Text).
+
+In addition to the Sparv module name, which is what is used in the pipeline, the plugin also has a separate
+*distribution name* that is defined in the project file (`pyproject.toml`) for the plugin. This name is not directly
+used by Sparv but is important for external purposes, such as publishing the plugin on [PyPI](https://pypi.org/). It is
+recommended that this name starts with `sparv-` (for discoverability), followed by the same namespace described above.
+For example, `sparv-sbx-typo-correction`. Ideally, this name should also be used for the directory containing the plugin
+and any version control repository hosting it (e.g., GitHub), ensuring consistency across all references.
 
 ## Plugin Structure
-This is what a typical structure of a plugin may look like:
-```
+
+A typical plugin structure looks like this:
+
+```text
 sparv-sbx-uppercase/
 ├── sbx_uppercase
 │   ├── uppercase.py
@@ -26,140 +38,172 @@ sparv-sbx-uppercase/
 └── README.md
 ```
 
-In the above example the `sbx_uppercase` directory is a Sparv module containing the [module code](#module-code) in
-`uppercase.py` and the mandatory [init file](#init-file) `__init__.py`. The [project file](#pyprojecttoml)
-`pyproject.toml` in the root directory is needed in order to install the plugin.
+In this example, `sparv-sbx-uppercase` is the root directory of the plugin project, which also serves as the
+distribution name (used for packaging and publishing). The `sbx_uppercase` directory inside it is the Python package
+containing the actual module code, and its name (`sbx_uppercase`) is also the Sparv module name, which is used when
+referencing the module in the Sparv pipeline.
 
-The readme and license files are not strictly necessary for the plugin to work, but we strongly recommend that you
-include these if you want to publish your plugin.
+The `uppercase.py` file contains the [module code](#module-code) for the Sparv processors, while the mandatory
+[`__init__.py` file](#__init__py) is used to make the processors discoverable by Sparv.
 
+The [project file](#pyprojecttoml) `pyproject.toml` in the root directory contains metadata about the plugin (though
+this metadata is not directly used by Sparv). It is what makes the plugin installable.
+
+While the `README.md` and `LICENSE` files are not strictly necessary for the plugin to work, we strongly recommend
+including them if you plan to publish your plugin.
 
 ## pyproject.toml
-The `pyproject.toml` file is needed in order to install a plugin and connect it to the Sparv Pipeline. Here is a minimal
-example of a project file (taken from the [Sparv plugin template](https://github.com/spraakbanken/sparv-plugin-template)):
-```toml
+
+The `pyproject.toml` file is required to install a plugin and connect it to Sparv. Here is a minimal
+example, taken from the [Sparv plugin template](https://github.com/spraakbanken/sparv-plugin-template):
+
+```toml title="pyproject.toml"
 [project]
 name = "sparv-sbx-uppercase"
 version = "0.1.0"
 description = "Uppercase converter (example plug-in for Sparv)"
 readme = "README.md"
-license.text = "MIT License"
+license = "MIT"
 dependencies = [
-    "sparv-pipeline~=5.0"
+    "sparv~=5.0"
 ]
 entry-points."sparv.plugin" = { sbx_uppercase = "sbx_uppercase" }
 ```
 
-Make sure that there is a `sparv.plugin` entry point in `project.entry-points` that points to your module (the directory
-containing the code). It is also a good idea to add `sparv-pipeline` to the list of dependencies, specifying which major
-version of Sparv the plugin is developed for, as it might not be compatible with future major versions.
-`"sparv-pipeline~=5.0"` under `dependencies` means that the plugin is compatible with any version of Sparv 5, but not
-Sparv 6.
+Ensure there is a `sparv.plugin` entry point (the last line above) that points to the package directory containing the
+code, as this is how Sparv discovers the plugin. It is also advisable to add `sparv` to the list of dependencies,
+specifying the major version of Sparv the plugin is developed for. `"sparv~=5.0"` under `dependencies` means the plugin
+is compatible with any version of Sparv 5, but not with Sparv 4 or Sparv 6.
 
-We strongly encourage you to also include the `project.authors` field.
+For more information about the `pyproject.toml` file, check the [Python Packaging User
+Guide](https://packaging.python.org/en/latest/specifications/declaring-project-metadata/).
 
-For more information about `pyproject.toml` check the [Python Packaging User Guide
-](https://packaging.python.org/en/latest/specifications/declaring-project-metadata/).
+## \_\_init\_\_.py
 
+Each Sparv module requires an [`__init__.py`](https://docs.python.org/3/reference/import.html#regular-packages) file,
+which is essential for Sparv to register the module. It is important that this file imports all the Python scripts
+containing your decorated Sparv functions.
 
-## Init File
-Each Sparv module must contain a [Python init file](https://docs.python.org/3/reference/import.html#regular-packages)
-(`__init__.py`). Without the init file Sparv will not be able to register the module. The Python scripts containing
-decorated Sparv functions should be imported here. Module-specific configuration parameters may also be declared in this
-file. Furthermore, you should provide a short description (one sentence) for your module which will be displayed to the
-user when running the `sparv modules` command. The description is provided either as an argument to `__description__` or
-as a docstring. In the example below we use both, but only one of them is necessary. If both exist, the value of
-`__description__` is displayed in the `sparv modules` command.
+The `__init__.py` file must include a short (one sentence) description of the module. This description will appear when
+running the `sparv modules` command. You can provide this description using the `__description__` variable or as a
+docstring. In the example below, both methods are shown, but only one is necessary. If both are present, the
+`__description__` value takes precedence.
 
-Example of an `__init__.py` file:
-```python
-"""Example for a Sparv annotator that converts tokens to uppercase."""
+A longer description can be included by adding additional lines, separated from the first line by a blank line. Only the
+first line will be shown in space-limited contexts, such as when running `sparv modules`. The full description will
+appear when running `sparv modules modulename`.
 
-# from sparv.api import Config
+Below is an example of an `__init__.py` file:
+
+```python title="__init__.py"
+"""Example of a Sparv annotator that converts tokens to uppercase."""
 
 from . import uppercase
 
-# __config__ = [
-#     Config("uppercase.some_setting", "some_default_value", description="Description for this setting")
-# ]
-
-__description__ = "Example for a Sparv annotator that converts tokens to uppercase."
+__description__ = "Example of a Sparv annotator that converts tokens to uppercase."
 ```
 
+Additionally, the `__init__.py` file can include a list of languages that the module supports, and module-wide
+[configuration parameters](#config-parameters) can be declared. This is explained in more detail in later sections.
 
 ## Module Code
-A Sparv module is a Python package containing at least one Python script that imports [Sparv
-classes](developers-guide/sparv-classes) (and [util functions](developers-guide/utilities) if needed) which are used for
-describing dependencies to other entities (e.g. annotations or models) handled or created by the pipeline. Here is the
-code for or uppercase example (taken from the [Sparv plugin
+
+A Sparv module is a Python package that contains at least one Python function using [Sparv
+decorators](sparv-decorators.md) and [Sparv classes](sparv-classes.md). You can also use various [Sparv
+utilities](utilities.md) for common tasks.
+
+Sparv classes describe the dependencies and outputs of your module, and define how it interacts with other modules in
+the Sparv pipeline. Here is an example from the [Sparv plugin
 template](https://github.com/spraakbanken/sparv-plugin-template):
-```python
+
+```python title="uppercase.py"
 from sparv.api import Annotation, Output, annotator
 
 @annotator("Convert every word to uppercase.")
-def uppercase(word: Annotation = Annotation("<token:word>"),
-              out: Output = Output("<token>:sbx_uppercase.upper")):
+def uppercase(
+    word: Annotation = Annotation("<token:word>"),
+    out: Output = Output("<token>:sbx_uppercase.upper")
+):
     """Convert to uppercase."""
     out.write([val.upper() for val in word.read()])
 ```
 
-In this script we import two classes from Sparv (`Annotation` and `Output`) and the `annotator` decorator. Please note
-that nothing should be imported from the Sparv code unless it is directly available from the sparv.api package (i.e.
-`from sparv.api import ...`). Any other sub-packages (like `sparv.core`) are for internal use only, and are subject
-to change without notice.
+In this script, we import the classes `Annotation`, `Output`, and the `annotator` decorator from `sparv.api`.
 
-Our `uppercase` function is decorated with `@annotator` which tells Sparv that this function can be used to produce one
-or more annotations. The first argument in the decorator is its description which is used for displaying help texts in
-the CLI (e.g. when running `sparv modules`).
+> [!IMPORTANT]
+>
+> Always import from `sparv.api`—other sub-packages like `sparv.core` are for internal use and may change without
+> notice.
 
-The function's relation to other pipeline components is described by its signature. The function arguments contain type
-hints to the Sparv classes `Annotation` and `Output` which indicate what dependencies (e.g. annotations, models or
-config variables) must be satisfied before the function can do its job, and what it will produce. In this example Sparv
-will make sure that a word annotation exists before it will attempt to call the `uppercase` function, because it knows
-that `word` is an input since it is of type `Annotation`. It also knows that the function produces the output annotation
-`<token>:sbx_uppercase.upper`, so if any other module would request this annotation as input, it will run `uppercase`
-prior to calling that module.
+The `@annotator` decorator marks the `uppercase` function as an annotator, which means it can produce one or more
+annotations. The first argument to the decorator is a description, which is shown in help texts (for example, when
+running `sparv modules`). Just like the description in the `__init__.py` file, this description should be short (usually
+a single sentence), but can include a longer description separated from the first line by a blank line.
 
-A function decorated with a Sparv decorator should never be actively called by you or by another decorated function.
-When running Sparv through the CLI Sparv's dependency system will calculate a dependency graph and all the functions
-necessary for producing the desired output will be run automatically.
+The function parameters define how the processor interacts with the rest of the pipeline: what it needs as input and
+what it produces as output. Both **type hints** and **default values** are required for the parameters. The type hints
+merely indicate the kind of parameter, while the default values specify the actual dependencies and outputs. The default
+values are almost always instances of Sparv classes, such as `Annotation` or `Output`.
 
+> [!NOTE]
+>
+> The type hints and the default values are in most cases the same, except for configuration parameters. For parameters
+> that read config variables, the default value uses the `Config` class, while the type hint is a standard Python type
+> such as `str`, `int`, or `bool`, indicating the expected type of the configuration value.
+
+In the example above, the `uppercase` function has two parameters: `word` and `out`. The `word` parameter is of type
+`Annotation`, which means it expects an annotation as input. The `out` parameter is of type `Output`, indicating that
+the function will produce an output annotation. The default values for these parameters are instances of the
+`Annotation` and `Output` classes, respectively. The `Annotation("<token:word>")` specifies that the function requires
+the `<token:word>` annotation as input, while `Output("<token>:sbx_uppercase.upper")` specifies that the function will
+produce the `<token>:sbx_uppercase.upper` annotation as output.
+
+Sparv functions are not meant to be called directly by you or by other Sparv functions. Instead, they are registered
+with the Sparv pipeline when the module is imported. Sparv then calls them as needed, based on the pipeline's dependency
+graph. When you run Sparv, it automatically determines which functions to run to produce the outputs you request,
+resolving all dependencies for you.
+
+For more details about the `annotator` decorator and other Sparv decorators, refer to the [Sparv
+decorators](sparv-decorators.md) page.
 
 ## Reading and Writing Files
-Sparv classes like `Annotation` and `Output` have built-in methods for reading and writing files (like `word.read()` and
-`out.write()` in the above example). A Sparv module should never read or write any files without using the provided
-class methods. This is to make sure that files are written to the correct places in the file structure so that they can
-be found by other modules. The read and write methods also make sure that Sparv's internal data format is handled
-correctly. Not using these provided methods can lead to procedures breaking if the internal data format or file
-structure is updated in the future.
 
+Sparv classes such as `Annotation` and `Output` provide built-in methods for reading and writing files, as seen with
+`word.read()` and `out.write()` in the example above. It is crucial that a Sparv module uses these methods exclusively
+for file operations. This practice ensures that files are correctly placed within the file structure, making them
+accessible to other modules. Additionally, these methods handle Sparv's internal data format properly.
 
 ## Logging
-Logging from Sparv modules is done with [Python's logging library](https://docs.python.org/3.6/library/logging.html).
-Please use the provided `get_logger` wrapper when declaring your logger which takes care of importing the logging
-library and sets the correct module name in the log output:
+
+To log messages from Sparv modules, use [Python's logging library](https://docs.python.org/3.6/library/logging.html).
+Utilize the provided `get_logger` function to obtain a logger instance for your module. This function handles importing
+the logging library and sets the correct module name in the log output:
+
 ```python
 from sparv.api import get_logger
 logger = get_logger(__name__)
+
 logger.error("An error was encountered!")
 ```
 
-Any of the official [Python logging levels](https://docs.python.org/3.6/library/logging.html#levels) may be used.
+You can use any of the official [Python logging levels](https://docs.python.org/3.6/library/logging.html#levels).
 
-By default, Sparv will write log output with level WARNING and higher to the terminal. The user can change the log level
-with the flag `--log [LOGLEVEL]`. Most commands support this flag. The user can also choose to write the log output to a
-file by using the `--log-to-file [LOGLEVEL]` flag. The log file will receive the current date and timestamp as filename
-and can be found inside `logs/` in the corpus directory.
+By default, Sparv writes log output with the level `WARNING` and higher to the terminal. Users can change the log level
+with the `--log LOGLEVEL` flag, which is supported by most commands. Additionally, users can write log output to a
+file using the `--log-to-file LOGLEVEL` flag. The log file will be named with the current date and timestamp and can
+be found in the `logs/` directory within the corpus directory.
 
-### Progress bar
-It is possible to add a progress bar for individual annotators by using the custom `progress()` logging method. To
-initialize the progress bar, call the `logger.progress()` method, either without an argument, or while supplying the
-total for the bar: `logger.progress(total=50)`. A progress bar initialized without a total will have to be provided with
-a total before it can be used. It is also possible to change the total later.
+### Progress Bar
 
-After the total has been set, call `progress()` again to update the progress. If not argument is supplied, the progress
-is advanced by 1. To advance by another amount, use the keyword argument `advance=`. To set the progress to a specific
-number, simply call the method with that number as the argument. See below for examples:
+You can add a progress bar to individual annotators using the custom `progress()` logging method. Initialize the
+progress bar by calling `logger.progress()`, either without arguments or by supplying a total value:
+`logger.progress(total=50)`. A progress bar initialized without a total will display an indeterminate
+progress bar, which is useful when the total number of items to process is unknown at the start. A total value can be
+set later by calling `logger.progress(total=50)` again. It is also possible to change the total value later.
+
+Once the total is set, update the progress by calling `logger.progress()` again. If no argument is supplied, the
+progress advances by 1. To advance by a different amount, use the `advance=` keyword argument. To set the progress to a
+specific number, call the method with that number as the argument. Here are some examples:
 
 ```python
 from sparv.api import get_logger
@@ -181,12 +225,12 @@ logger.progress(advance=2)
 logger.progress(5)
 ```
 
-
 ## Error Messages
-When raising critical errors that should be displayed to the user (e.g. to tell the user that he/she did something
-wrong) you should use the [SparvErrorMessage class](developers-guide/utilities#SparvErrorMessage). This will raise an
-exception (and thus stop the current Sparv process) and notify the user of errors in a friendly way without displaying
-the usual Python traceback.
+
+To notify users of critical errors that prevent a processor from continuing, use the [SparvErrorMessage
+class](utilities.md#sparverrormessage). This class raises an exception, halts the current Sparv process, and displays a
+user-friendly error message without showing the usual Python traceback.
+
 ```python
 from sparv.api import SparvErrorMessage
 
@@ -195,89 +239,272 @@ def uppercase(word: Annotation = Annotation("<token:word>"),
               out: Output = Output("<token>:sbx_uppercase.upper"),
               important_config_variable: str = Config("sbx_uppercase.some_setting")):
     """Convert to uppercase."""
-    # Make sure important_config_variable is set by the user
+    # Ensure important_config_variable is set by the user
     if not important_config_variable:
-        raise SparvErrorMessage("Please make sure to set the config variable 'sbx_uppercase.some_setting'!")
+        raise SparvErrorMessage("Please set the config variable 'sbx_uppercase.some_setting'!")
     ...
 ```
 
+## Config Parameters
 
-## Languages and varieties
-It is possible to restrict the use of an annotator, exporter, installer or modelbuilder to one or more specific
-language(s). This is done by passing a list of ISO 639-3 language codes to the optional `language` parameter in the
-decorator:
+By declaring configuration parameters, you can make your Sparv module customizable by users. This allows users to
+set keys in the [corpus config file](../user-manual/corpus-configuration.md) to control how your module behaves.
+
+Config parameters are declared using the `Config` class from `sparv.api`. They can be declared either by using the
+`config` argument in the [Sparv decorators](sparv-decorators.md), or by using the `__config__` global variable
+in the module's `__init__.py` file. Both methods are equivalent, but for parameters that are used by multiple
+functions, it is recommended to declare them in the `__init__.py` file. A configuration parameter can be declared
+in the same decorator as the function using it, or in a different decorator, or even in a different module.
+
+Whichever method you choose, the configuration parameters are declared as a list of `Config` objects. Each `Config`
+object specifies the name of the parameter, a description, and optionally a default value. There are also several
+parameters for specifying constraints on the configuration value, described in the Config Validation section below. The
+description is mandatory, and will be visible in the help texts when running `sparv modules`.
+
+Once declared, these configuration parameters can be referenced in the function signatures of Sparv processors, either
+by using the `Config` class, or by using a special placeholder syntax in other Sparv class parameters. This placeholder
+syntax uses square brackets to refer to a configuration key, for example: `Model("[wsd.sense_model]")`. When Sparv
+runs the processor, it will automatically substitute the value of the configuration parameter `wsd.sense_model` in
+place of the placeholder. This can be used in any Sparv class except `Config`, and the placeholder can also be part of
+a larger string, such as `Model("wsd/[wsd.sense_model]")`. Which way you choose to reference the configuration depends
+on whether you want a Sparv class or simply the value of the configuration parameter.
+
+The following example demonstrates how to declare and use configuration parameters in a Sparv processor, showing both
+ways of referencing configuration values:
+
+```python
+from sparv.api import Binary, Config, Model, annotator
+
+@annotator(
+    "Word sense disambiguation",
+    config=[
+        Config("wsd.sense_model", default="wsd/ALL_512_128_w10_A2_140403_ctx1.bin", description="Path to sense model"),
+        Config("wsd.jar", default="wsd/saldowsd.jar", description="Path name of the executable .jar file"),
+        Config("wsd.default_prob", default=-1.0, description="Default value for unanalyzed senses"),
+        ...
+    ],
+)
+def annotate(
+    wsdjar: Binary = Binary("[wsd.jar]"),
+    sense_model: Model = Model("[wsd.sense_model]"),
+    default_prob: float = Config("wsd.default_prob"),
+    ...
+):
+    ...
+```
+
+Note that when using the `Config` class, the type hint in the function signature should be a standard Python type
+indicating the expected type of the configuration value.
+
+Here is an example of how to declare configuration parameters in the module's `__init__.py` file:
+
+```python title="__init__.py"
+__config__ = [
+    Config("korp.remote_host", description="Remote host to install to"),
+    Config("korp.mysql_dbname", description="Name of database where Korp data will be stored")
+]
+```
+
+> [!NOTE]
+>
+> The `Config` class is used both for declaring configuration parameters and for accessing them in function signatures,
+> depending on the context. When used in a function signature, only the name of the parameter is used, and any other
+> arguments (like `default` or `description`) are ignored.
+
+Like all input to your processors, configuration parameters are passed to the function as arguments. Never try to read
+the configuration file directly. The Sparv core is responsible for reading and passing configuration values to modules,
+ensuring the [config hierarchy](#config-hierarchy) and [config inheritance](#config-inheritance) are respected.
+
+### Config Validation
+
+The `Config` class includes several parameters for validating configuration values. Beyond specifying the data type
+(e.g., `int`, `float`, `str`, `bool`), you can define a list of valid values, a range of values, or a regular expression
+pattern that the value must match. For a full list of available parameters, refer to the [Sparv
+Classes](sparv-classes.md#sparv.api.classes.Config) page.
+
+It is recommended to at least specify the data type for each configuration parameter. This may be enforced in future
+versions of Sparv.
+
+The validation parameters are also used to generate the Sparv configuration JSON schema, which can be used to validate
+corpus configuration files outside of Sparv.
+
+### Config Hierarchy
+
+When Sparv processes the corpus configuration, it determines the value of each configuration parameter by searching in
+the following order of precedence (from highest to lowest):
+
+1. The user's corpus configuration file
+2. Any parent corpus configuration file(s)
+3. The default configuration file in the [Sparv data
+   directory](../user-manual/installation-and-setup.md#setting-up-sparv)
+4. The default value specified when declaring the configuration parameter
+
+A value found in a higher-priority source overrides any value from a lower-priority source.
+
+### Config Inheritance
+
+Sparv importers and exporters inherit part of their configuration from the general config categories `import` and
+`export`. For example, when setting `export.annotations` as follows:
+
+```yaml
+export:
+    annotations:
+        - <token>:hunpos.pos
+        - <token>:saldo.baseform
+```
+
+the config parameter `csv_export.annotations` for the CSV exporter will automatically be set to the same value, unless
+explicitly overridden in the corpus config file:
+
+```yaml
+csv_export:
+    annotations:
+        - <token>:hunpos.pos
+        - <token>:saldo.baseform
+```
+
+It is highly recommended to use the same configuration key names for importers and exporters as those used by the
+`import` and `export` categories, in order to make use of this inheritance. When using these key names, ensure that the
+expected value types are compatible between your importer/exporter and the corresponding `import` or `export` category.
+
+Below is a list of existing configuration keys for the `import` and `export` categories that are inherited by importers
+and exporters:
+
+#### Inheritable Configuration Keys for `import`
+
+| Config Key          | Description                                                                 |
+|:--------------------|:----------------------------------------------------------------------------|
+| `text_annotation`   | The annotation representing one text. Any text-level annotations will be attached to this annotation. |
+| `encoding`          | Encoding of the source file. Defaults to UTF-8.                             |
+| `keep_control_chars`| Set to True if control characters should not be removed from the text.      |
+| `keep_unassigned_chars` | Set to True if unassigned characters should not be removed from the text. |
+| `normalize`         | Normalize input using any of the following forms: 'NFC', 'NFKC', 'NFD', and 'NFKD'. |
+| `source_dir`        | The path to the directory containing the source files relative to the corpus directory. |
+
+#### Inheritable Configuration Keys for `export`
+
+| Config Key                | Description                                                                 |
+|:--------------------------|:----------------------------------------------------------------------------|
+| `default`                 | Exports to create by default when running 'sparv run'.                      |
+| `source_annotations`      | List of annotations from the source file to be kept.                        |
+| `annotations`             | List of automatic annotations to include in the export.                     |
+| `word`                    | The token strings to be included in the export.                             |
+| `remove_module_namespaces`| Set to False if module namespaces should be kept in the export.             |
+| `sparv_namespace`         | A string representing the namespace to be added to all annotations created by Sparv. |
+| `source_namespace`        | A string representing the namespace to be added to all annotations present in the source. |
+| `scramble_on`             | Chunk to scramble the XML export on.                                        |
+
+## Languages and Varieties
+
+To restrict an annotator, exporter, installer, or model builder to specific languages, use the `language` parameter in
+the decorator and provide a list of ISO 639-3 language codes:
+
 ```python
 @annotator("Convert every word to uppercase", language=["swe", "eng"])
 def ...
 ```
 
-Sparv functions are only available for use if one of their languages match the language in the [corpus config
-file](user-manual/corpus-configuration.md). If no language codes are provided in the decorator, the function is
-available for any corpus.
+These Sparv functions will only be available if one of their specified languages matches the language in the [corpus
+config file](../user-manual/corpus-configuration.md). If no language codes are specified, the function will be available
+for all languages.
 
-You may also restrict a whole module, instead of just parts of a module, to one or more languages, by assigning a list
-of language codes to the `__language__` variable in the module's `__init__.py` file.
+To restrict an entire module to specific languages, assign a list of language codes to the `__language__` variable in
+the module's `__init__.py` file. This will restrict all functions in the module to the specified languages.
 
-Sparv also supports language varieties which is useful when you want to write Sparv functions for a specific variety of
-a language. For instance, Sparv has some built-in annotators that are restricted to corpora with historical Swedish from
-the 1800's. They are marked with the language code `swe-1800`, where `swe` is the ISO 639-3 code for Swedish and `1800`
-is an arbitrary string for this specific language variety. Sparv functions marked with `swe-1800` are available for
-corpora that are configured as follows:
-```yaml
+Sparv also supports language varieties, which is useful for functions targeting specific varieties of a language. For
+example, Sparv has annotators for historical Swedish from the 1800s, marked with the language code `swe-1800`. Here,
+`swe` is the ISO 639-3 code for Swedish, and `1800` is an arbitrary string representing the variety. Functions marked
+with `swe-1800` will be available for corpora with the following configuration:
+
+```yaml title="config.yaml"
 metadata:
     language: "swe"
     variety: "1800"
 ```
-Note that all functions marked with `swe` will also be available for these corpora.
 
+Functions marked only with `swe` will be available for all varieties of Swedish, including `swe-1800`.
 
 ## Installing and Uninstalling Plugins
 
-A Sparv plugin can be installed from the [Python Package Index (PyPI)](https://pypi.org/), a remote public repository,
-or from a local directory stored anywhere on your machine. As long as the Sparv Pipeline is installed on your machine,
-you should be able to inject your plugin into the Sparv Pipeline code using pipx:
-```
-pipx inject sparv-pipeline [pointer-to-sparv-plugin]
-```
+Installation and uninstallation of Sparv plugins are handled by the `sparv plugins` command. How to use this command is
+described in the [Installation and Setup](../user-manual/installation-and-setup.md#installing-and-uninstalling-plugins)
+section of the user manual.
 
-So if you are trying to install the `sparv-sbx-uppercase` plugin and it exists on PyPI, you can install it like this:
-```
-pipx inject sparv-pipeline sparv-sbx-uppercase
-```
-
-For installing it from a public repository from GitHub the install command looks something like this:
-```
-pipx inject sparv-pipeline https://github.com/spraakbanken/sparv-plugin-template/archive/main.zip
-```
-
-For installation from a local directory run this (from the directory containing your plugin):
-```
-pipx inject sparv-pipeline ./sparv-sbx-uppercase
-```
-
-After the injection the plugin functionality should be available, and the plugged-in module should be treated just like
-any other module within the Sparv Pipeline.
-
-You can uninstall the plugin by running:
-```
-pipx runpip sparv-pipeline uninstall [name-of-sparv-plugin]
-```
-In this example `[name-of-sparv-plugin]` is `sparv-sbx-uppercase`.
-
+> [!TIP]
+> To make development easier, you can install a plugin in **editable mode**. This means that changes to the plugin code
+> will immediately be available to Sparv without having to reinstall the plugin. This is done by using the `-e` flag
+> when installing from a local directory:
+>
+> ```sh
+> sparv plugins install -e ./sparv-sbx-uppercase
+> ```
 
 ## Advanced Features
-This section contains documentation for more advanced features which may be used but are not necessary for writing
-plugins.
+
+This section covers some advanced features that can be useful, but are not required for most Sparv plugins.
+
+### Wildcards
+
+Some processors use wildcards in the names of their input and output annotations, allowing them to produce various
+annotations with different wildcard values. Wildcards are placeholders that can be replaced with specific values when
+referenced in the pipeline. For example, the annotator `misc.number_by_position` uses wildcards. Its output is defined
+as `Output("{annotation}:misc.number_position")`. Here, the wildcard `{annotation}` can be replaced with any annotation,
+and the annotator will generate a new attribute for the spans of that annotation. If a user requests the annotation
+`<sentence>:misc.number_position` (by including it in one of the export lists in the corpus configuration), Sparv will
+annotate every span of the `<sentence>` annotation with a number attribute. Similarly, requesting
+`document:misc.number_position` will add a number attribute to the `document` annotation.
+
+Wildcards are similar to config variables as they provide customization to annotators. However, the main difference is
+that a config variable is explicitly set in the corpus configuration, while a wildcard receives its value automatically
+when referenced, whether by a user or by another processor in the pipeline.
+
+Wildcards are always enclosed in curly brackets `{}` when referenced in the input or output annotations of the annotator
+that produces them. They must also be declared in the `wildcards` argument of the `@annotator` decorator, as shown in
+the following example:
+
+```python
+@annotator("Number {annotation} by position", wildcards=[Wildcard("annotation", Wildcard.ANNOTATION)])
+def number_by_position(
+    out: Output = Output("{annotation}:misc.number_position"),
+    chunk: Annotation = Annotation("{annotation}"),
+    ...
+):
+    ...
+```
+
+For a wildcard to be meaningful, the same wildcard variable must be used in both the input annotation (typically
+`Annotation`) and the output annotation (e.g., `Output`) within the same annotation function.
+
+An annotator can also have multiple wildcards, as demonstrated in the following example:
+
+```python
+@annotator(
+    "Number {annotation} by relative position within {parent}",
+    wildcards=[Wildcard("annotation", Wildcard.ANNOTATION), Wildcard("parent", Wildcard.ANNOTATION)],
+)
+def number_relative(
+    out: Output = Output("{annotation}:misc.number_rel_{parent}"),
+    parent: Annotation = Annotation("{parent}"),
+    child: Annotation = Annotation("{annotation}"),
+    ...
+):
+    ...
+```
+
+The `Wildcard` class is described on the [Sparv Classes](sparv-classes.md) page.
 
 ### Function Order
-Sometimes one may want to create multiple Sparv functions that create the same output files (e.g. annotation files,
-export files or model files). In this case Sparv needs to be informed about the priority of these functions. Let's say
-that there are two functions `annotate()` and `annotate_backoff()` that both produce an annotation output called
-`mymodule.foo`. Ideally `mymodule.foo` should be produced by `annotate()` but if this function cannot be run for some
-reason (e.g. because it needs another annotation file `mymodule.bar` that cannot be produced for some corpora), then you
-want `mymodule.foo` to be produced by `annotate_backoff()`. The priority of functions is stated with the `order`
-argument in the `@annotator`, `@exporter`, or `@modelbuilder` decorator. The integer value given by `order` will help
-Sparv decide which function to try to use first. A lower number indicates higher priority.
+
+In some cases, you may need to create multiple Sparv functions that generate the same output files (such as annotation
+files, export files, or model files). Sparv needs to know the priority of these functions to determine which one to use.
+For example, consider two functions, `annotate()` and `annotate_backoff()`, both producing an annotation output called
+`mymodule.foo`. Ideally, `mymodule.foo` should be produced by `annotate()`. However, if `annotate()` cannot run (perhaps
+because it requires another annotation file `mymodule.bar` that is unavailable for some corpora), you want
+`annotate_backoff()` to produce `mymodule.foo` instead.
+
+The priority of functions is specified using the `order` argument in the `@annotator`, `@exporter`, or `@modelbuilder`
+decorator. A lower number indicates a higher priority.
+
 ```python
 @annotator("Create foo annotation", order=1)
 def annotate(
@@ -292,64 +519,64 @@ def annotate_backoff(
     ...
 ```
 
-<!-- Functions with a higher order number can explicitly be called with `sparv run-rule`. Not working at the moment due
-to a bug! -->
-
-
 ### Preloaders
-Preloader functions are used by the `sparv preload` command to speed up the annotation process. It works by
-preloading the Python module together with models or processes which would otherwise need to be loaded once for every
-source file.
 
-A preload function is simply a function that takes a subset of the arguments from an annotator, and returns a value that
-is passed on to the annotator. Here is an example:
+Preloader functions are used by the `sparv preload` command to speed up the annotation process. They work by preloading
+the Python module along with models or processes that would otherwise need to be loaded each time the annotator is run.
+These preloaded resources are kept in memory for as long as the `sparv preload` process is running, so that subsequent
+annotator calls can reuse them without reloading, significantly improving performance for expensive initializations.
+
+A preloader function takes a subset of the arguments from an annotator and returns a value that is passed to the
+annotator. Here is an example:
 
 ```python
 from sparv.api import Annotation, Model, Output, annotator
 
 
 def preloader(model):
-    """Preload POS-model."""
+    """Preload POS model."""
     return load_model(model)
 
 
-@annotator("Part-of-speech tagging.",
-           preloader=preloader,
-           preloader_params=["model"],
-           preloader_target="model_preloaded")
-def pos_tag(word: Annotation = Annotation("<token:word>"),
-            out: Output = Output("<token>:pos.tag"),
-            model: Model = Model("pos.model"),
-            model_preloaded=None):
-    """Annotate tokens with POS tags."""
+@annotator(
+    "Part-of-speech tagging.",
+    preloader=preloader,
+    preloader_params=["model"],
+    preloader_target="model_preloaded",
+)
+def pos_tag(
+    word: Annotation = Annotation("<token:word>"),
+    out: Output = Output("<token>:pos.tag"),
+    model: Model = Model("pos.model"),
+    model_preloaded: dict | None = None,
+):
+    """Annotate tokens with part-of-speech tags."""
     if model_preloaded:
         model = model_preloaded
     else:
         model = load_model(model)
 ```
 
-This annotator uses a model. It also has an extra argument called `model_preloaded` which can optionally take
-an already loaded model. In the decorator we point out the preloader function using the `preloader` parameter.
-`preloader_params` is a list of parameter names from the annotator, which the preloader needs as arguments. In this
-case it's only one: the `model` parameter. `preloader_target` points to a single parameter name of the annotator, which
-is the one that will receive the return value from the preloader function.
+In this example, the annotator uses a model and has an extra argument called `model_preloaded`, which can optionally
+take an already loaded model (in this case, a dictionary). The `preloader` parameter in the decorator points to the
+preloader function. The `preloader_params` list specifies the annotator parameters needed by the preloader, in this
+case, just the `model` parameter. The `preloader_target` points to the annotator parameter that will receive the
+preloaded value, i.e., the return value of the preloader function.
 
-When using the `sparv preload` command with this annotator, the preloader function will be run only once, and every
-time the annotator is used, it will get the preloaded model via the `model_preloaded` parameter.
+When using the `sparv preload` command with this annotator, the preloader function runs once, and every time the
+annotator is used, it receives the preloaded model via the `model_preloaded` parameter.
 
-The three decorator parameters `preloader`, `preloader_params` and `preloader_target` are all required when adding
-a preloader to an annotator. Additionally, there are two optional parameters that can be used: `preloader_shared`
-and `preloader_cleanup`.
+The `preloader`, `preloader_params`, and `preloader_target` parameters are required when adding a preloader to an
+annotator. There are also two optional parameters: `preloader_shared` and `preloader_cleanup`.
 
-`preloader_shared` is a boolean with a default value of True. By default, Sparv will run the preloader function
-only once, and if using `sparv preload` with multiple parallel processes, they will all share the result from the
-preloader. By setting `preloader_shared` to False, the preloader function will instead be run once per process.
-This is usually only needed when preloading processes, rather than models.
+`preloader_shared` is a boolean that defaults to `True`. By default, Sparv runs the preloader function once, and if
+using `sparv preload` with multiple parallel processes, they all share the preloaded result. Setting `preloader_shared`
+to `False` makes the preloader function run once per process, which is usually needed when preloading processes rather
+than models.
 
-`preloader_cleanup` refers to a function, just like the `preloader` parameter. This function will be run after every
-(preloaded) use of the annotator. As arguments the cleanup function should take the same arguments as the preloader
-function, plus an extra argument for receiving the return value of the preloader function. It should return the same
-kind of object as the preloader function, which will then be used by Sparv as the new preloaded value. This is rarely
-needed, but one possible use case is when preloading a process that for some reason needs to be regularly restarted. The
-cleanup function would then keep track of when restarting is needed, call the preloader function to start a new process,
-and then return it.
+`preloader_cleanup` refers to a function that runs after each (preloaded) use of the annotator. This function should
+take the same arguments as the preloader function, plus an extra argument for the preloaded value with the same name as
+the `preloader_target` parameter in the annotator decorator. It should return the same type of object as the preloader
+function, which Sparv will use as the new preloaded value. This is rarely needed but can be useful for preloading
+processes that need regular restarting. The cleanup function would track when restarting is needed, call the preloader
+function to start a new process, and return it.

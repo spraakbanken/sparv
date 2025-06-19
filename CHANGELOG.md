@@ -1,5 +1,67 @@
 # Changelog
 
+## [5.3.0] - 2025-06-19
+
+### Added
+
+- Added `sparv plugins` command to list and manage Sparv plugins.
+- Added `--compact` flag for `sparv schema` command, resulting in compact output.
+- Added `--json` flag for `sparv modules` command.
+- The command `sparv modules` now also takes annotators in addition to modules as arguments to filter the output.
+- The detailed `sparv modules` listings now include info about accepted values for config variables.
+- Sparv now respects the `JAVA_HOME` environment variable.
+- Added autocomplete instructions for `zsh`.
+- Added 'misc:fake_text_headtail' annotator.
+- Added compressed versions of the SBX frequency list exports.
+- Added utility functions: `util.install.install_svn` and `util.install.uninstall_svn` for adding files to or removing
+  them from an SVN repository (user credentials are retrieved from the environment variables `SVN_USERNAME` and
+  `SVN_PASSWORD`).
+- Added utility functions: `util.install.install_git` and `util.install.uninstall_git` for adding files to or removing
+  them from a local Git repository.
+- Added `misc:metadata_from_filename` annotator, to extract metadata from filenames.
+- Added support for using `len()` on instances of the `Annotation` class, replacing the `get_size()` method which will
+  be removed in a future version of Sparv.
+- Sparv can now be used as a library by importing the `sparv` package.
+- Added `swener.timeout` setting to set a timeout for SweNER.
+
+### Changed
+
+- Changed distribution name from `sparv-pipeline` to `sparv`.
+- Dropped support for Python 3.8 and 3.9.
+- The internal data format (in the `sparv-workdir` directory) has been changed for performance reasons. You will need to
+  run `sparv clean` before running Sparv on any existing corpora using the old data format.
+- Updated documentation with a fresh new look!
+- The parameters `append` and `allow_newline` have been removed from the Sparv class methods to simplify the code.
+  The `append` parameter was never used, and newlines are now preserved by default.
+- `xml_export:compressed` and `xml_export:compressed_scrambled` no longer need to first create uncompressed combined
+  files.
+- Removed the `indent_xml` utility function, as ElementTree now supports XML indentation natively since Python 3.9.
+- Sparv now prints a warning message if a module, annotator, or output annotation is missing a description.
+- Sparv now prints a warning message if an annotator has parameters without type hints.
+- Instances of `AnnotationAllSourceFiles`, `AnnotationDataAllSourceFiles`, `OutputAllSourceFiles`, and
+  `OutputDataAllSourceFiles` can now be called with a source file name to get the respective non-all-source-files
+  instance. This is now the recommended way to use these classes, and the previous methods will be removed in a future
+  major release.
+- Changed library used for parsing PDF files from `pdfplumber` to `pypdfium2`.
+- Plugin module name convention is now enforced.
+- The `logs` directory is now always created relative to the corpus directory instead of the directory where `sparv` is
+  run.
+- Detailed error messages are now always printed to the log file, no matter the log level.
+- The `outputs` parameter for importers can now accept a list of multiple `Config` objects, instead of just one.
+
+### Fixed
+
+- Fixed Stanza, which was broken for English.
+- SweNER no longer hangs on extremely long tokens.
+- Fixed configuration validation for `korp.context` and `korp.within`.
+- Fixed a crash when removing namespaces from attributes in `xml_import:parse`.
+- Fixed tab autocompletion, which was not working with Python 3.12.
+- Fixed an issue with `util.system.gpus()` when used with PyTorch's `torch.cuda.set_device()`.
+- Fixed bug in `stats_export` which caused it to crash sometimes.
+- Better handling of whitespace in tokens in the `cwb` and `wsd` modules.
+- Fixed SSL certificate verification issues when downloading models.
+- Fixed problem when entering relative path as Sparv data directory.
+
 ## [5.2.0] - 2023-12-07
 
 ### Added
@@ -93,7 +155,7 @@
 - Added a new annotator `misc:concat2` which concatenates two or more annotations with an optional separator.
 - Added a `remove` method to the `Annotation` classes for removing annotation files.
 - Added a metadata field: `short_description`.
-- Added a setting for truncating the annotations `misc_head` and `misc_tail` to avoid crashes by cwb-encode.
+- Added a setting for truncating the annotations `misc.head` and `misc.tail` to avoid crashes by cwb-encode.
 
 ### Changed
 
@@ -162,17 +224,17 @@
 - Empty corpus config files are treated as missing config files.
 - Moved CWB corpus installer from `korp` module into `cwb` module.
   This lead to some name changes of variables used in the corpus config:
-    - `korp.remote_cwb_datadir` is now called `cwb.remote_data_dir`
-    - `korp.remote_cwb_registry` is now called `cwb.remote_registry_dir`
-    - `korp.remote_host` has been split into `korp.remote_host` (host for SQL files) and `cwb.remote_host` (host for CWB
+  - `korp.remote_cwb_datadir` is now called `cwb.remote_data_dir`
+  - `korp.remote_cwb_registry` is now called `cwb.remote_registry_dir`
+  - `korp.remote_host` has been split into `korp.remote_host` (host for SQL files) and `cwb.remote_host` (host for CWB
        files)
-    - install target `korp:install_corpus` has been renamed and split into `cwb:install_corpus` and
+  - install target `korp:install_corpus` has been renamed and split into `cwb:install_corpus` and
       `cwb:install_corpus_scrambled`
 - Renamed the following stats exports:
-    `stats_export:freq_list` is now called `stats_export:sbx_freq_list`
-    `stats_export:freq_list_simple` is now called `stats_export:sbx_freq_list_simple`
-    `stats_export:install_freq_list` is now called `stats_export:install_sbx_freq_list`
-    `stats_export:freq_list_fsv` is now called `stats_export:sbx_freq_list_fsv`
+  - `stats_export:freq_list` is now called `stats_export:sbx_freq_list`
+  - `stats_export:freq_list_simple` is now called `stats_export:sbx_freq_list_simple`
+  - `stats_export:install_freq_list` is now called `stats_export:install_sbx_freq_list`
+  - `stats_export:freq_list_fsv` is now called `stats_export:sbx_freq_list_fsv`
 - Now incrementally compresses bz2 files in compressed XML export to avoid memory problems with large files.
 - Corpus source files are now called "source files" instead of "documents". Consequently, the `--doc/-d` flag has been
   renamed to `--file/-f`.
@@ -307,9 +369,10 @@
   - Increased independence between modules and language models
   - This facilitates adding new annotation modules and import/export formats.
 
-[5.2.0]: https://github.com/spraakbanken/sparv-pipeline/releases/tag/v5.2.0
-[5.1.0]: https://github.com/spraakbanken/sparv-pipeline/releases/tag/v5.1.0
-[5.0.0]: https://github.com/spraakbanken/sparv-pipeline/releases/tag/v5.0.0
-[4.1.1]: https://github.com/spraakbanken/sparv-pipeline/releases/tag/v4.1.1
-[4.1.0]: https://github.com/spraakbanken/sparv-pipeline/releases/tag/v4.1.0
-[4.0.0]: https://github.com/spraakbanken/sparv-pipeline/releases/tag/v4.0.0
+[5.3.0]: https://github.com/spraakbanken/sparv/releases/tag/v5.3.0
+[5.2.0]: https://github.com/spraakbanken/sparv/releases/tag/v5.2.0
+[5.1.0]: https://github.com/spraakbanken/sparv/releases/tag/v5.1.0
+[5.0.0]: https://github.com/spraakbanken/sparv/releases/tag/v5.0.0
+[4.1.1]: https://github.com/spraakbanken/sparv/releases/tag/v4.1.1
+[4.1.0]: https://github.com/spraakbanken/sparv/releases/tag/v4.1.0
+[4.0.0]: https://github.com/spraakbanken/sparv/releases/tag/v4.0.0

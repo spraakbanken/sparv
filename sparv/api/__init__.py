@@ -1,8 +1,8 @@
 """Classes and methods for use by plugin modules."""
 
-import sparv.core.io  # noqa: F401; Needed to avoid a circular import problem when importing the classes below
-from sparv.core.misc import SparvErrorMessage, get_logger  # noqa: F401
-from sparv.core.registry import (  # noqa: F401
+import sparv.core.io  # Needed to avoid a circular import problem when importing the classes below
+from sparv.core.misc import SparvErrorMessage, get_logger
+from sparv.core.registry import (
     annotator,
     exporter,
     importer,
@@ -12,7 +12,7 @@ from sparv.core.registry import (  # noqa: F401
     wizard,
 )
 
-from .classes import (  # noqa: F401
+from .classes import (
     AllSourceFilenames,
     Annotation,
     AnnotationAllSourceFiles,
@@ -25,8 +25,8 @@ from .classes import (  # noqa: F401
     Config,
     Corpus,
     Export,
-    ExportAnnotations,
     ExportAnnotationNames,
+    ExportAnnotations,
     ExportAnnotationsAllSourceFiles,
     ExportInput,
     HeaderAnnotations,

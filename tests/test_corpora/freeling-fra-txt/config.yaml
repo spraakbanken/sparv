@@ -16,7 +16,7 @@ metadata:
             This test corpus includes:
             - standard Sparv paragraph segmentation
             - the FreeLing annotations from the SBX_FREELING preset
-            - input files in txt format
+            - source files in txt format
             - some exports
 
 #===============================================================================

@@ -10,7 +10,7 @@ jobs:
       max-parallel: 4
       fail-fast: false
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
         os: [ubuntu-latest]
         task:
           - name: Run tests
@@ -31,7 +31,7 @@ jobs:
       # Load cached venv if cache exists
       - name: Load cached venv
         id: cached-dependencies
-        uses: actions/cache@v3.2.3
+        uses: actions/cache@v3
         with:
           path: venv
           key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/pyproject.toml') }}-${{ hashFiles('.github/workflows/ci.yml') }}

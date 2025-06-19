@@ -26,21 +26,37 @@ FALLBACK = "X"
 #     "X": "other"}
 
 
-def pos_to_upos(pos, lang, tagset):
-    """Map POS tags to Universal Dependency POS tags."""
-    if (lang, tagset) in CONVERTERS:
-        lang_convert = CONVERTERS[(lang, tagset)]
-        return lang_convert(pos)
-    else:
+def pos_to_upos(pos: str, lang: str, tagset: str) -> str:
+    """Map POS tags to Universal Dependency POS tags.
+
+    Args:
+        pos: POS tag to convert.
+        lang: Language code.
+        tagset: POS tagset.
+
+    Returns:
+        UPOS tag.
+    """
+    if (lang, tagset) not in CONVERTERS:
         return ""
+    lang_convert = CONVERTERS[lang, tagset]
+    return lang_convert(pos)
 
 
 ################################################################################
 # SUC POS
 ################################################################################
 
-def _swe_SUC_convert(pos):
-    """Convert SUC tags to UPOS."""
+
+def _swe_suc_convert(pos: str) -> str:
+    """Convert SUC tags to UPOS.
+
+    Args:
+        pos: SUC tag.
+
+    Returns:
+        UPOS tag.
+    """
     pos_dict = {
         "NN": "NOUN",
         "PM": "PROPN",
@@ -66,7 +82,7 @@ def _swe_SUC_convert(pos):
         "UO": "X",  # Could be any PoS, most probably a noun /ljo
         "MAD": "PUNCT",
         "MID": "PUNCT",
-        "PAD": "PUNCT"
+        "PAD": "PUNCT",
     }
     return pos_dict.get(pos, FALLBACK)
 
@@ -94,20 +110,34 @@ EAGLES_DICT = {
     "W": "NUM",
     "Z": "NUM",
     "Y": "X",
-    "X": "X"
+    "X": "X",
 }
 
 
-def _EAGLES_convert(pos):
-    """Convert EAGLES tags to UPOS."""
+def _eagles_convert(pos: str) -> str:
+    """Convert EAGLES tags to UPOS.
+
+    Args:
+        pos: EAGLES tag.
+
+    Returns:
+        UPOS tag.
+    """
     if pos[0] in "NVC":
         return EAGLES_DICT.get(pos[0:2], FALLBACK)
-    else:
+    else:  # noqa: RET505
         return EAGLES_DICT.get(pos[0], FALLBACK)
 
 
-def _rus_FreeLing_convert(pos):
-    """Convert Russian FreeLing tags to UPOS."""
+def _rus_freeling_convert(pos: str) -> str:
+    """Convert Russian FreeLing tags to UPOS.
+
+    Args:
+        pos: FreeLing tag.
+
+    Returns:
+        UPOS tag.
+    """
     pos_dict = {
         "A": "ADJ",
         "B": "ADP",
@@ -131,8 +161,15 @@ def _rus_FreeLing_convert(pos):
     return pos_dict.get(pos[0], FALLBACK)
 
 
-def _eng_Penn_convert(pos):
-    """Convert from Penn Treebank tagset (with FreeLing modifications)."""
+def _eng_penn_convert(pos: str) -> str:
+    """Convert from Penn Treebank tagset (with FreeLing modifications) to UPOS.
+
+    Args:
+        pos: Penn Treebank tag.
+
+    Returns:
+        UPOS tag.
+    """
     # https://freeling-user-manual.readthedocs.io/en/latest/tagsets/tagset-en/
     # https://www.ling.upenn.edu/courses/Fall_2003/ling001/penn_treebank_pos.html
     pos_dict = {
@@ -169,9 +206,9 @@ def _eng_Penn_convert(pos):
         "CD": "NUM",
         "FW": "X",
         "LS": "X",
-        "SYM": "SYM"
+        "SYM": "SYM",
     }
-    if pos in ["NN", "NNS"]:
+    if pos in {"NN", "NNS"}:
         return "NOUN"
     if pos.startswith("N"):
         return "PROPN"
@@ -189,7 +226,15 @@ def _eng_Penn_convert(pos):
 ################################################################################
 
 
-def _bul_BulTreeBank_convert(pos):
+def _bul_bultreebank_convert(pos: str) -> str:
+    """Convert Bulgarian BulTreeBank tags to UPOS.
+
+    Args:
+        pos: BulTreeBank tag.
+
+    Returns:
+        UPOS tag.
+    """
     pos_dict = {
         # http://bultreebank.org/wp-content/uploads/2017/06/BTB-TR03.pdf
         "Nc": "NOUN",
@@ -208,17 +253,25 @@ def _bul_BulTreeBank_convert(pos):
         "Cs": "SCONJ",
         "T": "PART",
         "R": "ADP",
-        "I": "INTJ"
+        "I": "INTJ",
     }
-    if pos[0] in ["N", "V", "C"]:
+    if pos[0] in {"N", "V", "C"}:
         return pos_dict.get(pos[0:2], FALLBACK)
     if pos.startswith("PT"):
         return "PUNCT"
-    else:
+    else:  # noqa: RET505
         return pos_dict.get(pos[0], FALLBACK)
 
 
-def _est_TreeTagger_convert(pos):
+def _est_treetagger_convert(pos: str) -> str:
+    """Convert Estonian TreeTagger tags to UPOS.
+
+    Args:
+        pos: TreeTagger tag.
+
+    Returns:
+        UPOS tag.
+    """
     pos_dict = {
         # http://www.cl.ut.ee/korpused/morfliides/seletus
         "S": "NOUN",
@@ -235,18 +288,26 @@ def _est_TreeTagger_convert(pos):
         "Y": "X",  # abbreviation
         "X": "ADV",
         "Z": "PUNCT",
-        "T": "X"  # foreign
+        "T": "X",  # foreign
     }
     if "." in pos:
         pos = pos.split(".")[0]
         if pos == "J":
             return pos_dict.get(pos, FALLBACK)
         return pos_dict.get(pos.split(".")[0])
-    else:
+    else:  # noqa: RET505
         return pos_dict.get(pos, FALLBACK)
 
 
-def _fin_FinnTreeBank_convert(pos):
+def _fin_finntreebank_convert(pos: str) -> str:
+    """Convert Finnish FinnTreeBank tags to UPOS.
+
+    Args:
+        pos: FinnTreeBank tag.
+
+    Returns:
+        UPOS tag.
+    """
     pos_dict = {
         # http://www.ling.helsinki.fi/kieliteknologia/tutkimus/treebank/sources/FinnTreeBankManual.pdf
         # http://www.cis.uni-muenchen.de/~schmid/tools/TreeTagger/data/finnish-tags.txt
@@ -266,15 +327,23 @@ def _fin_FinnTreeBank_convert(pos):
         "A": "ADJ",
         "CC": "CONJ",
         "CS": "SCONJ",
-        "NON-TWOL": "X"  # unknown
+        "NON-TWOL": "X",  # unknown
     }
     if pos in pos_dict:
         return pos_dict[pos]
-    else:
+    else:  # noqa: RET505
         return pos_dict.get(pos.split("_")[0], FALLBACK)
 
 
-def _nld_TreeTagger_convert(pos):
+def _nld_treetagger_convert(pos: str) -> str:
+    """Convert Dutch TreeTagger tags to UPOS.
+
+    Args:
+        pos: TreeTagger tag.
+
+    Returns:
+        UPOS tag.
+    """
     pos_dict = {
         # http://www.cis.uni-muenchen.de/~schmid/tools/TreeTagger/data/dutch-tagset.txt
         "adj": "ADJ",
@@ -288,11 +357,11 @@ def _nld_TreeTagger_convert(pos):
         "pre": "ADP",
         "pro": "PRON",
         "pun": "PUNCT",
-        "ver": "VERB"
+        "ver": "VERB",
     }
-    if len(pos) == 2 and pos.startswith("$."):
+    if pos == "$.":
         return "PUNCT"
-    elif pos == "pronadv":
+    elif pos == "pronadv":  # noqa: RET505
         return "ADV"  # pronomial adverb
     elif pos == "det__art":
         return "DET"
@@ -300,7 +369,15 @@ def _nld_TreeTagger_convert(pos):
         return pos_dict.get(pos[0:3], FALLBACK)
 
 
-def _lat_TreeTagger_convert(pos):
+def _lat_treetagger_convert(pos: str) -> str:
+    """Convert Latin TreeTagger tags to UPOS.
+
+    Args:
+        pos: TreeTagger tag.
+
+    Returns:
+        UPOS tag.
+    """
     pos_dict = {
         # http://www.cis.uni-muenchen.de/~schmid/tools/TreeTagger/data/Lamap-Tagset.pdf
         "ESSE": "AUX",
@@ -324,15 +401,23 @@ def _lat_TreeTagger_convert(pos):
         "SENT": "PUNCT",
         "PUN": "PUNCT",
         "SYM": "SYM",
-        "CLI": "X"  # enclitics
+        "CLI": "X",  # enclitics
     }
     if ":" in pos:
         return pos_dict.get(pos.split(":")[0], FALLBACK)
-    else:
+    else:  # noqa: RET505
         return pos_dict.get(pos, FALLBACK)
 
 
-def _pol_NationalCorpusofPolish_convert(pos):
+def _pol_national_corpus_of_polish_convert(pos: str) -> str:
+    """Convert National Corpus of Polish tags to UPOS.
+
+    Args:
+        pos: National Corpus of Polish tag.
+
+    Returns:
+        UPOS tag.
+    """
     pos_dict = {
         # http://nkjp.pl/poliqarp/help/ense2.html
         "subst": "NOUN",
@@ -371,15 +456,23 @@ def _pol_NationalCorpusofPolish_convert(pos):
         "interp": "PUNCT",
         "SENT": "PUNCT",
         "xxx": "X",  # alien
-        "ign": "X"  # unknown form
+        "ign": "X",  # unknown form
     }
     if ":" in pos:
         return pos_dict.get(pos.split(":")[0], FALLBACK)
-    else:
+    else:  # noqa: RET505
         return pos_dict.get(pos, FALLBACK)
 
 
-def _ron_MULTEXT_convert(pos):
+def _ron_multext_convert(pos: str) -> str:
+    """Convert Multext-East Romanian tags to UPOS.
+
+    Args:
+        pos: Multext-East tag.
+
+    Returns:
+        UPOS tag.
+    """
     # http://nl.ijs.si/ME/V4/msd/tables/msd-human-ro.tbl
     pos_dict = {
         "Nc": "NOUN",
@@ -401,15 +494,23 @@ def _ron_MULTEXT_convert(pos):
         "Q": "PART",
         "I": "INTJ",
         "Y": "X",  # abbreviation
-        "X": "X"
+        "X": "X",
     }
-    if pos[0] in ["N", "V", "C", "S"]:
+    if pos[0] in {"N", "V", "C", "S"}:
         return pos_dict.get(pos[0:2], FALLBACK)
-    else:
+    else:  # noqa: RET505
         return pos_dict.get(pos[0], FALLBACK)
 
 
-def _slk_SlovakNationalCorpus_convert(pos):
+def _slk_slovak_national_corpus_convert(pos: str) -> str:
+    """Convert Slovak National Corpus tags to UPOS.
+
+    Args:
+        pos: Slovak National Corpus tag.
+
+    Returns:
+        UPOS tag.
+    """
     pos_dict = {
         # http://korpus.juls.savba.sk/morpho_en.html
         "S": "NOUN",
@@ -432,17 +533,25 @@ def _slk_SlovakNationalCorpus_convert(pos):
         "%": "X",  # foreign language citation
         "0": "NUM",
         ":r": "PROPN",
-        ":q": "X"  # incorrect spelling
+        ":q": "X",  # incorrect spelling
     }
     if len(pos) == 1 and not pos.isalpha():
         return "PUNCT"
-    elif pos.startswith(":"):
+    elif pos.startswith(":"):  # noqa: RET505
         return pos_dict.get(pos, FALLBACK)
     else:
         return pos_dict.get(pos[0], FALLBACK)
 
 
-def _deu_STTS_convert(pos):
+def _deu_stts_convert(pos: str) -> str:
+    """Convert STTS tags to UPOS.
+
+    Args:
+        pos: STTS tag.
+
+    Returns:
+        UPOS tag.
+    """
     pos_dict = {
         # http://www.cis.uni-muenchen.de/~schmid/tools/TreeTagger/data/stts_guide.pdf
         "ADJA": "ADJ",
@@ -501,12 +610,20 @@ def _deu_STTS_convert(pos):
         "XY": "SYM",  # non-word
         "$,": "PUNCT",
         "$.": "PUNCT",
-        "$(": "PUNCT"
+        "$(": "PUNCT",
     }
     return pos_dict[pos]
 
 
-def _fra_TreeTagger_convert(pos):
+def _fra_treetagger_convert(pos: str) -> str:
+    """Convert French TreeTagger tags to UPOS.
+
+    Args:
+        pos: TreeTagger tag.
+
+    Returns:
+        UPOS tag.
+    """
     pos_dict = {
         # https://www.cis.uni-muenchen.de/~schmid/tools/TreeTagger/data/french-tagset.html
         "ABR": "X",  # abbreviation
@@ -523,15 +640,23 @@ def _fra_TreeTagger_convert(pos):
         "PUN": "PUNCT",
         "SEN": "X",  # SENT: sentence tag
         "SYM": "SYM",
-        "VER": "VERB"
+        "VER": "VERB",
     }
     if pos == "DET:POS":
         return "PRON"
-    else:
+    else:  # noqa: RET505
         return pos_dict.get(pos[:3], "X")
 
 
-def _spa_TreeTagger_convert(pos):
+def _spa_treetagger_convert(pos: str) -> str:
+    """Convert Spanish TreeTagger tags to UPOS.
+
+    Args:
+        pos: TreeTagger tag.
+
+    Returns:
+        UPOS tag.
+    """
     pos_dict = {
         # https://www.cis.uni-muenchen.de/~schmid/tools/TreeTagger/data/spanish-tagset.txt
         "ADJ": "ADJ",
@@ -588,7 +713,15 @@ def _spa_TreeTagger_convert(pos):
     return pos_dict.get(pos[:3], "X")
 
 
-def _ita_TreeTagger_convert(pos):
+def _ita_treetagger_convert(pos: str) -> str:
+    """Convert Italian TreeTagger tags to UPOS.
+
+    Args:
+        pos: TreeTagger tag.
+
+    Returns:
+        UPOS tag.
+    """
     pos_dict = {
         # https://www.cis.uni-muenchen.de/~schmid/tools/TreeTagger/data/italian-tagset.txt
         "ADJ": "ADJ",
@@ -612,7 +745,15 @@ def _ita_TreeTagger_convert(pos):
     return pos_dict.get(pos[:3], "X")
 
 
-def _rus_TreeTagger_convert(pos):
+def _rus_treetagger_convert(pos: str) -> str:
+    """Convert Russian TreeTagger tags to UPOS.
+
+    Args:
+        pos: TreeTagger tag.
+
+    Returns:
+        UPOS tag.
+    """
     pos_dict = {
         # http://corpus.leeds.ac.uk/mocky/ru-table.tab
         "A": "ADJ",
@@ -636,33 +777,33 @@ def _rus_TreeTagger_convert(pos):
 
 CONVERTERS = {
     # Swedish:
-    ("swe", "SUC"): _swe_SUC_convert,
+    ("swe", "SUC"): _swe_suc_convert,
     # FreeLing:
-    ("ast", "EAGLES"): _EAGLES_convert,
-    ("cat", "EAGLES"): _EAGLES_convert,
+    ("ast", "EAGLES"): _eagles_convert,
+    ("cat", "EAGLES"): _eagles_convert,
     # ("cy", "EAGLES"): _EAGLES_convert,  # Welsh, Not used yet, FreeLing dict is not working.
-    ("deu", "EAGLES"): _EAGLES_convert,
-    ("spa", "EAGLES"): _EAGLES_convert,
-    ("eng", "Penn"): _eng_Penn_convert,  # Also used by Stanford Parser
-    ("fra", "EAGLES"): _EAGLES_convert,
-    ("glg", "EAGLES"): _EAGLES_convert,
-    ("ita", "EAGLES"): _EAGLES_convert,
-    ("nob", "EAGLES"): _EAGLES_convert,
-    ("por", "EAGLES"): _EAGLES_convert,
-    ("rus", "EAGLES"): _rus_FreeLing_convert,
-    ("slv", "EAGLES"): _EAGLES_convert,
+    ("deu", "EAGLES"): _eagles_convert,
+    ("spa", "EAGLES"): _eagles_convert,
+    ("eng", "Penn"): _eng_penn_convert,  # Also used by Stanford Parser
+    ("fra", "EAGLES"): _eagles_convert,
+    ("glg", "EAGLES"): _eagles_convert,
+    ("ita", "EAGLES"): _eagles_convert,
+    ("nob", "EAGLES"): _eagles_convert,
+    ("por", "EAGLES"): _eagles_convert,
+    ("rus", "EAGLES"): _rus_freeling_convert,
+    ("slv", "EAGLES"): _eagles_convert,
     # TreeTagger:
-    ("bul", "BulTreeBank"): _bul_BulTreeBank_convert,
-    ("est", "TreeTagger"): _est_TreeTagger_convert,
-    ("fin", "FinnTreeBank"): _fin_FinnTreeBank_convert,
-    ("nld", "TreeTagger"): _nld_TreeTagger_convert,
-    ("lat", "TreeTagger"): _lat_TreeTagger_convert,
-    ("pol", "NationalCorpusofPolish"): _pol_NationalCorpusofPolish_convert,
-    ("ron", "MULTEXT"): _ron_MULTEXT_convert,
-    ("slk", "SlovakNationalCorpus"): _slk_SlovakNationalCorpus_convert,
-    ("deu", "STTS"): _deu_STTS_convert,
-    ("fra", "TreeTagger"): _fra_TreeTagger_convert,
-    ("spa", "TreeTagger"): _spa_TreeTagger_convert,
-    ("ita", "TreeTagger"): _ita_TreeTagger_convert,
-    ("rus", "TreeTagger"): _rus_TreeTagger_convert,
+    ("bul", "BulTreeBank"): _bul_bultreebank_convert,
+    ("est", "TreeTagger"): _est_treetagger_convert,
+    ("fin", "FinnTreeBank"): _fin_finntreebank_convert,
+    ("nld", "TreeTagger"): _nld_treetagger_convert,
+    ("lat", "TreeTagger"): _lat_treetagger_convert,
+    ("pol", "NationalCorpusofPolish"): _pol_national_corpus_of_polish_convert,
+    ("ron", "MULTEXT"): _ron_multext_convert,
+    ("slk", "SlovakNationalCorpus"): _slk_slovak_national_corpus_convert,
+    ("deu", "STTS"): _deu_stts_convert,
+    ("fra", "TreeTagger"): _fra_treetagger_convert,
+    ("spa", "TreeTagger"): _spa_treetagger_convert,
+    ("ita", "TreeTagger"): _ita_treetagger_convert,
+    ("rus", "TreeTagger"): _rus_treetagger_convert,
 }

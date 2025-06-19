@@ -1,0 +1,190 @@
+id: hunpos-parent
+abstract: true
+language_codes:
+  - swe
+standard_reference: ''
+other_references:
+  - "Hunpos: https://code.google.com/archive/p/hunpos/"
+tools:
+  - name: Hunpos
+    url: "https://code.google.com/archive/p/hunpos/"
+    license: BSD-3-Clause
+trained_on: "[SUC3](https://spraakbanken.gu.se/resurser/suc3)"
+tagset: "[SUC3](https://spraakbanken.gu.se/korp/markup/msdtags.html)"
+evaluation_results: ''
+---
+id: sbx-swe-pos-hunpos-suc3
+parent: hunpos-parent
+name:
+  swe: SUC-ordklasstaggning med Hunpos
+  eng: SUC part-of-speech tagging with Hunpos
+short_description:
+  swe: Annotering av SUC-ordklasser med Hunpos för svenska
+  eng: Swedish part-of-speech annotation with SUC tags by Hunpos
+task: part-of-speech tagging
+keywords: []
+annotations:
+  - <token>:hunpos.pos
+example_output: |-
+  ```xml
+  <token pos="PN">Det</token>
+  <token pos="AB">här</token>
+  <token pos="VB">är</token>
+  <token pos="DT">en</token>
+  <token pos="NN">korpus</token>
+  <token pos="MAD">.</token>
+  ```
+models:
+  - name: suc3_suc-tags_default-setting_utf8.model
+    url: "https://github.com/spraakbanken/sparv-models/blob/master/hunpos/suc3_suc-tags_default-setting_utf8.model?raw=true"
+description:
+  swe: |-
+    Meningssegment analyseras och annoteras med ordklasstaggar. Ingår inte längre i
+    Sparvs standardanalyser eftersom Stanzas ordklassannotering ger bättre resultat.
+  eng: |-
+    Sentence segments are analysed to enrich tokens with part-of-speech tags. No longer
+    used by default by Sparv because Stanza's POS-tagging yields better results.
+created: 2010-12-15
+updated: 2018-05-28
+---
+id: sbx-swe-msd-hunpos-suc3
+parent: hunpos-parent
+name:
+  swe: Morfosyntaktisk SUC-taggning med Hunpos
+  eng: Tagging of morphological features (SUC) by Hunpos
+short_description:
+  swe: Annotering av morfosyntaktiska deskriptorer (SUC) med Hunpos för svenska
+  eng: Annotation of morphological features (SUC) by Hunpos for Swedish
+task: morphosyntactic tagging
+keywords: []
+annotations:
+  - <token>:hunpos.msd
+example_output: |-
+  ```xml
+  <token msd="PN.NEU.SIN.DEF.SUB+OBJ">Det</token>
+  <token msd="AB">här</token>
+  <token msd="VB.PRS.AKT">är</token>
+  <token msd="DT.UTR.SIN.IND">en</token>
+  <token msd="NN.UTR.SIN.IND.NOM">korpus</token>
+  <token msd="MAD">.</token>
+  ```
+models:
+  - name: suc3_suc-tags_default-setting_utf8.model
+    url: "https://github.com/spraakbanken/sparv-models/blob/master/hunpos/suc3_suc-tags_default-setting_utf8.model?raw=true"
+description:
+  swe: |-
+    Meningssegment analyseras och annoteras med ordklasstaggar och morfosyntaktisk information. Ingår inte längre i
+    Sparvs standardanalyser eftersom Stanzas ordklassannotering ger bättre resultat.
+  eng: |-
+    Sentence segments are analysed to enrich tokens with part-of-speech tags and morphosyntactic information. No longer
+    used by default by Sparv because Stanza's POS-tagging yields better results.
+created: 2010-12-15
+updated: 2018-05-28
+---
+id: sbx-swe-pos-hunpos-suc3-1800
+parent: hunpos-parent
+name:
+  swe: SUC-ordklasstaggning med Hunpos för 1800-talssvenska
+  eng: SUC part-of-speech tagging with Hunpos for Swedish from the 1800's
+short_description:
+  swe: Annotering av SUC-ordklasser med Hunpos för 1800-talssvenska
+  eng: Part-of-speech annotation with SUC tags by Hunpos for Swedish from the 1800's
+task: part-of-speech tagging
+keywords: []
+annotations:
+  - <token>:hunpos.pos
+example_output: |-
+  ```xml
+  <token pos="NN">Lådan</token>
+  <token pos="VB">var</token>
+  <token pos="PC">upphängd</token>
+  <token pos="PP">under</token>
+  <token pos="DT">den</token>
+  <token pos="NN">waggon</token>
+  <token pos="HA">hvari</token>
+  <token pos="DT">de</token>
+  <token pos="JJ">andra</token>
+  <token pos="NN">djuren</token>
+  <token pos="VB">befunno</token>
+  <token pos="PN">sig</token>
+  <token pos="MAD">.</token>
+  ```
+example_extra: |-
+  In order to use this annotation you need to add the following setting to your Sparv corpus configuration file:
+  ```yaml
+  metadata:
+    language: swe
+    variety: "1800"
+  ```
+models:
+  - name: suc3_suc-tags_default-setting_utf8.model
+    url: "https://github.com/spraakbanken/sparv-models/blob/master/hunpos/suc3_suc-tags_default-setting_utf8.model?raw=true"
+  - name: dalinm-swedberg_saldo_suc-tags.morphtable
+    description: |-
+      A word list along with the words' morphosyntactic information generated from the [Dalin
+      morphology](https://spraakbanken.gu.se/resurser/dalinm) and the [Swedberg
+      morphology](https://spraakbanken.gu.se/resurser/swedbergm)
+description:
+  swe: |-
+    Meningssegment analyseras och annoteras med ordklasstaggar. Utöver ordklasstaggningsmodellen använder Hunpos listor
+    med böjningsformer för att kunna generera bättre ordklasstaggar för 1800-talssvenska.
+  eng: |-
+    Sentence segments are analysed to enrich tokens with part-of-speech tags. In addition to the pos model inflection
+    lists are provided to Hunpos to make more accurate part-of-speech predictions for Swedish from the 1800's.
+created: 2012-10-23
+updated: 2015-09-11
+---
+id: sbx-swe-msd-hunpos-suc3-1800
+parent: hunpos-parent
+name:
+  swe: Morfosyntaktisk SUC-taggning med Hunpos för 1800-talssvenska
+  eng: Tagging of morphological features (SUC) by Hunpos for Swedish from the 1800's
+short_description:
+  swe: Annotering av morfosyntaktiska deskriptorer (SUC) med Hunpos för 1800-talssvenska
+  eng: Annotation of morphological features (SUC) by Hunpos for Swedish from the 1800's
+task: morphosyntactic tagging
+keywords: []
+annotations:
+  - <token>:hunpos.msd
+example_output: |-
+  ```xml
+  <token msd="NN.UTR.SIN.DEF.NOM">Lådan</token>
+  <token msd="VB.PRT.AKT">var</token>
+  <token msd="PC.PRF.UTR.SIN.IND.NOM">upphängd</token>
+  <token msd="PP">under</token>
+  <token msd="DT.UTR.SIN.DEF">den</token>
+  <token msd="NN.UTR.SIN.IND.NOM">waggon</token>
+  <token msd="HA">hvari</token>
+  <token msd="DT.UTR+NEU.PLU.DEF">de</token>
+  <token msd="JJ.POS.UTR+NEU.PLU.IND+DEF.NOM">andra</token>
+  <token msd="NN.NEU.PLU.DEF.NOM">djuren</token>
+  <token msd="VB.INF.AKT">befunno</token>
+  <token msd="PN.UTR+NEU.SIN+PLU.DEF.OBJ">sig</token>
+  <token msd="MAD">.</token>
+  ```
+example_extra: |-
+  In order to use this annotation you need to add the following setting to your Sparv corpus configuration file:
+  ```yaml
+  metadata:
+    language: swe
+    variety: "1800"
+  ```
+models:
+  - name: suc3_suc-tags_default-setting_utf8.model
+    url: "https://github.com/spraakbanken/sparv-models/blob/master/hunpos/suc3_suc-tags_default-setting_utf8.model?raw=true"
+  - name: dalinm-swedberg_saldo_suc-tags.morphtable
+    description: |-
+      A word list along with the words' morphosyntactic information generated from the [Dalin
+      morphology](https://spraakbanken.gu.se/resurser/dalinm) and the [Swedberg
+      morphology](https://spraakbanken.gu.se/resurser/swedbergm)
+description:
+  swe: |-
+    Meningssegment analyseras och annoteras med ordklasstaggar och morfosyntaktisk information. Utöver
+    ordklasstaggningsmodellen använder Hunpos listor med böjningsformer för att kunna generera bättre ordklasstaggar för
+    1800-talssvenska.
+  eng: |-
+    Sentence segments are analysed to enrich tokens with part-of-speech tags and morphosyntactic information. In
+    addition to the pos model inflection lists are provided to Hunpos to make more accurate part-of-speech predictions
+    for Swedish from the 1800's.
+created: 2012-10-23
+updated: 2015-09-11

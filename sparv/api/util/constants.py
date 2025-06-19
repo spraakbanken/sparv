@@ -1,9 +1,9 @@
 """Common constants."""
 
-DELIM = "|"       # Delimiter char to put between ambiguous results
-AFFIX = "|"       # Char to put before and after results to mark a set
-SCORESEP = ":"    # Char that separates an annotation from a score
-COMPSEP = "+"     # Char to separate compound parts
+DELIM = "|"  # Delimiter char to put between ambiguous results
+AFFIX = "|"  # Char to put before and after results to mark a set
+SCORESEP = ":"  # Char that separates an annotation from a score
+COMPSEP = "+"  # Char to separate compound parts
 
 UNDEF = "__UNDEF__"  # Value for undefined annotations
 

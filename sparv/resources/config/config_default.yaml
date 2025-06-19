@@ -3,7 +3,7 @@
 #===============================================================================
 
 metadata:
-    # Language of the input files, specified as ISO 639-3 code
+    # Language of the source files, specified as ISO 639-3 code
     language: swe
 
 #===============================================================================
@@ -63,5 +63,5 @@ segment:
     paragraph_segmenter: blanklines
     # Chunk to use for automatic sentence segmentation (typically <text> or <paragraph>)
     sentence_chunk: <paragraph>, <text>
-    # Chunk to use for automatic tokenisation
+    # Chunk to use for automatic tokenization
     token_chunk: <sentence>
