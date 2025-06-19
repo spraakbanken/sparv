@@ -33,7 +33,7 @@ pipx install sparv
 Now you should be ready to run the Sparv command! Try it by typing `sparv --help`.
 
 Sparv can be used together with several plugins and third-party software. Please check the [Sparv user
-manual](https://spraakbanken.gu.se/sparv/#/user-manual/installation-and-setup) for more details!
+manual](https://spraakbanken.gu.se/sparv/user-manual/installation-and-setup/) for more details!
 
 ## Running tests
 

@@ -26,6 +26,7 @@
 
 ### Changed
 
+- Changed distribution name from `sparv-pipeline` to `sparv`.
 - Dropped support for Python 3.8 and 3.9.
 - The internal data format (in the `sparv-workdir` directory) has been changed for performance reasons. You will need to
   run `sparv clean` before running Sparv on any existing corpora using the old data format.
