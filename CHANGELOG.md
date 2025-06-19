@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [5.3.0] - 2025-06-19
 
 ### Added
 
@@ -31,7 +31,7 @@
   run `sparv clean` before running Sparv on any existing corpora using the old data format.
 - Updated documentation with a fresh new look!
 - The parameters `append` and `allow_newline` have been removed from the Sparv class methods to simplify the code.
-  `append` was never used, and newlines are now preserved by default.
+  The `append` parameter was never used, and newlines are now preserved by default.
 - `xml_export:compressed` and `xml_export:compressed_scrambled` no longer need to first create uncompressed combined
   files.
 - Removed the `indent_xml` utility function, as ElementTree now supports XML indentation natively since Python 3.9.
@@ -46,16 +46,16 @@
 - The `logs` directory is now always created relative to the corpus directory instead of the directory where `sparv` is
   run.
 - Detailed error messages are now always printed to the log file, no matter the log level.
-- The `outputs` parameter to importers can now take a list of multiple `Config` objects, instead of just one.
+- The `outputs` parameter for importers can now accept a list of multiple `Config` objects, instead of just one.
 
 ### Fixed
 
-- Fixed Stanza which was broken for English.
-- SweNER no longer hangs on (extremely) long tokens.
-- Fixed config validation for `korp.context` and `korp.within`.
-- Fixed crash when removing namespaces from attributes in `xml_import:parse`.
-- Fixed tab autocompletion not working with Python 3.12.
-- Fixed `util.system.gpus()` when used with PyTorch's `torch.cuda.set_device()`.
+- Fixed Stanza, which was broken for English.
+- SweNER no longer hangs on extremely long tokens.
+- Fixed configuration validation for `korp.context` and `korp.within`.
+- Fixed a crash when removing namespaces from attributes in `xml_import:parse`.
+- Fixed tab autocompletion, which was not working with Python 3.12.
+- Fixed an issue with `util.system.gpus()` when used with PyTorch's `torch.cuda.set_device()`.
 - Fixed bug in `stats_export` which caused it to crash sometimes.
 - Better handling of whitespace in tokens in the `cwb` and `wsd` modules.
 - Fixed SSL certificate verification issues when downloading models.
@@ -368,6 +368,7 @@
   - Increased independence between modules and language models
   - This facilitates adding new annotation modules and import/export formats.
 
+[5.3.0]: https://github.com/spraakbanken/sparv/releases/tag/v5.3.0
 [5.2.0]: https://github.com/spraakbanken/sparv/releases/tag/v5.2.0
 [5.1.0]: https://github.com/spraakbanken/sparv/releases/tag/v5.1.0
 [5.0.0]: https://github.com/spraakbanken/sparv/releases/tag/v5.0.0
