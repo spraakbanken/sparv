@@ -12,7 +12,7 @@ from pathlib import Path
 from bs4 import BeautifulSoup
 
 
-def preprocess_html(input_file: str, output_file: str) -> None:
+def preprocess_html(input_file: str, output_file: str, hide_docstring: bool) -> None:
     """Preprocess the HTML file to remove headers, footers, styles, and scripts."""
     content = Path(input_file).read_text(encoding="utf-8")
     soup = BeautifulSoup(content, "html.parser")
@@ -23,9 +23,12 @@ def preprocess_html(input_file: str, output_file: str) -> None:
     main_tag.name = "body"
     html_tag.append(main_tag)
 
-    # Remove hidden paragraph
-    for p in html_tag.find_all("p", string="Classes used as default input for annotator functions."):
-        p.decompose()
+    if hide_docstring:
+        # Remove p tag within div with class="doc doc-contents first"
+        for div in html_tag.find_all("div", class_="doc doc-contents first"):
+            first_p = div.find("p")
+            if first_p:
+                first_p.decompose()
 
     # Remove some unwanted tags
     for tag in html_tag.find_all(["style", "script", "input", "label", "nav", "head", "header", "footer", "button"]):
@@ -59,10 +62,17 @@ def preprocess_html(input_file: str, output_file: str) -> None:
 
     # Remove all classes and some other attributes
     for tag in html_tag.find_all(True):
-        for attr in ("class", "data-md-component", "title"):
-            # Do not admonition titles
+        for attr in ("class", "data-md-component", "title", "id"):
+            # Do not remove admonition titles
             if tag.has_attr(attr):
-                if attr == "class" and tag.get("class") in [["note"], ["info"], ["tip"], ["warning"], ["attention"]]:
+                if attr == "class" and tag.get("class") in [
+                    ["note"],
+                    ["info"],
+                    ["tip"],
+                    ["warning"],
+                    ["attention"],
+                    ["important"],
+                ]:
                     continue
                 del tag[attr]
 
@@ -80,6 +90,15 @@ def preprocess_html(input_file: str, output_file: str) -> None:
         else:
             details.unwrap()
 
+    # Remove div tags that don't have any attributes and keep their content
+    for div in html_tag.find_all("div"):
+        if not div.attrs:
+            # If the div has no attributes, unwrap it to keep its content
+            div.unwrap()
+        elif "class" in div.attrs and div["class"] == ["doc"]:
+            # If the div has class "doc", unwrap it to keep its content
+            div.unwrap()
+
     content = str(html_tag)
 
     Path(output_file).write_text(content, encoding="utf-8")
@@ -91,7 +110,10 @@ if __name__ == "__main__":
     )
     parser.add_argument("input_file", type=str, help="Path to the input HTML file.")
     parser.add_argument("output_file", type=str, help="Path to the output HTML file.")
+    parser.add_argument(
+        "--hide-docstring", action="store_true", help="Whether to remove the module docstrings."
+    )
 
     args = parser.parse_args()
 
-    preprocess_html(args.input_file, args.output_file)
+    preprocess_html(args.input_file, args.output_file, args.hide_docstring)

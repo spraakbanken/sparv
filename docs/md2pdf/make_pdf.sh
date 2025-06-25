@@ -52,13 +52,19 @@ author: |
   |
   |
   |
-  | ![](../images/sparv_detailed.png){width=2.5cm}
+  | ![](../images/sparv_detailed_orange.png){width=3cm}
 ---
 "
 
 # Create output directory
 OUTPUT_DIR="output"
 mkdir -p "$OUTPUT_DIR"
+
+# Define file mappings for the two parts of the documentation
+declare -A MD_FILES=(
+    ["user-manual.md"]="$(grep -P 'user-manual/.*\.md' ../mkdocs.yml -o | sed 's/^/..\//')"
+    ["dev-guide.md"]="$(grep -P 'developers-guide/.*\.md' ../mkdocs.yml -o | sed 's/^/..\//')"
+)
 
 #-----------------------------------------------------------------------------------------------------------------------
 # Function to create the markdown files for user manual and developer's guide
@@ -68,19 +74,12 @@ function create_markdown {
     # Convert AUTO_FILES to a Bash array
     readarray -t auto_filenames < <(for file in $AUTO_FILES; do basename "$(dirname "$file")"; done)
 
-    # Define file mappings for the two parts of the documentation
-    declare -A files=(
-        ["user-manual.md"]="$(grep -P 'user-manual/.*\.md' ../mkdocs.yml -o | sed 's/^/..\//')"
-        # ["user-manual.md"]="$(grep -P 'user-manual/.*\.md' ../mkdocs.yml -o | grep -v 'intro\.md' | sed 's/^/..\//')"
-        ["dev-guide.md"]="$(grep -P 'developers-guide/.*\.md' ../mkdocs.yml -o | sed 's/^/..\//')"
-    )
-
     # Concat files and shift headings for each document
-    for output in "${!files[@]}"; do
+    for output in "${!MD_FILES[@]}"; do
         # Clear output file
         echo "" > "${OUTPUT_DIR}/${output}"
 
-        for f in ${files[$output]}; do
+        for f in ${MD_FILES[$output]}; do
 
             # Check if file is in AUTO_FILES
             basename=$(basename "${f}" .md)
@@ -112,8 +111,51 @@ function create_markdown {
             fi
             echo -e "\n" >> "${OUTPUT_DIR}/${output}"
         done
+
+        # Remove double dashes at the end of a line from markdown files
+        perl -i -pe 's/--$//g' "${OUTPUT_DIR}/${output}"
+        # Remove titles (filenames) from code blocks, e.g. ```python title="__init__.py" --> ```python
+        perl -i -pe 's/```(\w+)( title="[^"]+")/```$1/g' "${OUTPUT_DIR}/${output}"
+
         # Shift headings by 1 level using Pandoc
         pandoc "${OUTPUT_DIR}/${output}" --shift-heading-level-by=1 -o "${OUTPUT_DIR}/${output}"
+
+        # Convert html line breaks (`<br />`{=html} --> <br />)
+        perl -i -pe 's/`<br \/>`{=html}/<br \/>/g' "${OUTPUT_DIR}/${output}"
+
+        # Adjust table column widths in the "Available Analyses" section in the user manual
+        if [[ "$output" == "user-manual.md" ]]; then
+            awk '
+            # Make header separators have the same width
+            /^## Available Analyses/ { in_section = 1 }
+            in_section && /^## / && !/^## Available Analyses/ { in_section = 0 }
+            in_section && /^[ \t-]+$/ {
+            print "  ----------------- ------------------------------------------------------------------------------------------------------"
+            next
+            }
+            # Adjust remaining table rows
+            in_section && /^  / {
+            # Remove leading two spaces for processing
+            line = substr($0, 3)
+            # Find first occurrence of at least two spaces
+            col = match(line, /  +/)
+            if (col) {
+                first = substr(line, 1, col-1)
+                second = substr(line, col)
+                gsub(/^ +/, "", second)
+                # Pad or trim first column to 17 chars
+                if (length(first) > 17) {
+                first = substr(first, 1, 17)
+                }
+                while (length(first) < 17) first = first " "
+                print "  " first " " second
+                next
+              }
+            }
+            { print }
+            ' "${OUTPUT_DIR}/${output}" > "${OUTPUT_DIR}/${output}.tmp"
+            mv "${OUTPUT_DIR}/${output}.tmp" "${OUTPUT_DIR}/${output}"
+        fi
     done
 }
 
@@ -128,7 +170,7 @@ function generate_pdf {
     # Add title page to the output file if needed
     if [ "$titlepage" = true ]; then
         output_file="sparv-documentation"
-        echo -e "$TITLEPAGE" > "${OUTPUT_DIR}/${output_file}.md"
+        printf '%s' "$TITLEPAGE" > "${OUTPUT_DIR}/${output_file}.md"
     else
         output_file="GU-ISS-sparv-documentation"
         echo "" > "${OUTPUT_DIR}/${output_file}.md"
@@ -160,15 +202,15 @@ function markdown_to_pdf {
     case $mode in
         tex)
             # Convert to .tex for debugging
-            pandoc -t latex -o "${OUTPUT_DIR}/${filename}.tex" "${OUTPUT_DIR}/${filename}.md"
+            pandoc "${OUTPUT_DIR}/${filename}.md" -t latex -o "${OUTPUT_DIR}/${filename}.tex"
             ;;
         pandoc)
             # Convert to pandoc's native format for debugging filters
-            pandoc -t native -o "${OUTPUT_DIR}/${filename}.pandoc" "${OUTPUT_DIR}/${filename}.md"
+            pandoc "${OUTPUT_DIR}/${filename}.md" -t native -o "${OUTPUT_DIR}/${filename}.pandoc"
             ;;
         pdf)
             # Convert to pdf
-            pandoc -t latex -o "${OUTPUT_DIR}/${filename}.pdf" "${OUTPUT_DIR}/${filename}.md" \
+            pandoc "${OUTPUT_DIR}/${filename}.md" -t latex -o "${OUTPUT_DIR}/${filename}.pdf" \
                 --filter filter.py \
                 -H settings_template.tex `# include in header` \
                 --template template.tex `# use template` \
@@ -179,7 +221,7 @@ function markdown_to_pdf {
                 --listings `# use listings package for LaTeX code blocks`
             ;;
         *)
-            echo "Invalid mode: $mode. Use 'tex', 'native', or 'pdf'."
+            echo "Invalid mode: $mode. Use 'tex', 'pandoc', or 'pdf'."
             exit 1
             ;;
     esac
@@ -217,6 +259,12 @@ while getopts "m:hk" opt; do
     esac
 done
 
+# Check if MODE is valid
+if [[ ! "$MODE" =~ ^(pdf|tex|pandoc|md)$ ]]; then
+    echo "Invalid mode: $MODE. Allowed values are: pdf, tex, pandoc, md."
+    exit 1
+fi
+
 #-----------------------------------------------------------------------------------------------------------------------
 # Build mkdocs documentation
 #-----------------------------------------------------------------------------------------------------------------------
@@ -233,7 +281,7 @@ echo ""
 # Special handling for documentation files created automatically from docstrings (with mkdocs)
 #-----------------------------------------------------------------------------------------------------------------------
 
-# Define the Lua filter for admonitions in Pandoc
+# Define Lua filter for admonitions in Pandoc
 LUA_FILTER=$(cat <<'EOF'
 function Div(el)
   if el.classes:includes("note") then
@@ -259,8 +307,24 @@ EOF
 # Convert auto-generated files to Markdown using Pandoc with the Lua filter
 for file in $AUTO_FILES; do
     filename=$(basename "$(dirname "$file")")
-    echo "Preprocessing auto-generated file $file --> $OUTPUT_DIR/${filename}.md"
-    python preprocess_html.py "$file" "$OUTPUT_DIR/${filename}.html"
+
+    # Get the original markdown file, e.g. sparv-decorators --> ../developers-guide/sparv-decorators.md
+    original_md_file=""
+    for md_file in ${MD_FILES[@]}; do
+        if [[ "$(basename "$md_file" .md)" == "$filename" ]]; then
+            original_md_file="$md_file"
+            break
+        fi
+    done
+    # Check if the markdown file contains a <style> tag and remove the module docstring if it does
+    if grep -q "<style>" "$original_md_file"; then
+        echo "Preprocessing auto-generated file $file --> $OUTPUT_DIR/${filename}.md and removing module docstring"
+        python preprocess_html.py "$file" "$OUTPUT_DIR/${filename}.html" --hide-docstring
+    else
+        echo "Preprocessing auto-generated file $file --> $OUTPUT_DIR/${filename}.md"
+        python preprocess_html.py "$file" "$OUTPUT_DIR/${filename}.html"
+    fi
+
     pandoc "$OUTPUT_DIR/${filename}.html" -o "$OUTPUT_DIR/${filename}.md" --lua-filter=<(echo "$LUA_FILTER")
 done
 

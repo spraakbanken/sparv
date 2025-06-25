@@ -12,6 +12,11 @@
 \usepackage[dvipsnames]{xcolor} % Display colors
 \usepackage{pmboxdraw} % Display funny tree structure chars
 
+% Highlight inline code
+\usepackage{xcolor}
+\definecolor{codebg}{HTML}{EEEEEE}
+\newcommand{\inlinecode}[1]{\mbox{\setlength{\fboxsep}{1pt}\colorbox{codebg}{\texttt{#1}}}}
+
 \usepackage{sectsty} % Allows customizing section commands
 \allsectionsfont{\normalfont\bf} % Make all sections centered, the default font and bold
 
@@ -35,10 +40,10 @@
 \setcounter{section}{0} % Reset the section counter
 \renewcommand{\thesubsection}{\arabic{section}.\arabic{subsection}}
 
-\titleformat{\paragraph}[hang]{\normalfont\scshape}{\theparagraph}{1em}{}
+\titleformat{\paragraph}[hang]{\normalfont\bfseries}{\theparagraph}{1em}{}
 \titlespacing*{\paragraph}{0pt}{3.25ex plus 1ex minus .2ex}{0.5em} % Line break after paragraph
 
-\titleformat{\subparagraph}[hang]{\normalfont\scshape}{\theparagraph}{1em}{}
+\titleformat{\subparagraph}[hang]{\normalfont\bfseries}{\thesubparagraph}{1em}{}
 \titlespacing*{\subparagraph}{0pt}{3.25ex plus 1ex minus .2ex}{0.5em} % Line break after paragraph
 
 \usepackage{fancyhdr} % Custom headers and footers
@@ -59,17 +64,12 @@
 % Display of code blocks
 \lstset{
     basicstyle=\ttfamily,
-    % numbers=left,
-    % numberstyle=\footnotesize,
-    % stepnumber=2,
-    % numbersep=5pt,
     showspaces=false,
     showstringspaces=false, % Remove unnecessary space markers
     showtabs=false,
     tabsize=2,
     captionpos=b,
     breaklines=true,
-    % postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{red}\hookrightarrow\space}},
     breakatwhitespace=false,
     breakautoindent=true,
     linewidth=\textwidth,
@@ -94,9 +94,6 @@
 \usepackage{etoolbox}
 \BeforeBeginEnvironment{lstlisting}{\par\noindent\begin{minipage}{\linewidth}}
 \AfterEndEnvironment{lstlisting}{\end{minipage}\par\addvspace{\topskip}}
-
-% Remove "figure" prefix from figure captions
-% \usepackage[labelformat=empty]{caption}
 
 % New page for new chapter
 \newcommand{\sectionbreak}{\clearpage}

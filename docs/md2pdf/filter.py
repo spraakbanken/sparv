@@ -1,4 +1,11 @@
-"""Pandoc filter for removing links that won't work in PDF and reformatting admonitions.
+"""Pandoc filter for fixing issues in the documentation.
+
+This filter will:
+- remove links that won't work in PDF
+- remove images
+- fix linebreaks
+- wrap inline code in an inlinecode{} command (used for highlighting in PDF)
+- reformat admonitions
 
 https://pandoc.org/filters.html
 
@@ -11,7 +18,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from pandocfilters import BlockQuote, Para, Str, Strong, toJSONFilter
+from pandocfilters import BlockQuote, Para, RawInline, Str, Strong, toJSONFilter
 
 
 class AdmonitionTracker:
@@ -38,24 +45,27 @@ def fix_document(key: str, value: str | list | dict | None, _format: str, _meta:
         if ["intro-logo"] in value[0] or "../images/watch-releases.png" in value[2]:
             return []
 
+    # Convert <br /> tags to LaTeX line breaks
+    elif key == "RawInline":
+        fmt, txt = value
+        if fmt == "html" and txt.lower().strip() in {"<br>", "<br/>", "<br />"}:
+            # Use either '\\newline{}' or '\\\\'
+            return RawInline("latex", "\\newline{}")
+
+    elif key == "Code":
+        _attr, text = value
+        text = text.replace("\\", "\\textbackslash{}")  # Escape backslashes
+        text = text.replace("_", "\\_")  # Escape underscores
+        return RawInline("latex", "\\inlinecode{" + text + "}")
+
     # Reformat the text inside block quotes (standard admonitions)
     elif key == "BlockQuote":
         try:
             first_string = value[0]["c"][0]["c"]
-            if first_string == "[!NOTE]":
-                value[0]["c"][0] = Strong([Str("Note:")])
-                return BlockQuote(value)
-            if first_string == "[!INFO]":
-                value[0]["c"][0] = Strong([Str("Info:")])
-                return BlockQuote(value)
-            if first_string == "[!TIP]":
-                value[0]["c"][0] = Strong([Str("Tip:")])
-                return BlockQuote(value)
-            if first_string == "[!WARNING]":
-                value[0]["c"][0] = Strong([Str("Warning:")])
-                return BlockQuote(value)
-            if first_string == "[!ATTENTION]":
-                value[0]["c"][0] = Strong([Str("Attention:")])
+            if first_string.startswith("[!"):
+                # Remove "[!]" and capitalize the first letter
+                first_string = first_string[2:-1].capitalize()
+                value[0]["c"][0] = Strong([Str(first_string + ":")])
                 return BlockQuote(value)
         except Exception:
             return None
