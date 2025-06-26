@@ -1389,7 +1389,7 @@ class AllSourceFilenames(Sequence[str]):
         return len(self.items)
 
 
-class Config(str):
+class Config(Any):
     """Class holding configuration key names.
 
     This class represents a configuration key and optionally its default value. You can specify the datatype and allowed
@@ -1398,17 +1398,6 @@ class Config(str):
     For further information on how to use this class, see the [Config
     Parameters](writing-sparv-plugins.md#config-parameters) section.
     """
-
-    def __new__(cls, name: str, *args: Any, **kwargs: Any) -> Config:  # noqa: ARG004
-        """Create a new instance of the class.
-
-        Args:
-            cls: The class to create an instance of.
-            name: The name of the configuration key.
-            *args: Additional arguments.
-            **kwargs: Additional keyword arguments.
-        """
-        return super().__new__(cls, name)
 
     def __init__(
         self,

@@ -142,7 +142,7 @@ class RuleStorage:
         self.wildcard_annotations = []  # List of parameters containing other wildcards
         self.configs = set()  # Set of config variables used
         self.classes = set()  # Set of classes used
-        self.missing_config = set()
+        self.missing_config: set[str] = set()
         self.missing_binaries = set()
         self.export_dirs: list[str] | None = None
         self.has_preloader = bool(annotator_info["preloader"])
@@ -216,7 +216,7 @@ def rule_helper(
                 # import_outputs is either a list of annotations and/or Config objects, or a single Config object
                 import_outputs = rule.import_outputs
                 if isinstance(import_outputs, Config):
-                    import_outputs = sparv_config.get(import_outputs, import_outputs.default)
+                    import_outputs = sparv_config.get(import_outputs.name, import_outputs.default)
                     if isinstance(import_outputs, str):
                         import_outputs = [import_outputs]
                 elif isinstance(import_outputs, str):
@@ -225,7 +225,7 @@ def rule_helper(
                     expanded: list[str] = []
                     for item in import_outputs:
                         if isinstance(item, Config):
-                            expanded_item = sparv_config.get(item, item.default)
+                            expanded_item = sparv_config.get(item.name, item.default)
                             if isinstance(expanded_item, list):
                                 expanded.extend(expanded_item)
                             elif isinstance(expanded_item, str):
@@ -342,14 +342,14 @@ def rule_helper(
         # Config
         if isinstance(param_value, Config):
             rule.configs.add(param_value.name)
-            config_value = sparv_config.get(param_value, sparv_config.Unset)
+            config_value = sparv_config.get(param_value.name, sparv_config.Unset)
             if config_value is sparv_config.Unset:
                 if param_value.default is not None:
                     config_value = param_value.default
                 elif param_optional:
                     config_value = None
                 else:
-                    rule.missing_config.add(param_value)
+                    rule.missing_config.add(param_value.name)
             param_value = config_value
 
         # Output
