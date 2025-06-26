@@ -1,18 +1,33 @@
 """Handler for log messages.
 
-This module handles logging for both the standard logging library and Snakemake, providing additional functionality for
-progress tracking and internal messaging.
+This module handles all processing and displaying of log messages and error messages in Sparv.
 
-The LogHandler class is responsible for setting up the logging configuration, and contains most of the code for handling
-log messages. It also provides a progress bar and additional features for enhanced logging capabilities. The logging in
-this module uses a logger named "sparv_logging".
+The `SparvLogHandler` class is responsible for setting up the logging configuration, and contains most of the code for
+handling log messages. It also provides a progress bar and additional features for enhanced logging capabilities. The
+logging in this module uses a logger named "sparv_logging".
 
-The Sparv modules (run in separate processes) get their logger using the `get_logger()` function, which returns a logger
-("sparv") that communicates with the Sparv log handler (in the main thread) over a TCP socket, and the messages are then
-handled by the "sparv_logging" logger.
+# Message Origins
 
-Log messages from Snakemake are handled by the `log_handler()` method, which processes messages and updates the progress
-bars. Some messages are printed to the console instead of being logged.
+Log messages in Sparv originates from two main sources:
+
+1. Sparv modules. These modules log messages using a logger ("sparv") acquired from the `get_logger()` function. Sparv
+   modules run in separate processes, and their logger communicates with the main thread's log handler over a TCP
+   socket. The messages are then handled by the main thread's "sparv_logging" logger. This includes log messages from
+   parts of the Sparv core imported by the modules.
+
+2. Snakemake. Log messages from Snakemake are handled by a custom logging plugin which simply forwards these log records
+   to the Sparv log handler's `snakemake_log_handler()` method, which processes the messages and updates the progress.
+
+## Exceptions and Error Handling
+
+The Sparv core (outside of the API functions used by the modules) generally does not use log messages, but instead
+raises `SparvErrorMessage` exceptions. These exceptions are caught in the `__main__` module and passed to the
+`handle_exception()` method of the `SparvLogHandler` instance. They are there turned into error messages and printed.
+
+Any exceptions (include `SparvErrorMessage`) raised in Sparv modules are first caught by `run_snake.py` and converted
+to error log messages. The execution of the module process is then interrupted, which leads to Snakemake throwing a
+WorkflowError exception. This is caught by the `__main__` module and forwarded to the `handle_exception()` which
+ignores the error message (as the error has already been logged).
 """
 
 from __future__ import annotations
@@ -27,19 +42,25 @@ import socketserver
 import struct
 import threading
 import time
+import traceback
 from collections import OrderedDict, defaultdict
 from collections.abc import Iterable
 from datetime import timedelta
 from pathlib import Path
 from typing import Any
 
+import snakemake
 from pythonjsonlogger import jsonlogger
 from rich import box, progress
 from rich.control import Control, ControlType
 from rich.logging import RichHandler
 from rich.table import Table
 from rich.text import Text
-from snakemake import logger
+from rich.traceback import Traceback
+from snakemake.common import NOTHING_TO_BE_DONE_MSG
+from snakemake.exceptions import MissingInputException, WorkflowError
+from snakemake.logging import get_event_level, logger_manager
+from snakemake_interface_logger_plugins.common import LogEvent
 
 from sparv.core import io
 from sparv.core.console import console
@@ -347,7 +368,7 @@ class QueueHandler(logging.Handler):
         self.log_queue.put(self.format(record))
 
 
-class LogHandler:
+class SparvLogHandler:
     """Class providing a log handler for Snakemake."""
 
     icon = "\U0001f426"
@@ -394,8 +415,11 @@ class LogHandler:
         self.log_levelcount = defaultdict(int)
         self.root_dir = root_dir
         self.finished = False
-        self.handled_error = False
-        self.messages = defaultdict(list)
+        self.handled_error = False  # Set to True if an error has been handled, i.e. not unexpected errors
+        self.messages = {
+            "error": [],
+            "unhandled_error": [],
+        }
         self.missing_configs_re = None
         self.missing_binaries_re = None
         self.missing_classes_re = None
@@ -407,6 +431,7 @@ class LogHandler:
         self.stats_data = defaultdict(float)
         self.logger = None
         self.terminated = False
+        self.reasons = ""
 
         # Progress bar related variables
         self.progress: progress.Progress | None = None
@@ -414,7 +439,7 @@ class LogHandler:
         self.bar_started: bool = False
         self.last_percentage = 0
         self.current_jobs = OrderedDict()
-        self.job_ids = {}  # Translation from (Sparv task name, source file) to Snakemake job ID
+        self.job_ids = {}  # Translation from (Sparv task name, source file) to numerical Snakemake job ID
 
         # Create a simple TCP socket-based logging receiver
         tcpserver = socketserver.ThreadingTCPServer(("localhost", 0), RequestHandlerClass=LogRecordStreamHandler)
@@ -569,94 +594,139 @@ class LogHandler:
         else:
             console.print(Text(msg, style="red"))
 
-    def log_handler(self, msg: dict) -> None:
-        """Log handler for Snakemake displaying a progress bar.
+    def missing_config_message(self, source: str) -> None:
+        """Create error message when config variables are missing."""
+        variables = messages["missing_configs"][source]
+        message = "The following config variable{} need{} to be set:\n • {}".format(
+            *("s", "") if len(variables) > 1 else ("", "s"), "\n • ".join(variables)
+        )
+        self.messages["error"].append((source, message))
+
+    def missing_binary_message(self, source: str) -> None:
+        """Create error message when binaries are missing."""
+        binaries = messages["missing_binaries"][source]
+        message = "The following executable{} {} needed but could not be found:\n • {}".format(
+            *("s", "are") if len(binaries) > 1 else ("", "is"), "\n • ".join(binaries)
+        )
+        self.messages["error"].append((source, message))
+
+    def missing_class_message(self, source: str, classes: list[str] | None = None) -> None:
+        """Create error message when class variables are missing."""
+        variables = messages["missing_classes"][source] or classes
+        message = "The following class{} need{} to be set:\n • {}".format(
+            *("es", "") if len(variables) > 1 else ("", "s"), "\n • ".join(variables)
+        )
+
+        if "text" in variables:
+            message += (
+                "\n\nNote: The 'text' class can also be set using the configuration variable "
+                "'import.text_annotation', but only if it refers to an annotation from the "
+                "source files."
+            )
+
+        self.messages["error"].append((source, message))
+
+    def missing_annotations_or_files(self, source: str, files: str) -> None:
+        """Create error message when annotations or other files are missing."""
+        errmsg = []
+        missing_annotations = []
+        missing_other = []
+        for f in map(Path, files.splitlines()):
+            if paths.work_dir in f.parents:
+                # If the missing file is within the Sparv workdir, it is probably an annotation
+                f_rel = f.relative_to(paths.work_dir)
+                *_, annotation, attr = f_rel.parts
+                if attr == io.SPAN_ANNOTATION:
+                    missing_annotations.append((annotation,))
+                else:
+                    missing_annotations.append((annotation, attr))
+            else:
+                missing_other.append(str(f))
+        if missing_annotations:
+            errmsg = [
+                "The following input annotation{} {} missing:\n • {}\n".format(
+                    "s" if len(missing_annotations) > 1 else "",
+                    "are" if len(missing_annotations) > 1 else "is",
+                    "\n • ".join(
+                        ":".join(ann) if len(ann) == 2 else ann[0]  # noqa: PLR2004
+                        for ann in missing_annotations
+                    ),
+                )
+            ]
+        if missing_other:
+            if errmsg:
+                errmsg.append("\n")
+            errmsg.append(
+                "The following input file{} {} missing:\n • {}\n".format(
+                    "s" if len(missing_other) > 1 else "",
+                    "are" if len(missing_other) > 1 else "is",
+                    "\n • ".join(missing_other),
+                )
+            )
+        if errmsg:
+            errmsg.append("\n" + missing_annotations_msg)
+        self.messages["error"].append((source, "".join(errmsg)))
+
+    def handle_exception(self, exception: Exception) -> None:
+        """Handle exceptions from the Sparv core.
+
+        Any exception raised in the Sparv core (i.e. not in a Sparv module) will be caught in the __main__ module and
+        passed to this method. Exceptions raised in Sparv modules are caught earlier in the pipeline (in a separate
+        process) and logged, but also lead to a WorkflowError exception being raised in Snakemake, which is then caught
+        and ignored here.
 
         Args:
-            msg: Log message dictionary.
-
-        Raises:
-            BrokenPipeError: If a missing config variable is detected. This stops Snakemake.
+            exception: The exception to handle.
         """
-
-        def missing_config_message(source: str) -> None:
-            """Create error message when config variables are missing."""
-            variables = messages["missing_configs"][source]
-            message = "The following config variable{} need{} to be set:\n • {}".format(
-                *("s", "") if len(variables) > 1 else ("", "s"), "\n • ".join(variables)
+        if isinstance(exception, SparvErrorMessage):
+            # SparvErrorMessage exception from pipeline core
+            # Parse and extract the error message
+            message = re.search(
+                rf"{SparvErrorMessage.start_marker}([^\n]*)\n([^\n]*)\n(.*?){SparvErrorMessage.end_marker}",
+                str(exception),
+                flags=re.DOTALL,
             )
-            self.messages["error"].append((source, message))
+            if message:
+                module, function, error_message = message.groups()
+                error_source = f"{module}:{function}" if module and function else None
+                self.messages["error"].append((error_source, error_message))
+                self.handled_error = True
+        elif isinstance(exception, MissingInputException):
+            # Errors due to missing config variables or binaries leading to missing input files
+            msg_contents = re.search(r" for rule (\S+):\n.*affected files:\n(.+)", str(exception), flags=re.DOTALL)
+            rule_name, filelist = msg_contents.groups()
+            filelist = "\n".join(f.strip() for f in filelist.splitlines())
+            rule_name = rule_name.replace("::", ":")
+            if self.missing_configs_re.search(filelist):
+                self.missing_config_message(rule_name)
+            elif self.missing_binaries_re.search(filelist):
+                self.missing_binary_message(rule_name)
+            elif self.missing_classes_re.search(filelist):
+                self.missing_class_message(rule_name, self.missing_classes_re.findall(filelist))
+            else:
+                self.missing_annotations_or_files(rule_name, filelist)
+            self.handled_error = True
+        elif (
+            isinstance(exception, WorkflowError) and str(exception) == "At least one job did not complete successfully."
+        ):
+            # This is the generic Snakemake error message when a running workflow fails. We should already have handled
+            # and printed the error in run_snake.py, so we silently ignore it here.
+            pass
+        else:
+            # Any other exception from the Sparv core
+            self.messages["unhandled_error"].append((f"{type(exception).__name__}: {exception}", exception))
 
-        def missing_binary_message(source: str) -> None:
-            """Create error message when binaries are missing."""
-            binaries = messages["missing_binaries"][source]
-            message = "The following executable{} {} needed but could not be found:\n • {}".format(
-                *("s", "are") if len(binaries) > 1 else ("", "is"), "\n • ".join(binaries)
-            )
-            self.messages["error"].append((source, message))
+    def snakemake_log_handler(self, record: logging.LogRecord) -> None:
+        """Handle log records from Snakemake's own logging system.
 
-        def missing_class_message(source: str, classes: list[str] | None = None) -> None:
-            """Create error message when class variables are missing."""
-            variables = messages["missing_classes"][source] or classes
-            message = "The following class{} need{} to be set:\n • {}".format(
-                *("es", "") if len(variables) > 1 else ("", "s"), "\n • ".join(variables)
-            )
+        Args:
+            record: Log record to handle.
+        """
+        snake_level, record_level = get_event_level(record)
 
-            if "text" in variables:
-                message += (
-                    "\n\nNote: The 'text' class can also be set using the configuration variable "
-                    "'import.text_annotation', but only if it refers to an annotation from the "
-                    "source files."
-                )
-
-            self.messages["error"].append((source, message))
-
-        def missing_annotations_or_files(source: str, files: str) -> None:
-            """Create error message when annotations or other files are missing."""
-            errmsg = []
-            missing_annotations = []
-            missing_other = []
-            for f in map(Path, files.splitlines()):
-                if paths.work_dir in f.parents:
-                    # If the missing file is within the Sparv workdir, it is probably an annotation
-                    f_rel = f.relative_to(paths.work_dir)
-                    *_, annotation, attr = f_rel.parts
-                    if attr == io.SPAN_ANNOTATION:
-                        missing_annotations.append((annotation,))
-                    else:
-                        missing_annotations.append((annotation, attr))
-                else:
-                    missing_other.append(str(f))
-            if missing_annotations:
-                errmsg = [
-                    "The following input annotation{} {} missing:\n • {}\n".format(
-                        "s" if len(missing_annotations) > 1 else "",
-                        "are" if len(missing_annotations) > 1 else "is",
-                        "\n • ".join(
-                            ":".join(ann) if len(ann) == 2 else ann[0]  # noqa: PLR2004
-                            for ann in missing_annotations
-                        ),
-                    )
-                ]
-            if missing_other:
-                if errmsg:
-                    errmsg.append("\n")
-                errmsg.append(
-                    "The following input file{} {} missing:\n • {}\n".format(
-                        "s" if len(missing_other) > 1 else "",
-                        "are" if len(missing_other) > 1 else "is",
-                        "\n • ".join(missing_other),
-                    )
-                )
-            if errmsg:
-                errmsg.append("\n" + missing_annotations_msg)
-            self.messages["error"].append((source, "".join(errmsg)))
-
-        level = msg["level"]
-
-        if level == "run_info":
-            # Parse list of jobs do to and total job count
-            lines = msg["msg"].splitlines()[3:]
+        if snake_level == LogEvent.RUN_INFO:  # Log message with a list of jobs to do and total job count
+            # Parse list of planned jobs and total job count
+            lines = record.msg.splitlines()[3:]
             total_jobs = lines[-1].split()[1]
             for j in lines[:-1]:
                 job, count = j.split()
@@ -669,7 +739,7 @@ class LogHandler:
             if self.use_progressbar and not self.bar_started and total_jobs.isdigit():
                 self.start_bar(int(total_jobs))
 
-        elif level == "progress":
+        elif snake_level == LogEvent.PROGRESS:  # Progress update for the main progress
             if self.use_progressbar:
                 # Advance progress
                 self.progress.advance(self.bar)
@@ -677,80 +747,105 @@ class LogHandler:
             # Print regular progress updates if output is not a terminal (i.e. doesn't support the progress bar) or
             # output format is JSON
             elif self.logger and (self.json or not console.is_terminal):
-                percentage = (100 * msg["done"]) // msg["total"]
+                percentage = (100 * record.done) // record.total
                 if percentage > self.last_percentage:
                     self.last_percentage = percentage
                     self.logger.log(PROGRESS, f"{percentage}%")  # noqa: G004
 
-            if msg["done"] == msg["total"]:
+            if record.done == record.total:
                 self.stop()
 
-        elif level == "job_info" and self.use_progressbar:
-            if msg["msg"] and self.bar is not None:
+        elif snake_level == LogEvent.JOB_INFO and self.use_progressbar:  # Info about a job starting
+            if record.msg and self.bar is not None:
                 # Update progress status message
-                self.progress.update(self.bar, text=msg["msg"] if self.simple else "")
+                self.progress.update(self.bar, text=record.rule_msg if self.simple else "")
 
                 if not self.simple:
-                    file = msg["wildcards"].get("file", "")
+                    file = record.wildcards.get("file", "")
                     if file.startswith(str(paths.work_dir)):
                         file = file[len(str(paths.work_dir)) + 1 :]
 
-                    self.current_jobs[msg["jobid"]] = {
+                    self.current_jobs[record.jobid] = {
                         "task": None,
-                        "name": msg["msg"],
+                        "name": record.rule_msg,
                         "starttime": time.time(),
                         "file": file,
                     }
-
-                    self.job_ids[msg["msg"], file] = msg["jobid"]
+                    self.job_ids[record.rule_msg, file] = record.jobid
 
         elif (
-            (level == "job_finished" or (level == "job_error" and self.keep_going))
+            (snake_level == LogEvent.JOB_FINISHED or (snake_level == LogEvent.JOB_ERROR and self.keep_going))
             and self.use_progressbar
-            and msg["jobid"] in self.current_jobs
-        ):
-            this_job = self.current_jobs[msg["jobid"]]
+            and (
+                (hasattr(record, "job_id") and record.job_id in self.current_jobs)
+                or (hasattr(record, "jobid") and record.jobid in self.current_jobs)
+            )
+        ):  # Job finished, alternatively job error but keep_going is enabled
+            # JOB_FINISHED uses job_id while JOB_ERROR uses jobid
+            job_id = record.job_id if hasattr(record, "job_id") else record.jobid
+            this_job = self.current_jobs[job_id]
             if self.stats:
                 self.stats_data[this_job["name"]] += time.time() - this_job["starttime"]
-            if this_job["task"]:
+            if this_job["task"]:  # Job has a progress bar
                 self.progress.remove_task(this_job["task"])
             self.job_ids.pop((this_job["name"], this_job["file"]), None)
-            self.current_jobs.pop(msg["jobid"], None)
-            if level == "job_error" and msg.get("msg"):
-                self.messages["unhandled_error"].append(msg)
+            self.current_jobs.pop(job_id, None)
+            if snake_level == LogEvent.JOB_ERROR and record.msg:
+                self.messages["unhandled_error"].append((record.getMessage(), None))
 
-        elif level == "info":
+        elif snake_level is None and record_level == "INFO":  # Info messages
             if self.pass_through:
-                self.info(msg["msg"])
-            elif msg["msg"].startswith("Nothing to be done"):
+                self.info(record.msg)
+            elif NOTHING_TO_BE_DONE_MSG in record.msg:
                 self.info("Nothing to be done.")
-            elif msg["msg"].startswith("Will exit after finishing currently running jobs") and not self.terminated:
+            elif record.msg.startswith("Will exit after finishing currently running jobs") and not self.terminated:
                 self.logger.log(logging.INFO, "Will exit after finishing currently running jobs")
                 self.terminated = True
+            if self.dry_run and "Reasons:" in record.msg:
+                # Save reasons for tasks being scheduled
+                self.reasons = record.msg.split("\n", 2)[2]
 
-        elif level == "debug":
-            # SparvErrorMessage in rules causes another exception (RuleException) to be raised, so skip those
-            if "SparvErrorMessage" in msg["msg"] and "RuleException" not in msg["msg"]:
-                # SparvErrorMessage exception from pipeline core
-                # Parse error message
-                message = re.search(
-                    rf"{SparvErrorMessage.start_marker}([^\n]*)\n([^\n]*)\n(.*?){SparvErrorMessage.end_marker}",
-                    msg["msg"],
-                    flags=re.DOTALL,
-                )
-                if message:
-                    module, function, error_message = message.groups()
-                    error_source = f"{module}:{function}" if module and function else None
-                    self.messages["error"].append((error_source, error_message))
-                    self.handled_error = True
-            elif "exit status 123" in msg["msg"]:
+        elif snake_level == LogEvent.ERROR or record_level == "ERROR":  # Error messages
+            if self.pass_through:
+                self.messages["unhandled_error"].append((record.getMessage(), None))
+                return
+            handled = False
+
+            if "exit status 123" in record.msg:
                 # Exit status 123 means a Sparv module caused an exception, either a SparvErrorMessage exception, or
                 # an unexpected exception. Either way, the error message has already been logged, so it doesn't need to
                 # be printed again.
                 self.handled_error = True
-            elif "died with <Signals." in msg["msg"]:
+
+            # Missing output files
+            elif "MissingOutputException" in record.message:
+                msg_contents = re.search(r"Missing files after .*?:\n(.+)", record.message, flags=re.DOTALL)
+                missing_files = "\n • ".join(
+                    line.split(" (missing locally", 1)[0] for line in msg_contents[1].strip().splitlines()
+                )
+                message = (
+                    "The following output files were expected but are missing:\n"
+                    f" • {missing_files}\n\n{missing_annotations_msg}"
+                )
+                self.messages["error"].append((None, message))
+                handled = True
+            elif "Exiting because a job execution failed." in record.message:
+                pass
+            elif "run_snake.py' returned non-zero exit status 1." in record.message:
+                # This happens when run_snake.py crashes unexpectedly, i.e. not due to an exception in a Sparv module.
+                # The error message should already have been printed, either to stderr or to the log, depending on
+                # whether it happened before redirecting stderr to the log.
+                handled = True
+            elif "Error: Directory cannot be locked." in record.message:
+                message = (
+                    "Directory cannot be locked. If you are sure that no other Sparv instance is currently "
+                    "using this directory, run 'sparv run --unlock' to remove the lock."
+                )
+                self.messages["error"].append((None, message))
+                handled = True
+            elif "died with <Signals." in record.message:
                 # The run_snake.py subprocess was killed
-                signal_match = re.search(r"died with <Signals.([A-Z]+)", msg["msg"])
+                signal_match = re.search(r"died with <Signals.([A-Z]+)", record.message)
                 self.messages["error"].append(
                     (
                         None,
@@ -758,84 +853,28 @@ class LogHandler:
                     )
                 )
                 self.handled_error = True
-        elif level == "error":
-            if self.pass_through:
-                self.messages["unhandled_error"].append(msg)
-                return
-            handled = False
-
-            # Errors due to missing config variables or binaries leading to missing input files
-            if "MissingInputException" in msg["msg"]:
-                msg_contents = re.search(r" for rule (\S+):\n.*affected files:\n(.+)", msg["msg"], flags=re.DOTALL)
-                rule_name, filelist = msg_contents.groups()
-                rule_name = rule_name.replace("::", ":")
-                if self.missing_configs_re.search(filelist):
-                    missing_config_message(rule_name)
-                elif self.missing_binaries_re.search(filelist):
-                    missing_binary_message(rule_name)
-                elif self.missing_classes_re.search(filelist):
-                    missing_class_message(rule_name, self.missing_classes_re.findall(filelist))
-                else:
-                    missing_annotations_or_files(rule_name, filelist)
-                handled = True
-
-            # Missing output files
-            elif "MissingOutputException" in msg["msg"]:
-                msg_contents = re.search(r"Missing files after .*?:\n(.+)", msg["msg"], flags=re.DOTALL)
-                missing_files = "\n • ".join(msg_contents[1].strip().splitlines())
-                message = (
-                    "The following output files were expected but are missing:\n"
-                    f" • {missing_files}\n{missing_annotations_msg}"
-                )
-                self.messages["error"].append((None, message))
-                handled = True
-            elif "Exiting because a job execution failed." in msg["msg"]:
-                pass
-            elif "run_snake.py' returned non-zero exit status 1." in msg["msg"]:
-                handled = True
-            elif "Error: Directory cannot be locked." in msg["msg"]:
-                message = (
-                    "Directory cannot be locked. Please make sure that no other Sparv instance is currently "
-                    "processing this corpus. If you are sure that no other Sparv instance is using this "
-                    "directory, run 'sparv run --unlock' to remove the lock."
-                )
-                self.messages["error"].append((None, message))
-                handled = True
 
             # Unhandled errors
             if not handled:
-                self.messages["unhandled_error"].append(msg)
+                self.messages["unhandled_error"].append((record.getMessage(), None))
             else:
                 self.handled_error = True
 
-        elif level in {"warning", "job_error"}:
+        elif (snake_level == LogEvent.JOB_ERROR and not self.keep_going) or record_level == "WARNING":
             # Save other errors and warnings for later
-            if msg.get("msg"):
-                self.messages["unhandled_error"].append(msg)
+            if record.message:
+                self.messages["unhandled_error"].append((record.getMessage(), None))
 
-        elif level == "dag_debug" and "job" in msg:
+        elif snake_level == LogEvent.WORKFLOW_STARTED:
             # Create regular expressions for searching for missing config variables or binaries
-            if self.missing_configs_re is None:
-                all_configs = {v for varlist in messages["missing_configs"].values() for v in varlist}
-                self.missing_configs_re = re.compile(r"\[({})]".format("|".join(all_configs)))
+            all_configs = {v for varlist in messages["missing_configs"].values() for v in varlist}
+            self.missing_configs_re = re.compile(r"\[({})]".format("|".join(all_configs)))
 
-            if self.missing_binaries_re is None:
-                all_binaries = {b for binlist in messages["missing_binaries"].values() for b in binlist}
-                self.missing_binaries_re = re.compile(r"^({})$".format("|".join(all_binaries)), flags=re.MULTILINE)
+            all_binaries = {b for binlist in messages["missing_binaries"].values() for b in binlist}
+            self.missing_binaries_re = re.compile(r"^({})$".format("|".join(all_binaries)), flags=re.MULTILINE)
 
-            if self.missing_classes_re is None:
-                all_classes = {v for varlist in messages["missing_classes"].values() for v in varlist}
-                self.missing_classes_re = re.compile(r"<({})>".format("|".join(all_classes)))
-
-            # Check the rules selected for the current operation, and see if any is unusable due to missing configs
-            if msg["status"] == "selected":
-                job_name = str(msg["job"]).replace("::", ":")
-                if job_name in messages["missing_configs"]:
-                    missing_config_message(job_name)
-                    self.handled_error = True
-                    # We need to stop Snakemake by raising an exception, and BrokenPipeError is the only exception
-                    # not leading to a full traceback being printed (due to Snakemake's handling of exceptions)
-                    raise BrokenPipeError
+            all_classes = {v for varlist in messages["missing_classes"].values() for v in varlist}
+            self.missing_classes_re = re.compile(r"<({})>".format("|".join(all_classes)))
 
     def stop(self) -> None:
         """Stop the progress bar and output any messages."""
@@ -885,29 +924,39 @@ class LogHandler:
                 self.error("Job execution failed. See log messages above for details.")
         # Unhandled errors
         elif self.messages["unhandled_error"]:
-            for error in self.messages["unhandled_error"]:
+            # If debug log level is set, print full error message with traceback, otherwise just a summary.
+            # The log file always contains the full error message.
+            for error_message, exception in self.messages["unhandled_error"]:
                 errmsg = ["An unexpected error occurred."]
                 if self.log_level and logging._nameToLevel[self.log_level.upper()] > logging.DEBUG:
                     errmsg[0] += (
                         f" For more details, please check '{paths.log_dir / self.log_filename}', or rerun Sparv "
                         "with the '--log debug' argument.\n"
                     )
-                    if error.get("msg"):
-                        # Show only a summary of the error
-                        # Parsing is based on the format in format_error() in snakemake/exceptions.py
-                        error_lines = error["msg"].splitlines()
-                        if " in file " in error_lines[0]:
-                            errmsg.append(error_lines[0].split(" in file ")[0] + ":")
-                            for line in error_lines[1:]:
-                                if line.startswith("  File "):
-                                    break
-                                errmsg.append(line)
+                    if error_message:
+                        errmsg.append(error_message)
+                    self.error("\n".join(errmsg))
+                elif exception:
+                    self.error("\n".join(errmsg))
+                    console.print(
+                        Traceback.from_exception(
+                            type(exception), exception, exception.__traceback__, suppress=[snakemake]
+                        )
+                    )
                 else:
                     errmsg.append("")
-                    errmsg.append(error.get("msg") or "An unknown error occurred.")
-                self.error("\n".join(errmsg))
+                    errmsg.append(error_message or "An unknown error occurred.")
+                    self.error("\n".join(errmsg))
+
                 # Always log full error message to file, no matter the log level
-                self.logger.error(error.get("msg") or "An unknown error occurred.", extra={"to_file": True})
+                if exception:
+                    # Get traceback from the exception
+                    full_message = "".join(
+                        traceback.format_exception(type(exception), exception, exception.__traceback__)
+                    )
+                else:
+                    full_message = error_message
+                self.logger.error(full_message or "An unknown error occurred.", extra={"to_file": True})
         else:
             spacer = ""
             if self.export_dirs:
@@ -955,6 +1004,9 @@ class LogHandler:
                 table.add_row()
                 table.add_row(str(sum(self.jobs.values())), "Total number of tasks")
                 console.print(table)
+                if self.reasons:
+                    console.print("Reasons:\n")
+                    console.print(self.reasons)
 
             if self.terminated:
                 self.info(f"{spacer}Sparv was stopped by a TERM signal")
@@ -962,8 +1014,8 @@ class LogHandler:
     @staticmethod
     def cleanup() -> None:
         """Remove Snakemake log files."""
-        snakemake_log_file = logger.get_logfile()
-        if snakemake_log_file is not None:
+        snakemake_log_files = logger_manager.get_logfile()
+        for snakemake_log_file in snakemake_log_files:
             log_file = Path(snakemake_log_file)
             if log_file.is_file():
                 try:

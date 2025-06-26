@@ -527,9 +527,19 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
                 "autocompletion."
             )
         return True
-    import snakemake
-    from snakemake.logging import logger
+
+    from snakemake.api import (
+        ConfigSettings,
+        DAGSettings,
+        ExecutionSettings,
+        OutputSettings,
+        ResourceSettings,
+        SnakemakeApi,
+        StorageSettings,
+    )
+    from snakemake.settings.types import RerunTrigger
     from snakemake.utils import available_cpu_count
+    from snakemake_interface_logger_plugins.registry import LoggerPluginRegistry
 
     from sparv.core import log_handler, setup
     from sparv.core.paths import paths
@@ -602,24 +612,22 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
         )
         return False
 
-    snakemake_args = {
-        "workdir": args.dir,
-        "rerun_triggers": ["mtime", "input"],  # Rerun based on file modification times and changes to
-        # the set of source files
-        "force_incomplete": True,  # Always rerun incomplete files
-    }
-    config = {"run_by_sparv": True}
+    targets = []
+    config = {"run_by_sparv": True}  # Config structure accessible in our Snakefile code
     simple_target = False
     log_level = ""
     log_file_level = ""
     simple_mode = False
     stats = False
     pass_through = False
+    cores = 1
     dry_run = False
     keep_going = False
+    unlock = False
+    force_run = set()
 
     if args.command in {"modules", "config", "files", "clean", "presets", "classes", "languages", "preload", "schema"}:
-        snakemake_args["targets"] = [args.command]
+        targets = [args.command]
         simple_target = True
         if args.command == "clean":
             config["export"] = args.export
@@ -642,7 +650,7 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
             config["preload_command"] = args.preload_command
             config["targets"] = ["preload"]
             if args.list:
-                snakemake_args["targets"] = ["preload_list"]
+                targets = ["preload_list"]
         elif args.command == "schema":
             config["targets"] = ["schema"]
             config["compact"] = args.compact
@@ -654,9 +662,6 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
             cores = args.cores or available_cpu_count()
         except NotImplementedError:
             cores = 1
-        snakemake_args.update(
-            {"dryrun": args.dry_run, "cores": cores, "keepgoing": args.keep_going, "resources": {"threads": args.cores}}
-        )
         # Never show progress bar for list commands or dry run
         if args.list or args.dry_run:
             simple_target = True
@@ -668,57 +673,57 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
         # Command: run
         if args.command == "run":
             if args.unlock:
-                snakemake_args["unlock"] = args.unlock
+                unlock = True
                 simple_target = True
                 pass_through = True
             if args.list:
-                snakemake_args["targets"] = ["list_exports"]
+                targets = ["list_exports"]
             elif args.output:
-                snakemake_args["targets"] = args.output
+                targets = args.output
             else:
-                snakemake_args["targets"] = ["export_corpus"]
+                targets = ["export_corpus"]
         # Command: run-rule
         elif args.command == "run-rule":
-            snakemake_args["targets"] = args.targets
+            targets = args.targets
             if args.wildcards:
                 config["wildcards"] = args.wildcards
-            if args.list or snakemake_args["targets"] == ["list"]:
-                snakemake_args["targets"] = ["list_targets"]
+            if args.list or targets == ["list"]:
+                targets = ["list_targets"]
                 simple_target = True
             elif args.force:
                 # Rename all-files-rule to the related regular rule
-                snakemake_args["forcerun"] = [t.replace(":", "::") for t in args.targets]
+                force_run = [t.replace(":", "::") for t in args.targets]
         # Command: create-file
         elif args.command == "create-file":
-            snakemake_args["targets"] = args.targets
-            if args.list or snakemake_args["targets"] == ["list"]:
-                snakemake_args["targets"] = ["list_files"]
+            targets = args.targets
+            if args.list or targets == ["list"]:
+                targets = ["list_files"]
                 simple_target = True
             elif args.force:
-                snakemake_args["forcerun"] = args.targets
+                force_run = args.targets
         # Command: install
         elif args.command == "install":
             if args.list:
-                snakemake_args["targets"] = ["list_installs"]
+                targets = ["list_installs"]
             else:
                 config["install_types"] = args.type
-                snakemake_args["targets"] = ["install_corpus"]
+                targets = ["install_corpus"]
         # Command: uninstall
         elif args.command == "uninstall":
             if args.list:
-                snakemake_args["targets"] = ["list_uninstalls"]
+                targets = ["list_uninstalls"]
             else:
                 config["uninstall_types"] = args.type
-                snakemake_args["targets"] = ["uninstall_corpus"]
+                targets = ["uninstall_corpus"]
         # Command: build-models
         elif args.command == "build-models":
             config["language"] = args.language
             if args.model:
-                snakemake_args["targets"] = args.model
+                targets = args.model
             elif args.all:
-                snakemake_args["targets"] = ["build_models"]
+                targets = ["build_models"]
             else:
-                snakemake_args["targets"] = ["list_models"]
+                targets = ["list_models"]
                 simple_target = True
 
         log_level = args.log or "warning"
@@ -743,18 +748,12 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
                 "log_file_level": log_file_level,
                 "socket": socket,
                 "force_preloader": args.force_preloader,
-                "targets": snakemake_args["targets"],
+                "targets": targets,
                 "threads": args.cores,
             }
         )
 
-    if simple_target:
-        # Force Snakemake to use threads to prevent unnecessary processes for simple targets
-        snakemake_args["force_use_threads"] = True
-
-    # Disable Snakemake's default log handler and use our own
-    logger.log_handler = []
-    progress = log_handler.LogHandler(
+    progress = log_handler.SparvLogHandler(
         progressbar=not (simple_target or json_log),
         log_level=log_level,
         log_file_level=log_file_level,
@@ -767,15 +766,65 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
         log_queue=log_queue,
         root_dir=args.dir,
     )
-    snakemake_args["log_handler"] = [progress.log_handler]
+
+    # Register our log plugin with Snakemake
+    from sparv.core import log_plugin
+
+    log_plugin.set_sparv_log_handler(progress)
+    logger_plugin_registry = LoggerPluginRegistry()
+    logger_plugin_registry.register_plugin("log_plugin", log_plugin)
+    log_handler_settings = {"log-plugin": logger_plugin_registry.get_plugin("log-plugin").get_settings(args)}
 
     config["log_server"] = progress.log_server
+    success = True
 
     # Run Snakemake
-    success: bool = snakemake.snakemake(paths.sparv_path / "core" / "Snakefile", config=config, **snakemake_args)
-
-    progress.stop()
-    progress.cleanup()
+    with SnakemakeApi(
+        OutputSettings(
+            verbose=False,  # verbose=True leads to output from the solver that we can't silence
+            dryrun=dry_run,
+            log_handler_settings=log_handler_settings,
+        )
+    ) as snakemake_api:
+        workflow_api = snakemake_api.workflow(
+            storage_settings=StorageSettings(),
+            resource_settings=ResourceSettings(
+                cores=cores,
+                resources={"threads": cores},
+            ),
+            config_settings=ConfigSettings(config),
+            workdir=Path(args.dir) if args.dir else None,
+            snakefile=paths.sparv_path / "core" / "Snakefile",
+        )
+        try:
+            dag_api = workflow_api.dag(
+                dag_settings=DAGSettings(
+                    targets=targets,
+                    # Rerun based on file modification times and changes to the set of source files
+                    rerun_triggers={RerunTrigger.MTIME, RerunTrigger.INPUT},
+                    # Always rerun incomplete files
+                    force_incomplete=True,
+                    forcerun=force_run,
+                )
+            )
+            if unlock:
+                dag_api.unlock()
+            else:
+                dag_api.execute_workflow(
+                    executor="dryrun" if dry_run else "local",
+                    execution_settings=ExecutionSettings(
+                        keep_going=keep_going,
+                        # Force Snakemake to use threads to prevent unnecessary processes for simple targets
+                        use_threads=simple_target,
+                    ),
+                )
+        except Exception as e:
+            # Any exceptions (include SparvErrorMessage) in the Sparv core are caught here
+            progress.handle_exception(e)
+            success = False
+        finally:
+            progress.stop()
+            progress.cleanup()
 
     return success
 

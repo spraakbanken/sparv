@@ -20,10 +20,6 @@ from sparv.core import registry, snake_prints, snake_utils
 from sparv.core.console import console
 from sparv.core.paths import paths
 
-# Remove Snakemake's default log handler
-if config.get("run_by_sparv") and logger.log_handler and logger.log_handler[0] == logger.text_handler:
-    logger.log_handler = []
-
 # Don't do anything if no rule was specified
 rule do_nothing:
     input: []
@@ -159,7 +155,10 @@ def make_all_files_rule(rule_storage: snake_utils.RuleStorage) -> None:
 
     # Expand {file} wildcard to every corpus file
     rule_outputs = expand(
-        rule_outputs, file=snake_utils.get_file_values(config, snake_storage), **snake_utils.get_wildcard_values(config)
+        rule_outputs,
+        file=snake_utils.get_file_values(config, snake_storage),
+        **snake_utils.get_wildcard_values(config),
+        allow_missing=True,
     )
 
     rule:
@@ -184,10 +183,9 @@ def update_autocompletion_cache() -> None:
         # Collect data for cache
         new_cache = dict.fromkeys(("export", "install", "uninstall", "model"))
         for target_type in new_cache:
-            # TODO: Use f-strings after upgrading to Snakemake 8. f-strings don't work in Snakefiles with Python 3.12.
             new_cache[target_type] = {
                 t[0]: t[1].split("\n", 1)[0]
-                for t in getattr(snake_storage, target_type + "_targets")
+                for t in getattr(snake_storage, f"{target_type}_targets")
                 if not t[0].startswith("custom.")
             }
 
@@ -196,7 +194,7 @@ def update_autocompletion_cache() -> None:
             new_cache["annotate"].update(
                 {
                     t[0]: t[1].split("\n", 1)[0]
-                    for t in getattr(snake_storage, target_type + "_targets")
+                    for t in getattr(snake_storage, f"{target_type}_targets")
                     if not t[0].startswith("custom.")
                 }
             )
