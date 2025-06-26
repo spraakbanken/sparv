@@ -1,5 +1,15 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+### Changed
+
+- Dropped support for Python 3.10.
+
+### Fixed
+
 ## [5.3.0] - 2025-06-19
 
 ### Added
