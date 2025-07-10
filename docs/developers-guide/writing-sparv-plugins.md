@@ -122,7 +122,7 @@ from sparv.api import Annotation, Output, annotator
 @annotator("Convert every word to uppercase.")
 def uppercase(
     word: Annotation = Annotation("<token:word>"),
-    out: Output = Output("<token>:sbx_uppercase.upper")
+    out: Output = Output("<token>:sbx_uppercase.upper", description="Uppercase version of the word")
 ):
     """Convert to uppercase."""
     out.write([val.upper() for val in word.read()])
@@ -157,6 +157,9 @@ the function will produce an output annotation. The default values for these par
 `Annotation` and `Output` classes, respectively. The `Annotation("<token:word>")` specifies that the function requires
 the `<token:word>` annotation as input, while `Output("<token>:sbx_uppercase.upper")` specifies that the function will
 produce the `<token>:sbx_uppercase.upper` annotation as output.
+
+For every `Output` parameter, make sure to include a short description of the output annotation, one sentence long, as
+shown in the example.
 
 Sparv functions are not meant to be called directly by you or by other Sparv functions. Instead, they are registered
 with the Sparv pipeline when the module is imported. Sparv then calls them as needed, based on the pipeline's dependency
@@ -236,7 +239,7 @@ from sparv.api import SparvErrorMessage
 
 @annotator("Convert every word to uppercase")
 def uppercase(word: Annotation = Annotation("<token:word>"),
-              out: Output = Output("<token>:sbx_uppercase.upper"),
+              out: Output = Output("<token>:sbx_uppercase.upper", description="Uppercase version of the word"),
               important_config_variable: str = Config("sbx_uppercase.some_setting")):
     """Convert to uppercase."""
     # Ensure important_config_variable is set by the user
@@ -465,7 +468,7 @@ the following example:
 ```python
 @annotator("Number {annotation} by position", wildcards=[Wildcard("annotation", Wildcard.ANNOTATION)])
 def number_by_position(
-    out: Output = Output("{annotation}:misc.number_position"),
+    out: Output = Output("{annotation}:misc.number_position", description="Position of {annotation} within file"),
     chunk: Annotation = Annotation("{annotation}"),
     ...
 ):
@@ -483,7 +486,9 @@ An annotator can also have multiple wildcards, as demonstrated in the following 
     wildcards=[Wildcard("annotation", Wildcard.ANNOTATION), Wildcard("parent", Wildcard.ANNOTATION)],
 )
 def number_relative(
-    out: Output = Output("{annotation}:misc.number_rel_{parent}"),
+    out: Output = Output(
+        "{annotation}:misc.number_rel_{parent}", description="Relative position of {annotation} within {parent}"
+    ),
     parent: Annotation = Annotation("{parent}"),
     child: Annotation = Annotation("{annotation}"),
     ...
@@ -508,14 +513,14 @@ decorator. A lower number indicates a higher priority.
 ```python
 @annotator("Create foo annotation", order=1)
 def annotate(
-    out: Output = Output("mymodule.foo"),
+    out: Output = Output("mymodule.foo", description="Foo annotation"),
     bar_input: Annotation = Annotation("mymodule.bar")):
     ...
 
 
 @annotator("Create foo annotation when bar is not available", order=2)
 def annotate_backoff(
-    out: Output = Output("mymodule.foo")):
+    out: Output = Output("mymodule.foo", description="Foo annotation"):
     ...
 ```
 
@@ -546,7 +551,7 @@ def preloader(model):
 )
 def pos_tag(
     word: Annotation = Annotation("<token:word>"),
-    out: Output = Output("<token>:pos.tag"),
+    out: Output = Output("<token>:pos.tag", description="Part-of-speech tag"),
     model: Model = Model("pos.model"),
     model_preloaded: dict | None = None,
 ):
