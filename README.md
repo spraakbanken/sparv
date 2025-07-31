@@ -56,3 +56,49 @@ pip install -e .[dev]
 Now with the virtual environment activated you can run `pytest` from the `sparv` directory. You can run
 particular tests using the provided markers (e.g. `pytest -m swe` to run the Swedish tests only) or via substring
 matching (e.g. `pytest -k "not slow"` to skip the slow tests).
+
+## Development
+
+For setting up a development environment, we recommend using [**uv**](https://github.com/astral-sh/uv), 
+an extremely fast Python package installer and resolver.
+
+1. **Install `uv`**:
+
+    ```bash
+    # On macOS and Linux
+    curl -LsSf [https://astral.sh/uv/install.sh](https://astral.sh/uv/install.sh) | sh
+    ```
+
+2. **Create and activate a virtual environment**:
+
+    ```bash
+    uv venv
+    source .venv/bin/activate
+    ```
+
+3. **Install dependencies in editable mode**:
+
+    ```bash
+    uv pip install -e ".[dev]"
+    ```
+
+### New Features
+
+This version of Sparv includes several new features to improve the developer experience:
+
+#### Interactive Dependency Resolution
+
+When Sparv detects that two or more annotators can produce the same output (a rule conflict), 
+it will now present an interactive prompt asking you to choose the preferred order. 
+This allows you to resolve ambiguities on the fly without having to manually edit configuration files.
+
+#### Plugin Health Check
+
+A new CLI command is available to scan all installed modules and check for common issues, 
+such as missing descriptions or invalid function signatures. This helps maintain code quality and ensures plugins are well-formed.
+
+To run the check, use the following command:
+
+```bash
+sparv plugins check
+```
