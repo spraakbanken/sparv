@@ -91,17 +91,37 @@ class SnakeStorage:
             SparvErrorMessage: If the importer setting is empty or if the importer is not found.
         """
         if self._source_files is None:
+            # Helper function to get available importers
+            def get_available_importers():
+                importers = []
+                for mod_name, mod in registry.modules.items():
+                    for func_name, func_info in mod.functions.items():
+                        if func_info["type"] is registry.Annotator.importer:
+                            importers.append(f"{mod_name}:{func_name}")
+                return sorted(importers)
+
             if not sparv_config.get("import.importer"):
-                raise SparvErrorMessage("The config variable 'import.importer' must not be empty.", "sparv")
+                msg = "The config variable 'import.importer' is not set."
+                available_importers = get_available_importers()
+                if available_importers:
+                    importers_str = "\n • ".join(available_importers)
+                    msg += f"\n\nAvailable importers:\n • {importers_str}"
+                msg += "\n\nYou can set it in your corpus 'config.yaml' file."
+                raise SparvErrorMessage(msg, "sparv")
+
             try:
                 importer_module, _, importer_function = sparv_config.get("import.importer").partition(":")
                 file_extension = "." + registry.modules[importer_module].functions[importer_function]["file_extension"]
             except KeyError:
-                raise SparvErrorMessage(
-                    f"Could not find the importer '{sparv_config.get('import.importer')}'. Make sure the "
-                    "'import.importer' config value refers to an existing importer.",
-                    "sparv",
-                ) from None
+                importer_name = sparv_config.get('import.importer')
+                msg = (f"Could not find the importer '{importer_name}'. Make sure the "
+                       "'import.importer' config value refers to an existing importer.")
+                available_importers = get_available_importers()
+                if available_importers:
+                    importers_str = "\n • ".join(available_importers)
+                    msg += f"\n\nDid you mean one of these?\n • {importers_str}"
+                raise SparvErrorMessage(msg, "sparv") from None
+
             # Collect files in source dir
             sf = list(snakemake.utils.listfiles(str(Path(get_source_path(), "{file}"))))
             self._source_files = [f[1][0][: -len(file_extension)] for f in sf if f[1][0].endswith(file_extension)]
@@ -121,7 +141,7 @@ class SnakeStorage:
                     highlight=False,
                 )
         return self._source_files
-
+    
 
 class RuleStorage:
     """Object to store parameters for a snake rule."""
