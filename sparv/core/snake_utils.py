@@ -736,25 +736,29 @@ def name_custom_rule(rule: RuleStorage, storage: SnakeStorage) -> None:
 
 
 def check_ruleorder(storage: SnakeStorage) -> set[tuple[RuleStorage, RuleStorage]]:
-    """Order rules where necessary and prompt the user if rule order is missing.
+    """Order rules where necessary and prompt the user if rule order is missing."""
+    print("\n--- DEBUG: Starting check_ruleorder ---")
+    print(f"Total rules to check: {len(storage.all_rules)}")
 
-    Args:
-        storage: SnakeStorage object.
-
-    Returns:
-        A set of tuples with ordered rules.
-
-    Raises:
-        SparvErrorMessage: If the user cancels the interactive prompt.
-    """
     ruleorder_pairs = []
     ordered_rules = set()
     # Find rules that have common outputs and therefore need to be ordered
     rule: RuleStorage
     other_rule: RuleStorage
     for rule, other_rule in combinations(storage.all_rules, 2):
-        common_outputs = tuple(sorted(set(rule.outputs).intersection(set(other_rule.outputs))))
+        # Convert outputs to strings for consistent comparison
+        rule_outputs = {str(o) for o in rule.outputs}
+        other_rule_outputs = {str(o) for o in other_rule.outputs}
+
+        common_outputs = tuple(sorted(rule_outputs.intersection(other_rule_outputs)))
         if common_outputs:
+            # --- DEBUG PRINT ---
+            print(f"\n[DEBUG] CONFLICT FOUND!")
+            print(f"  - Rule 1: {rule.full_name} (Order: {rule.order})")
+            print(f"  - Rule 2: {other_rule.full_name} (Order: {other_rule.order})")
+            print(f"  - Common Outputs: {common_outputs}")
+            # --- END DEBUG ---
+
             # If a rule is lacking ruleorder or if two rules have the same order attribute, ask the user
             if any(i is None for i in [rule.order, other_rule.order]) or rule.order == other_rule.order:
                 ruleorder_pairs.append(((rule, other_rule), common_outputs))
@@ -762,7 +766,12 @@ def check_ruleorder(storage: SnakeStorage) -> set[tuple[RuleStorage, RuleStorage
             else:
                 ordered_rules.add(tuple(sorted([rule, other_rule], key=lambda i: i.order)))
 
+    print("--- DEBUG: Finished checking for conflicts ---\n")
+
     # Prompt user if rule order is lacking somewhere
+    if not ruleorder_pairs:
+         print("--- DEBUG: No rule pairs need ordering. ---")
+
     for rules, common_outputs in ruleorder_pairs:
         rule1, rule2 = rules
         common_outputs_str = "', '".join(map(str, common_outputs))
