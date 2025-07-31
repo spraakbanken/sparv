@@ -12,6 +12,8 @@ from typing import Any
 # PYTHON_ARGCOMPLETE_OK
 import argcomplete
 from rich_argparse import RawDescriptionRichHelpFormatter, RichHelpFormatter
+from sparv.core.health_check import HealthCheck
+from sparv.core.console import console
 
 from sparv import __version__
 
@@ -131,6 +133,19 @@ class SortedCompletionFinder(argcomplete.CompletionFinder):
         completions = super().filter_completions(completions)
         completions.sort()
         return completions
+
+
+def run_plugins_check(args):
+    """Run the plugin health check."""
+    print("--- DEBUG: Entered run_plugins_check function ---")
+    try:
+        health_checker = HealthCheck()
+        failed_checks = health_checker.run()
+        if failed_checks > 0:
+            exit(1)
+    except Exception as e:
+        console.print_exception()
+        exit(1)
 
 
 def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) -> bool:
@@ -429,6 +444,11 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
     plugins_uninstall_parser.add_argument("plugin", help="The name of the plugin to uninstall")
     plugins_uninstall_parser.add_argument("-v", "--verbose", action="store_true", help="Show more details")
 
+    # Sub-command: check
+    plugins_check_parser = plugins_subparsers.add_parser(
+        "check", help="Run a health check on all installed plugins", formatter_class=RichHelpFormatter
+    )
+
     # Add common arguments
     for subparser in [run_parser, runrule_parser]:
         subparser.add_argument("-f", "--file", nargs="+", default=[], help="Only annotate specified source file(s)")
@@ -579,6 +599,8 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
             plugins.uninstall_plugin(args.plugin, verbose=args.verbose)
         elif args.plugins_command == "list":
             plugins.list_installed_plugins(args.verbose)
+        elif args.plugins_command == "check":
+            run_plugins_check(args)
         elif args.plugins_command is None:
             plugins.list_installed_plugins()
         return True
@@ -791,3 +813,4 @@ def cli() -> None:
 
 if __name__ == "__main__":
     cli()
+
