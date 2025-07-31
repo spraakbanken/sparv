@@ -84,44 +84,65 @@ class SnakeStorage:
 
         self._source_files = None  # Auxiliary variable for the source_files property
 
-    @property
-    def source_files(self) -> list[str]:
-        """Return list of all available source files.
 
-        Raises:
-            SparvErrorMessage: If the importer setting is empty or if the importer is not found.
-        """
-        if self._source_files is None:
-            if not sparv_config.get("import.importer"):
-                raise SparvErrorMessage("The config variable 'import.importer' must not be empty.", "sparv")
-            try:
-                importer_module, _, importer_function = sparv_config.get("import.importer").partition(":")
-                file_extension = "." + registry.modules[importer_module].functions[importer_function]["file_extension"]
-            except KeyError:
-                raise SparvErrorMessage(
-                    f"Could not find the importer '{sparv_config.get('import.importer')}'. Make sure the "
-                    "'import.importer' config value refers to an existing importer.",
-                    "sparv",
-                ) from None
-            # Collect files in source dir
-            sf = list(snakemake.utils.listfiles(str(Path(get_source_path(), "{file}"))))
-            self._source_files = [f[1][0][: -len(file_extension)] for f in sf if f[1][0].endswith(file_extension)]
-            # Collect files that don't match the file extension provided by the corpus config
-            wrong_ext = [f[1][0] for f in sf if not f[1][0].endswith(file_extension) and not Path(f[0]).is_dir()]
-            if wrong_ext:
-                console.print(
-                    "[yellow]\nThere {} file{} in your source directory that do{} not match the file "
-                    "extension '{}' in the corpus config: {}{} will not be processed.\n[/yellow]".format(
-                        "is one" if len(wrong_ext) == 1 else "are",
-                        "" if len(wrong_ext) == 1 else "s",
-                        "es" if len(wrong_ext) == 1 else "",
-                        file_extension,
-                        f"'{wrong_ext[0]}'" if len(wrong_ext) == 1 else "\n  • " + "\n  • ".join(wrong_ext),
-                        ". This file" if len(wrong_ext) == 1 else "\nThese files",
-                    ),
-                    highlight=False,
-                )
-        return self._source_files
+@property
+def source_files(self) -> list[str]:
+    """Return list of all available source files.
+
+    Raises:
+        SparvErrorMessage: If the importer setting is empty or if the importer is not found.
+    """
+    if self._source_files is None:
+        # Helper function to get available importers
+        def get_available_importers():
+            importers = []
+            for mod_name, mod in registry.modules.items():
+                for func_name, func_info in mod.functions.items():
+                    if func_info["type"] is registry.Annotator.importer:
+                        importers.append(f"{mod_name}:{func_name}")
+            return sorted(importers)
+
+        if not sparv_config.get("import.importer"):
+            msg = "The config variable 'import.importer' is not set."
+            available_importers = get_available_importers()
+            if available_importers:
+                importers_str = "\n • ".join(available_importers)
+                msg += f"\n\nAvailable importers:\n • {importers_str}"
+            msg += "\n\nYou can set it in your corpus 'config.yaml' file."
+            raise SparvErrorMessage(msg, "sparv")
+
+        try:
+            importer_module, _, importer_function = sparv_config.get("import.importer").partition(":")
+            file_extension = "." + registry.modules[importer_module].functions[importer_function]["file_extension"]
+        except KeyError:
+            importer_name = sparv_config.get('import.importer')
+            msg = (f"Could not find the importer '{importer_name}'. Make sure the "
+                   "'import.importer' config value refers to an existing importer.")
+            available_importers = get_available_importers()
+            if available_importers:
+                importers_str = "\n • ".join(available_importers)
+                msg += f"\n\nDid you mean one of these?\n • {importers_str}"
+            raise SparvErrorMessage(msg, "sparv") from None
+
+        # Collect files in source dir
+        sf = list(snakemake.utils.listfiles(str(Path(get_source_path(), "{file}"))))
+        self._source_files = [f[1][0][: -len(file_extension)] for f in sf if f[1][0].endswith(file_extension)]
+        # Collect files that don't match the file extension provided by the corpus config
+        wrong_ext = [f[1][0] for f in sf if not f[1][0].endswith(file_extension) and not Path(f[0]).is_dir()]
+        if wrong_ext:
+            console.print(
+                "[yellow]\nThere {} file{} in your source directory that do{} not match the file "
+                "extension '{}' in the corpus config: {}{} will not be processed.\n[/yellow]".format(
+                    "is one" if len(wrong_ext) == 1 else "are",
+                    "" if len(wrong_ext) == 1 else "s",
+                    "es" if len(wrong_ext) == 1 else "",
+                    file_extension,
+                    f"'{wrong_ext[0]}'" if len(wrong_ext) == 1 else "\n  • " + "\n  • ".join(wrong_ext),
+                    ". This file" if len(wrong_ext) == 1 else "\nThese files",
+                ),
+                highlight=False,
+            )
+    return self._source_files
 
 
 class RuleStorage:
