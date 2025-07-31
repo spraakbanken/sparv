@@ -11,6 +11,7 @@ from itertools import combinations
 from pathlib import Path
 from typing import Any
 
+import questionary
 import snakemake
 from snakemake.io import expand
 
@@ -715,15 +716,18 @@ def name_custom_rule(rule: RuleStorage, storage: SnakeStorage) -> None:
 
 
 def check_ruleorder(storage: SnakeStorage) -> set[tuple[RuleStorage, RuleStorage]]:
-    """Order rules where necessary and print warning if rule order is missing.
+    """Order rules where necessary and prompt the user if rule order is missing.
 
     Args:
         storage: SnakeStorage object.
 
     Returns:
         A set of tuples with ordered rules.
+
+    Raises:
+        SparvErrorMessage: If the user cancels the interactive prompt.
     """
-    ruleorder_pairs = set()
+    ruleorder_pairs = []
     ordered_rules = set()
     # Find rules that have common outputs and therefore need to be ordered
     rule: RuleStorage
@@ -731,21 +735,43 @@ def check_ruleorder(storage: SnakeStorage) -> set[tuple[RuleStorage, RuleStorage
     for rule, other_rule in combinations(storage.all_rules, 2):
         common_outputs = tuple(sorted(set(rule.outputs).intersection(set(other_rule.outputs))))
         if common_outputs:
-            # Check if a rule is lacking ruleorder or if two rules have the same order attribute
+            # If a rule is lacking ruleorder or if two rules have the same order attribute, ask the user
             if any(i is None for i in [rule.order, other_rule.order]) or rule.order == other_rule.order:
-                ruleorder_pairs.add(((rule, other_rule), common_outputs))
-            # Sort ordered rules
+                ruleorder_pairs.append(((rule, other_rule), common_outputs))
+            # Otherwise, sort ordered rules
             else:
                 ordered_rules.add(tuple(sorted([rule, other_rule], key=lambda i: i.order)))
 
-    # Print warning if rule order is lacking somewhere
+    # Prompt user if rule order is lacking somewhere
     for rules, common_outputs in ruleorder_pairs:
-        rule1 = rules[0].full_name
-        rule2 = rules[1].full_name
+        rule1, rule2 = rules
+        common_outputs_str = "', '".join(map(str, common_outputs))
+
         print_sparv_warning(
-            f"The annotators {rule1} and {rule2} have common outputs ({', '.join(map(str, common_outputs))}). "
-            "Please make sure to set their 'order' arguments to different values."
+            f"The annotators '{rule1.full_name}' and '{rule2.full_name}' have common outputs ('{common_outputs_str}')."
         )
+        choice = questionary.select(
+            "Which annotator should be run first?",
+            choices=[
+                questionary.Choice(rule1.full_name, value=rule1),
+                questionary.Choice(rule2.full_name, value=rule2)
+            ]
+        ).ask()
+
+        if choice is None:
+            raise SparvErrorMessage("Could not determine rule order. Please set the 'order' arguments manually.")
+
+        # The chosen one gets higher priority (lower order number)
+        if choice == rule1:
+            rule1.order = 0
+            rule2.order = 1
+        else:
+            rule1.order = 1
+            rule2.order = 0
+
+        ordered_rules.add(tuple(sorted([rule1, rule2], key=lambda i: i.order)))
+        print_sparv_info(f"Using order: {rule1.full_name if choice == rule1 else rule2.full_name} -> {rule2.full_name if choice == rule1 else rule1.full_name}")
+        print()
 
     return ordered_rules
 
