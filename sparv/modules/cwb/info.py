@@ -104,7 +104,7 @@ def create_info_file(
     logger.info("Exported: %s", out)
 
 
-@annotator("datefirst and datelast files for .info", order=1)
+@annotator("datefirst and datelast files for .info", order=2)
 def info_date(
     source_files: AllSourceFilenames = AllSourceFilenames(),
     out_datefirst: OutputCommonData = OutputCommonData("cwb.datefirst", description="The earliest date in the corpus"),
