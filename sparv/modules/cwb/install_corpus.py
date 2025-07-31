@@ -21,7 +21,7 @@ logger = get_logger(__name__)
 @installer("Install CWB datafiles", uninstaller="cwb:uninstall_corpus")
 def install_corpus(
     corpus: Corpus = Corpus(),
-    marker: OutputMarker = OutputMarker("cwb.install_corpus_marker"),
+    marker: OutputMarker = OutputMarker("cwb.install_corpus_marker", description="Marker file to indicate that the corpus has been installed"),
     uninstall_marker: MarkerOptional = MarkerOptional("cwb.uninstall_corpus_marker"),
     host: str | None = Config("cwb.remote_host"),
     registry_file: ExportInput = ExportInput("cwb.encoded/registry/[metadata.id]"),
