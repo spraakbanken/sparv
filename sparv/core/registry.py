@@ -118,7 +118,7 @@ explicit_annotations = set()
 explicit_annotations_raw = set()
 
 
-def find_modules(no_import: bool = False, find_custom: bool = False) -> list:
+def find_modules(no_import: bool = False, find_custom: bool = False, skip_language_check: bool = False) -> list:
     """Find Sparv modules and optionally import them.
 
     By importing a module containing annotator functions, the functions will automatically be
@@ -156,7 +156,7 @@ def find_modules(no_import: bool = False, find_custom: bool = False) -> list:
                 module_names.append(module.name)
             if not no_import:
                 m = importlib.import_module(f"{path}.{module.name}")
-                add_module_to_registry(m, module.name)
+                add_module_to_registry(m, module.name, skip_language_check=skip_language_check)
 
     if find_custom:
         custom_annotators = [a.get("annotator", "").split(":")[0] for a in sparv_config.get("custom_annotations", [])]
@@ -178,7 +178,7 @@ def find_modules(no_import: bool = False, find_custom: bool = False) -> list:
                     raise SparvErrorMessage(
                         f"Module '{module_name}' cannot be imported due to an error in file '{module_path}': {e}"
                     ) from None
-                add_module_to_registry(m, module_name)
+                add_module_to_registry(m, module_name, skip_language_check=skip_language_check)
 
     module_name_regex = re.compile(r"^[a-z][a-z0-9]+_[a-z0-9](?:[a-z0-9_]*[a-z0-9])?$")
 
@@ -225,7 +225,7 @@ def find_modules(no_import: bool = False, find_custom: bool = False) -> list:
                     f"loaded:\n\n    {e}"
                 )
                 continue
-            add_module_to_registry(m, entry_point.name)
+            add_module_to_registry(m, entry_point.name, skip_language_check=skip_language_check)
 
         module_names.append(entry_point.name)
 
