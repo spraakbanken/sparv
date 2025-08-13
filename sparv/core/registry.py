@@ -185,42 +185,48 @@ def find_modules(no_import: bool = False, find_custom: bool = False) -> list:
     # Search for installed plugins
     for entry_point in entry_points(group="sparv.plugin"):
         skip = False
-        try:
-            m = entry_point.load()
-            # Validate module name
-            if not module_name_regex.match(entry_point.name):
-                console.print(
-                    f"[red]:warning-emoji:  The plugin module {entry_point.name!r} has an invalid name. The name must, "
-                    "in addition to being a valid Python identifier, consist of the following parts, in this order:\n\n"
-                    "    - A namespace prefix representing the plugin author (at least two characters)\n"
-                    "    - An underscore\n"
-                    "    - One or more letters, digits, or underscores\n\n"
-                    "All letters must be lowercase, and the first and last character of the name can not be an "
-                    "underscore."
-                )
-                continue
-            # Check compatibility with Sparv version
-            for requirement in entry_point.dist.requires:
-                req = Requirement(requirement)
-                if req.name in {"sparv", "sparv-pipeline"}:
-                    req.specifier.prereleases = True  # Accept pre-release versions of Sparv
-                    if sparv_version not in req.specifier:
-                        console.print(
-                            f"[red]:warning-emoji:  The plugin {entry_point.name} ({entry_point.dist.name}) could not "
-                            f"be loaded. It requires Sparv version {req.specifier}, but the currently running Sparv "
-                            f"version is {sparv_version}.\n"
-                        )
-                        skip = True
-                    break
-            if skip:
-                continue
-        except Exception as e:
+
+        # Validate module name
+        if not module_name_regex.match(entry_point.name):
             console.print(
-                f"[red]:warning-emoji:  The plugin {entry_point.name} ({entry_point.dist.name}) could not be loaded:\n"
-                f"\n    {e}"
+                f"[red]:warning-emoji:  The plugin module {entry_point.name!r} has an invalid name. The name must, "
+                "in addition to being a valid Python identifier, consist of the following parts, in this order:\n\n"
+                "    - A namespace prefix representing the plugin author (at least two characters)\n"
+                "    - An underscore\n"
+                "    - One or more letters, digits, or underscores\n\n"
+                "All letters must be lowercase, and the first and last character of the name can not be an "
+                "underscore."
             )
             continue
-        add_module_to_registry(m, entry_point.name)
+
+        # Check compatibility with Sparv version
+        for requirement in entry_point.dist.requires:
+            req = Requirement(requirement)
+            if req.name in {"sparv", "sparv-pipeline"}:
+                req.specifier.prereleases = True  # Accept pre-release versions of Sparv
+                if sparv_version not in req.specifier:
+                    console.print(
+                        f"[red]:warning-emoji:  The plugin {entry_point.name} ({entry_point.dist.name}) could not "
+                        f"be loaded. It requires Sparv version {req.specifier}, but the currently running Sparv "
+                        f"version is {sparv_version}.\n"
+                    )
+                    skip = True
+                break
+
+        if skip:
+            continue
+
+        if not no_import:
+            try:
+                m = entry_point.load()
+            except Exception as e:
+                console.print(
+                    f"[red]:warning-emoji:  The plugin {entry_point.name} ({entry_point.dist.name}) could not be "
+                    f"loaded:\n\n    {e}"
+                )
+                continue
+            add_module_to_registry(m, entry_point.name)
+
         module_names.append(entry_point.name)
 
     return module_names
