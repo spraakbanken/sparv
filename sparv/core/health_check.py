@@ -70,7 +70,11 @@ class HealthCheck:
                         self._log_error(f"Parameter '{param.name}' in '{full_name}' is missing a type hint.")
                         has_error = True
                     # Check that Output annotations have a description
-                    if isinstance(param.default, BaseOutput) and not param.default.description:
+                    if (
+                        isinstance(param.default, BaseOutput)
+                        and not param.default.description
+                        and func_info["type"] is registry.Annotator.annotator
+                    ):
                         self._log_error(f"Output '{param.default.name}' in '{full_name}' is missing a description.")
                         has_error = True
 
