@@ -137,7 +137,6 @@ class SortedCompletionFinder(argcomplete.CompletionFinder):
 
 def run_plugins_check(args):
     """Run the plugin health check."""
-    print("--- DEBUG: Entered run_plugins_check function ---")
     try:
         health_checker = HealthCheck()
         failed_checks = health_checker.run()
@@ -862,4 +861,3 @@ def cli() -> None:
 
 if __name__ == "__main__":
     cli()
-

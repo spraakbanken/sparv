@@ -18,17 +18,13 @@ class HealthCheck:
 
     def run(self):
         """Find all modules and run all health checks."""
-        print("--- DEBUG: HealthCheck.run() started ---")
         console.print("[b]Running Sparv Plugin Health Check...[/b]\n")
         # Discover all modules without importing them fully yet
         self.all_modules = registry.find_modules(no_import=True, find_custom=True)
-        print(f"--- DEBUG: Found {len(self.all_modules)} modules (before import) ---")
         # Re-import modules to run registry checks
         registry.find_modules(find_custom=True)
-        print(f"--- DEBUG: Registry now has {len(registry.modules)} modules loaded ---")
 
         for module_name, mod_info in sorted(registry.modules.items()):
-            print(f"--- DEBUG: Checking module {module_name} ---")
             self._check_module(module_name, mod_info)
 
         console.print("\n[b]Health Check Summary:[/b]")
@@ -75,8 +71,6 @@ class HealthCheck:
 
         if not has_error:
             self._log_success("Module passed all checks.")
-        print()
-
 
     def _log_error(self, message):
         self.failed_checks += 1
