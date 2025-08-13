@@ -25,10 +25,7 @@ class HealthCheck:
             The number of failed checks.
         """
         console.print("[b]Running Sparv Plugin Health Check...[/b]\n")
-        # Discover all modules without importing them fully yet
-        self.all_modules = registry.find_modules(no_import=True, find_custom=True)
-        # Re-import modules to run registry checks
-        registry.find_modules(find_custom=True)
+        self.all_modules = registry.find_modules(find_custom=True, skip_language_check=True)
 
         for module_name, mod_info in sorted(registry.modules.items()):
             self._check_module(module_name, mod_info)
