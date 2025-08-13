@@ -12,10 +12,10 @@ from typing import Any
 # PYTHON_ARGCOMPLETE_OK
 import argcomplete
 from rich_argparse import RawDescriptionRichHelpFormatter, RichHelpFormatter
-from sparv.core.health_check import HealthCheck
-from sparv.core.console import console
 
 from sparv import __version__
+from sparv.core.console import console
+from sparv.core.health_check import HealthCheck
 
 
 class CustomArgumentParser(argparse.ArgumentParser):
@@ -135,16 +135,16 @@ class SortedCompletionFinder(argcomplete.CompletionFinder):
         return completions
 
 
-def run_plugins_check(args):
+def run_plugins_check(_args: argparse.Namespace) -> None:
     """Run the plugin health check."""
     try:
         health_checker = HealthCheck()
         failed_checks = health_checker.run()
         if failed_checks > 0:
-            exit(1)
-    except Exception as e:
+            sys.exit(1)
+    except Exception:
         console.print_exception()
-        exit(1)
+        sys.exit(1)
 
 
 def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) -> bool:
@@ -444,7 +444,7 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
     plugins_uninstall_parser.add_argument("-v", "--verbose", action="store_true", help="Show more details")
 
     # Sub-command: check
-    plugins_check_parser = plugins_subparsers.add_parser(
+    plugins_subparsers.add_parser(
         "check", help="Run a health check on all installed plugins", formatter_class=RichHelpFormatter
     )
 

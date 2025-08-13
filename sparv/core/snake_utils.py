@@ -92,7 +92,8 @@ class SnakeStorage:
         """
         if self._source_files is None:
             # Helper function to get available importers
-            def get_available_importers():
+            def get_available_importers() -> list[str]:
+                """Return a list of all available importers."""
                 importers = []
                 for mod_name, mod in registry.modules.items():
                     for func_name, func_info in mod.functions.items():
@@ -113,9 +114,11 @@ class SnakeStorage:
                 importer_module, _, importer_function = sparv_config.get("import.importer").partition(":")
                 file_extension = "." + registry.modules[importer_module].functions[importer_function]["file_extension"]
             except KeyError:
-                importer_name = sparv_config.get('import.importer')
-                msg = (f"Could not find the importer '{importer_name}'. Make sure the "
-                       "'import.importer' config value refers to an existing importer.")
+                importer_name = sparv_config.get("import.importer")
+                msg = (
+                    f"Could not find the importer '{importer_name}'. Make sure the "
+                    "'import.importer' config value refers to an existing importer."
+                )
                 available_importers = get_available_importers()
                 if available_importers:
                     importers_str = "\n • ".join(available_importers)
@@ -141,7 +144,7 @@ class SnakeStorage:
                     highlight=False,
                 )
         return self._source_files
-    
+
 
 class RuleStorage:
     """Object to store parameters for a snake rule."""

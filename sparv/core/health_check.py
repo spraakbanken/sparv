@@ -1,7 +1,8 @@
+"""Health check for Sparv modules."""
+
 from __future__ import annotations
 
 import inspect
-import re
 
 from sparv.api.classes import BaseOutput
 from sparv.core import registry
@@ -11,13 +12,18 @@ from sparv.core.console import console
 class HealthCheck:
     """A class for running health checks on all installed Sparv modules."""
 
-    def __init__(self):
+    def __init__(self) -> None:
+        """Initialize health check class."""
         self.all_modules = []
         self.passed_checks = 0
         self.failed_checks = 0
 
-    def run(self):
-        """Find all modules and run all health checks."""
+    def run(self) -> int:
+        """Find all modules and run all health checks.
+
+        Returns:
+            The number of failed checks.
+        """
         console.print("[b]Running Sparv Plugin Health Check...[/b]\n")
         # Discover all modules without importing them fully yet
         self.all_modules = registry.find_modules(no_import=True, find_custom=True)
@@ -31,13 +37,16 @@ class HealthCheck:
         if self.failed_checks == 0:
             console.print(f"[green]✔ All {self.passed_checks} checks passed. Everything looks good![/green]")
         else:
-            console.print(
-                f"[red]✖ {self.failed_checks} check{'s' if self.failed_checks > 1 else ''} failed.[/red]"
-            )
+            console.print(f"[red]✖ {self.failed_checks} check{'s' if self.failed_checks > 1 else ''} failed.[/red]")
         return self.failed_checks
 
-    def _check_module(self, module_name: str, mod_info: registry.Module):
-        """Run checks on a single module."""
+    def _check_module(self, module_name: str, mod_info: registry.Module) -> None:
+        """Run checks on a single module.
+
+        Args:
+            module_name: The name of the module to check.
+            mod_info: The module information to check.
+        """
         console.print(f"[b]Checking module:[/b] [cyan]{module_name}[/cyan]")
         has_error = False
 
@@ -72,10 +81,10 @@ class HealthCheck:
         if not has_error:
             self._log_success("Module passed all checks.")
 
-    def _log_error(self, message):
+    def _log_error(self, message: str) -> None:
         self.failed_checks += 1
         console.print(f"  [red]✖ ERROR:[/red] {message}")
 
-    def _log_success(self, message):
+    def _log_success(self, message: str) -> None:
         self.passed_checks += 1
         console.print(f"  [green]✔ OK:[/green] {message}")
