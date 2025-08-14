@@ -92,22 +92,25 @@ class SnakeStorage:
         """
         if self._source_files is None:
             # Helper function to get available importers
-            def get_available_importers() -> list[str]:
-                """Return a list of all available importers."""
+            def get_available_importers() -> str:
+                """Return a formatted list of all available importers."""
                 importers = []
+                maxlen = 0
                 for mod_name, mod in registry.modules.items():
                     for func_name, func_info in mod.functions.items():
                         if func_info["type"] is registry.Annotator.importer:
-                            importers.append(f"{mod_name}:{func_name}")
-                return sorted(importers)
+                            name = f"{mod_name}:{func_name}"
+                            maxlen = max(maxlen, len(name))
+                            importers.append((name, func_info["description"]))
+                return " • " + "\n • ".join(
+                    f"{name:<{maxlen}}   {desc}" for name, desc in sorted(importers)
+                )
 
             if not sparv_config.get("import.importer"):
                 msg = "The config variable 'import.importer' is not set."
-                available_importers = get_available_importers()
-                if available_importers:
-                    importers_str = "\n • ".join(available_importers)
-                    msg += f"\n\nAvailable importers:\n • {importers_str}"
-                msg += "\n\nYou can set it in your corpus 'config.yaml' file."
+                if available_importers := get_available_importers():
+                    msg += f"\n\nAvailable importers:\n\n{available_importers}"
+                msg += "\n\nPlease edit your corpus configuration file to set this value."
                 raise SparvErrorMessage(msg, "sparv")
 
             try:
@@ -119,10 +122,8 @@ class SnakeStorage:
                     f"Could not find the importer '{importer_name}'. Make sure the "
                     "'import.importer' config value refers to an existing importer."
                 )
-                available_importers = get_available_importers()
-                if available_importers:
-                    importers_str = "\n • ".join(available_importers)
-                    msg += f"\n\nDid you mean one of these?\n • {importers_str}"
+                if available_importers := get_available_importers():
+                    msg += f"\n\nAvailable importers:\n\n{available_importers}"
                 raise SparvErrorMessage(msg, "sparv") from None
 
             # Collect files in source dir
