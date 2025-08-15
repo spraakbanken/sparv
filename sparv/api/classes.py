@@ -1606,7 +1606,7 @@ class Model(Base):
         self.path.parent.mkdir(parents=True, exist_ok=True)
         logger.debug("Downloading from: %s", url)
         try:
-            with requests.get(url, stream=True) as response:
+            with requests.get(url, timeout=30, stream=True) as response:
                 response.raise_for_status()
                 total_size = int(response.headers.get("content-length", 0))
                 downloaded = 0
