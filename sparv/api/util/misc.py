@@ -202,7 +202,7 @@ def chain(annotations: Iterable[dict], default: Any = None) -> Generator[tuple]:
         for annot in annotations:
             try:
                 key = annot[key]
-            except KeyError:  # noqa: PERF203
+            except KeyError:
                 return default
         return key
 

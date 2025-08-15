@@ -253,7 +253,7 @@ def count_chunks(
     for file in files:
         try:
             chunk_count += len(chunk(file))
-        except FileNotFoundError:  # noqa: PERF203
+        except FileNotFoundError:
             pass
 
     if chunk_count == 0:

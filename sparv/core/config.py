@@ -333,7 +333,7 @@ def validate_module_config() -> None:
     for config_key in config_usage:
         try:
             _get(config_key, config_structure)
-        except KeyError:  # noqa: PERF203
+        except KeyError:
             annotators = config_usage[config_key]
             raise SparvErrorMessage(
                 "The annotator{} {} {} trying to access the config key '{}' which isn't declared anywhere.".format(
