@@ -291,10 +291,10 @@ def _est_treetagger_convert(pos: str) -> str:
         "T": "X",  # foreign
     }
     if "." in pos:
-        pos = pos.split(".")[0]
+        pos = pos.split(".", maxsplit=1)[0]
         if pos == "J":
             return pos_dict.get(pos, FALLBACK)
-        return pos_dict.get(pos.split(".")[0])
+        return pos_dict.get(pos.split(".", maxsplit=1)[0])
     else:  # noqa: RET505
         return pos_dict.get(pos, FALLBACK)
 
@@ -332,7 +332,7 @@ def _fin_finntreebank_convert(pos: str) -> str:
     if pos in pos_dict:
         return pos_dict[pos]
     else:  # noqa: RET505
-        return pos_dict.get(pos.split("_")[0], FALLBACK)
+        return pos_dict.get(pos.split("_", maxsplit=1)[0], FALLBACK)
 
 
 def _nld_treetagger_convert(pos: str) -> str:
@@ -404,7 +404,7 @@ def _lat_treetagger_convert(pos: str) -> str:
         "CLI": "X",  # enclitics
     }
     if ":" in pos:
-        return pos_dict.get(pos.split(":")[0], FALLBACK)
+        return pos_dict.get(pos.split(":", maxsplit=1)[0], FALLBACK)
     else:  # noqa: RET505
         return pos_dict.get(pos, FALLBACK)
 
@@ -459,7 +459,7 @@ def _pol_national_corpus_of_polish_convert(pos: str) -> str:
         "ign": "X",  # unknown form
     }
     if ":" in pos:
-        return pos_dict.get(pos.split(":")[0], FALLBACK)
+        return pos_dict.get(pos.split(":", maxsplit=1)[0], FALLBACK)
     else:  # noqa: RET505
         return pos_dict.get(pos, FALLBACK)
 

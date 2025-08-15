@@ -317,16 +317,16 @@ def _get_module_name(module_string: str) -> str:
     """
     if module_string.startswith(modules_path):
         # Built-in Sparv module
-        module_name = module_string[len(modules_path) + 1 :].split(".")[0]
+        module_name = module_string[len(modules_path) + 1 :].split(".", maxsplit=1)[0]
     elif module_string.startswith(core_modules_path):
         # Built-in Sparv core module
-        module_name = module_string[len(core_modules_path) + 1 :].split(".")[0]
-    elif module_string.split(".")[0] == custom_name:
+        module_name = module_string[len(core_modules_path) + 1 :].split(".", maxsplit=1)[0]
+    elif module_string.split(".", maxsplit=1)[0] == custom_name:
         # Custom user module
         module_name = module_string
     else:
         # External plugin
-        module_name = module_string.split(".")[0]
+        module_name = module_string.split(".", maxsplit=1)[0]
     return module_name
 
 
