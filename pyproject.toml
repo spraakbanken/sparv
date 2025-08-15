@@ -94,6 +94,7 @@ select = [
     "RET",    # flake8-return
     "RSE",    # flake8-raise
     "RUF",    # Ruff-specific rules
+    "S113",   # flake8-bandit: request-without-timeout
     "SIM",    # flake8-simplify
     "T20",    # flake8-print
     "TID",    # flake8-tidy-imports
