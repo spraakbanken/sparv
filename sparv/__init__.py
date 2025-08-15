@@ -7,6 +7,7 @@ import threading
 from collections.abc import Generator
 from contextlib import redirect_stdout
 from io import StringIO
+from typing import Self
 
 __version__ = "5.4.0.dev0"
 
@@ -41,7 +42,7 @@ class SparvCall:
             self.log_queue.put(stdout_buffer.read())
             self.log_queue.put(None)
 
-    def __enter__(self) -> SparvCall:
+    def __enter__(self) -> Self:
         """Enter the context and return the SparvCall instance.
 
         Returns:
@@ -50,7 +51,7 @@ class SparvCall:
         return self
 
     def __exit__(
-        self, exc_type: type[BaseException] | None, exc_value: BaseException | None, traceback: object | None
+        self, exc_type: type[BaseException] | None, exc_value: BaseException | None, traceback: object
     ) -> None:
         """Exit the context and ensure the thread finishes."""
         self.thread.join()

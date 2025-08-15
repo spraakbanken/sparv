@@ -11,7 +11,7 @@ import zipfile
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Iterable, Iterator, Sequence
 from pathlib import Path
-from typing import Any
+from typing import Any, Self
 
 import requests
 
@@ -1467,7 +1467,7 @@ class Wildcard(str):
     ANNOTATION_ATTRIBUTE = 3
     OTHER = 0
 
-    def __new__(cls, name: str, *args: Any, **kwargs: Any) -> Wildcard:  # noqa: ARG004
+    def __new__(cls, name: str, *args: Any, **kwargs: Any) -> Self:  # noqa: ARG004
         """Create a new instance of the class.
 
         Args:
@@ -1737,7 +1737,7 @@ class ExportInput(str):
     input for another function.
     """
 
-    def __new__(cls, val: str, *args: Any, **kwargs: Any) -> ExportInput:  # noqa: ARG004
+    def __new__(cls, val: str, *args: Any, **kwargs: Any) -> Self:  # noqa: ARG004
         """Create a new instance of the class.
 
         Args:
