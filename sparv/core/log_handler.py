@@ -1,14 +1,14 @@
 """Handler for log messages.
 
-This module handles all processing and displaying of log messages and error messages in Sparv.
+This module handles all processing and display of log messages and error messages in Sparv.
 
-The `SparvLogHandler` class is responsible for setting up the logging configuration, and contains most of the code for
+The `SparvLogHandler` class is responsible for setting up the logging configuration and contains most of the code for
 handling log messages. It also provides a progress bar and additional features for enhanced logging capabilities. The
 logging in this module uses a logger named "sparv_logging".
 
 # Message Origins
 
-Log messages in Sparv originates from two main sources:
+Log messages in Sparv originate from two main sources:
 
 1. Sparv modules. These modules log messages using a logger ("sparv") acquired from the `get_logger()` function. Sparv
    modules run in separate processes, and their logger communicates with the main thread's log handler over a TCP
@@ -24,7 +24,7 @@ The Sparv core (outside of the API functions used by the modules) generally does
 raises `SparvErrorMessage` exceptions. These exceptions are caught in the `__main__` module and passed to the
 `handle_exception()` method of the `SparvLogHandler` instance. They are there turned into error messages and printed.
 
-Any exceptions (include `SparvErrorMessage`) raised in Sparv modules are first caught by `run_snake.py` and converted
+Any exceptions (including `SparvErrorMessage`) raised in Sparv modules are first caught by `run_snake.py` and converted
 to error log messages. The execution of the module process is then interrupted, which leads to Snakemake throwing a
 WorkflowError exception. This is caught by the `__main__` module and forwarded to the `handle_exception()` which
 ignores the error message (as the error has already been logged).
@@ -369,7 +369,7 @@ class QueueHandler(logging.Handler):
 
 
 class SparvLogHandler:
-    """Class providing a log handler for Snakemake."""
+    """Main log handler for Sparv."""
 
     icon = "\U0001f426"
 

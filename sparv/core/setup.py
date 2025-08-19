@@ -1,4 +1,4 @@
-"""Functions for setting up the Sparv data dir and config."""
+"""Functions for setting up the Sparv data directory and config."""
 
 from __future__ import annotations
 
@@ -21,10 +21,10 @@ VERSION_FILE = "version"
 
 
 def check_sparv_version() -> bool | None:
-    """Check if the Sparv data dir is outdated.
+    """Check if the Sparv data directory is up to date.
 
     Returns:
-        True if up to date, False if outdated, None if version file is missing.
+        True if up to date, False if outdated, None if the version file is missing.
     """
     data_dir = paths.get_data_path()
     version_file = data_dir / VERSION_FILE
@@ -34,7 +34,7 @@ def check_sparv_version() -> bool | None:
 
 
 def copy_resource_files(data_dir: pathlib.Path) -> None:
-    """Copy resource files to data dir.
+    """Copy resource files to the data directory.
 
     Args:
         data_dir: Path to the data directory.
@@ -56,7 +56,7 @@ def copy_resource_files(data_dir: pathlib.Path) -> None:
 
 
 def reset() -> bool:
-    """Remove the data dir config file.
+    """Remove the data directory config file.
 
     Returns:
         True if the reset was successful, False otherwise.
@@ -83,7 +83,7 @@ def reset() -> bool:
 
 
 def run(sparv_datadir: str | None = None) -> bool:
-    """Query user about data dir path unless provided by argument, and populate path with files.
+    """Query the user about the data directory path unless provided by argument, and populate the path with files.
 
     Args:
         sparv_datadir: Path to the data directory.
@@ -175,7 +175,7 @@ def run(sparv_datadir: str | None = None) -> bool:
         return False
 
     if not using_env:
-        # Save data dir setting to config file
+        # Save data directory setting to config file
         config_dict = {"sparv_data": str(path)}
 
         paths.sparv_config_file.parent.mkdir(parents=True, exist_ok=True)
@@ -184,7 +184,7 @@ def run(sparv_datadir: str | None = None) -> bool:
 
     copy_resource_files(path)
 
-    # Save Sparv version number to a file in data dir
+    # Save Sparv version number to a file in data directory
     (path / VERSION_FILE).write_text(__version__, encoding="utf-8")
 
     console.print(f"\nSetup completed. The Sparv data directory is set to '{path}'.", width=80)

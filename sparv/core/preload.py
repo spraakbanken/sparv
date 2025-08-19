@@ -62,7 +62,7 @@ def connect_to_socket(socket_path: str, timeout: bool = False) -> socket.socket:
 
     Args:
         socket_path: Path to the socket file.
-        timeout: Whether to use a 1 second timeout when connecting or not.
+        timeout: Whether to use a 1-second timeout when connecting.
 
     Returns:
         A connected socket.
@@ -94,7 +94,7 @@ def socketcontext(socket_path: str) -> Iterator[socket.socket]:
 
 
 def receive_data(sock: socket.socket) -> Any:
-    """Receive pickled data from socket and unpickle.
+    """Receive pickled data from a socket and unpickle it.
 
     Args:
         sock: Socket object.
@@ -117,7 +117,7 @@ def receive_data(sock: socket.socket) -> Any:
 
 
 def send_data(sock: socket.socket, data: Any) -> None:
-    """Send pickled data over socket.
+    """Send pickled data over a socket.
 
     Args:
         sock: Socket object.
@@ -163,7 +163,7 @@ def stop(socket_path: str) -> bool:
         socket_path: Path to the socket file.
 
     Returns:
-        True if the preloader was succesfully stopped, False if the connection was refused.
+        True if the preloader was successfully stopped, False if the connection was refused.
     """
     try:
         with socketcontext(socket_path) as sock:
@@ -174,7 +174,7 @@ def stop(socket_path: str) -> bool:
 
 
 def recvall(sock: socket.socket, size: int) -> bytes | None:
-    """Receive data of a specific size from socket.
+    """Receive data of a specific size from a socket.
 
     If 'size' number of bytes are not received, None is returned.
 
@@ -203,7 +203,7 @@ def handle(client_sock: socket.socket, annotators: dict[str, Preloader]) -> bool
         annotators: Dictionary of preloaded annotators.
 
     Returns:
-        False if stop signal received, otherwise None.
+        False if stop signal is received, otherwise None.
     """
     # Get data
     data = receive_data(client_sock)

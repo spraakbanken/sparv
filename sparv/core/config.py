@@ -1,4 +1,4 @@
-"""Functions for parsing the Sparv configuration files."""
+"""Functions for parsing Sparv configuration files."""
 # ruff: noqa: PLW0603
 
 from __future__ import annotations
@@ -52,20 +52,20 @@ config_usage = defaultdict(set)  # For each config key, a list of annotators usi
 
 
 class Unset:
-    """Class used to represent a config value that isn't set."""
+    """Class used to represent a config value that is not set."""
 
 
 def read_yaml(yaml_file: str | Path) -> dict:
-    """Read YAML file and handle errors.
+    """Read a YAML file and handle errors.
 
     Args:
-        yaml_file: Path to YAML file.
+        yaml_file: Path to the YAML file.
 
     Returns:
         Dictionary with parsed YAML data.
 
     Raises:
-        SparvErrorMessage: If the config can't be parsed or read.
+        SparvErrorMessage: If the config cannot be parsed or read.
     """
     # Handle dates as strings
     yaml.constructor.SafeConstructor.yaml_constructors["tag:yaml.org,2002:timestamp"] = (
@@ -85,16 +85,16 @@ def read_yaml(yaml_file: str | Path) -> dict:
 
 
 def load_config(config_file: str | Path | None, config_dict: dict | None = None) -> None:
-    """Load both default config and corpus config and merge into one config structure.
+    """Load both the default config and corpus config, and merge them into one config structure.
 
     Args:
-        config_file: Path to corpus config file. If None, only the default config is read.
-        config_dict: Get corpus config from dictionary instead of config file.
+        config_file: Path to the corpus config file. If None, only the default config is read.
+        config_dict: Get corpus config from a dictionary instead of a config file.
 
     Raises:
-        SparvErrorMessage: If the config can't be parsed.
+        SparvErrorMessage: If the config cannot be parsed.
     """
-    assert not (config_file and config_dict), "config_file and config_dict can not be used together"
+    assert not (config_file and config_dict), "config_file and config_dict cannot be used together"
     # Read default config
     global _config_default
     if DEFAULT_CONFIG.is_file():
@@ -143,7 +143,7 @@ def load_config(config_file: str | Path | None, config_dict: dict | None = None)
     config = copy.deepcopy(_config_user)
     _merge_dicts(config, _config_default)
 
-    # Make sure that the root level only contains dictionaries or lists to save us a lot of headache
+    # Ensure that the root level only contains dictionaries or lists to avoid issues
     for key in config:
         if key == PARENT:
             continue
@@ -245,7 +245,7 @@ def _merge_dicts(d: dict, default: dict) -> None:
     The dictionary 'd' is modified in place.
 
     Args:
-        d: Main diciotnary to merge into.
+        d: Main dictionary to merge into.
         default: Dictionary with default values to merge.
     """
     if isinstance(d, dict) and isinstance(default, dict):
@@ -460,12 +460,12 @@ def handle_text_annotation() -> None:
 def inherit_config(source: str, target: str) -> None:
     """Let 'target' inherit config values from 'source' for every key that is supported and not already populated.
 
-    Only keys which are either missing or with a value of None in the target will inherit the source's value, meaning
-    that falsy values like empty strings or lists will not be overwritten.
+    Only keys that are either missing or have a value of None in the target will inherit the source's value. Falsy
+    values like empty strings or lists will not be overwritten.
 
     Args:
-        source: Module name of source.
-        target: Module name of target.
+        source: Module name of the source.
+        target: Module name of the target.
     """
     for key in config.get(source, []):
         if key in config_structure.get(target, []):

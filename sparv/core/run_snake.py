@@ -18,7 +18,7 @@ snakemake = snakemake  # noqa
 
 
 def exit_with_error_message(message: str, logger_name: str) -> None:
-    """Log error message and exit with non-zero status."""
+    """Log an error message and exit with a non-zero status."""
     error_logger = logging.getLogger(logger_name)
     if snakemake.params.source_file:
         message += f"\n\n(file: {snakemake.params.source_file})"
@@ -30,7 +30,7 @@ class StreamToLogger:
     """File-like stream object that redirects writes to a logger instance."""
 
     def __init__(self, logger: logging.Logger, log_level: int = logging.INFO) -> None:
-        """Initialize file-like stream object with a logger and a log level.
+        """Initialize the file-like stream object with a logger and a log level.
 
         Args:
             logger: Logger instance.
@@ -40,7 +40,7 @@ class StreamToLogger:
         self.log_level = log_level
 
     def write(self, buf: str) -> None:
-        """Write to logger.
+        """Write to the logger.
 
         Args:
             buf: String to write.
@@ -139,7 +139,7 @@ sys.stderr = StreamToLogger(module_logger, logging.WARNING)
 
 if not use_preloader:
     if preloader_busy:
-        logger.info("Preloader busy; executing without preloader")
+        logger.info("Preloader is busy; executing without preloader.")
     # Execute function
     try:
         registry.modules[module_name].functions[f_name]["function"](**parameters)

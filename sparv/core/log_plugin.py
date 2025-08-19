@@ -1,4 +1,5 @@
-"""Logging plugin for Snakemake, to forward internal Snakemake logs to Sparv's own log handler."""
+"""Logging plugin for Snakemake, to forward internal Snakemake logs to Sparv's log handler."""
+
 
 import logging
 from collections import defaultdict
@@ -8,12 +9,12 @@ from snakemake_interface_logger_plugins.base import LogHandlerBase
 
 from sparv.core.log_handler import SparvLogHandler
 
-# Global registry for the LogHandler instance
+# Global registry for the SparvLogHandler instance
 sparv_log_handler_instance: SparvLogHandler | None = None
 
 
 def set_sparv_log_handler(instance: SparvLogHandler) -> None:
-    """Set the global LogHandler instance."""
+    """Set the global SparvLogHandler instance."""
     global sparv_log_handler_instance  # noqa: PLW0603
     sparv_log_handler_instance = instance
 

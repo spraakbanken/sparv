@@ -515,16 +515,16 @@ def print_languages() -> None:
 
 
 def get_custom_module_description(name: str) -> str:
-    """Return string with description for custom modules.
+    """Return a string with the description for custom modules.
 
     Args:
         name: Name of the custom module.
     """
-    return f"Custom module from corpus directory ({name.split('.')[1]}.py)."
+    return f"Custom module from the corpus directory ({name.split('.')[1]}.py)."
 
 
 def print_installers(snake_storage: snake_utils.SnakeStorage, uninstall: bool = False) -> None:
-    """Print list of installers or uninstallers.
+    """Print a list of installers or uninstallers.
 
     Args:
         snake_storage: SnakeStorage object.
@@ -577,7 +577,7 @@ def print_installers(snake_storage: snake_utils.SnakeStorage, uninstall: bool = 
     )
 
     console.print(
-        f"[i]Note:[/i] Use the '{prefix}install' section in your corpus configuration to select what "
+        f"[i]Note:[/i] Use the '{prefix}install' section in your corpus configuration to select which "
         f"{prefix}installations should be performed when running 'sparv {prefix}install' without arguments. "
         f"{extra}"
     )

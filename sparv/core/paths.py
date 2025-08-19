@@ -22,7 +22,7 @@ class SparvPaths:
         # Path to the 'sparv' package
         self.sparv_path = Path(__file__).parent.parent
 
-        # Config file containing path to Sparv data dir
+        # Config file containing path to Sparv data directory
         self.sparv_config_file = Path(appdirs.user_config_dir("sparv"), "config.yaml")
         self.autocomplete_cache = Path(appdirs.user_config_dir("sparv"), "autocomplete")
 
@@ -42,7 +42,7 @@ class SparvPaths:
         self.models_dir = self.get_data_path("models")
         self.bin_dir = self.get_data_path("bin")
 
-        # Corpus relative paths
+        # Corpus-relative paths
         self.corpus_dir = Path(os.environ.get("CORPUS_DIR", ""))
         self.work_dir = Path("sparv-workdir")
         self.log_dir = Path("logs")
@@ -51,7 +51,7 @@ class SparvPaths:
         self.config_file = "config.yaml"
 
     def read_sparv_config(self) -> dict:
-        """Get Sparv data path from config file.
+        """Get Sparv data path from the config file.
 
         Returns:
             dict: Sparv config data.
@@ -66,13 +66,13 @@ class SparvPaths:
         return data
 
     def get_data_path(self, subpath: str | Path = "") -> Path | None:
-        """Get location of directory containing Sparv models, binaries and other files.
+        """Get the location of the directory containing Sparv models, binaries, and other files.
 
         Args:
-            subpath: Optional subpath to append to data dir.
+            subpath: Optional subpath to append to the data directory.
 
         Returns:
-            Path to data dir or data dir subpath.
+            Path to the data directory or data directory subpath.
         """
         # Environment variable overrides config
         if not self.data_dir and (

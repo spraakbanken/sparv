@@ -840,7 +840,7 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
                     ),
                 )
         except Exception as e:
-            # Any exceptions (include SparvErrorMessage) in the Sparv core are caught here
+            # Any exceptions (including SparvErrorMessage) in the Sparv core are caught here
             progress.handle_exception(e)
             success = False
         finally:

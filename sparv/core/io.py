@@ -1,4 +1,4 @@
-"""Corpus-related util functions like reading and writing annotations."""
+"""Corpus-related utility functions for operations on annotation files."""
 
 from __future__ import annotations
 
@@ -75,7 +75,7 @@ def write_annotation(source_file: str, annotation: BaseOutput, values: list) -> 
         elem_attrs = dict(split_annotation(ann) for ann in annotations)
         # Handle multiple annotations used as one
         assert all(elem_attrs.values()), (
-            "Span annotations can not be written while treating multiple annotations as one."
+            "Span annotations cannot be written while treating multiple annotations as one."
         )
         # Get spans and associated names for annotations. We need this information to figure out which value goes to
         # which annotation.
@@ -134,7 +134,7 @@ def _write_single_annotation(source_file: str, annotation: str, values: list, ro
 
 
 def get_annotation_size(source_file: str, annotation: BaseAnnotation) -> int:
-    """Return number of lines in an annotation.
+    """Return the number of lines in an annotation.
 
     Args:
         source_file: Source filename.
@@ -250,7 +250,7 @@ def _read_single_annotation(
         source_file: Source filename.
         annotation: Annotation name.
         with_annotation_name: Whether to yield the annotation name along with the value.
-        spans: Whether to read annotation spans or regular values
+        spans: Whether to read annotation spans or regular values.
         root: Root path.
 
     Yields:
@@ -275,7 +275,7 @@ def _read_single_annotation(
 
 
 def write_data(source_file: str | None, name: BaseAnnotation | str, value: Any) -> None:
-    """Write arbitrary data to file in workdir directory.
+    """Write arbitrary data to a file in the workdir directory.
 
     Args:
         source_file: Source filename.
@@ -300,7 +300,7 @@ def write_data(source_file: str | None, name: BaseAnnotation | str, value: Any) 
 
 
 def read_data(source_file: str | None, name: BaseAnnotation | str) -> Any:
-    """Read arbitrary data from file in workdir directory.
+    """Read arbitrary data from a file in the workdir directory.
 
     Args:
         source_file: Source filename.
@@ -346,7 +346,7 @@ def join_annotation(name: str, attribute: str | None) -> str:
         attribute: Annotation attribute.
 
     Returns:
-        Annotation name joined with with attribute.
+        Annotation name joined with attribute.
     """
     return ELEM_ATTR_DELIM.join((name, attribute)) if attribute else name
 

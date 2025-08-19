@@ -1,9 +1,9 @@
-"""Provide a Console instance for pretty printing."""
+"""Provide a Console instance for pretty-printing."""
 
 from rich.console import Console
 from rich.theme import Theme
 
-# Remove some automatic highlighting from default theme, to improve our log output
+# Remove some automatic highlighting from the default theme to improve our log output
 _theme = Theme(
     {
         "repr.ipv6": "none",
@@ -13,5 +13,5 @@ _theme = Theme(
     }
 )
 
-# Initiate rich console for pretty printing
+# Initialize rich console for pretty-printing
 console = Console(theme=_theme)

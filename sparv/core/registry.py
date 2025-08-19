@@ -127,6 +127,7 @@ def find_modules(no_import: bool = False, find_custom: bool = False, skip_langua
     Args:
         no_import: Set to True to disable importing of modules.
         find_custom: Set to True to also look for scripts in corpus directory.
+        skip_language_check: Set to True to skip checking of language compatibility.
 
     Returns:
         A list of available module names.
@@ -633,9 +634,9 @@ def uninstaller(
     `MarkerOptional` class to refer to the installer's marker without triggering an unnecessary installation.
 
     Args:
-        description: A description of the uninstaller, used for displaying help texts in the CLI. The first line should be
-            a short summary of what the uninstaller does. Optionally, a longer description can be added below the first
-            line, separated by a blank line.
+        description: A description of the uninstaller, used for displaying help texts in the CLI. The first line should
+            be a short summary of what the uninstaller does. Optionally, a longer description can be added below the
+            first line, separated by a blank line.
         name: An optional name to use instead of the function name.
         config: A list of `Config` instances defining config parameters for the uninstaller.
         language: A list of supported languages. If no list is provided, all languages are supported.
@@ -662,10 +663,10 @@ def modelbuilder(
 ) -> Callable:
     """Decorate a function to register it as a model builder.
 
-    A model builder is a function that sets up one or more models that other Sparv processors (typically annotators) rely
-    on. Setting up a model might involve tasks such as downloading a file, unzipping it, converting it to a different
-    format, and saving it in Sparv's data directory. Models are generally not specific to a single corpus; once a model
-    is set up on your system, it will be available for any corpus.
+    A model builder is a function that sets up one or more models that other Sparv processors (typically annotators)
+    rely on. Setting up a model might involve tasks such as downloading a file, unzipping it, converting it to a
+    different format, and saving it in Sparv's data directory. Models are generally not specific to a single corpus;
+    once a model is set up on your system, it will be available for any corpus.
 
     Args:
         description: A description of the model builder, used for displaying help texts in the CLI. The first line

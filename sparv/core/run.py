@@ -1,6 +1,6 @@
 """Used to run Sparv modules from the command line.
 
-This is currently not maintained and is half-hidden from the user.
+This is currently not maintained and is partially hidden from the user.
 """
 
 from __future__ import annotations
@@ -20,7 +20,7 @@ def main(argv: list[str] | None = None, log_level: str = "info") -> None:
     """Parse command line arguments and execute the requested Sparv module.
 
     Args:
-        argv: List of command line arguments.
+        argv: List of command-line arguments.
         log_level: Log level.
     """
     # Set up logging

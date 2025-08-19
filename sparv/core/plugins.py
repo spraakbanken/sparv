@@ -16,7 +16,7 @@ from sparv.core.console import console
 def check_pip() -> bool:
     """Check if pip is available in the current environment.
 
-    An error message is printed if pip is not available.
+    Prints an error message if pip is not available.
 
     Returns:
         True if pip is available, False otherwise.
@@ -36,7 +36,7 @@ def install_plugin(plugin_package: str, editable: bool = True, verbose: bool = F
     """Install a Sparv plugin.
 
     Args:
-        plugin_package: The plugin to install. Either a package name on PIP, a local directory, or a full URL.
+        plugin_package: The plugin to install. Either a package name on PyPI, a local directory, or a full URL.
         editable: Install the plugin in editable mode. Only applicable for local directories.
         verbose: Print output from pip.
 

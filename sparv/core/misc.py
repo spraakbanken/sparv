@@ -9,7 +9,7 @@ from collections.abc import Iterable
 
 
 class SparvErrorMessage(Exception):  # noqa: N818
-    """Exception used to notify users of errors in a friendly way without displaying traceback."""
+    """Exception used to notify users of errors in a friendly way without displaying a traceback."""
 
     start_marker = "<<<START>>>"
     end_marker = "<<<END>>>"
@@ -18,7 +18,7 @@ class SparvErrorMessage(Exception):  # noqa: N818
         """Raise an error and notify the user of the problem in a friendly way.
 
         This exception is handled by Sparv, automatically halting the pipeline and displaying the error message to the
-        user in a user-friendly way, without displaying the traceback.
+        user in a user-friendly way, without displaying a traceback.
 
         Args:
             message: User-friendly error message to display.
@@ -62,7 +62,7 @@ def parse_annotation_list(
     in the result, except those explicitly excluded in the list of annotations by being prefixed with 'not '.
 
     If an annotation occurs more than once in the list, only the last occurrence will be kept. Similarly, if an
-    annotation is first included and then excluded (using 'not') it will be excluded from the result.
+    annotation is first included and then excluded (using 'not'), it will be excluded from the result.
 
     If a plain annotation (without attributes) is excluded, all its attributes will be excluded as well.
 
@@ -112,7 +112,7 @@ def parse_annotation_list(
             else:
                 plain_annotations.add(name)
 
-    # If only exclusions have been listed, include rest of annotations
+    # If only exclusions have been listed, include the rest of the annotations
     if omit_annotations and not result:
         include_rest = True
 
@@ -126,7 +126,7 @@ def parse_annotation_list(
                     plain_to_atts[plain_name].add(a)
                 plain_annotations.add(plain_name)
 
-    # Add annotations names without attributes to result if required
+    # Add annotation names without attributes to result if required
     if add_plain_annotations:
         new_plain_annotations = possible_plain_annotations.difference(plain_annotations)
         if omit_annotations:
@@ -139,7 +139,7 @@ def parse_annotation_list(
             if a not in result and plain_to_atts[a]:
                 result[a] = None
 
-    # Remove any exclusions from final list
+    # Remove any exclusions from the final list
     if omit_annotations:
         for annotation in omit_annotations:
             result.pop(annotation, None)

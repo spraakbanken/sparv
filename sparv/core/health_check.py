@@ -13,7 +13,7 @@ class HealthCheck:
     """A class for running health checks on all installed Sparv modules."""
 
     def __init__(self) -> None:
-        """Initialize health check class."""
+        """Initialize the health check class."""
         self.all_modules = []
         self.passed_checks = 0
         self.failed_checks = 0

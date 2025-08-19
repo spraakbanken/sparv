@@ -18,14 +18,14 @@ NO_COND = ((), ())
 
 
 class BaseProperty:
-    """Base class for other types of properties."""
+    """Base class for other property types."""
 
     def __init__(self, prop_type: str | None, allow_null: bool | None = False, **kwargs: AnyType) -> None:
         """Initialize the class.
 
         Args:
             prop_type: The type of the property.
-            allow_null: If null values are allowed.
+            allow_null: Whether null values are allowed.
             **kwargs: Additional keyword arguments.
         """
         self.schema = {"type": [prop_type, "null"] if allow_null else prop_type, **kwargs} if prop_type else kwargs
@@ -62,7 +62,7 @@ class String(BaseProperty):
             choices: An iterable of possible choices, or a function that returns such an iterable.
             min_len: The minimum length of the string.
             max_len: The maximum length of the string.
-            allow_null: If null values are allowed.
+            allow_null: Whether null values are allowed.
             **kwargs: Additional keyword arguments.
         """
         if pattern:
@@ -173,7 +173,7 @@ class Object:
         """Initialize the class.
 
         Args:
-            additional_properties: If additional properties are allowed.
+            additional_properties: Whether additional properties are allowed.
             description: A description of the object.
             **kwargs: Additional keyword arguments.
         """
@@ -232,7 +232,7 @@ class Object:
         Args:
             name: The name of the property.
             prop_obj: The property object.
-            required: If the property is required.
+            required: Whether the property is required.
             condition: A tuple with two tuples of conditions (positive and negative).
 
         Returns:
@@ -248,7 +248,7 @@ class Object:
 
     @property
     def schema(self) -> dict:
-        """Return JSON schema for current object and its children as a dictionary."""
+        """Return the JSON schema for the current object and its children as a dictionary."""
         prop_schemas = {}
         for name, prop_obj in self.properties.items():
             if isinstance(prop_obj, list):
@@ -309,7 +309,7 @@ class JsonSchema(Object):
 
 
 def get_class_from_type(t: type) -> type:
-    """Get JSON schema class from Python type.
+    """Get the JSON schema class from a Python type.
 
     Args:
         t: A Python type.
@@ -334,7 +334,7 @@ def build_json_schema(config_structure: dict) -> dict:
     """Build a JSON schema based on Sparv's config structure.
 
     Args:
-        config_structure: A dictionary with info about the structure of the config file.
+        config_structure: A dictionary with information about the structure of the config file.
 
     Returns:
         A dictionary with the JSON schema.
@@ -347,16 +347,16 @@ def build_json_schema(config_structure: dict) -> dict:
         parent_name: str | None = None,
         is_condition: bool | None = False,
     ) -> defaultdict[tuple[tuple[Object | None, ...], tuple[Object, ...]], list]:
-        """Handle dictionary which will become an object in the JSON schema.
+        """Handle a dictionary which will become an object in the JSON schema.
 
         Args:
             structure: The dictionary to handle.
             parent_obj: The parent object.
             parent_name: The name of the parent object.
-            is_condition: If this object is a condition.
+            is_condition: Whether this object is a condition.
 
         Returns:
-            A dictionary with conditionals as keys and lists of children to each conditional as values.
+            A dictionary with conditionals as keys and lists of children for each conditional as values.
 
         Raises:
             ValueError: If the datatype is not supported.
@@ -436,7 +436,7 @@ def build_json_schema(config_structure: dict) -> dict:
 
         Returns:
             A tuple with two values. The first is either a datatype object or a list of datatype objects, and the
-            second is a tuple of conditions (possible empty).
+            second is a tuple of conditions (possibly empty).
 
         Raises:
             ValueError: If the datatype is not supported.
@@ -514,7 +514,7 @@ def build_json_schema(config_structure: dict) -> dict:
 
 
 def validate(cfg: dict, schema: dict) -> None:
-    """Validate a Sparv config using JSON schema.
+    """Validate a Sparv config using a JSON schema.
 
     Args:
         cfg: The config to validate.

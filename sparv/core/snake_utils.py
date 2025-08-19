@@ -55,7 +55,7 @@ class SnakeStorage:
     """Object to store variables involving all rules."""
 
     def __init__(self) -> None:
-        """Init attributes."""
+        """Initialize attributes."""
         # All annotators, importers, exporters and installers available, used for CLI listings
         self.all_annotators = {}
         self.all_importers = {}
@@ -148,10 +148,10 @@ class SnakeStorage:
 
 
 class RuleStorage:
-    """Object to store parameters for a snake rule."""
+    """Object to store parameters for a Snakemake rule."""
 
     def __init__(self, module_name: str, f_name: str, annotator_info: dict) -> None:
-        """Init attributes."""
+        """Initialize attributes."""
         self.module_name = module_name
         self.f_name = f_name
         self.annotator_info = annotator_info
@@ -195,22 +195,22 @@ def rule_helper(
     config_missing: bool = False,
     custom_rule_obj: dict | None = None,
 ) -> bool:
-    """Populate rule with Snakemake input, output and parameter list.
+    """Populate rule with Snakemake input, output, and parameter lists.
 
-    Return True if a Snakemake rule should be created.
+    Returns True if a Snakemake rule should be created.
 
     Args:
-        rule: Object containing snakemake rule parameters.
+        rule: Object containing Snakemake rule parameters.
         config: Dictionary containing the corpus configuration.
         storage: Object for saving information for all rules.
         config_missing: True if there is no corpus config file.
-        custom_rule_obj: Custom annotation dictionary from corpus config.
+        custom_rule_obj: Custom annotation dictionary from the corpus config.
 
     Returns:
         True if a Snakemake rule should be created, otherwise False.
 
     Raises:
-        SparvErrorMessage: On assorted errors.
+        SparvErrorMessage: On various errors.
     """
     # Only create certain rules when config is missing
     if config_missing and not rule.modelbuilder:
@@ -703,7 +703,7 @@ def rule_helper(
 
 
 def name_custom_rule(rule: RuleStorage, storage: SnakeStorage) -> None:
-    """Create unique name for custom rule.
+    """Create a unique name for a custom rule.
 
     If the rule name already exists, a numerical suffix is added to the name.
 
@@ -739,7 +739,7 @@ def name_custom_rule(rule: RuleStorage, storage: SnakeStorage) -> None:
 
 
 def check_ruleorder(storage: SnakeStorage) -> set[tuple[RuleStorage, RuleStorage]]:
-    """Order rules where necessary and print warning if rule order is missing.
+    """Order rules where necessary and print a warning if rule order is missing.
 
     Args:
         storage: SnakeStorage object.
@@ -775,7 +775,7 @@ def check_ruleorder(storage: SnakeStorage) -> set[tuple[RuleStorage, RuleStorage
 
 
 def file_value(rule_params: RuleStorage) -> Callable:
-    """Get source filename for use as parameter to rule.
+    """Get the source filename for use as a parameter to a rule.
 
     Args:
         rule_params: RuleStorage object.
@@ -841,7 +841,7 @@ def get_parameters(rule_params: RuleStorage) -> Callable:
 
 
 def update_storage(storage: SnakeStorage, rule: RuleStorage) -> None:
-    """Update info to snake storage with different targets.
+    """Update information in snake storage with different targets.
 
     Args:
         storage: SnakeStorage object.
@@ -865,7 +865,7 @@ def update_storage(storage: SnakeStorage, rule: RuleStorage) -> None:
 
 
 def get_source_path() -> str:
-    """Get path to source files.
+    """Get the path to source files.
 
     Returns:
         Path to source files.
@@ -937,7 +937,7 @@ def escape_wildcards(s: Path | str) -> str:
 
 
 def get_file_value(wildcards: snakemake.io.Wildcards, annotator: bool) -> str | None:
-    """Extract the {file} part from full annotation path.
+    """Extract the {file} part from the full annotation path.
 
     Args:
         wildcards: Wildcards object.
@@ -953,7 +953,7 @@ def get_file_value(wildcards: snakemake.io.Wildcards, annotator: bool) -> str | 
 
 
 def load_config(snakemake_config: dict) -> bool:
-    """Load corpus config and override the corpus language (if needed).
+    """Load the corpus config and override the corpus language (if needed).
 
     Args:
         snakemake_config: Snakemake config dictionary.
@@ -984,7 +984,7 @@ def load_config(snakemake_config: dict) -> bool:
 def get_install_outputs(
     snake_storage: SnakeStorage, install_types: list | None = None, uninstall: bool = False
 ) -> list[Path]:
-    """Collect files to be created for all (un)installations given as argument or listed in config.(un)install.
+    """Collect files to be created for all (un)installations given as arguments or listed in config.(un)install.
 
     Args:
         snake_storage: SnakeStorage object.
@@ -1068,13 +1068,13 @@ def get_export_targets(
 
 
 def make_param_dict(params: OrderedDict[str, inspect.Parameter]) -> dict:
-    """Make dictionary storing info about a function's parameters.
+    """Make a dictionary storing info about a function's parameters.
 
     Args:
         params: OrderedDict of function parameters.
 
     Returns:
-        Dictionary with parameter names as keys and tuples with default value, type, whether it is a list and whether
+        Dictionary with parameter names as keys and tuples with default value, type, whether it is a list, and whether
         it is optional as values.
     """
     param_dict = {}
@@ -1099,7 +1099,7 @@ def get_reverse_config_usage() -> defaultdict[str, list]:
 
 
 def print_sparv_warning(msg: str) -> None:
-    """Format msg into a Sparv warning message.
+    """Format a message into a Sparv warning message.
 
     Args:
         msg: Warning message.
@@ -1108,7 +1108,7 @@ def print_sparv_warning(msg: str) -> None:
 
 
 def print_sparv_info(msg: str) -> None:
-    """Format msg into a Sparv info message.
+    """Format a message into a Sparv info message.
 
     Args:
         msg: Info message.
