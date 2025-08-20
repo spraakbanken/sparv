@@ -130,6 +130,7 @@ displaying a traceback. Its usage is detailed in the [Writing Sparv Plugins](wri
 section.
 
 > [!NOTE]
+>
 > When raising this exception in a Sparv module, only the `message` argument should be used.
 
 ::: sparv.api.SparvErrorMessage

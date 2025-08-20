@@ -28,7 +28,9 @@ Sparv release on GitHub](https://github.com/spraakbanken/sparv/releases/latest).
     Manual](https://gup.ub.gu.se/publication/318405?lang=en)* &nbsp;
     [![BibTeX](../images/bibtex.png)](https://spraakbanken.gu.se/en/research/publications/bibtex/318405)
 
-> [!TIP] ![Watch releases screenshot](../images/watch-releases.png){ align=right } Stay updated on new Sparv releases by
+> [!TIP]
+>
+> ![Watch releases screenshot](../images/watch-releases.png){ align=right } Stay updated on new Sparv releases by
 > subscribing to our GitHub repository:
 >
 > 1. Log in to GitHub

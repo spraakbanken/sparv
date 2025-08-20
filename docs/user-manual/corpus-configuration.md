@@ -23,11 +23,13 @@ export:
 ```
 
 > [!NOTE]
+>
 > In Sparv and throughout this documentation, configuration keys are often written in dot notation (e.g.,
 > `export.annotations`). This notation indicates that `annotations` is a key nested within the `export` section, as
 > seen in the example above.
 
 > [!NOTE]
+>
 > Most processors (like annotators or importers) in Sparv have adjustable options that can be fine-tuned within
 > the configuration file. Each module has its own dedicated section, like `metadata` and `export` in the example above.
 > To view all available configuration keys and their descriptions, use the `sparv modules` command.
@@ -187,11 +189,13 @@ If you need to produce multiple output formats with different annotations, you c
 overridden at the exporter module level.
 
 > [!TIP]
+>
 > If two or more sections of your configuration are identical, such as the list of annotations to include in
 > different export formats, instead of copying and pasting, you can use [YAML
 > anchors](https://docs.ansible.com/ansible/latest/user_guide/playbooks_advanced_syntax.html#yaml-anchors-and-aliases-sharing-variable-values).
 
 > [!TIP]
+>
 > You can convert a structural attribute to a token attribute, which is useful for representing structural
 > information (like named entities or phrase structures) in non-structured formats (e.g., CSV export). Use the
 > annotation `<token>:misc.from_struct_{struct}_{attr}`, replacing `{struct}` and `{attr}` with the structural
@@ -210,6 +214,7 @@ Sparv with a custom prefix using the `export.sparv_namespace` option. Similarly,
 and attributes from your source files using the `export.source_namespace` option.
 
 > [!NOTE]
+>
 > Despite the name of the options, these are not real XML namespaces but merely prefixes added to annotation names.
 
 The `export.remove_module_namespaces` option is `true` by default, meaning module name prefixes are removed during
@@ -245,6 +250,7 @@ only annotations but not the actual text, you could set `export.word: <token>:an
 ```
 
 > [!NOTE]
+>
 > For technical reasons, the `xml_export:preserved_format` export does not respect this setting. The preserved
 > format XML will always contain the original corpus text.
 
@@ -452,6 +458,7 @@ export:
 ```
 
 > [!NOTE]
+>
 > Preset files may define their own default `class` values. These will be set automatically when using a preset. You can
 > override these in your config files if necessary.
 
@@ -545,9 +552,11 @@ custom_annotations:
 ```
 
 > [!NOTE]
+>
 > Custom annotations always create new annotations; they do not modify existing ones.
 
 > [!NOTE]
+>
 > When a parameter for a custom annotator requires a regular expression (e.g., in `misc:find_replace_regex`),
 > the expression must be enclosed in single quotation marks. Regular expressions inside double quotation marks in YAML
 > are not parsed correctly.
@@ -593,6 +602,7 @@ For detailed instructions on writing a Sparv annotator, refer to the [developer'
 guide](../developers-guide/writing-sparv-plugins.md#module-code). Below is a quick example.
 
 > [!TIP]
+>
 > The example uses the `@annotator` decorator to create an annotator. You can also create your own importer,
 > exporter, installer, or model builder using the appropriate Sparv decorator. More information on decorators can be
 > found in the [developer's guide](../developers-guide/sparv-decorators.md).
@@ -662,6 +672,7 @@ custom_annotations:
 ```
 
 > [!NOTE]
+>
 > When using custom annotations from your own code, all output annotations must be prefixed with `custom`.
 
 An example of a user-defined custom annotator can be found in the standard-swe [example

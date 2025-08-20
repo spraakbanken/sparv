@@ -434,6 +434,7 @@ described in the [Installation and Setup](../user-manual/installation-and-setup.
 section of the user manual.
 
 > [!TIP]
+>
 > To make development easier, you can install a plugin in **editable mode**. This means that changes to the plugin code
 > will immediately be available to Sparv without having to reinstall the plugin. This is done by using the `-e` flag
 > when installing from a local directory:

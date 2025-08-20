@@ -21,6 +21,7 @@ python3 --version
 ```
 
 > [!NOTE]
+>
 > On some systems, the command may be called `python` instead of `python3`.
 
 Next, [install pipx](https://pipx.pypa.io/stable/installation/) if it's not already installed:
@@ -79,6 +80,7 @@ directory. Make sure to save it with UTF-8 encoding.
 ```
 
 > [!NOTE]
+>
 > The `source` directory may contain as many files as you want, but let's start with just this one.
 
 ## Creating the Config File
@@ -161,6 +163,7 @@ It is also possible to annotate texts in other languages, such as English. Just 
 `language: eng` in the configuration file. Run `sparv languages` to see all supported languages.
 
 > [!NOTE]
+>
 > Some annotations may require
 > [additional software to be installed](installation-and-setup.md#installing-additional-third-party-software)
 > before you can use them.

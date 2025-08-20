@@ -37,6 +37,7 @@ To verify that Sparv was installed successfully, run the command `sparv`. You sh
 displayed.
 
 > [!NOTE]
+>
 > If pipx stops working after a Python upgrade, try running `pipx reinstall-all`. If that fails, you may need to
 > manually delete pipx's local environment directory (usually `~/.local/pipx`) and reinstall Sparv.
 
@@ -117,6 +118,7 @@ it in the `bin/wsd` directory inside your [Sparv data directory](#setting-up-spa
 |**Version compatible with Sparv** |0.9.3|
 
 > [!NOTE]
+>
 > hfst-SweNER requires a Unix-like environment.
 
 The current version of hfst-SweNER is written for Python 2, while Sparv uses Python 3. Therefore, it needs to be patched before installation. After extracting the archive, navigate to the `hfst-swener-0.9.3/scripts` directory and create a file named `swener.patch` with the following contents:
