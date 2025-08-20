@@ -1,5 +1,11 @@
 # Changelog
 
+## [5.3.1] - 2025-08-20
+
+### Fixed
+
+- Downgraded the `pypdfium2` dependency, since the version we were using was removed from PyPI.
+
 ## [5.3.0] - 2025-06-19
 
 ### Added
@@ -369,6 +375,7 @@
   - Increased independence between modules and language models
   - This facilitates adding new annotation modules and import/export formats.
 
+[5.3.1]: https://github.com/spraakbanken/sparv/releases/tag/v5.3.1
 [5.3.0]: https://github.com/spraakbanken/sparv/releases/tag/v5.3.0
 [5.2.0]: https://github.com/spraakbanken/sparv/releases/tag/v5.2.0
 [5.1.0]: https://github.com/spraakbanken/sparv/releases/tag/v5.1.0

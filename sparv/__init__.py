@@ -8,7 +8,7 @@ from collections.abc import Generator
 from contextlib import redirect_stdout
 from io import StringIO
 
-__version__ = "5.3.0"
+__version__ = "5.3.1"
 
 
 class SparvCall:
