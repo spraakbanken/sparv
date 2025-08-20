@@ -66,7 +66,7 @@ not_in_nav: |  # Don't warn about certain files not being included in the naviga
   /index.md
 extra:
   social: [null]  # Dummy value to enable the overrides/social.html to display the SBX logo in the footer
-  version: 5.3.0  # Sparv version
+  version: 5.3.1  # Sparv version
 extra_css:
   - stylesheets/extra.css
 markdown_extensions:
