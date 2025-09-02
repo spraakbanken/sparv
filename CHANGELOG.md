@@ -4,6 +4,8 @@
 
 ### Added
 
+- The `sparv plugins` command now supports (un)installing multiple plugins at once.
+
 ### Changed
 
 - Dropped support for Python 3.10.

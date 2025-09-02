@@ -419,9 +419,11 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
 
     # Sub-command: install
     plugins_install_parser = plugins_subparsers.add_parser(
-        "install", help="Install a Sparv plugin", formatter_class=RichHelpFormatter
+        "install", help="Install Sparv plugin(s)", formatter_class=RichHelpFormatter
     )
-    plugins_install_parser.add_argument("plugin", help="The plugin to install (PyPI package name, URL or local path)")
+    plugins_install_parser.add_argument(
+        "plugin", nargs="+", help="The plugin(s) to install (PyPI package name, URL or local path)"
+    )
     plugins_install_parser.add_argument(
         "-e",
         "--editable",
@@ -438,9 +440,9 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
 
     # Sub-command: uninstall
     plugins_uninstall_parser = plugins_subparsers.add_parser(
-        "uninstall", help="Uninstall a Sparv plugin", formatter_class=RichHelpFormatter
+        "uninstall", help="Uninstall Sparv plugin(s)", formatter_class=RichHelpFormatter
     )
-    plugins_uninstall_parser.add_argument("plugin", help="The name of the plugin to uninstall")
+    plugins_uninstall_parser.add_argument("plugin", help="The name of the plugin(s) to uninstall")
     plugins_uninstall_parser.add_argument("-v", "--verbose", action="store_true", help="Show more details")
 
     # Sub-command: check
@@ -603,9 +605,11 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
         from sparv.core import plugins
 
         if args.plugins_command == "install":
-            plugins.install_plugin(args.plugin, editable=args.editable, verbose=args.verbose)
+            for plugin in args.plugin:
+                plugins.install_plugin(plugin, editable=args.editable, verbose=args.verbose)
         elif args.plugins_command == "uninstall":
-            plugins.uninstall_plugin(args.plugin, verbose=args.verbose)
+            for plugin in args.plugin:
+                plugins.uninstall_plugin(plugin, verbose=args.verbose)
         elif args.plugins_command == "list":
             plugins.list_installed_plugins(args.verbose)
         elif args.plugins_command == "check":
