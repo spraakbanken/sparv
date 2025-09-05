@@ -36,7 +36,6 @@ import datetime
 import logging
 import logging.handlers
 import pickle
-import queue
 import re
 import socketserver
 import struct
@@ -352,22 +351,6 @@ class ProgressWithTable(progress.Progress):
             yield table
 
 
-class QueueHandler(logging.Handler):
-    """Custom logging handler that stores log records in a queue.
-
-    This is used when Sparv is run as a library rather than a command-line tool.
-    """
-
-    def __init__(self, log_queue: queue.Queue) -> None:
-        """Initialize handler."""
-        super().__init__()
-        self.log_queue = log_queue
-
-    def emit(self, record: logging.LogRecord) -> None:
-        """Store log record in the queue."""
-        self.log_queue.put(self.format(record))
-
-
 class SparvLogHandler:
     """Main log handler for Sparv."""
 
@@ -384,7 +367,6 @@ class SparvLogHandler:
         dry_run: bool = False,
         keep_going: bool = False,
         json: bool = False,
-        log_queue: queue.Queue | None = None,
         root_dir: str | None = None,
     ) -> None:
         """Initialize log handler.
@@ -399,7 +381,6 @@ class SparvLogHandler:
             dry_run: Set to True to print summary about jobs.
             keep_going: Set to True if the keepgoing flag is enabled for Snakemake.
             json: Set to True to enable JSON output.
-            log_queue: Queue to store log messages.
             root_dir: Root directory for the corpus (if set using `--dir`).
         """
         self.use_progressbar = progressbar and console.is_terminal
@@ -408,7 +389,6 @@ class SparvLogHandler:
         self.dry_run = dry_run
         self.keep_going = keep_going
         self.json = json
-        self.log_queue = log_queue
         self.log_level = log_level
         self.log_file_level = log_file_level
         self.log_filename = None
@@ -472,11 +452,8 @@ class SparvLogHandler:
             )
         )
 
-        # stdout logger or log queue
-        if self.log_queue:
-            # Used when running as a library
-            stream_handler = QueueHandler(self.log_queue)
-        elif self.json:
+        # stdout logger
+        if self.json:
             stream_handler = logging.StreamHandler()
         else:
             stream_handler = ModifiedRichHandler(enable_link_path=False, rich_tracebacks=True, console=console)

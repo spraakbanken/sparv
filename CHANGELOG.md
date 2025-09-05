@@ -12,6 +12,8 @@
 
 ### Fixed
 
+- Fixed issue with using Sparv as a library. Sparv can now be invoked multiple times within the same process.
+
 ## [5.3.1] - 2025-08-20
 
 ### Fixed

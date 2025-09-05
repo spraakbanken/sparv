@@ -147,14 +147,13 @@ def run_plugins_check(_args: argparse.Namespace) -> None:
         sys.exit(1)
 
 
-def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) -> bool:
+def main(argv: list[str] | None = None) -> bool:
     """Handle command line arguments and run the appropriate command.
 
     If argv is None, the command line arguments are read from sys.argv.
 
     Args:
         argv: List of command line arguments.
-        log_queue: Queue for storing log messages.
 
     Returns:
         True if the command was successful, False otherwise.
@@ -788,7 +787,6 @@ def main(argv: list[str] | None = None, log_queue: queue.Queue | None = None) ->
         dry_run=dry_run,
         keep_going=keep_going,
         json=json_log,
-        log_queue=log_queue,
         root_dir=args.dir,
     )
 
