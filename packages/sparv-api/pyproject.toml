@@ -6,23 +6,18 @@ readme = "README.md"
 requires-python = ">=3.11.9"
 authors = [{ name = "Språkbanken", email = "sb-info@svenska.gu.se" }]
 dependencies = [
-  "PyYAML==6.0.2",
-  "appdirs==1.4.4",
-  # "argcomplete==3.6.2",
-  # "docx2python==1.27.1",
-  # "jsonschema==4.23.0",
+  "PyYAML~=6.0",
+  "appdirs~=1.4",
+  "jsonschema-rs==0.61.2",
   # "markdown>=3.9",
-  # "nltk==3.9.1",
   # "packaging>=21.0",
-  # "pycountry==24.6.1",
-  # "pypdfium2==4.30.0",
+  "pycountry~=26.2",
   # "python-dateutil==2.9.0",
-  "python-json-logger==3.3.0",
-  # "questionary==1.10.0",
+  "python-json-logger~=4.0",
+  "questionary==1.10.0",
   "requests>=2.32.3",
-  # "rich==14.0.0",
-  # "rich-argparse==1.7.0",
-  # "snakemake==9.11.4",
+  "rich~=15.0",
+  "snakemake==9.27.2",
   "typing-inspect==0.9.0"
 ]
 

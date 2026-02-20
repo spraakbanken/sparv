@@ -9,13 +9,13 @@ dependencies = [
   # "PyYAML==6.0.2",
   # "appdirs==1.4.4",
   # "argcomplete==3.6.2",
-  # "docx2python==1.27.1",
+  "docx2python==1.27.1",
   # "jsonschema==4.23.0",
   # "markdown>=3.9",
-  # "nltk==3.9.1",
+  "nltk~=3.10.4",
   # "packaging>=21.0",
   # "pycountry==24.6.1",
-  # "pypdfium2==4.30.0",
+  "pypdfium2~=5.6",
   # "python-dateutil==2.9.0",
   # "python-json-logger==3.3.0",
   # "questionary==1.10.0",
@@ -27,6 +27,9 @@ dependencies = [
   # "typing-inspect==0.9.0"
   "sparv-api",
 ]
+
+# [project.entry-points."sparv.plugin"]
+# segment = "sparv.modules.segment"
 
 [build-system]
 requires = ["uv_build>=0.12.4,<0.14.0"]

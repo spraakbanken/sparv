@@ -1,14 +1,17 @@
 """Summarizes and exports annotation version information."""
 
+import importlib.metadata
 from datetime import datetime
 from pathlib import Path
 
 import yaml
 
-from sparv import __version__ as sparv_version
+# from sparv import __version__ as sparv_version
 from sparv.api import Export, exporter, get_logger
 
 logger = get_logger(__name__)
+
+sparv_version = importlib.metadata.version("sparv")
 
 
 @exporter("YAML file containing annotation version info")

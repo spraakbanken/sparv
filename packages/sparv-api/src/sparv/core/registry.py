@@ -1,5 +1,5 @@
 """Builds a registry of all available annotator functions in Sparv modules."""
-# ruff: noqa: PLC0415
+# ruff: file-ignore[import-outside-top-level]
 
 from __future__ import annotations
 
@@ -178,9 +178,13 @@ def find_modules(no_import: bool = False, find_custom: bool = False, skip_langua
 
     from packaging.requirements import Requirement
 
-    from sparv import __version__ as sparv_version
+    # from sparv import __version__ as sparv_version
 
-    modules_full_path = paths.sparv_path / paths.modules_dir
+    print(f"{paths.sparv_path=}")
+    modules_full_path = paths.sparv_path.parent.parent.parent / "sparv-modules" / "src" / "sparv" / paths.modules_dir
+    modules_stanza_full_path = (
+        paths.sparv_path.parent.parent.parent / "sparv-modules-stanza" / "src" / "sparv" / paths.modules_dir
+    )
     core_modules_full_path = paths.sparv_path / paths.core_modules_dir
 
     module_names = []
@@ -188,9 +192,12 @@ def find_modules(no_import: bool = False, find_custom: bool = False, skip_langua
     for full_path, path, include in (
         (core_modules_full_path, core_modules_path, False),
         (modules_full_path, modules_path, True),
+        (modules_stanza_full_path, modules_path, True),
     ):
+        print(f"{full_path=}, {path=}, {include=}")
         found_modules = pkgutil.iter_modules([str(full_path)])
         for module in found_modules:
+            print(f"{module=}")
             if include:
                 # Don't include core modules in the returned list of modules, as they are only used for configuration
                 module_names.append(module.name)
@@ -335,7 +342,7 @@ def wizard(config_keys: list[str], source_structure: bool = False) -> Callable:
         config_keys: A list of config keys to be set or changed by the decorated function.
         source_structure: Set to `True` if the decorated function needs access to a `SourceStructureParser` instance
             (holding information on the structure of the source files).
-    """  # noqa: DOC201
+    """  # ruff: ignore[docstring-missing-returns]
 
     def decorator(f: Callable) -> Callable:
         """Add wrapped function to wizard registry.
@@ -509,7 +516,7 @@ def annotator(
         preloader_target: The name of the annotator parameter that should receive the return value of the preloader.
         preloader_cleanup: A reference to an optional cleanup function, which will be executed after each annotator use.
         preloader_shared: Set to `False` if the preloader result should not be shared among preloader processes.
-    """  # noqa: DOC201 - Don't document the return value, to prevent it from being included in the documentation.
+    """  # ruff: ignore[docstring-missing-returns] - Don't document the return value, to prevent it from being included in the documentation.
     return _annotator(
         description=description,
         a_type=Annotator.annotator,
@@ -585,7 +592,7 @@ def importer(
             import.text_annotation config variable, unless it or classes.text has been set manually.
         structure: A class used to parse and return the structure of source files.
         config: A list of `Config` instances defining config parameters for the importer.
-    """  # noqa: DOC201
+    """  # ruff: ignore[docstring-missing-returns]
     return _annotator(
         description=description,
         a_type=Annotator.importer,
@@ -628,7 +635,7 @@ def exporter(
             first. A lower number indicates higher priority.
         abstract: Set to `True` if this exporter does not produce any output files itself, but instead triggers other
             processors to produce their output files by using their output as input.
-    """  # noqa: DOC201
+    """  # ruff: ignore[docstring-missing-returns]
     return _annotator(
         description=description,
         a_type=Annotator.exporter,
@@ -670,7 +677,7 @@ def installer(
         priority: Functions with higher priority (higher number) will be preferred when scheduling which functions to
             run. The default priority is 0.
         uninstaller: The name of the related uninstaller.
-    """  # noqa: DOC201
+    """  # ruff: ignore[docstring-missing-returns]
     return _annotator(
         description=description,
         a_type=Annotator.installer,
@@ -709,7 +716,7 @@ def uninstaller(
         language: A list of supported languages. If no list is provided, all languages are supported.
         priority: Functions with higher priority (higher number) will be preferred when scheduling which functions to
             run. The default priority is 0.
-    """  # noqa: DOC201
+    """  # ruff: ignore[docstring-missing-returns]
     return _annotator(
         description=description,
         a_type=Annotator.uninstaller,
@@ -746,7 +753,7 @@ def modelbuilder(
             run. The default priority is 0.
         order: If several model builders have the same output, this integer value will help decide which to try to use
             first. A lower number indicates higher priority.
-    """  # noqa: DOC201
+    """  # ruff: ignore[docstring-missing-returns]
     return _annotator(
         description=description,
         a_type=Annotator.modelbuilder,
@@ -912,7 +919,7 @@ def find_implicit_classes() -> None:
     for class_source in ("module_classes", "config_classes"):
         for cls, anns in annotation_classes[class_source].items():
             if not isinstance(anns, list):
-                anns = [anns]  # noqa: PLW2901
+                anns = [anns]  # ruff: ignore[redefined-loop-name]
             for ann in anns:
                 annotation_to_class[ann].add(cls)
                 annotation_to_class[expand_variables(ann)[0]].add(cls)
@@ -1066,7 +1073,7 @@ def expand_variables(string: str, rule_name: str | None = None, is_annotation: b
                 if rule_name:
                     sparv_config.add_config_usage(cfg.group(1), rule_name)
                 if cfg_value is not None:
-                    s = s.replace(cfg.group(), cfg_value)  # noqa: PLW2901
+                    s = s.replace(cfg.group(), cfg_value)  # ruff: ignore[redefined-loop-name]
                 else:
                     rest.append(cfg.group()[1:-1])
                     break
@@ -1106,7 +1113,7 @@ def expand_variables(string: str, rule_name: str | None = None, is_annotation: b
     s = ""
     for s in strings:
         # Convert class names to real annotations
-        s, unknown = expand_classes(s, set())  # noqa: PLW2901
+        s, unknown = expand_classes(s, set())  # ruff: ignore[redefined-loop-name]
         if unknown:
             rest.append(unknown)
 
