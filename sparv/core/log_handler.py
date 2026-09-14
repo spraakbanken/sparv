@@ -70,7 +70,7 @@ from snakemake_interface_logger_plugins.common import LogEvent
 if TYPE_CHECKING:
     from rich.console import RenderableType
 
-from sparv.core import io
+from sparv.core import io, registry
 from sparv.core.console import console
 from sparv.core.logger import CurrentProgress, SparvLogger, ensure_logger_class
 from sparv.core.misc import SparvErrorMessage
@@ -711,16 +711,6 @@ class SparvLogHandler:
             else:
                 self.missing_annotations_or_files(display_name, filelist)
             self.handled_error = True
-        elif isinstance(exception, WorkflowError) and str(exception).startswith("UndefinedPathvarException:"):
-            self.build_regexes()
-            msg_contents = re.search(r"Undefined pathvar '(\S+)'", str(exception))
-            if not msg_contents:
-                self.messages["unhandled_error"].append((f"{type(exception).__name__}: {exception}", exception))
-                return
-            class_name = msg_contents.group(1)
-            if self.missing_classes_re and self.missing_classes_re.search(f"<{class_name}>"):
-                self.missing_class_message("", [class_name])
-                self.handled_error = True
         elif (
             isinstance(exception, WorkflowError) and str(exception) == "At least one job did not complete successfully."
         ):
@@ -957,7 +947,13 @@ class SparvLogHandler:
         )
 
         all_classes = {v for varlist in messages["missing_classes"].values() for v in varlist}
-        self.missing_classes_re = re.compile(r"<({})>".format("|".join(re.escape(c) for c in all_classes)))
+        self.missing_classes_re = re.compile(
+            "{}({}){}".format(
+                re.escape(registry.UNRESOLVED_CLASS_PREFIX),
+                "|".join(re.escape(c) for c in all_classes),
+                re.escape(registry.UNRESOLVED_CLASS_SUFFIX),
+            )
+        )
 
     def stop(self) -> None:
         """Stop the progress bar and output any messages."""

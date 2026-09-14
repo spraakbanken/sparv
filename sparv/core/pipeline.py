@@ -855,7 +855,7 @@ class RuleBuilder:
         self._track_config_and_classes(param.default)
         param_value, missing_configs = registry.expand_variables(param.default, rule.name)
         rule.missing_config.update(missing_configs)
-        export_path = paths.export_dir / param_value
+        export_path = paths.export_dir / sanitize_unresolved_classes(param_value)
         self.output_dirs.add(export_path.parent)
         rule.outputs.append(export_path)
         rule.parameters[param_name] = Export(str(export_path))
@@ -873,7 +873,7 @@ class RuleBuilder:
         self._track_config_and_classes(param.default)
         param_value, missing_configs = registry.expand_variables(param.default, rule.name)
         rule.missing_config.update(missing_configs)
-        rule.parameters[param_name] = ExportInput(str(paths.export_dir / param_value))
+        rule.parameters[param_name] = ExportInput(str(paths.export_dir / sanitize_unresolved_classes(param_value)))
         if param.default.all_files:
             rule.inputs.extend(self._expand_for_all_files(rule.parameters[param_name]))
         else:
@@ -1128,6 +1128,20 @@ def source_dir() -> str:
     return sparv_config.get("import.source_dir")
 
 
+def sanitize_unresolved_classes(value: str) -> str:
+    """Replace any unresolved "<class>" markers in a string with a placeholder safe for use in a Snakemake path.
+
+    Args:
+        value: The string to sanitize.
+
+    Returns:
+        The sanitized string.
+    """
+    for cls in registry.find_classes(value):
+        value = value.replace(f"<{cls}>", registry.unresolved_class_placeholder(cls))
+    return value
+
+
 def annotation_path(annotation: str | BaseAnnotation, data: bool = False, common: bool = False) -> Path:
     """Construct a path to an annotation file given an annotation name.
 
@@ -1142,11 +1156,10 @@ def annotation_path(annotation: str | BaseAnnotation, data: bool = False, common
     if not isinstance(annotation, BaseAnnotation):
         annotation = BaseAnnotation(annotation)
     elem, attr = annotation.split()
-    path = Path(elem)
+    path = Path(sanitize_unresolved_classes(elem))
 
     if not (data or common):
-        if not attr:
-            attr = io.SPAN_ANNOTATION
+        attr = io.SPAN_ANNOTATION if not attr else sanitize_unresolved_classes(attr)
         path /= attr
 
     if not common:

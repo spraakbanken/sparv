@@ -135,6 +135,27 @@ model_tagset_requirements: list[tuple[str, str, str]] = []
 _CONFIG_VAR_RE = re.compile(r"\[([^\]=[]+)(?:=([^\][]+))?\]")
 _CLASS_REF_RE = re.compile(r"<([^>]+)>")
 
+# Prefix/suffix used to mark an unresolved class in a file path (see `unresolved_class_placeholder`)
+UNRESOLVED_CLASS_PREFIX = "__unresolved_class_"
+UNRESOLVED_CLASS_SUFFIX = "__"
+
+
+def unresolved_class_placeholder(cls: str) -> str:
+    """Build a placeholder to use instead of "<cls>" for a class that couldn't be resolved to an annotation.
+
+    This is used when constructing file paths for Snakemake rules. Snakemake's own "pathvar" feature (introduced in
+    Snakemake 9) also uses the "<name>" syntax, and crashes if it encounters a marker it doesn't recognize as a
+    pathvar. Since missing classes are already tracked and reported separately (see `RuleBuilder._finalize` and
+    `log_handler.messages["missing_classes"]`), it's safe to use an inert placeholder here instead.
+
+    Args:
+        cls: The name of the class that couldn't be resolved.
+
+    Returns:
+        A placeholder string, safe for use in a file path.
+    """
+    return f"{UNRESOLVED_CLASS_PREFIX}{cls}{UNRESOLVED_CLASS_SUFFIX}"
+
 
 def find_modules(no_import: bool = False, find_custom: bool = False, skip_language_check: bool = False) -> list:
     """Find Sparv modules and optionally import them.
