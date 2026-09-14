@@ -232,26 +232,20 @@ supported languages, their ISO 639-3 codes, and the tools Sparv can use for thei
 
 |Language         |ISO 639-3 Code |Analysis Tool|
 |:----------------|:--------------|:-------------|
-|Asturian         |ast            |FreeLing|
 |Bulgarian        |bul            |TreeTagger|
-|Catalan          |cat            |FreeLing|
 |Dutch            |nld            |TreeTagger|
 |Estonian         |est            |TreeTagger|
-|English          |eng            |FreeLing, Stanford Parser, TreeTagger|
-|French           |fra            |FreeLing, TreeTagger|
+|English          |eng            |Stanford Parser, TreeTagger|
+|French           |fra            |TreeTagger|
 |Finnish          |fin            |TreeTagger|
-|Galician         |glg            |FreeLing|
-|German           |deu            |FreeLing, TreeTagger|
-|Italian          |ita            |FreeLing, TreeTagger|
+|German           |deu            |TreeTagger|
+|Italian          |ita            |TreeTagger|
 |Latin            |lat            |TreeTagger|
-|Norwegian Bokmål |nob            |FreeLing|
 |Polish           |pol            |TreeTagger|
-|Portuguese       |por            |FreeLing|
 |Romanian         |ron            |TreeTagger|
-|Russian          |rus            |FreeLing, TreeTagger|
+|Russian          |rus            |TreeTagger|
 |Slovak           |slk            |TreeTagger|
-|Slovenian        |slv            |FreeLing|
-|Spanish          |spa            |FreeLing, TreeTagger|
+|Spanish          |spa            |TreeTagger|
 |Swedish          |swe            |Sparv|
 
 <!-- Swedish 1800s |sv-1800       |Sparv) -->
@@ -281,20 +275,6 @@ After downloading TreeTagger, ensure the `tree-tagger` binary is in your system 
 
 To use the Stanford Parser with Sparv, download and unzip the package from the Stanford CoreNLP webpage. Place the
 contents in the `bin/stanford_parser` directory within your [Sparv data directory](#setting-up-sparv).
-
-#### FreeLing
-
-|    |           |
-|:---|:----------|
-|**Purpose**                       |Tokenization, POS-tagging, lemmatization and named entity recognition for [various languages](#analyzing-languages-other-than-swedish)|
-|**Download**                      |[FreeLing on GitHub](https://github.com/TALP-UPC/FreeLing/releases/tag/4.2)|
-|**License**                       |[AGPL-3.0](https://www.gnu.org/licenses/agpl-3.0.en.html)|
-|**Version compatible with Sparv** |4.2|
-
-To install FreeLing, follow the instructions provided on their website. Ensure you download both the source and
-language data files and uncompress them in the same directory before compiling. Additionally, you will need to install
-the [sparv-sbx-freeling plugin](https://github.com/spraakbanken/sparv-sbx-freeling). Follow the setup instructions on
-the plugin's GitHub page to correctly configure it for use with Sparv.
 
 <!-- #### fast_align
 |    |           |

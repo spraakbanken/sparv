@@ -199,9 +199,6 @@ def get_slk_model(
     _download(url, gzip, out)
 
 
-# These can also be processed with Freeling:
-
-
 @modelbuilder("TreeTagger model for Spanish", language=["spa"])
 def get_spa_model(
     out: ModelOutput = ModelOutput("treetagger/spa.par"), _tt_binary: Binary = Binary("[treetagger.binary]")

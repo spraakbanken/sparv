@@ -287,21 +287,6 @@ We recommend using the [annotation preset](corpus-configuration.md#annotation-pr
 |**Annotators**   | `treetagger:annotate`|
 |**Installation** | See the [installation and Setup section](installation-and-setup.md#treetagger) for more information.|
 
-### Analyses from FreeLing
-
-We recommend using the [annotation preset](corpus-configuration.md#annotation-presets) called `SBX_FREELING`
-or `SBX_FREELING_FULL` (for languages supporting named entity recognition).
-
-|    |            |
-|:---|:-----------|
-|**Description**  | Entire documents are analysed with FreeLing for sentence segmentation, tokenization and enrichment with other information. FreeLing does not use the same permissive licence as Sparv. Installation of the [Sparv FreeLing plugin](https://github.com/spraakbanken/sparv-freeling) is necessary.|
-|**Tool**         | [FreeLing](https://github.com/TALP-UPC/FreeLing)|
-|**Model**        | Models for different languages are included in the tool.|
-|**Tagset**       | - Different language-dependent POS tagsets (often [EAGLES](http://www.ilc.cnr.it/EAGLES96/annotate/node9.html)). Please check the [FreeLing documentation](https://freeling-user-manual.readthedocs.io/en/v4.2/tagsets/) for more information. <br />- [Universal POS tags](https://universaldependencies.org/u/pos/index.html)|
-|**Annotations**  | - `freeling.sentence` (sentence segments from FreeLing) <br />- `freeling.token` (token segments from FreeLing) <br />- `freeling.token:freeling.baseform` (lemma) <br />- `freeling.token:freeling.pos` (part-of-speech tag, often including some morphosyntactic information) <br />- `freeling.token:freeling.upos` (universal part-of-speech tags) <br />- `freeling.token:freeling.ne_type` (named entity type (only available for some languages)|
-|**Annotators**   | `freeling:annotate` or `freeling:annotate_full` (depending on the language)|
-|**Installation** | See the [installation and Setup section](installation-and-setup.md#freeling) for more information.|
-
 ### Analyses from Stanza (for English)
 
 We recommend using the [annotation preset](corpus-configuration.md#annotation-presets) called `STANZA`.
