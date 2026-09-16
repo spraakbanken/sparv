@@ -1,13 +1,17 @@
 id: hist-parent
 abstract: true
-language_codes:
-  - swe
 created: 2012-10-23
 updated: 2021-06-01
 ---
 id: sbx-swe-lemmatization-sparv-saldo_dalin_swedberg_1800
-language_varieties:
-  - "1800"
+languages:
+  - identifier:
+      value: swe
+      scheme: ISO 639-3
+    name:
+      swe: 1800-talssvenska
+      eng: 19th-century Swedish
+    variety: '1800'
 parent: hist-parent
 name:
   swe: Annotering av SALDO-grundformer för 1800-talssvenska
@@ -66,8 +70,14 @@ description:
     tokens left without a base form.
 ---
 id: sbx-swe-lemgram-sparv-saldo_dalin_swedberg_1800
-language_varieties:
-  - "1800"
+languages:
+  - identifier:
+      value: swe
+      scheme: ISO 639-3
+    name:
+      swe: 1800-talssvenska
+      eng: 19th-century Swedish
+    variety: '1800'
 parent: hist-parent
 name:
   swe: Annotering av SALDO-lemgram för 1800-talssvenska
@@ -125,8 +135,14 @@ description:
     left without lemgrams.
 ---
 id: sbx-swe-sense-sparv-saldo_dalin_swedberg_1800
-language_varieties:
-  - "1800"
+languages:
+  - identifier:
+      value: swe
+      scheme: ISO 639-3
+    name:
+      swe: 1800-talssvenska
+      eng: 19th-century Swedish
+    variety: '1800'
 parent: hist-parent
 name:
   swe: Annotering av SALDO-identifierare för 1800-talssvenska
@@ -185,8 +201,14 @@ description:
     from SALDO.
 ---
 id: sbx-swe-lemmatization-sparv-schlyter_soderwall_fsv
-language_varieties:
-  - fsv
+languages:
+  - identifier:
+      value: swe
+      scheme: ISO 639-3
+    name:
+      swe: fornsvenska
+      eng: Old Swedish
+    variety: fsv
 parent: hist-parent
 name:
   swe: Annotering av grundformer för fornsvenska
@@ -242,8 +264,14 @@ description:
     variants.
 ---
 id: sbx-swe-lemgram-sparv-schlyter_soderwall_fsv
-language_varieties:
-  - fsv
+languages:
+  - identifier:
+      value: swe
+      scheme: ISO 639-3
+    name:
+      swe: fornsvenska
+      eng: Old Swedish
+    variety: fsv
 parent: hist-parent
 name:
   swe: Annotering av lemgram för fornsvenska
@@ -298,8 +326,14 @@ description:
     morphology lexicon and computed over token forms and possible spelling variants.
 ---
 id: sbx-swe-spelling_variants-sparv-fsv
-language_varieties:
-  - fsv
+languages:
+  - identifier:
+      value: swe
+      scheme: ISO 639-3
+    name:
+      swe: fornsvenska
+      eng: Old Swedish
+    variety: fsv
 parent: hist-parent
 name:
   swe: Stavningsvarianter för fornsvenska

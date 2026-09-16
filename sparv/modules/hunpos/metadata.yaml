@@ -1,7 +1,5 @@
 id: hunpos-parent
 abstract: true
-language_codes:
-  - swe
 standard_reference: ''
 other_references:
   - "Hunpos: https://code.google.com/archive/p/hunpos/"
@@ -15,6 +13,8 @@ evaluation_results: ''
 ---
 id: sbx-swe-pos-hunpos-suc3
 parent: hunpos-parent
+language_codes:
+  - swe
 name:
   swe: SUC-ordklasstaggning med Hunpos
   eng: SUC part-of-speech tagging with Hunpos
@@ -49,6 +49,8 @@ updated: 2018-05-28
 ---
 id: sbx-swe-msd-hunpos-suc3
 parent: hunpos-parent
+language_codes:
+  - swe
 name:
   swe: Morfosyntaktisk SUC-taggning med Hunpos
   eng: Tagging of morphological features (SUC) by Hunpos
@@ -82,8 +84,14 @@ created: 2010-12-15
 updated: 2018-05-28
 ---
 id: sbx-swe-pos-hunpos-suc3_1800
-language_varieties:
-  - "1800"
+languages:
+  - identifier:
+      value: swe
+      scheme: ISO 639-3
+    name:
+      swe: 1800-talssvenska
+      eng: 19th-century Swedish
+    variety: '1800'
 parent: hunpos-parent
 name:
   swe: SUC-ordklasstaggning med Hunpos för 1800-talssvenska
@@ -137,8 +145,14 @@ created: 2012-10-23
 updated: 2015-09-11
 ---
 id: sbx-swe-msd-hunpos-suc3_1800
-language_varieties:
-  - "1800"
+languages:
+  - identifier:
+      value: swe
+      scheme: ISO 639-3
+    name:
+      swe: 1800-talssvenska
+      eng: 19th-century Swedish
+    variety: '1800'
 parent: hunpos-parent
 name:
   swe: Morfosyntaktisk SUC-taggning med Hunpos för 1800-talssvenska
