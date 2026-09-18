@@ -348,6 +348,7 @@ class SparvLogHandler:
         progressbar: bool = True,
         log_level: str | None = None,
         log_file_level: str | None = None,
+        log_level_explicit: bool = False,
         simple: bool = False,
         stats: bool = False,
         pass_through: bool = False,
@@ -362,6 +363,9 @@ class SparvLogHandler:
             progressbar: Set to False to disable progress bar. Enabled by default.
             log_level: Log level for logging to stdout.
             log_file_level: Log level for logging to file.
+            log_level_explicit: Set to True if the log level was explicitly requested by the user (as opposed to
+                falling back on the default). Used to decide whether the final summary message should always be
+                shown or respect the configured log level like any other message.
             simple: Set to True to show less info about currently running jobs.
             stats: Set to True to show stats after completion.
             pass_through: Let Snakemake's log messages pass through uninterrupted.
@@ -378,6 +382,7 @@ class SparvLogHandler:
         self.json = json
         self.log_level = log_level
         self.log_file_level = log_file_level
+        self.log_level_explicit = log_level_explicit
         self.log_filename = None
         self.log_levelcount = defaultdict(int)
         self.root_dir = root_dir
@@ -538,6 +543,27 @@ class SparvLogHandler:
         self._progress.start_task(self._bar)
         self.bar_started = True
 
+    def _emit_final(self, level: int, msg: str) -> None:
+        """Emit a final summary log record.
+
+        This is used to emit a final log message at the end of the workflow, regardless of the logger's configured
+        level. By default, the log level is set to WARNING, filtering out any INFO messages, including the final summary
+        message. Unless the user has explicitly requested a specific log level (e.g. `--log warning`), we bypass the
+        logger's level check and emit the final summary message directly to each handler, ensuring it is always
+        displayed.
+
+        Args:
+            level: Log level to report for the message.
+            msg: Message to log.
+        """
+        assert self.logger is not None
+        if self.log_level_explicit:
+            self.logger.log(level, msg, extra={"event": "final"})
+            return
+        record = self.logger.makeRecord(self.logger.name, level, __file__, 0, msg, (), None, extra={"event": "final"})
+        for handler in self.logger.handlers:
+            handler.handle(record)
+
     def info(self, msg: str) -> None:
         """Print info message.
 
@@ -547,7 +573,7 @@ class SparvLogHandler:
             msg: Message to print.
         """
         if self.json and self.logger:
-            self.logger.info(msg, extra={"event": "final"})
+            self._emit_final(logging.INFO, msg)
         else:
             console.print(Text(msg, style="green"))
 
@@ -561,7 +587,7 @@ class SparvLogHandler:
             msg: Message to print.
         """
         if self.json and self.logger:
-            self.logger.warning(msg, extra={"event": "final"})
+            self._emit_final(logging.WARNING, msg)
         else:
             console.print(Text(msg, style="yellow"))
 
@@ -575,7 +601,7 @@ class SparvLogHandler:
             msg: Message to print.
         """
         if self.json and self.logger:
-            self.logger.error(msg, extra={"event": "final"})
+            self._emit_final(logging.ERROR, msg)
         else:
             console.print(Text(msg, style="red"))
 
