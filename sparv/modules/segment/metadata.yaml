@@ -412,7 +412,7 @@ description:
   eng: |-
     The sentence segmenter is based on NLTK's
     [PunktWordTokenizer](https://www.nltk.org/api/nltk.tokenize.PunktSentenceTokenizer.html). Sparv's version is
-    custom-made for Swedish by supplying a model built on [StorSUC](https://spraakbanken.gu.se/en/resources/storsuc). It
+    custom-made for Swedish by supplying a model built on [StorSUC](https://sprakbanken.se/en/resources/storsuc). It
     is, however, possible to configure the sentence segmenter for other languages.
 updated: 2021-09-02
 ---

@@ -12,15 +12,15 @@ trained_on: "[SUC3](https://sprakbanken.se/resurser/suc3), [TalbankenSBX](https:
 other_references:
   - "Stanza: Peng Qi, Yuhao Zhang, Yuhui Zhang, Jason Bolton and Christopher D. Manning. 2020"
   - "Stanza: A Python Natural Language Processing Toolkit for Many Human Languages. In Association for Computational Linguistics (ACL) System Demonstrations. 2020"
-  - "SUC3: https://spraakbanken.gu.se/en/resources/suc3"
+  - "SUC3: https://sprakbanken.se/en/resources/suc3"
   - "TalbankenSBX: https://spraakbanken.gu.se/en/blog/20200609-the-five-lives-of-talbanken"
-  - "SIC2: https://spraakbanken.gu.se/en/resources/sic2"
+  - "SIC2: https://sprakbanken.se/en/resources/sic2"
 tagset: "[SUC3](https://spraakbanken.gu.se/korp/markup/msdtags.html)"
 evaluation_results: |-
   For a model trained on SUC3 and validated on a part of TalbankenSBX_dev the results are as follows:  
   tested on Talbanken SBX_test: exact match = 0.97; POS = 0.98; msd = 0.99  
   tested on SIC2: exact match = 0.92; POS = 0.93; msd = 0.96  
-  More info: https://spraakbanken.gu.se/en/resources/flair/evaluating-pos-tagging
+  More info: https://sprakbanken.se/en/resources/flair/evaluating-pos-tagging
 caveats:
   swe: ''
   eng: ''
@@ -116,7 +116,7 @@ other_references:
   - "Stanza: Peng Qi, Yuhao Zhang, Yuhui Zhang, Jason Bolton and Christopher D. Manning. 2020"
   - "Stanza: A Python Natural Language Processing Toolkit for Many Human Languages. In Association for Computational Linguistics (ACL) System Demonstrations. 2020"
   - "TalbankenSBX: https://spraakbanken.gu.se/en/blog/20200609-the-five-lives-of-talbanken"
-  - "SIC2: https://spraakbanken.gu.se/en/resources/sic2"
+  - "SIC2: https://sprakbanken.se/en/resources/sic2"
 models:
   - name: Stanzamorph
     url: https://sprakbanken.se/resurser/stanzamorph
@@ -152,7 +152,7 @@ example_output: |-
 other_references:
   - "Stanza: Peng Qi, Yuhao Zhang, Yuhui Zhang, Jason Bolton and Christopher D. Manning. 2020"
   - "Stanza: A Python Natural Language Processing Toolkit for Many Human Languages. In Association for Computational Linguistics (ACL) System Demonstrations. 2020"
-  - "SUC3: https://spraakbanken.gu.se/en/resources/suc3"
+  - "SUC3: https://sprakbanken.se/en/resources/suc3"
 models:
   - name: Stanzalem
     url: https://sprakbanken.se/resurser/stanzalem

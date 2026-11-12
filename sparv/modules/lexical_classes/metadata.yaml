@@ -184,7 +184,7 @@ description:
     Token slås upp i [Svenskt frasnät](https://sprakbanken.se/resurser/swefn) (SweFN, en lexikal-semantisk resurs
     som är baserad på teorin om ramsemantik) för att berikas med information om sina lexikala klasser.
   eng: |-
-    Tokens are looked up in [Swedish FrameNet](https://spraakbanken.gu.se/en/resources/swefn) (SweFN, lexical-semantic
+    Tokens are looked up in [Swedish FrameNet](https://sprakbanken.se/en/resources/swefn) (SweFN, lexical-semantic
     resource that follows the theory of Frame Semantics) in order to enrich them with information about their lexical
     classes.
 created: 2017-09-21
@@ -237,7 +237,7 @@ description:
     referensmaterial. Dominansen beräknas genom att jämföra den observerade frekvensen av en lexikal klass i texten
     med dess förväntade (relativa) frekvens i referensmaterialet.
   eng: |-
-    Tokens are looked up in [Swedish FrameNet](https://spraakbanken.gu.se/en/resources/swefn) (SweFN, lexical-semantic
+    Tokens are looked up in [Swedish FrameNet](https://sprakbanken.se/en/resources/swefn) (SweFN, lexical-semantic
     resource that follows the theory of Frame Semantics) in order to enrich them with information about their lexical
     classes. Texts are then enriched with information about lexical classes based on which classes are relevant for
     the tokens within them.
