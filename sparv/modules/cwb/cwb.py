@@ -11,20 +11,26 @@ from sparv.api import (
     AllSourceFilenames,
     Annotation,
     AnnotationAllSourceFiles,
+    AnnotationCommonData,
+    AnnotationDataAllSourceFiles,
     Config,
     Corpus,
     Export,
     ExportAnnotationNames,
     ExportAnnotations,
     ExportInput,
+    OutputCommonData,
     SourceAnnotations,
     SourceAnnotationsAllSourceFiles,
     SourceFilename,
+    SourceStructure,
     SparvErrorMessage,
+    annotator,
     exporter,
     get_logger,
     util,
 )
+from sparv.core import io
 from sparv.modules.xml_export import xml_utils
 
 logger = get_logger(__name__)
@@ -55,6 +61,65 @@ CWB_CHAR_TRANSLATION = str.maketrans(
 )
 
 
+@annotator("Corpus-wide inventory of source annotation names")
+def vrt_source_annotations(
+    out: OutputCommonData = OutputCommonData(
+        "cwb.vrt_source_annotations", description="Source annotation names available across all corpus files"
+    ),
+    _structures: AnnotationDataAllSourceFiles = AnnotationDataAllSourceFiles(io.STRUCTURE_FILE),
+    source_files: AllSourceFilenames = AllSourceFilenames(),
+) -> None:
+    """Collect source annotation names, so all VRT files can use the same token columns.
+
+    CWB requires that all VRT files in a corpus have the same token attributes in the same order. Instead of letting
+    each VRT exporter read the source structure for every file every time, this annotator collects all source annotation
+    names once and makes them available to all VRT exporters. This avoids quadratic planning time and repeated reads of
+    the same source structure data.
+
+    We perform no filtering based on the export settings here, since that could become stale if the settings change.
+
+    Args:
+        out: Output for the common source annotation inventory.
+        _structures: Declares dependencies on the source structure data for every file.
+        source_files: All source filenames.
+    """
+    available = set()
+    for source_file in source_files:
+        available.update(SourceStructure(source_file).read())
+    out.write(sorted(available))
+
+
+def _vrt_token_attributes(
+    token: Annotation,
+    annotations: ExportAnnotations,
+    source_annotations: SourceAnnotations,
+    inventory: AnnotationCommonData,
+) -> list[str]:
+    """Choose token columns using the shared inventory and the current export settings.
+
+    Args:
+        token: The token annotation.
+        annotations: The annotations to include in the export.
+        source_annotations: The source annotations to include in the export.
+        inventory: The shared inventory of source annotation names.
+
+    Returns:
+        The ordered token attributes used by every VRT file.
+    """
+    available = set(inventory.read())
+    selected_source = (
+        (Annotation(name), export_name)
+        for name, export_name in util.misc.parse_annotation_list(source_annotations.raw_list, available)
+        if name in available
+    )
+    attributes = [
+        annotation.attribute_name
+        for annotation, _ in set(annotations).union(selected_source)
+        if annotation.annotation_name == token.annotation_name and annotation.attribute_name is not None
+    ]
+    return sorted(attributes)
+
+
 @exporter(
     "VRT export",
     config=[
@@ -74,7 +139,7 @@ def vrt(
     word: Annotation = Annotation("[export.word]"),
     annotations: ExportAnnotations = ExportAnnotations("cwb.annotations"),
     source_annotations: SourceAnnotations = SourceAnnotations("cwb.source_annotations"),
-    all_source_annotations: SourceAnnotationsAllSourceFiles = SourceAnnotationsAllSourceFiles("cwb.source_annotations"),
+    all_source_annotations: AnnotationCommonData = AnnotationCommonData("cwb.vrt_source_annotations"),
     remove_namespaces: bool = Config("export.remove_module_namespaces", False),
     sparv_namespace: str = Config("export.sparv_namespace"),
     source_namespace: str = Config("export.source_namespace"),
@@ -88,7 +153,7 @@ def vrt(
         word: The word annotation to use for the export.
         annotations: The annotations to include in the export.
         source_annotations: The source annotations to include in the export.
-        all_source_annotations: All source annotations for all source files.
+        all_source_annotations: Source annotation inventory shared by all source files.
         remove_namespaces: Whether to remove namespaces from annotation names.
         sparv_namespace: The namespace for Sparv annotations.
         source_namespace: The namespace for source annotations.
@@ -100,14 +165,8 @@ def vrt(
     # Read words
     word_annotation = list(word.read())
 
-    # Make a list of all token attributes for all source files. We need this because all VRT files need to have the
-    # exact same token attributes in the same order.
-    all_token_attributes = [
-        a[0].attribute_name
-        for a in set(annotations).union(all_source_annotations)
-        if a[0].annotation_name == token.annotation_name and a[0].attribute_name is not None
-    ]
-    all_token_attributes.sort()
+    # Create token attributes list, using the shared inventory to ensure all VRT files have the same columns
+    all_token_attributes = _vrt_token_attributes(token, annotations, source_annotations, all_source_annotations)
 
     # Get annotation spans, annotations list etc.
     annotation_list, _token_attributes, export_names = util.export.get_annotation_names(
@@ -150,7 +209,7 @@ def vrt_scrambled(
     word: Annotation = Annotation("[export.word]"),
     annotations: ExportAnnotations = ExportAnnotations("cwb.annotations"),
     source_annotations: SourceAnnotations = SourceAnnotations("cwb.source_annotations"),
-    all_source_annotations: SourceAnnotationsAllSourceFiles = SourceAnnotationsAllSourceFiles("cwb.source_annotations"),
+    all_source_annotations: AnnotationCommonData = AnnotationCommonData("cwb.vrt_source_annotations"),
     remove_namespaces: bool = Config("export.remove_module_namespaces", False),
     sparv_namespace: str = Config("export.sparv_namespace"),
     source_namespace: str = Config("export.source_namespace"),
@@ -166,7 +225,7 @@ def vrt_scrambled(
         word: The word annotation to use for the export.
         annotations: The annotations to include in the export.
         source_annotations: The source annotations to include in the export.
-        all_source_annotations: All source annotations for all source files.
+        all_source_annotations: Source annotation inventory shared by all source files.
         remove_namespaces: Whether to remove namespaces from annotation names.
         sparv_namespace: The namespace for Sparv annotations.
         source_namespace: The namespace for source annotations.
@@ -205,14 +264,8 @@ def vrt_scrambled(
 
     logger.progress()
 
-    # Make a list of all token attributes for all source files. We need this because all VRT files need to have the
-    # exact same token attributes in the same order.
-    all_token_attributes = [
-        a[0].attribute_name
-        for a in set(annotations).union(all_source_annotations)
-        if a[0].annotation_name == token.annotation_name and a[0].attribute_name is not None
-    ]
-    all_token_attributes.sort()
+    # Create token attributes list, using the shared inventory to ensure all VRT files have the same columns
+    all_token_attributes = _vrt_token_attributes(token, annotations, source_annotations, all_source_annotations)
 
     # Reorder chunks and open/close tags in correct order
     new_span_positions = util.export.scramble_spans(span_positions, chunk.name, chunk_order_data)
