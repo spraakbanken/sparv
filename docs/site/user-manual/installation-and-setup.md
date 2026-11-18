@@ -152,7 +152,9 @@ it in the `bin/wsd` directory inside your [Sparv data directory](#setting-up-spa
 >
 > hfst-SweNER requires a Unix-like environment.
 
-The current version of hfst-SweNER is written for Python 2, while Sparv uses Python 3. Therefore, it needs to be patched before installation. After extracting the archive, navigate to the `hfst-swener-0.9.3/scripts` directory and create a file named `swener.patch` with the following contents:
+The current version of hfst-SweNER is written for Python 2, while Sparv uses Python 3. Therefore, it needs to be patched
+before installation. After extracting the archive, navigate to the `hfst-swener-0.9.3/scripts` directory and create a
+file named `swener.patch` with the following contents:
 
 ```diff
 --- convert-namex-tags.py
@@ -189,17 +191,27 @@ After applying the patch, follow the installation instructions provided by hfst-
 |**License**                       |[BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)|
 |**Version compatible with Sparv** |latest (1.0)|
 
-To install Hunpos, unpack the downloaded files and add the executables to your system path (you will need at least `hunpos-tag`). Alternatively, you can place the binaries inside the `bin` directory of your [Sparv data directory](#setting-up-sparv).
+To install Hunpos, unpack the downloaded files and add the executables to your system path (you will need at least
+`hunpos-tag`). Alternatively, you can place the binaries inside the `bin` directory of your [Sparv data
+directory](#setting-up-sparv).
 
-If you are using a 64-bit operating system, you might need to install 32-bit compatibility libraries if Hunpos does not run:
+If you are using a 64-bit operating system, you might need to install 32-bit compatibility libraries if Hunpos does not
+run:
 
 ```sh
+# On Ubuntu/Debian-based systems
 sudo apt install lib32z1
+
+# On Fedora/RHEL-based systems
+sudo dnf install zlib-ng-compat.i686
 ```
 
-For newer macOS versions, you may need to compile Hunpos from source. Instructions can be found in [this GitHub repository](https://github.com/mivoq/hunpos).
+For newer macOS versions, you may need to compile Hunpos from source. Instructions can be found in [this GitHub
+repository](https://github.com/mivoq/hunpos).
 
-When using Sparv with Hunpos on Windows, set the configuration variable `hunpos.binary: hunpos-tag.exe` in your [corpus configuration](corpus-configuration.md). Additionally, ensure the `cygwin1.dll` file that comes with Hunpos is in your system path or copied into your `bin` directory within the Sparv data directory along with the Hunpos binaries.
+When using Sparv with Hunpos on Windows, set the configuration variable `hunpos.binary: hunpos-tag.exe` in your [corpus
+configuration](corpus-configuration.md). Additionally, ensure the `cygwin1.dll` file that comes with Hunpos is in your
+system path or copied into your `bin` directory within the Sparv data directory along with the Hunpos binaries.
 
 ### MaltParser
 
