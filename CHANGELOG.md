@@ -4,25 +4,74 @@
 
 ### Added
 
+- Added `sparv plugins check` command for running health checks on installed plugins.
 - The `sparv plugins` command now supports (un)installing multiple plugins at once.
 - Plugin installation/uninstallation is now possible in environments where `pip` is not available, if `uv` is
   installed.
 - Added `sparv dev inspect` command for inspecting files in the sparv-workdir.
-- Add support for scrambled plain text export, using the `text_export:scrambled` annotator.
+- Added plain text export, including a scrambled variant (`text_export:scrambled`).
+- Added support for limiting the number of processes used by specific preloaders through the `threads` config section.
+- Added support for specifying tagsets for Sparv classes that represent input or output annotations and models. This
+  allows for validation of tagset compatibility between annotators and models.
+- Added `ExportInput.file()` for resolving `{file}` placeholders for a specific source file.
+- Added `util.misc.normalize_space_separators()` utility function.
+- Added context manager support and `drop_view()` to `util.mysql_wrapper.MySQL`.
+- Added OSC 9;4 progress reporting for terminals that support it.
+- Added progress reporting for SQL installation.
+- Added a dependency-head token index (`stanford.dephead`) to Stanford Parser output.
+- Added `korp.deptree` setting for dependency tree visualization in Korp.
+- Added `korp.languages` setting for generated Korp configs.
+- Added configurable Word Picture annotations and relation patterns. Word Picture is no longer limited to Swedish.
+- Added yearly Word Picture SQL export/installers and shared-view export/installers for corpora where aggregated Word
+  Picture tables can reuse yearly data.
+- Added installers/uninstallers for more SBX frequency list variants.
 
 ### Changed
 
 - Dropped support for Python 3.10.
+- The recommended way to install Sparv is now by using `uv` instead of `pipx`.
+- Removed the old CRF tokenizer and the bundled FreeLing presets.
 - The default configuration file shipped with Sparv is now empty, and any changes to this file will be preserved when
   upgrading Sparv and running `sparv setup` again.
+- The documentation site has moved from MkDocs to Zensical.
+- Sparv now uses `uv_build` as build backend and keeps the canonical version number in `pyproject.toml`.
+- Updated Snakemake to version 9, NLTK to version 3.10 and the PDF importer’s `pypdfium2` dependency to version 5.
+- Configuration schema validation now uses `jsonschema-rs`.
+- Improved performance of SALDO annotation and `misc:ids`.
+- Reduced memory usage during CWB VRT preparation by sharing the source annotation inventory across VRT jobs.
+- CWB exports now normalize annotation names to valid CWB identifiers and report collisions after normalization.
+- Removed SenSALDO sentiment and Blingbring annotations from the default Swedish preset. They can still be selected
+  explicitly.
+- Dependency presets now export `dephead_ref` as `dephead`. The default Swedish sentence and paragraph presets no
+  longer export `geo_context` under the alias `geo`.
+- SBX frequency lists use the configured `token:sense` class. Installing or uninstalling SBX frequency lists outside
+  SVN requires `stats_export.remote_dir`.
+- CLI list commands now show only the first line of long descriptions.
+- Corpus IDs may now contain underscores, but may not start or end with hyphens or underscores.
+- Korp corpus descriptions written in Markdown are now converted to HTML in the generated Korp config.
+- Korp corpus names now fall back to the corpus ID if both `korp.name` and `metadata.name` are missing.
 - JSON logging no longer logs the last log message using the custom log level `FINAL`, but instead uses the standard
-  `INFO`, `WARNING` or `ERROR` log levels, with an additional field `"event": "final"`.
+  `INFO`, `WARNING` or `ERROR` log levels, with an additional field `"event": "final"`. The final log message is by
+  default always included, unless the user has explicitly set a log level.
+- Removed the `misc:struct_to_token` annotator, as its functionality can be achieved by using `misc:inherit`.
 
 ### Fixed
 
+- Improved YAML parse error messages.
+- Improved error messages for custom annotations, missing required configuration, unresolved annotation classes, and
+  missing source files or an incorrectly configured importer.
 - Fixed issue with using Sparv as a library. Sparv can now be invoked multiple times within the same process.
-- Fixed issue with non-breaking spaces in misc:text_headtail.
+- Fixed handling of non-breaking spaces in `misc:text_headtail`.
 - Fixed recursion error when logging to root logger in Sparv modules.
+- Fixed a logging crash that could occur when stopping the preloader.
+- Fixed detailed `sparv modules --json` output for annotators with annotation defaults.
+- Fixed `AnnotationAllSourceFiles.read_text()` and span reads that include the annotation name without decimal offsets.
+- Fixed UPOS conversion for Estonian TreeTagger tags containing a dot.
+- Fixed VRT export to escape line breaks, carriage returns and tabs in annotation values.
+- Fixed `util.install.uninstall_git()`.
+- Fixed Korp `uninstall_timespan`, which incorrectly required the corpus language to be Swedish.
+- Fixed export names so multiple SBX frequency list variants can be requested in the same run.
+- ZIP-compressed frequency lists now store the CSV at the root of the archive.
 
 ## [5.3.1] - 2025-08-20
 
