@@ -15,22 +15,22 @@ authors = [
 ]
 dependencies = [
     "appdirs~=1.4",
-    "argcomplete~=3.6",
+    "argcomplete~=3.7",
     "docx2python==1.27.1",
-    "jsonschema-rs==0.46.0",
-    "markdown~=3.10",
-    "nltk~=3.9",
+    "jsonschema-rs==0.61.2",
+    "markdown~=3.11",
+    "nltk~=3.10.4",
     "packaging>=24.0",
     "protobuf>=3.19.0",   # Used by Stanza; see https://github.com/spraakbanken/sparv/issues/161
     "pycountry~=26.2",
     "pypdfium2~=5.6",
-    "python-dateutil~=2.9",
+    "python-dateutil~=4.0",
     "python-json-logger~=4.0",
     "PyYAML~=6.0",
     "questionary==1.10.0",
     "requests>=2.32.3",
     "rich~=15.0",
-    "rich-argparse~=1.7",
+    "rich-argparse~=1.8",
     "stanza==1.10.1",
     "snakemake==9.27.2",
     "torch",
@@ -44,18 +44,18 @@ dev = [
 ]
 lint = [
     "pyright~=1.1",
-    "ruff~=0.15"
+    "ruff~=0.17"
 ]
 test = [
     "pytest~=9.0",
     "pytest-sugar~=1.0"
 ]
 docs = [
-    "bs4",
+    "beautifulsoup4",
     "markdown-gfm-admonition~=0.3",
     "mkdocstrings-python~=2.0",
     "pandocfilters~=1.5",
-    "zensical>=0.0.33",
+    "zensical>=0.1",
 ]
 
 [project.urls]
