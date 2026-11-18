@@ -5,7 +5,7 @@ import inspect
 import itertools
 import pickle
 import re
-from collections.abc import Generator
+from collections.abc import Callable, Generator, Iterator
 from pathlib import Path
 from typing import Any
 
@@ -526,12 +526,42 @@ class BetterWordTokenizer:
             begin += len(w)
 
 
+class _PunktPeriodContext:
+    """Iterate over sentence-end candidates with a separate timeout for each search."""
+
+    def __init__(self, search: Callable[[str, int], re.Match[str] | None]) -> None:
+        self._search = search
+
+    def finditer(self, text: str) -> Iterator[re.Match[str]]:
+        """Find candidates without charging Punkt's work between matches to the regex timeout.
+
+        Yields:
+            Matches for potential sentence endings.
+        """
+        pos = 0
+        while match := self._search(text, pos):
+            yield match
+            # Punkt's period-context pattern always consumes a sentence-ending character.
+            pos = match.end()
+
+
+class _PunktLanguageVars(punkt.PunktLanguageVars):
+    """Use per-search timeouts for Punkt's sentence-end scan."""
+
+    def period_context_re(self) -> re.Pattern[str] | _PunktPeriodContext:
+        """Return a pattern with an iterator suitable for Punkt."""
+        pattern = super().period_context_re()
+        if isinstance(pattern, re.Pattern):
+            return pattern
+        return _PunktPeriodContext(pattern.search)
+
+
 class PunktSentenceTokenizer(nltk.PunktSentenceTokenizer):
     """A simple subclass of nltk.PunktSentenceTokenizer to add the required 'model' parameter."""
 
     def __init__(self, model: Path) -> None:
         """Initialize class."""
-        super().__init__(str(model))
+        super().__init__(str(model), lang_vars=_PunktLanguageVars())
 
 
 class FSVParagraphSplitter:
