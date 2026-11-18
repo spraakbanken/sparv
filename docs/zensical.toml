@@ -3,7 +3,6 @@ site_name = "Sparv"
 site_description = "Språkbanken's analysis platform"
 site_url = "https://spraakbanken.gu.se/sparv/"
 repo_url = "https://github.com/spraakbanken/sparv"
-version = "5.4.0.dev0 (development version)"
 docs_dir = "site"
 site_dir = "build"
 nav = [
