@@ -100,7 +100,8 @@ permalink = "⚓︎"
 [project.markdown_extensions.pymdownx.details]
 
 # Support for GitHub-flavored admonitions
-[project.markdown_extensions.gfm_admonition]
+[project.markdown_extensions.pymdownx.quotes]
+callouts = true
 
 # Needed by content tabs and syntax highlighting
 [project.markdown_extensions.pymdownx.superfences]

@@ -52,7 +52,6 @@ test = [
 ]
 docs = [
     "beautifulsoup4",
-    "markdown-gfm-admonition~=0.3",
     "mkdocstrings-python~=2.0",
     "pandocfilters~=1.5",
     "zensical>=0.1",
