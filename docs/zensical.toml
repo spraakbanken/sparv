@@ -131,7 +131,3 @@ show_signature = true
 separate_signature = true
 merge_init_into_class = true
 docstring_section_style = "spacy"
-
-[plugins.mkdocstrings.handlers.python.options.docstring_options]
-returns_multiple_items = false
-returns_named_value = false
