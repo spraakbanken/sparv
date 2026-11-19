@@ -336,7 +336,7 @@ cp ../zensical.toml ../zensical_mod.toml
 perl -p -i -e 's/docstring_section_style = .+$/docstring_section_style = "list"/' ../zensical_mod.toml
 perl -p -i -e "s/site_dir = .+$/site_dir = \"$ZENSICAL_OUTPUT_DIR\"/" ../zensical_mod.toml
 cd ..
-zensical build --config-file zensical_mod.toml
+zensical build --config-file zensical_mod.toml --clean --strict
 cd md2pdf
 echo ""
 

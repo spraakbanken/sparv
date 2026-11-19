@@ -51,7 +51,7 @@ esac
 # Build docs
 echo -e "\nBuilding documentation with Zensical ..."
 cp ../CHANGELOG.md site/changelog.md
-zensical build
+zensical build --clean --strict
 rm site/changelog.md
 
 # Sync files or do dry run

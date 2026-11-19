@@ -24,7 +24,7 @@ The documentation should now be available at <http://localhost:8000>.
 ### Build HTML documentation
 
 ```sh
-zensical build
+zensical build --clean --strict
 ```
 
 ### Sync HTML documentation to server
