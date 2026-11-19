@@ -5,6 +5,7 @@ site_url = "https://spraakbanken.gu.se/sparv/"
 repo_url = "https://github.com/spraakbanken/sparv"
 docs_dir = "site"
 site_dir = "build"
+exclude_docs = "/overrides/"
 nav = [
     { "User Manual" = [
         { "Introduction" = "user-manual/intro.md" },
