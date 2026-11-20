@@ -845,7 +845,8 @@ def main(argv: list[str] | None = None) -> bool:
         )
     ) as snakemake_api:
         workflow_api = snakemake_api.workflow(
-            storage_settings=StorageSettings(),
+            # Sparv doesn't use Snakemake's temp outputs, so we set notemp=True to avoid unnecessary temp file checks.
+            storage_settings=StorageSettings(notemp=True),
             resource_settings=ResourceSettings(
                 cores=cores,
                 resources={"threads": cores},
