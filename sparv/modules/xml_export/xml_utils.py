@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import bz2
-import io
 import re
+import typing as t
 import xml.etree.ElementTree as etree  # noqa: N813
 from collections.abc import Sequence
 from pathlib import Path
@@ -26,14 +26,17 @@ def make_pretty_xml(
     word_annotation: list[str],
     fileid: str,
     include_empty_attributes: bool,
+    *,
+    stream: t.TextIO,
     sparv_namespace: str | None = None,
     xml_namespaces: dict | None = None,
-) -> str:
+) -> None:
     """Create a pretty formatted XML string from span_positions.
 
     Used by pretty and sentence_scrambled.
 
     Args:
+        stream: a TextIO object that the xml is written to.
         span_positions: List of tuples with span positions.
         annotation_dict: Dictionary with annotations.
         export_names: Dictionary with export names.
@@ -43,9 +46,6 @@ def make_pretty_xml(
         include_empty_attributes: Whether to include empty attributes.
         sparv_namespace: Optional namespace for Sparv attributes.
         xml_namespaces: Optional dictionary with XML namespaces.
-
-    Returns:
-        Pretty formatted XML string.
 
     Raises:
         SparvErrorMessage: If the root tag is missing.
@@ -159,9 +159,7 @@ def make_pretty_xml(
     etree.indent(root_span.node, space=INDENTATION)
 
     # We use write() instead of tostring() here to be able to get an XML declaration
-    stream = io.StringIO()
     etree.ElementTree(root_span.node).write(stream, encoding="unicode", method="xml", xml_declaration=True)
-    return stream.getvalue()
 
 
 def valid_root(first_item: tuple, last_item: tuple, true_root: bool = False) -> bool:
