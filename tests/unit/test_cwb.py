@@ -73,25 +73,25 @@ def test_cwb_escape_prefixes_leading_digits(monkeypatch: pytest.MonkeyPatch) -> 
         ("line\rbreak", "line&#13;break"),
         ("line\tbreak", "line&#9;break"),
         ("literal &#10;", "literal &amp;#10;"),
-        ('a & < b > "c"', "a &amp; &lt; b &gt; &quot;c&quot;"),
+        ('a & < b > "c"', 'a &amp; &lt; b &gt; "c"'),
     ],
 )
-def test_escape_vrt_value(value: str, escaped: str) -> None:
+def test_escape_vrt_annotation_value(value: str, escaped: str) -> None:
     """Test that VRT values remain on one line without changing literal entity text."""
-    assert cwb.escape_vrt_value(value) == escaped
+    assert cwb.escape_vrt_annotation_value(value) == escaped
 
 
-def test_make_attr_str_escapes_newlines() -> None:
-    """Test that a structural attribute cannot add a physical line break to VRT."""
-    annotation_dict = {"text": {"description": ["before\nafter"]}}
+def test_make_attr_str_escapes_quotes_and_newlines() -> None:
+    """Test escaping of quotes and line breaks inside structural attribute values."""
+    annotation_dict = {"text": {"description": ['"before\nafter"']}}
 
-    assert cwb.make_attr_str("text", annotation_dict, {}, 0) == 'description="before&#10;after"'
+    assert cwb.make_attr_str("text", annotation_dict, {}, 0) == 'description="&quot;before&#10;after&quot;"'
 
 
-def test_make_token_line_escapes_attribute_newlines() -> None:
-    """Test that a token attribute cannot add a physical line break to VRT."""
-    annotation_dict = {"token": {"lemma": ["before\nafter"]}}
+def test_make_token_line_escapes_markup_and_attribute_newlines() -> None:
+    """Test that both positional columns keep literal quotes and escape markup."""
+    annotation_dict = {"token": {"lemma": ['"<&>\nafter']}}
 
-    assert cwb.make_token_line("word", "token", ["lemma"], annotation_dict, 0, "source.xml") == (
-        "word\tbefore&#10;after"
+    assert cwb.make_token_line('"<&>', "token", ["lemma"], annotation_dict, 0, "source.xml") == (
+        '"&lt;&amp;&gt;\t"&lt;&amp;&gt;&#10;after'
     )

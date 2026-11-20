@@ -744,23 +744,27 @@ def make_attr_str(
     for name, annot in annotation_dict[annotation].items():
         export_name = export_names.get(f"{annotation}:{name}", name)
         export_name = cwb_escape(export_name)
-        # Escape special characters in value
-        value = escape_vrt_value(annot[index])
+        value = escape_vrt_annotation_value(annot[index]).replace('"', "&quot;")
         attrs.append(f'{export_name}="{value}"')
     return " ".join(attrs)
 
 
 def escape_vrt_value(value: str) -> str:
-    """Return a string with special characters escaped for VRT."""
-    return (
-        value.replace("&", "&amp;")
-        .replace('"', "&quot;")
-        .replace("<", "&lt;")
-        .replace(">", "&gt;")
-        .replace("\r", "&#13;")
-        .replace("\n", "&#10;")
-        .replace("\t", "&#9;")
-    )
+    """Escape XML markup characters in VRT values.
+
+    Returns:
+        The value with ampersands and angle brackets escaped.
+    """
+    return value.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+def escape_vrt_annotation_value(value: str) -> str:
+    """Escape markup and keep annotation values on one VRT line and in one column.
+
+    Returns:
+        The value with markup, line breaks, and tabs escaped.
+    """
+    return escape_vrt_value(value).replace("\r", "&#13;").replace("\n", "&#10;").replace("\t", "&#9;")
 
 
 def make_token_line(
@@ -795,10 +799,10 @@ def make_token_line(
             source_file,
         )
 
-    line = [word.replace(" ", "_").replace("\n", "_").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")]
+    line = [escape_vrt_value(word.replace(" ", "_").replace("\n", "_"))]
     for attr in token_attributes:
         attr_str = util.constants.UNDEF if attr not in annotation_dict[token] else annotation_dict[token][attr][index]
-        line.append(escape_vrt_value(attr_str.replace(" ", "_").replace("/", "")))
+        line.append(escape_vrt_annotation_value(attr_str.replace(" ", "_").replace("/", "")))
     line_string = util.misc.remove_control_characters("\t".join(line))
 
     # Send warning if line exceeds the max line length in CWB
