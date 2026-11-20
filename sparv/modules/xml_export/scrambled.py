@@ -108,26 +108,27 @@ def scrambled(
         logger.warning("%r contains no text after scrambling (using the annotation %r)", source_file, chunk.name)
         new_span_positions = [span_positions[0], span_positions[-1]]
 
-    # Construct XML string
-    xmlstr = xml_utils.make_pretty_xml(
-        new_span_positions,
-        annotation_dict,
-        export_names,
-        token.name,
-        word_annotation,
-        fileid_annotation,
-        include_empty_attributes,
-        sparv_namespace,
-        xml_namespaces,
-    )
-
     # Create export dir
     out_path = Path(out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # Write XML to file
+    # Open XML file for writing
     with out_path.open(mode="w", encoding="utf-8") as outfile:
-        print(xmlstr, file=outfile)  # Use print() to get a newline at the end of the file
+        # Construct XML string and stream it to the file
+        xml_utils.make_pretty_xml(
+            new_span_positions,
+            annotation_dict,
+            export_names,
+            token.name,
+            word_annotation,
+            fileid_annotation,
+            include_empty_attributes,
+            sparv_namespace=sparv_namespace,
+            xml_namespaces=xml_namespaces,
+            stream=outfile,
+        )
+
+        print(file=outfile)  # Use print() to get a newline at the end of the file
     logger.info("Exported: %s", out)
 
 
