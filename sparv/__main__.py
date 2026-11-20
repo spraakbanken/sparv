@@ -836,8 +836,10 @@ def main(argv: list[str] | None = None) -> bool:
     config["log_server"] = progress.log_server
     success = True
 
+    from sparv.core.snakemake_patches import cache_script_validation, skip_unused_until_checks
+
     # Run Snakemake
-    with SnakemakeApi(
+    with cache_script_validation(), skip_unused_until_checks(), SnakemakeApi(
         OutputSettings(
             verbose=False,  # verbose=True leads to output from the solver that we can't silence
             dryrun=dry_run,
