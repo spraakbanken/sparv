@@ -96,21 +96,24 @@ def pretty(
     span_positions, annotation_dict = util.export.gather_annotations(
         annotation_list, export_names, h_annotations, source_file=source_file, split_overlaps=True
     )
-    xmlstr = xml_utils.make_pretty_xml(
-        span_positions,
-        annotation_dict,
-        export_names,
-        token_name,
-        word_annotation,
-        fileid_annotation,
-        include_empty_attributes,
-        sparv_namespace,
-        xml_namespaces,
-    )
 
-    # Write XML to file
+    # Open XML file for writing
     with out_path.open(mode="w", encoding="utf-8") as outfile:
-        print(xmlstr, file=outfile)  # Use print() to get a newline at the end of the file
+        # Construct XML string and stream it to the file
+        xml_utils.make_pretty_xml(
+            span_positions,
+            annotation_dict,
+            export_names,
+            token_name,
+            word_annotation,
+            fileid_annotation,
+            include_empty_attributes,
+            sparv_namespace=sparv_namespace,
+            xml_namespaces=xml_namespaces,
+            stream=outfile,
+        )
+        print(file=outfile)  # Use print() to get a newline at the end of the file
+
     logger.info("Exported: %s", out)
 
 
