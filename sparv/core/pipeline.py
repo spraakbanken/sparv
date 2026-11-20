@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
 
 import snakemake.utils
-from snakemake.io import expand
+from snakemake.io import WILDCARD_REGEX, expand, get_wildcard_names, regex_from_filepattern
 
 if TYPE_CHECKING:
     import snakemake.iocontainers
@@ -175,7 +175,9 @@ class RuleInfo:
         self.name = f"{module_name}:{f_name}"  # Rule name for the all-files aggregate rule, visible to the user
         self.internal_name = f"{module_name}::{f_name}"  # Snakemake-internal rule name (uses :: separator)
         self.inputs: list[Path] = []
-        self.outputs: list[Path] = []
+        self.outputs: list[Path] = []  # Concrete outputs for Snakemake's file tracking
+        self.output_patterns: list[Path] = []  # Patterns for finding producers
+        self.all_files_output_patterns: set[Path] = set()  # Patterns for one job producing outputs for all source files
         self.parameters = {}
         self.source_file_params = []  # List of parameters referring to SourceFilename
         self.file_wildcard_params = []  # List of parameters containing the {file} wildcard
@@ -645,7 +647,11 @@ class RuleBuilder:
                 registry.annotation_tagsets[output.name] = tagset_value
             ann_path = annotation_path(output, data=param_type.data, common=param_type.common)
             if param_type.all_files:
-                rule.outputs.extend(self._expand_for_all_files(paths.work_dir / ann_path))
+                # Keep {file} here so we can later match a consumer's input to this output pattern.
+                # _finalize() saves the patterns before expanding these outputs to all source files.
+                output_pattern = paths.work_dir / ann_path
+                rule.all_files_output_patterns.add(output_pattern)
+                rule.outputs.append(output_pattern)
             elif param_type.common:
                 rule.outputs.append(paths.work_dir / ann_path)
                 if rule.is_installer:
@@ -888,6 +894,20 @@ class RuleBuilder:
         rule = self.rule
         pipeline = self.pipeline
 
+        # All output parameters have now been processed, so we can save their original patterns before expanding
+        # corpus-wide outputs.
+        rule.output_patterns = rule.outputs.copy()
+        if rule.all_files_output_patterns:
+            # Snakemake still receives the full output list, so it can track missing files and schedule the whole job
+            # even when a consumer only needs one source file. Ordinary per-file output patterns stay unchanged.
+            rule.outputs = [
+                expanded
+                for output in rule.outputs
+                for expanded in (
+                    self._expand_for_all_files(output) if output in rule.all_files_output_patterns else [output]
+                )
+            ]
+
         register_rule(pipeline, rule)
 
         # Add exporter dirs (used for informing user)
@@ -1117,6 +1137,89 @@ def register_rule(pipeline: PipelineData, rule: RuleInfo) -> None:
 
     if rule.annotator_info.get("order") is not None:
         pipeline.ordered_rules.append((rule.internal_name, rule.annotator_info))
+
+
+def set_all_files_dependencies(workflow: snakemake.workflow.Workflow, pipeline: PipelineData) -> None:
+    """Link inputs directly to unambiguous producers of corpus-wide outputs.
+
+    This solves the quadratic scaling problem in Snakemake's producer search for rules that declare outputs for all
+    source files. For example, misc:file_id produces one output per source file in one job. When a consumer needs one of
+    those outputs, Snakemake searches the entire output list to find the producer, once for each source file. With
+    thousands of source files, that search can be expensive. The solution is to resolve the producer once and link the
+    consumer directly to it.
+
+    We only do this for outputs that are unambiguous: if two rules could produce the same output, we leave it to
+    Snakemake to resolve the ambiguity. This preserves the normal semantics of rule ordering and ambiguity handling.
+
+    Args:
+        workflow: The workflow with all processor rules registered.
+        pipeline: Metadata for the registered processor rules.
+    """
+
+    # The same annotation has different path spellings: an annotator uses {file}/example.lookup, while an exporter
+    # uses sparv-workdir/{file}/example.lookup. Compare them in the latter form without changing the actual rule paths.
+    def canonical_path(path: str | Path, rule: RuleInfo) -> str:
+        value = str(path)
+        if rule.is_annotator:
+            value = value.replace("{file}", str(paths.work_dir / "{file}"))
+        return value
+
+    def bounds(pattern: str) -> tuple[str, str]:
+        # The fixed text before the first wildcard and after the last provides a cheap test for possible overlap.
+        wildcards = list(WILDCARD_REGEX.finditer(pattern))
+        if not wildcards:
+            return pattern, pattern
+        return pattern[: wildcards[0].start()], pattern[wildcards[-1].end() :]
+
+    output_patterns = []
+    for rule in pipeline.all_rules:
+        for output in rule.output_patterns:
+            pattern = str(output) if output in rule.all_files_output_patterns else canonical_path(output, rule)
+            output_patterns.append((rule.internal_name, bounds(pattern), re.compile(regex_from_filepattern(pattern))))
+    producers: dict[str, str] = {}
+    for rule in pipeline.all_rules:
+        for output in rule.all_files_output_patterns:
+            pattern = str(output)
+            # Outputs with wildcards other than {file} are not eligible for direct linking.
+            if get_wildcard_names(pattern) - {"file"}:
+                continue
+            expanded_outputs = cast(list[str], expand(pattern, file=pipeline.source_files))
+            if not expanded_outputs:
+                continue
+            prefix, suffix = bounds(pattern)
+            # A direct link would force Snakemake to use this producer, so only add it if no other rule could produce
+            # any of these files. First compare fixed prefixes/suffixes, then check actual source paths with regexes.
+            # We need the regex check because unrelated outputs ending in wildcards can pass the prefix/suffix test.
+            competing_rule = next(
+                (
+                    other_name
+                    for other_name, (other_prefix, other_suffix), other_pattern in output_patterns
+                    if other_name != rule.internal_name
+                    and (prefix.startswith(other_prefix) or other_prefix.startswith(prefix))
+                    and (suffix.endswith(other_suffix) or other_suffix.endswith(suffix))
+                    and any(other_pattern.match(expanded) for expanded in expanded_outputs)
+                ),
+                None,
+            )
+            if competing_rule is not None:
+                continue
+            # Per-file consumers still have {file} in their inputs; corpus-wide consumers have expanded paths.
+            # Index both forms so either can find the producer with a dictionary lookup.
+            producers[pattern] = rule.internal_name
+            for expanded in expanded_outputs:
+                producers[expanded] = rule.internal_name
+
+    if not producers:
+        return
+    for rule in pipeline.all_rules:
+        sm_rule = workflow.get_rule(rule.internal_name)
+        for input_file in sm_rule.input:
+            if callable(input_file):
+                continue
+            producer = producers.get(canonical_path(input_file, rule))
+            if producer is not None and producer != rule.internal_name and input_file not in sm_rule.dependencies:
+                # Explicitly link the consumer to the producer, so Snakemake doesn't have to search for it.
+                sm_rule.dependencies[input_file] = producer
 
 
 def source_dir() -> str:

@@ -97,6 +97,10 @@ def make_rules(config_missing: bool, create_snakemake_rules: bool = True) -> Non
             create_snakemake_rules=create_snakemake_rules,
         )
 
+    if create_snakemake_rules:
+        # Directly link inputs to unambiguous producers of corpus-wide outputs.
+        pipeline.set_all_files_dependencies(workflow, pipeline_data)
+
     # Check and set rule orders (but not when language is set to __all__ for schema purposes)
     if create_snakemake_rules and config.get("language") != "__all__":
         ordered_rules = pipeline.resolve_rule_ordering(pipeline_data)
