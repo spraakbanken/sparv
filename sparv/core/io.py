@@ -13,7 +13,7 @@ import pickle
 from collections import deque
 from collections.abc import Generator, Iterable, Iterator
 from contextlib import closing
-from itertools import islice, pairwise
+from itertools import islice
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -120,30 +120,51 @@ def _write_single_annotation(source_file: str, annotation: str, values: Iterable
         SparvErrorMessage: If annotation spans are not sorted.
     """
     is_span = not split_annotation(annotation)[1]
+    count = 0
 
-    if is_span:
-        if not isinstance(values, list):
-            values = list(values)
-        # Validate that spans are sorted
-        for i, (prev, curr) in enumerate(pairwise(values)):
+    def _spans() -> Iterator:
+        """Validate sort order and convert to decimal tuples, one item at a time."""
+        nonlocal count
+        iterator = iter(values)
+        try:
+            first = next(iterator)
+        except StopIteration:
+            return
+        # Always save spans with decimal tuples (decided by the first span, as before)
+        to_decimal = not isinstance(first[0], tuple)
+        prev = first
+        yield ((first[0],), (first[1],)) if to_decimal else first
+        count = 1
+        for i, curr in enumerate(iterator):
             if prev > curr:
                 raise SparvErrorMessage(
                     f"Annotation spans must be sorted. values[{i}]={prev} > values[{i + 1}]={curr}",
                     module="core.io",
                     function="_write_single_annotation",
                 )
-        # Always save spans with decimal tuples
-        if values and not isinstance(values[0][0], tuple):
-            values = [((v[0],), (v[1],)) for v in values]
-    else:
-        # Convert all values to strings; convert None to empty string
-        values = [str(v) if v is not None else "" for v in values]
+            yield ((curr[0],), (curr[1],)) if to_decimal else curr
+            prev = curr
+            count += 1
+
+    def _attributes() -> Iterator:
+        """Convert all values to strings; convert None to empty string."""
+        nonlocal count
+        for v in values:
+            yield str(v) if v is not None else ""
+            count += 1
+
     file_path = get_annotation_path(source_file, annotation, root)
     file_path.parent.mkdir(parents=True, exist_ok=True)
-    write_annotation_file(file_path, values)
+    # Values are streamed to the file in chunks. Spans are validated while writing, so remove the incomplete file if
+    # anything goes wrong.
+    try:
+        write_annotation_file(file_path, _spans() if is_span else _attributes())
+    except BaseException:
+        file_path.unlink(missing_ok=True)
+        raise
     # Update file modification time even if nothing was written
     os.utime(file_path, None)
-    logger.info("Wrote %d items: %s%s%s", len(values), source_file, "/" if source_file else "", annotation)
+    logger.info("Wrote %d items: %s%s%s", count, source_file, "/" if source_file else "", annotation)
 
 
 def get_annotation_size(source_file: str, annotation: BaseAnnotation) -> int:
@@ -472,7 +493,8 @@ def write_annotation_file(file_path: Path, value: Any, is_data: bool = False) ->
 
     Args:
         file_path: Path to the file to write.
-        value: Data to write.
+        value: Data to write. For annotations (`is_data=False`) this may be any iterable; it is consumed in chunks and
+            never materialized as a whole.
         is_data: Whether the value is of the type data.
     """
     chunk_size = 1000
@@ -487,8 +509,9 @@ def write_annotation_file(file_path: Path, value: Any, is_data: bool = False) ->
             else:
                 pickle.dump(value, f, protocol=pickle.HIGHEST_PROTOCOL)
         else:
-            for i in range(0, len(value), chunk_size):
-                pickle.dump(value[i : i + chunk_size], f, protocol=pickle.HIGHEST_PROTOCOL)
+            iterator = iter(value)
+            while chunk := list(islice(iterator, chunk_size)):
+                pickle.dump(chunk, f, protocol=pickle.HIGHEST_PROTOCOL)
 
 
 def _read_text_file(file: BinaryIO) -> tuple[int, Iterator[str]]:
