@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import bz2
+import functools
 import gzip
 import heapq
 import logging
@@ -38,9 +39,13 @@ _TEXT_CHUNK_SIZE = 64 * 1024
 # Compression used for annotation files (can be changed using sparv.compression in config file)
 compression = "gzip"
 
+# Use gzip compression level 6 (zlib's default) instead of the gzip module's default 9. For typical annotation files,
+# level 9 gives (almost) the same file size but can be more than ten times slower to write.
+_GZIP_COMPRESSION_LEVEL = 6
+
 _compressed_open = {
     "none": open,
-    "gzip": gzip.open,
+    "gzip": functools.partial(gzip.open, compresslevel=_GZIP_COMPRESSION_LEVEL),
     "bzip2": bz2.open,
     "lzma": lzma.open,
 }
