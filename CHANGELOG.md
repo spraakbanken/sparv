@@ -45,6 +45,8 @@
   by reading spans lazily.
 - Reduced memory usage when writing annotations, by streaming values to file in chunks instead of materializing and
   converting the whole list first.
+- Greatly reduced peak memory usage of exports using `util.export.gather_annotations()` (such as the XML exports) for
+  large source files, by making the element hierarchy calculation more memory efficient.
 - CWB exports now normalize annotation names to valid CWB identifiers and report collisions after normalization.
 - Removed SenSALDO sentiment and Blingbring annotations from the default Swedish preset. They can still be selected
   explicitly.

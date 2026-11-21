@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 import xml.etree.ElementTree as etree  # noqa: N813
+from array import array
 from collections import OrderedDict, defaultdict
 from collections.abc import Iterable, Sequence
 from copy import deepcopy
@@ -344,6 +345,48 @@ def _handle_overlaps(spans_dict: dict[int, list[tuple[str, Span]]]) -> None:
                         subposition_shift += 1
 
 
+_SET_LOOKUP_MAX = 5_000_000  # Max number of keys to put in a temporary set when comparing two elements
+
+
+def _share_any_key(span_keys: dict[str, array | list], keys_sorted: dict[str, bool], a: str, b: str) -> bool:
+    """Check whether elements `a` and `b` have at least one identical (packed) span.
+
+    If the smaller element is small enough, its keys are put in a set and the other element's keys are looked up in it
+    (fast, C-level iteration). Otherwise, both key sequences are sorted and walked in parallel, which needs no extra
+    memory beyond the sorting.
+
+    Args:
+        span_keys: Mapping from element name to its span keys.
+        keys_sorted: Mapping from element name to whether its keys are already sorted.
+        a: First element name.
+        b: Second element name.
+
+    Returns:
+        True if the elements share at least one span.
+    """
+    small, large = sorted((a, b), key=lambda name: len(span_keys[name]))
+    if len(span_keys[small]) <= _SET_LOOKUP_MAX:
+        return not set(span_keys[small]).isdisjoint(span_keys[large])
+
+    for name in (small, large):
+        if not keys_sorted[name]:
+            keys = span_keys[name]
+            span_keys[name] = array("q", sorted(keys)) if isinstance(keys, array) else sorted(keys)
+            keys_sorted[name] = True
+    iter_a, iter_b = iter(span_keys[a]), iter(span_keys[b])
+    try:
+        key_a, key_b = next(iter_a), next(iter_b)
+        while True:
+            if key_a == key_b:
+                return True
+            if key_a < key_b:
+                key_a = next(iter_a)
+            else:
+                key_b = next(iter_b)
+    except StopIteration:
+        return False
+
+
 def calculate_element_hierarchy(source_file: str | None, spans_list: list[Span]) -> dict[str, dict[str, int]]:
     """Calculate the hierarchy for spans with identical start and end positions.
 
@@ -360,31 +403,54 @@ def calculate_element_hierarchy(source_file: str | None, spans_list: list[Span])
     Raises:
         SparvErrorMessage: If span collisions require hierarchy resolution and `source_file` is missing.
     """
-    # Find elements with identical spans
-    span_duplicates = defaultdict(set)
-    startend_positions = defaultdict(set)
+    # This function used to keep a dict entry with a set for every span and every span boundary, which for large source
+    # files (tens of millions of tokens) required tens of gigabytes of memory. The implementation below computes exactly
+    # the same relation pairs using compact per-element arrays instead.
+
+    # Collect the (start, end) positions of every element, packed into a single integer per span. We don't include
+    # sub-positions here as we still need to compare spans with sub-positions with spans without.
+    max_pos = min_pos = 0
+    for span in spans_list:
+        max_pos = max(max_pos, span.start, span.end)
+        min_pos = min(min_pos, span.start, span.end)
+    base = max_pos + 1
+    # Packed keys must be unique and fit in a signed 64-bit integer; otherwise fall back to (start, end) tuples
+    use_packed = min_pos >= 0 and base * base < 2**63
+    span_keys: dict[str, array | list] = {}
+    keys_sorted: dict[str, bool] = {}
     empty_span_starts = defaultdict(set)
     for span in spans_list:
-        # We don't include sub-positions here as we still need to compare spans with sub-positions with spans without
-        span_duplicates[span.start, span.end].add(span.name)
+        key = span.start * base + span.end if use_packed else (span.start, span.end)
+        keys = span_keys.get(span.name)
+        if keys is None:
+            keys = span_keys[span.name] = array("q") if use_packed else []
+            keys_sorted[span.name] = True
+        elif keys_sorted[span.name] and key < keys[-1]:
+            keys_sorted[span.name] = False
+        keys.append(key)
         if (span.start, span.start_sub) == (span.end, span.end_sub):
             empty_span_starts[span.name].add(span.start)
-        else:
-            startend_positions[span.start].add(span.name)
-            startend_positions[span.end].add(span.name)
-    span_duplicates = {tuple(sorted(v)) for v in span_duplicates.values() if len(v) > 1}
 
-    # Add empty spans and spans with identical start positions
-    empty_spans = set()
-    for empty_span, span_starts in empty_span_starts.items():
-        for span_start in span_starts:
-            empty_spans.update(tuple(sorted((empty_span, a))) for a in startend_positions[span_start])
-
-    # Get pairs of relations that need to be ordered
+    # Find pairs of elements with identical spans
     relation_pairs = set()
-    for collisions in span_duplicates:
-        relation_pairs.update(combinations(collisions, r=2))
-    relation_pairs.update(empty_spans)
+    for a, b in combinations(sorted(span_keys), r=2):
+        if _share_any_key(span_keys, keys_sorted, a, b):
+            relation_pairs.add((a, b))
+
+    # Add empty spans and spans with identical start positions. Only the positions where empty spans start are relevant,
+    # so we only keep track of non-empty spans starting or ending at those positions.
+    if empty_span_starts:
+        empty_positions = set().union(*empty_span_starts.values())
+        startend_positions = defaultdict(set)
+        for span in spans_list:
+            if (span.start, span.start_sub) != (span.end, span.end_sub):
+                if span.start in empty_positions:
+                    startend_positions[span.start].add(span.name)
+                if span.end in empty_positions:
+                    startend_positions[span.end].add(span.name)
+        for empty_span, span_starts in empty_span_starts.items():
+            for span_start in span_starts:
+                relation_pairs.update(tuple(sorted((empty_span, a))) for a in startend_positions.get(span_start, ()))
 
     hierarchy = defaultdict(dict)
 
@@ -397,8 +463,8 @@ def calculate_element_hierarchy(source_file: str | None, spans_list: list[Span])
     for a, b in relation_pairs:
         a_annot = Annotation(a, source_file=source_file)
         b_annot = Annotation(b, source_file=source_file)
-        a_parent = len([i for i in (b_annot.get_parents(a_annot)) if i is not None])
-        b_parent = len([i for i in (a_annot.get_parents(b_annot)) if i is not None])
+        a_parent = sum(1 for i in b_annot.get_parents(a_annot) if i is not None)
+        b_parent = sum(1 for i in a_annot.get_parents(b_annot) if i is not None)
         if a_parent > b_parent:
             hierarchy[a][b] = 0
             hierarchy[b][a] = 1
