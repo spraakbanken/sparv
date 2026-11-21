@@ -41,6 +41,8 @@
 - Configuration schema validation now uses `jsonschema-rs`.
 - Improved performance of SALDO annotation and `misc:ids`.
 - Reduced memory usage during CWB VRT preparation by sharing the source annotation inventory across VRT jobs.
+- Reduced memory usage of `get_children()`, `get_parents()`, `get_child_values()` and `read_parents_and_children()`
+  by reading spans lazily.
 - CWB exports now normalize annotation names to valid CWB identifiers and report collisions after normalization.
 - Removed SenSALDO sentiment and Blingbring annotations from the default Swedish preset. They can still be selected
   explicitly.

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import gzip
+import itertools
 import os
 import pickle
 import time
@@ -338,15 +339,24 @@ class CommonAnnotationMixin(BaseAnnotation):
         Returns:
             A tuple of iterators for parent and child annotations.
         """
-        parent_spans = list(io.read_annotation_spans(source_file, parent, decimals=True))
-        child_spans = list(io.read_annotation_spans(source_file, child, decimals=True))
+        # Spans are streamed from disk instead of being loaded into lists, to keep memory usage low for large files
+        parent_iter = io.read_annotation_spans(source_file, parent, decimals=True)
+        child_iter = io.read_annotation_spans(source_file, child, decimals=True)
+        parent_first = next(parent_iter, None)
+        child_first = next(child_iter, None)
+        parent_spans = itertools.chain([parent_first], parent_iter) if parent_first is not None else iter(())
+        child_spans = itertools.chain([child_first], child_iter) if child_first is not None else iter(())
 
         # Only use sub-positions if both parent and child have them
-        if parent_spans and child_spans and (len(parent_spans[0][0]) == 1 or len(child_spans[0][0]) == 1):
-            parent_spans = [(p[0][0], p[1][0]) for p in parent_spans]
-            child_spans = [(c[0][0], c[1][0]) for c in child_spans]
+        if (
+            parent_first is not None
+            and child_first is not None
+            and (len(parent_first[0]) == 1 or len(child_first[0]) == 1)
+        ):
+            parent_spans = ((p[0][0], p[1][0]) for p in parent_spans)
+            child_spans = ((c[0][0], c[1][0]) for c in child_spans)
 
-        return iter(parent_spans), iter(child_spans)
+        return parent_spans, child_spans
 
     def _get_children(self, source_file: str, child: BaseAnnotation, orphan_alert: bool = False) -> tuple[list, list]:
         """Get children of this annotation.
