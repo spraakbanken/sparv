@@ -62,6 +62,14 @@ def _load_model(model: Model) -> Path | object:
             description="Path to optional token list file",
             datatype=str,
         ),
+        Config(
+            "segment.token_cache",
+            default=False,
+            description="Speed up the 'better_word' tokenizer by caching how each whitespace-separated word is "
+            "tokenized. This gives the same result as long as no tokenizer rule matches across whitespace, which is "
+            "the case for the default tokenizer config.",
+            datatype=bool,
+        ),
     ],
 )
 def tokenize(
@@ -72,6 +80,7 @@ def tokenize(
     existing_segments: Annotation | None = Annotation("[segment.existing_tokens]"),
     model: Model | None = Model("[segment.tokenizer_config]"),
     token_list: Model | None = Model("[segment.token_list]"),
+    token_cache: bool = Config("segment.token_cache"),
 ) -> None:
     """Tokenize text."""
     do_segmentation(
@@ -82,6 +91,7 @@ def tokenize(
         existing_segments=existing_segments,
         model=model,
         token_list=token_list,
+        cache=token_cache,
     )
 
 
@@ -165,11 +175,13 @@ def do_segmentation(
     existing_segments: Annotation | None = None,
     model: Model | None = None,
     token_list: Model | None = None,
+    cache: bool = False,
 ) -> None:
     """Segment all chunks (e.g. sentences) into smaller "tokens" (e.g. words), and annotate them as "element" (e.g. w).
 
     Segmentation is done by the given "segmenter"; some segmenters take
     an extra argument which is a pickled "model" object.
+    If `cache` is True, segmenters that support it cache results for repeated input.
     """
     assert segmenter_name in SEGMENTERS, f"Available segmenters: {', '.join(sorted(SEGMENTERS))}"
     segmenter_cls = SEGMENTERS[segmenter_name]
@@ -180,6 +192,8 @@ def do_segmentation(
         segmenter_args["model"] = _load_model(model)
     if token_list and "token_list" in argspec:
         segmenter_args["token_list"] = token_list.path
+    if cache and "cache" in argspec:
+        segmenter_args["cache"] = True
 
     segmenter = segmenter_cls(**segmenter_args)
     assert hasattr(segmenter, "span_tokenize"), f"Segmenter needs a 'span_tokenize' method: {segmenter!r}"
@@ -407,12 +421,21 @@ class BetterWordTokenizer:
 
     re_punctuated_token = re.compile(r"\w.*\.$", re.UNICODE)
 
-    def __init__(self, model: Path, token_list: Path | None = None) -> None:
+    # Used to split text into whitespace-separated words for caching
+    re_non_whitespace = re.compile(r"\S+")
+
+    # Maximum number of cached words; the cache is emptied when it's full
+    cache_max_size = 2_000_000
+
+    def __init__(self, model: Path, token_list: Path | None = None, cache: bool = False) -> None:
         """Parse configuration file (model) and token_list (if supplied).
 
         Args:
             model: The model to use.
             token_list: Optional token list file.
+            cache: Cache the tokenization of each whitespace-separated word. This gives the same result as long as no
+                tokenizer rule matches across whitespace, which is the case for the default tokenizer config. Since
+                text repeats the same words a lot, this makes tokenization several times faster.
 
         Raises:
             ValueError: If the configuration file is not valid.
@@ -420,6 +443,7 @@ class BetterWordTokenizer:
         self.case_sensitive = False
         self.patterns: dict[str, Any] = {"misc": [], "tokens": []}
         self.abbreviations = set()
+        self._cache: dict[tuple[str, bool, bool], list[str]] | None = {} if cache else None
         in_abbr = False
 
         if token_list:
@@ -482,6 +506,36 @@ class BetterWordTokenizer:
             modifiers,
         )
 
+    def _find_words(self, s: str) -> list[str]:
+        """Find all words in a string using the tokenization regex, with caching if enabled.
+
+        With caching, each whitespace-separated part of `s` is tokenized separately and the result is cached. The
+        regex only looks at whether the surrounding characters are whitespace or the start/end of the string, so each
+        part is tokenized with a space before and after it when there is whitespace there in `s`.
+
+        Args:
+            s: The string to tokenize.
+
+        Returns:
+            List of words, the same as `self._word_tokenizer_re.findall(s)`.
+        """
+        if self._cache is None:
+            return self._word_tokenizer_re.findall(s)
+        cache = self._cache
+        words = []
+        length = len(s)
+        for match in self.re_non_whitespace.finditer(s):
+            # The key is the word and whether it is preceded and followed by whitespace (or the start/end of `s`)
+            key = (match.group(), match.start() > 0, match.end() < length)
+            result = cache.get(key)
+            if result is None:
+                if len(cache) >= self.cache_max_size:
+                    cache.clear()
+                result = self._word_tokenizer_re.findall((" " if key[1] else "") + key[0] + (" " if key[2] else ""))
+                cache[key] = result
+            words.extend(result)
+        return words
+
     def word_tokenize(self, s: str) -> list[str]:
         """Tokenize a string to split off punctuation other than periods.
 
@@ -491,7 +545,7 @@ class BetterWordTokenizer:
         Returns:
             List of tokens.
         """
-        words = self._word_tokenizer_re.findall(s)
+        words = self._find_words(s)
         if not words:
             return words
         pos = len(words) - 1
