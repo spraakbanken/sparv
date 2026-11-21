@@ -56,6 +56,8 @@
 - Removed the `misc:struct_to_token` annotator, as its functionality can be achieved by using `misc:inherit`.
 - `Annotation.read()` for annotations without attributes now streams text from the underlying source annotation instead
   of reading it all into memory at once.
+- Annotation files are now written with gzip compression level 6 instead of 9, which makes writing large
+  annotations much faster (up to 16 times for token spans) with practically the same file size.
 
 ### Fixed
 
