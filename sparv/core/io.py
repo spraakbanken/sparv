@@ -115,56 +115,56 @@ def _write_single_annotation(source_file: str, annotation: str, values: Iterable
         annotation: Annotation name.
         values: List of values to write.
         root: Root directory for the annotation.
-
-    Raises:
-        SparvErrorMessage: If annotation spans are not sorted.
     """
     is_span = not split_annotation(annotation)[1]
-    count = 0
-
-    def _spans() -> Iterator:
-        """Validate sort order and convert to decimal tuples, one item at a time."""
-        nonlocal count
-        iterator = iter(values)
-        try:
-            first = next(iterator)
-        except StopIteration:
-            return
-        # Always save spans with decimal tuples (decided by the first span, as before)
-        to_decimal = not isinstance(first[0], tuple)
-        prev = first
-        yield ((first[0],), (first[1],)) if to_decimal else first
-        count = 1
-        for i, curr in enumerate(iterator):
-            if prev > curr:
-                raise SparvErrorMessage(
-                    f"Annotation spans must be sorted. values[{i}]={prev} > values[{i + 1}]={curr}",
-                    module="core.io",
-                    function="_write_single_annotation",
-                )
-            yield ((curr[0],), (curr[1],)) if to_decimal else curr
-            prev = curr
-            count += 1
-
-    def _attributes() -> Iterator:
-        """Convert all values to strings; convert None to empty string."""
-        nonlocal count
-        for v in values:
-            yield str(v) if v is not None else ""
-            count += 1
+    # Validate spans and convert them to decimal tuples; convert other values to strings (None to empty string)
+    values = _validated_decimal_spans(values) if is_span else (str(v) if v is not None else "" for v in values)
 
     file_path = get_annotation_path(source_file, annotation, root)
     file_path.parent.mkdir(parents=True, exist_ok=True)
     # Values are streamed to the file in chunks. Spans are validated while writing, so remove the incomplete file if
     # anything goes wrong.
     try:
-        write_annotation_file(file_path, _spans() if is_span else _attributes())
+        count = write_annotation_file(file_path, values)
     except BaseException:
         file_path.unlink(missing_ok=True)
         raise
     # Update file modification time even if nothing was written
     os.utime(file_path, None)
     logger.info("Wrote %d items: %s%s%s", count, source_file, "/" if source_file else "", annotation)
+
+
+def _validated_decimal_spans(spans: Iterable) -> Iterator:
+    """Yield spans as decimal tuples, raising an error if they are not sorted.
+
+    Whether to convert is decided by the first span: plain (start, end) spans are converted, spans that are already
+    decimal tuples are passed through.
+
+    Args:
+        spans: Spans to validate and convert.
+
+    Yields:
+        The spans as decimal tuples.
+
+    Raises:
+        SparvErrorMessage: If the spans are not sorted.
+    """
+    iterator = iter(spans)
+    try:
+        prev = next(iterator)
+    except StopIteration:
+        return
+    to_decimal = not isinstance(prev[0], tuple)
+    yield ((prev[0],), (prev[1],)) if to_decimal else prev
+    for i, curr in enumerate(iterator):
+        if prev > curr:
+            raise SparvErrorMessage(
+                f"Annotation spans must be sorted. values[{i}]={prev} > values[{i + 1}]={curr}",
+                module="core.io",
+                function="_write_single_annotation",
+            )
+        yield ((curr[0],), (curr[1],)) if to_decimal else curr
+        prev = curr
 
 
 def get_annotation_size(source_file: str, annotation: BaseAnnotation) -> int:
@@ -488,7 +488,7 @@ def get_annotation_path(
     return path
 
 
-def write_annotation_file(file_path: Path, value: Any, is_data: bool = False) -> None:
+def write_annotation_file(file_path: Path, value: Any, is_data: bool = False) -> int:
     """Write annotation data to a file.
 
     Args:
@@ -496,8 +496,12 @@ def write_annotation_file(file_path: Path, value: Any, is_data: bool = False) ->
         value: Data to write. For annotations (`is_data=False`) this may be any iterable; it is consumed in chunks and
             never materialized as a whole.
         is_data: Whether the value is of the type data.
+
+    Returns:
+        The number of annotation values written (0 for data).
     """
     chunk_size = 1000
+    count = 0
     opener = _compressed_open.get(compression, open)
     with opener(file_path, mode="wb") as f:
         if is_data:
@@ -512,6 +516,8 @@ def write_annotation_file(file_path: Path, value: Any, is_data: bool = False) ->
             iterator = iter(value)
             while chunk := list(islice(iterator, chunk_size)):
                 pickle.dump(chunk, f, protocol=pickle.HIGHEST_PROTOCOL)
+                count += len(chunk)
+    return count
 
 
 def _read_text_file(file: BinaryIO) -> tuple[int, Iterator[str]]:
