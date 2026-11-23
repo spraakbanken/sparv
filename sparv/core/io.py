@@ -12,7 +12,7 @@ import pickle
 from collections import deque
 from collections.abc import Generator, Iterable, Iterator
 from contextlib import closing
-from itertools import pairwise
+from itertools import islice, pairwise
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -276,7 +276,7 @@ def _read_single_annotation(
     with closing(read_annotation_file(ann_file)) as records:
         if not spans and not split_annotation(annotation)[1]:  # Annotation without attribute -> read underlying text
             offsets = ((start[0], end[0]) for start, end in records)
-            values = _read_span_texts(source_file, offsets)
+            values = read_text_spans(source_file, offsets)
         else:
             values = records
         with closing(values):
@@ -286,12 +286,19 @@ def _read_single_annotation(
     logger.debug("Read %d items: %s%s%s", ctr, source_file, "/" if source_file else "", annotation)
 
 
-def _read_span_texts(source_file: str, offsets: Iterator[tuple[int, int]]) -> Generator[str, None, None]:
+def get_text_size(source_file: str | None) -> int:
+    """Return the source text's length in Unicode characters."""
+    text_path = get_annotation_path(source_file, TEXT_FILE, data=True)
+    with closing(read_annotation_file(text_path, is_data=True, text_records=True)) as records:
+        return next(records)
+
+
+def read_text_spans(source_file: str | None, spans: Iterable[tuple[int, int]]) -> Generator[str, None, None]:
     """Slice source text for spans ordered by start position, keeping text that later spans may overlap.
 
     Args:
         source_file: Source filename.
-        offsets: Span starts and ends in Unicode characters.
+        spans: Span starts and ends in Unicode characters.
 
     Yields:
         The text of each span.
@@ -299,11 +306,13 @@ def _read_span_texts(source_file: str, offsets: Iterator[tuple[int, int]]) -> Ge
     text_path = get_annotation_path(source_file, TEXT_FILE, data=True)
     buffer: deque[str] = deque()
     buffer_start = text_end = 0
-    with closing(read_annotation_file(text_path, is_data=True, stream_text=True)) as chunks:
+    offsets = iter(spans)  # Use iterator to have the same cursor for the main loop and the negative-offset loop.
+    with closing(read_annotation_file(text_path, is_data=True, text_records=True)) as records:
+        chunks = islice(records, 1, None)  # Skip the character count lazily (empty span doesn't need to read the text).
         for start, end in offsets:
             if start < 0 or end < 0:
                 # Preserve Python's end-relative slicing for negative offsets.
-                chunks.close()
+                records.close()
                 buffer.clear()
                 text = read_data(source_file, TEXT_FILE)
                 yield text[start:end]
@@ -477,26 +486,33 @@ def write_annotation_file(file_path: Path, value: Any, is_data: bool = False) ->
                 pickle.dump(value[i : i + chunk_size], f, protocol=pickle.HIGHEST_PROTOCOL)
 
 
-def _read_text_chunks(file: BinaryIO) -> Iterator[str]:
-    """Read source text, accepting both a single string and a character count followed by chunks.
+def _read_text_file(file: BinaryIO) -> tuple[int, Iterator[str]]:
+    """Read source text, returning the character count and an iterator over text chunks.
 
     Args:
         file: Open, decompressed workdir text file.
 
-    Yields:
-        Text chunks in source order.
+    Returns:
+        Character count and an iterator over text chunks in source order.
 
     Raises:
-        pickle.UnpicklingError: If the text records are invalid or incomplete.
+        pickle.UnpicklingError: If the text header is invalid.
     """
     first = pickle.load(file)
     if isinstance(first, str):
-        yield first
-        return
+        return len(first), iter((first,))
     if not isinstance(first, int) or first < 0:
         raise pickle.UnpicklingError("Invalid workdir text length.")
 
-    remaining = first
+    return first, _read_text_chunks(file, first)
+
+
+def _read_text_chunks(file: BinaryIO, remaining: int) -> Iterator[str]:
+    """Yield text chunks until the declared character count is reached.
+
+    Raises:
+        pickle.UnpicklingError: If a text chunk is invalid.
+    """
     while remaining:
         chunk = pickle.load(file)
         if not isinstance(chunk, str) or not 0 < len(chunk) <= remaining:
@@ -506,14 +522,15 @@ def _read_text_chunks(file: BinaryIO) -> Iterator[str]:
 
 
 def read_annotation_file(
-    file_path: Path, is_data: bool = False, *, stream_text: bool = False
+    file_path: Path, is_data: bool = False, *, text_records: bool = False
 ) -> Generator[Any, None, None]:
     """Return an iterator for reading an annotation file.
 
     Args:
         file_path: Path to the file to read.
         is_data: Whether the value is of the type data.
-        stream_text: Yield source text in chunks instead of as a single string.
+        text_records: For source text, if `True`, yields the character count followed by text chunks. If `False`, yields
+            a single string with the entire text.
 
     Yields:
         The annotation values.
@@ -527,10 +544,13 @@ def read_annotation_file(
             if is_data:
                 if file_path.name != TEXT_FILE:
                     yield pickle.load(f)
-                elif stream_text:
-                    yield from _read_text_chunks(f)
                 else:
-                    yield "".join(_read_text_chunks(f))
+                    size, chunks = _read_text_file(f)
+                    if text_records:
+                        yield size
+                        yield from chunks
+                    else:
+                        yield "".join(chunks)
                 return
             else:
                 try:

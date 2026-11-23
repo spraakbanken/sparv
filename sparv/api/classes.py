@@ -1293,6 +1293,21 @@ class Text:
         """
         return io.read_data(self.source_file, io.TEXT_FILE)
 
+    def get_size(self) -> int:
+        """Return the source text's length in Unicode characters."""
+        return io.get_text_size(self.source_file)
+
+    def read_spans(self, spans: Iterable[tuple[int, int]]) -> Iterator[str]:
+        """Read source text for the given spans.
+
+        Args:
+            spans: Pairs of start and end character offsets, ordered by start offset. Spans may overlap.
+
+        Returns:
+            An iterator yielding one string per span in the supplied order.
+        """
+        return io.read_text_spans(self.source_file, spans)
+
     def write(self, text: str) -> None:
         """Write the provided text content to a file, overwriting any existing content.
 
