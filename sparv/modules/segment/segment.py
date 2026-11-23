@@ -184,8 +184,6 @@ def do_segmentation(
     segmenter = segmenter_cls(**segmenter_args)
     assert hasattr(segmenter, "span_tokenize"), f"Segmenter needs a 'span_tokenize' method: {segmenter!r}"
 
-    corpus_text = text.read()
-
     # First we read the chunks and partition the text into spans
     # E.g., "one two <s>three four</s> five <s>six</s>"
     #   ==> ["one two ", "three four", " five ", "six"]
@@ -193,7 +191,7 @@ def do_segmentation(
 
     chunk_spans = chunk.read_spans() if chunk else []
     positions = {pos for span in chunk_spans for pos in span}
-    positions = sorted({0, len(corpus_text)} | positions)
+    positions = sorted({0, text.get_size()} | positions)
     chunk_spans = list(itertools.pairwise(positions))
 
     if existing_segments:
@@ -218,13 +216,10 @@ def do_segmentation(
     logger.progress(total=progress_total)
 
     # Now we can segment each chunk span into tokens
-    for i, (start, end) in enumerate(chunk_spans):
-        for spanstart, spanend in segmenter.span_tokenize(corpus_text[start:end]):
-            spanstart += start  # noqa: PLW2901
-            spanend += start  # noqa: PLW2901
-            if corpus_text[spanstart:spanend].strip():
-                span = (spanstart, spanend)
-                segments.append(span)
+    for i, ((start, _), chunk_text) in enumerate(zip(chunk_spans, text.read_spans(chunk_spans), strict=True)):
+        for span_start, span_end in segmenter.span_tokenize(chunk_text):
+            if chunk_text[span_start:span_end].strip():
+                segments.append((start + span_start, start + span_end))
         if i % max(1, total_chunks // (progress_total - 1)) == 0 or i == total_chunks - 1:
             logger.progress()
 
