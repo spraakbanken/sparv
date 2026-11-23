@@ -484,6 +484,10 @@ class Annotation(CommonAnnotationMixin, CommonMixin, BaseAnnotation):
     def read(self) -> Iterator[str]:
         """Get an iterator of values from the annotation.
 
+        For an attribute annotation, the values are the attribute values. For a span annotation without an attribute,
+        the values are the source text covered by each span. Use `read_text()` to get the source text for either kind of
+        annotation, or `read_spans()` to get the spans.
+
         Returns:
             An iterator of values from the annotation.
         """
@@ -502,7 +506,7 @@ class Annotation(CommonAnnotationMixin, CommonMixin, BaseAnnotation):
         return self._read_spans(self._source_file, decimals=decimals, with_annotation_name=with_annotation_name)
 
     def read_text(self) -> Iterator[str]:
-        """Get the source text of the annotation.
+        """Get the source text covered by each span, even if the annotation has an attribute.
 
         Returns:
             An iterator of the source text of the annotation.
@@ -695,6 +699,10 @@ class AnnotationAllSourceFiles(CommonAnnotationMixin, CommonAllSourceFilesMixin,
     def read(self, source_file: str) -> Iterator[str]:
         """Get an iterator of values from the annotation.
 
+        For an attribute annotation, the values are the attribute values. For a span annotation without an attribute,
+        the values are the source text covered by each span. Use `read_text()` to get the source text for either kind of
+        annotation, or `read_spans()` to get the spans.
+
         Args:
             source_file: Source file for the annotation.
 
@@ -717,7 +725,7 @@ class AnnotationAllSourceFiles(CommonAnnotationMixin, CommonAllSourceFilesMixin,
         return self._read_spans(source_file, decimals=decimals, with_annotation_name=with_annotation_name)
 
     def read_text(self, source_file: str) -> Iterator[str]:
-        """Get the source text of the annotation.
+        """Get the source text covered by each span, even if the annotation has an attribute.
 
         Args:
             source_file: Source file for the annotation.

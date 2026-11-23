@@ -183,6 +183,11 @@ Sparv classes such as `Annotation` and `Output` provide built-in methods for rea
 for file operations. This practice ensures that files are correctly placed within the file structure, making them
 accessible to other modules. Additionally, these methods handle Sparv's internal data format properly.
 
+`Annotation.read()` yields one string for each span. For an attribute annotation, such as `<token:word>`, it yields
+the attribute values. For a span annotation without an attribute, such as `<token>` or `<sentence>`, it yields the
+source text covered by each span. Use `read_text()` to get the covered source text even for an attribute annotation,
+or `read_spans()` to get the span offsets.
+
 ## Logging
 
 To log messages from Sparv modules, use [Python's logging library](https://docs.python.org/3.6/library/logging.html).
