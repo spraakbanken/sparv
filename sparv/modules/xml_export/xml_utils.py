@@ -31,12 +31,11 @@ def make_pretty_xml(
     sparv_namespace: str | None = None,
     xml_namespaces: dict | None = None,
 ) -> None:
-    """Create a pretty formatted XML string from span_positions.
+    """Create a pretty XML tree from span_positions and write it to the given stream.
 
     Used by pretty and sentence_scrambled.
 
     Args:
-        stream: a TextIO object that the xml is written to.
         span_positions: List of tuples with span positions.
         annotation_dict: Dictionary with annotations.
         export_names: Dictionary with export names.
@@ -44,6 +43,7 @@ def make_pretty_xml(
         word_annotation: Word annotation.
         fileid: File ID.
         include_empty_attributes: Whether to include empty attributes.
+        stream: Text stream to write the XML to.
         sparv_namespace: Optional namespace for Sparv attributes.
         xml_namespaces: Optional dictionary with XML namespaces.
 
