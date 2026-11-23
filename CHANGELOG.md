@@ -26,7 +26,7 @@
   Picture tables can reuse yearly data.
 - Added installers/uninstallers for more SBX frequency list variants.
 - Added the `segment.token_cache` setting, which makes the default tokenizer several times faster by caching how each
-  word is tokenized. It is disabled by default.
+  word is tokenized. It is enabled by default.
 
 ### Changed
 

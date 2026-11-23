@@ -64,7 +64,7 @@ def _load_model(model: Model) -> Path | object:
         ),
         Config(
             "segment.token_cache",
-            default=False,
+            default=True,
             description="Speed up the 'better_word' tokenizer by caching how each whitespace-separated word is "
             "tokenized. This gives the same result as long as no tokenizer rule matches across whitespace, which is "
             "the case for the default tokenizer config.",
