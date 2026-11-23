@@ -54,6 +54,8 @@
   `INFO`, `WARNING` or `ERROR` log levels, with an additional field `"event": "final"`. The final log message is by
   default always included, unless the user has explicitly set a log level.
 - Removed the `misc:struct_to_token` annotator, as its functionality can be achieved by using `misc:inherit`.
+- `Annotation.read()` for annotations without attributes now streams text from the underlying source annotation instead
+  of reading it all into memory at once.
 
 ### Fixed
 

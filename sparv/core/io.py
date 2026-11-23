@@ -9,14 +9,19 @@ import logging
 import lzma
 import os
 import pickle
-from collections.abc import Iterable, Iterator
+from collections import deque
+from collections.abc import Generator, Iterable, Iterator
+from contextlib import closing
 from itertools import pairwise
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from sparv.api.classes import BaseAnnotation, BaseOutput
 from sparv.core.misc import SparvErrorMessage, get_logger
 from sparv.core.paths import paths
+
+if TYPE_CHECKING:
+    from typing import BinaryIO
 
 logger = get_logger(__name__)
 
@@ -27,6 +32,8 @@ TEXT_FILE = "@text"
 STRUCTURE_FILE = "@structure"
 HEADERS_FILE = "@headers"
 NAMESPACE_FILE = "@namespaces"
+
+_TEXT_CHUNK_SIZE = 64 * 1024
 
 # Compression used for annotation files (can be changed using sparv.compression in config file)
 compression = "gzip"
@@ -264,20 +271,75 @@ def _read_single_annotation(
     """
     ann_file = get_annotation_path(source_file, annotation, root)
 
-    span_text = not spans and not split_annotation(annotation)[1]
-    text_data = read_data(source_file, TEXT_FILE) if span_text else ""
     ctr = 0
-    for value in read_annotation_file(ann_file):
-        if span_text:
-            yield (
-                text_data[value[0][0] : value[1][0]]
-                if not with_annotation_name
-                else (text_data[value[0][0] : value[1][0]], annotation)
-            )
+    # Use closing() to ensure that the file is closed even if the generator is not fully consumed.
+    with closing(read_annotation_file(ann_file)) as records:
+        if not spans and not split_annotation(annotation)[1]:  # Annotation without attribute -> read underlying text
+            offsets = ((start[0], end[0]) for start, end in records)
+            values = _read_span_texts(source_file, offsets)
         else:
-            yield value if not with_annotation_name else (value, annotation)
-        ctr += 1
+            values = records
+        with closing(values):
+            for value in values:
+                yield value if not with_annotation_name else (value, annotation)
+                ctr += 1
     logger.debug("Read %d items: %s%s%s", ctr, source_file, "/" if source_file else "", annotation)
+
+
+def _read_span_texts(source_file: str, offsets: Iterator[tuple[int, int]]) -> Generator[str, None, None]:
+    """Slice source text for spans ordered by start position, keeping text that later spans may overlap.
+
+    Args:
+        source_file: Source filename.
+        offsets: Span starts and ends in Unicode characters.
+
+    Yields:
+        The text of each span.
+    """
+    text_path = get_annotation_path(source_file, TEXT_FILE, data=True)
+    buffer: deque[str] = deque()
+    buffer_start = text_end = 0
+    with closing(read_annotation_file(text_path, is_data=True, stream_text=True)) as chunks:
+        for start, end in offsets:
+            if start < 0 or end < 0:
+                # Preserve Python's end-relative slicing for negative offsets.
+                chunks.close()
+                buffer.clear()
+                text = read_data(source_file, TEXT_FILE)
+                yield text[start:end]
+                yield from (text[start:end] for start, end in offsets)
+                return
+            if start >= end:
+                yield ""
+                continue
+
+            # Remove chunks from the beginning of the buffer that are no longer needed.
+            while buffer and buffer_start + len(buffer[0]) <= start:
+                buffer_start += len(buffer.popleft())
+
+            # Read chunks until we have enough text to cover the current span.
+            while text_end < end and (chunk := next(chunks, None)) is not None:
+                text_end += len(chunk)
+                if text_end <= start:
+                    buffer_start = text_end
+                else:
+                    buffer.append(chunk)
+
+            # If the requested span is fully contained within a single chunk in the buffer, yield it directly.
+            if buffer and end <= buffer_start + len(buffer[0]):
+                yield buffer[0][start - buffer_start : end - buffer_start]
+                continue
+
+            # Otherwise, concatenate the relevant parts of the chunks in the buffer to yield the requested span.
+            offset = buffer_start
+            parts = []
+            for chunk in buffer:
+                parts.append(chunk[max(0, start - offset) : end - offset])
+                offset += len(chunk)
+                if offset >= end:
+                    break
+            yield "".join(parts)
+            parts.clear()
 
 
 def write_data(source_file: str | None, name: BaseAnnotation | str, value: Any) -> None:
@@ -403,18 +465,55 @@ def write_annotation_file(file_path: Path, value: Any, is_data: bool = False) ->
     opener = _compressed_open.get(compression, open)
     with opener(file_path, mode="wb") as f:
         if is_data:
-            pickle.dump(value, f, protocol=pickle.HIGHEST_PROTOCOL)
+            if file_path.name == TEXT_FILE and len(value) > _TEXT_CHUNK_SIZE:
+                # A character count distinguishes chunked text from a single pickled string.
+                pickle.dump(len(value), f, protocol=pickle.HIGHEST_PROTOCOL)
+                for start in range(0, len(value), _TEXT_CHUNK_SIZE):
+                    pickle.dump(value[start : start + _TEXT_CHUNK_SIZE], f, protocol=pickle.HIGHEST_PROTOCOL)
+            else:
+                pickle.dump(value, f, protocol=pickle.HIGHEST_PROTOCOL)
         else:
             for i in range(0, len(value), chunk_size):
                 pickle.dump(value[i : i + chunk_size], f, protocol=pickle.HIGHEST_PROTOCOL)
 
 
-def read_annotation_file(file_path: Path, is_data: bool = False) -> Iterator:
+def _read_text_chunks(file: BinaryIO) -> Iterator[str]:
+    """Read source text, accepting both a single string and a character count followed by chunks.
+
+    Args:
+        file: Open, decompressed workdir text file.
+
+    Yields:
+        Text chunks in source order.
+
+    Raises:
+        pickle.UnpicklingError: If the text records are invalid or incomplete.
+    """
+    first = pickle.load(file)
+    if isinstance(first, str):
+        yield first
+        return
+    if not isinstance(first, int) or first < 0:
+        raise pickle.UnpicklingError("Invalid workdir text length.")
+
+    remaining = first
+    while remaining:
+        chunk = pickle.load(file)
+        if not isinstance(chunk, str) or not 0 < len(chunk) <= remaining:
+            raise pickle.UnpicklingError("Invalid workdir text chunk.")
+        remaining -= len(chunk)
+        yield chunk
+
+
+def read_annotation_file(
+    file_path: Path, is_data: bool = False, *, stream_text: bool = False
+) -> Generator[Any, None, None]:
     """Return an iterator for reading an annotation file.
 
     Args:
         file_path: Path to the file to read.
         is_data: Whether the value is of the type data.
+        stream_text: Yield source text in chunks instead of as a single string.
 
     Yields:
         The annotation values.
@@ -426,7 +525,12 @@ def read_annotation_file(file_path: Path, is_data: bool = False) -> Iterator:
     with opener(file_path, mode="rb") as f:
         try:
             if is_data:
-                yield pickle.load(f)
+                if file_path.name != TEXT_FILE:
+                    yield pickle.load(f)
+                elif stream_text:
+                    yield from _read_text_chunks(f)
+                else:
+                    yield "".join(_read_text_chunks(f))
                 return
             else:
                 try:
@@ -434,7 +538,7 @@ def read_annotation_file(file_path: Path, is_data: bool = False) -> Iterator:
                         yield from pickle.load(f)
                 except EOFError:
                     return
-        except pickle.UnpicklingError:
+        except (pickle.UnpicklingError, EOFError):
             raise SparvErrorMessage(
                 "The workdir files for this corpus could not be read. They were probably created using an older "
                 "version of Sparv. Run 'sparv clean' to start over with a clean workdir."
