@@ -1,6 +1,16 @@
 name: CI
 on: [push, pull_request]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  UV_VERSION: "0.12.20"
+
 jobs:
   checks:
     name: ${{ matrix.task.name }} py-${{ matrix.python-version }} on ${{ matrix.os }}
@@ -14,42 +24,30 @@ jobs:
         os: [ubuntu-latest]
         task:
           - name: Run tests
-            run: |
-              source venv/bin/activate
-              pytest -m noexternal
+            run: uv run pytest -m noexternal
 
     steps:
       - name: Checkout code
         uses: nschloe/action-cached-lfs-checkout@v1
 
+      - name: Set up uv
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # 10.3.3
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+
       - name: Set up Python ${{ matrix.python-version }}
         id: setup-python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: ${{ matrix.python-version }}
 
-      # Load cached venv if cache exists
-      - name: Load cached venv
-        id: cached-dependencies
-        uses: actions/cache@v3
-        with:
-          path: venv
-          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/pyproject.toml') }}-${{ hashFiles('.github/workflows/ci.yml') }}
-
       # Create virtual environment and install dependencies if cache does not exist
       - name: Create venv and install dependencies
-        if: steps.cached-dependencies.outputs.cache-hit != 'true'
-        run: |
-          python3 -m venv venv
-          source venv/bin/activate
-          pip install --upgrade pip
-          pip install -e .
-          pip install . --group dev
+        run: uv sync --group dev
 
       - name: Setup Sparv
-        run: |
-          source venv/bin/activate
-          sparv setup -d $PWD
+        run: uv run sparv setup -d $PWD
 
       - name: ${{ matrix.task.name }}
         run: ${{ matrix.task.run }}
