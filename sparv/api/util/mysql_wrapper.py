@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import operator
-from collections.abc import Iterable
+from collections.abc import Iterable, Iterator
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from sparv.api import get_logger
 
@@ -250,44 +250,52 @@ class MySQL:
         renames = [f"{_atom(old)} TO {_atom(new)}" for old, new in tables.items()]
         self.execute(f"RENAME TABLE {', '.join(renames)};")
 
-    def add_row(self, table: str, rows: list[dict[str, Any]] | dict[str, Any], extra: str = "") -> None:
+    def add_row(self, table: str, rows: Iterable[dict[str, Any]] | dict[str, Any], extra: str = "") -> None:
         """Add a row or rows to a table.
 
         Args:
             table: The name of the table.
-            rows: A dictionary or list of dictionaries representing the row(s) to add.
+            rows: A row dictionary or an iterable of row dictionaries with the same columns.
             extra: Additional SQL to append to the insert statement.
         """
         if isinstance(rows, dict):
-            rows = [rows]
-        table = _atom(table)
-        sql = []
-        values = []
-        input_length = 0
+            rows = (cast("dict[str, Any]", rows),)
+        statements = self._insert_statements(table, rows, extra)
+        if self.output:
+            self.execute(next(statements, ""))
+            for statement in statements:
+                self.execute(statement)
+        else:
+            self.execute("\n".join(statements))
 
-        def insert(_values: list[str], _extra: str = "") -> str:
-            if _extra:
-                _extra = "\n" + _extra
-            return (
-                f"INSERT INTO {table} ({', '.join(sorted(rows[0].keys()))}) VALUES\n"
-                + ",\n".join(_values)
-                + f"{_extra};"
-            )
+    @staticmethod
+    def _insert_statements(table: str, rows: Iterable[dict[str, Any]], extra: str) -> Iterator[str]:
+        """Generate one INSERT statement at a time.
+
+        Yields:
+            Each complete INSERT statement in row order.
+        """
+        values: list[str] = []
+        input_length = 0
+        header = ""
+        suffix = f"\n{extra};" if extra else ";"
 
         for row in rows:
             if isinstance(row, dict):
                 rowlist = sorted(row.items(), key=operator.itemgetter(0))
+                if not header:
+                    columns = ", ".join(name for name, _ in rowlist)
+                    header = f"INSERT INTO {_atom(table)} ({columns}) VALUES\n"
                 valueline = f"({_valueseq([x[1] for x in rowlist])})"
-                input_length += len(valueline)
-                if input_length > MAX_ALLOWED_PACKET:
-                    sql.append(insert(values, extra))
+                if values and input_length + len(valueline) > MAX_ALLOWED_PACKET:
+                    yield header + ",\n".join(values) + suffix
                     values = []
-                    input_length = len(valueline)
-                values += [valueline]
+                    input_length = 0
+                input_length += len(valueline)
+                values.append(valueline)
 
         if values:
-            sql.append(insert(values, extra))
-        self.execute("\n".join(sql))
+            yield header + ",\n".join(values) + suffix
 
 
 def _type(typ: type | str) -> str:

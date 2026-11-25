@@ -3,6 +3,7 @@
 import pickle
 import re
 from collections import defaultdict
+from collections.abc import Iterator
 from dataclasses import dataclass
 
 from sparv.api import (
@@ -547,7 +548,6 @@ def wordpicture_sql(
     table_name: str = Config("korp.wordpicture_table"),
     rel_grouping: dict[str, str] = Config("korp.wordpicture_rel_grouping"),
     rel_names: list[str] = Config("korp.wordpicture_rel_names"),
-    split: bool = False,
 ) -> None:
     """Calculate statistics for the aggregated Word Picture data only and save to SQL.
 
@@ -562,7 +562,6 @@ def wordpicture_sql(
         table_name: Name of the database table.
         rel_grouping: Mapping of raw relation names to grouped relation names.
         rel_names: All possible relation names allowed in the database.
-        split: Whether to split the data per source file.
     """
     _wordpicture_sql(
         corpus=corpus,
@@ -574,7 +573,6 @@ def wordpicture_sql(
         table_name=table_name,
         rel_grouping=rel_grouping,
         rel_names=rel_names,
-        split=split,
         log_label="korp:wordpicture_sql",
         sort=sorted_sql,
     )
@@ -590,7 +588,6 @@ def wordpicture_yearly_sql(
     sorted_sql: bool = Config("korp.wordpicture_sorted"),
     source_files: AllSourceFilenames = AllSourceFilenames(),
     table_name: str = Config("korp.wordpicture_table"),
-    split: bool = False,
     datefrom: AnnotationAllSourceFiles = AnnotationAllSourceFiles("<text>:dateformat.datefrom"),
     dateto: AnnotationAllSourceFiles = AnnotationAllSourceFiles("<text>:dateformat.dateto"),
     rel_grouping: dict[str, str] = Config("korp.wordpicture_rel_grouping"),
@@ -607,7 +604,6 @@ def wordpicture_yearly_sql(
         sorted_sql: Whether to sort SQL output for easier diffing.
         source_files: List of source files to process.
         table_name: Name of the database table.
-        split: Whether to split the data per source file.
         datefrom: Annotation with the starting year of each text.
         dateto: Annotation with the ending year of each text.
         rel_grouping: Mapping of raw relation names to grouped relation names.
@@ -623,7 +619,6 @@ def wordpicture_yearly_sql(
         table_name=table_name,
         rel_grouping=rel_grouping,
         rel_names=rel_names,
-        split=split,
         log_label="korp:wordpicture_yearly_sql",
         datefrom=datefrom,
         dateto=dateto,
@@ -678,7 +673,6 @@ def _wordpicture_sql(
     table_name: str,
     rel_grouping: dict[str, str],
     rel_names: list[str],
-    split: bool,
     log_label: str,
     datefrom: AnnotationAllSourceFiles | None = None,
     dateto: AnnotationAllSourceFiles | None = None,
@@ -689,14 +683,9 @@ def _wordpicture_sql(
         table_name + "_" + corpus.upper() + (YEARLY_SUFFIX if datefrom is not None and dateto is not None else "")
     )
 
-    index = 0
     strings = pickle.loads(wordpicture_strings.read())
-    freq_index = {}
     sentence_count = defaultdict(int)
     file_count = 0
-
-    if len(source_files) == 1:
-        split = False
 
     logger.progress(total=len(source_files) + 1)
 
@@ -716,12 +705,6 @@ def _wordpicture_sql(
     for file in source_files:
         file_count += 1
         sentences = {}
-        if split:
-            freq = {}
-            rel_count = defaultdict(int)
-            head_rel_count = defaultdict(int)
-            dep_rel_count = defaultdict(int)
-
         file_data = wordpicture_data(file).read()
         if datefrom is not None and dateto is not None:
             datefrom_data = [_parse_year(year) for year in datefrom(file).read()]
@@ -738,24 +721,23 @@ def _wordpicture_sql(
 
             rel = rel_grouping.get(rel, rel)
 
-            if (head, rel, dep, yearfrom, yearto) in freq_index:
-                this_index = freq_index[head, rel, dep, yearfrom, yearto]
-            else:
-                this_index = index
-                freq_index[head, rel, dep, yearfrom, yearto] = this_index
-                index += 1
-            freq.setdefault((head, rel, dep, yearfrom, yearto), [this_index, 0, [0, 0, 0, 0]])
-            freq[head, rel, dep, yearfrom, yearto][1] += 1  # Frequency
+            key = (head, rel, dep, yearfrom, yearto)
+            entry = freq.get(key)
+            if entry is None:
+                entry = [len(freq), 0, [0, 0, 0, 0]]
+                freq[key] = entry
+            entry[1] += 1
+            this_index, _, flags = entry
 
             if not no_sentences and sentence_count[this_index] < MAX_SENTENCES:
                 sentences.setdefault(this_index, set())
                 sentences[this_index].add((sid, refh, refd))  # Sentence ID and "ref" for both head and dep
                 sentence_count[this_index] += 1
 
-            freq[head, rel, dep, yearfrom, yearto][2][0] = freq[head, rel, dep, yearfrom, yearto][2][0] or bfhead
-            freq[head, rel, dep, yearfrom, yearto][2][1] = freq[head, rel, dep, yearfrom, yearto][2][1] or bfdep
-            freq[head, rel, dep, yearfrom, yearto][2][2] = freq[head, rel, dep, yearfrom, yearto][2][2] or wfhead
-            freq[head, rel, dep, yearfrom, yearto][2][3] = freq[head, rel, dep, yearfrom, yearto][2][3] or wfdep
+            flags[0] = flags[0] or bfhead
+            flags[1] = flags[1] or bfdep
+            flags[2] = flags[2] or wfhead
+            flags[3] = flags[3] or wfdep
 
             if bfhead and bfdep:
                 rel_count[rel, yearfrom, yearto] += 1
@@ -764,39 +746,21 @@ def _wordpicture_sql(
             if (bfhead and bfdep) or wfdep:
                 dep_rel_count[dep, rel, yearfrom, yearto] += 1
 
-        # If not the last file
+        # Write sentence examples per file and the corpus-wide counts at the end.
         if file_count != len(source_files):
-            if split:
-                _write_sql(
-                    sentences,
-                    freq,
-                    rel_count,
-                    head_rel_count,
-                    dep_rel_count,
-                    out,
-                    db_table,
-                    rel_names,
-                    split,
-                    first=(file_count == 1),
-                    no_sentences=no_sentences,
-                    sort=sort,
-                )
-            else:
-                # Only save sentences data, save the rest for the last file
-                _write_sql(
-                    sentences,
-                    {},
-                    {},
-                    {},
-                    {},
-                    out,
-                    db_table,
-                    rel_names,
-                    split,
-                    first=(file_count == 1),
-                    no_sentences=no_sentences,
-                    sort=sort,
-                )
+            _write_sql(
+                sentences,
+                {},
+                {},
+                {},
+                {},
+                out,
+                db_table,
+                rel_names,
+                first=(file_count == 1),
+                no_sentences=no_sentences,
+                sort=sort,
+            )
 
         logger.progress()
 
@@ -810,7 +774,6 @@ def _wordpicture_sql(
         out,
         db_table,
         rel_names,
-        split,
         first=(file_count == 1),
         last=True,
         no_sentences=no_sentences,
@@ -840,22 +803,19 @@ def _write_strings_sql(
     mysql.disable_checks()
     mysql.set_names()
 
-    rows = []
-
     string_items = strings.items()
     if sort:  # For deterministic output
         string_items = sorted(strings.items())
 
-    for string_tuple, index in string_items:
-        string, pos, stringextra = string_tuple
-        row = {
+    rows = (
+        {
             "id": index,
             "string": string[:MAX_STRING_LENGTH],
             "stringextra": stringextra[:MAX_STRINGEXTRA_LENGTH],
             "pos": pos,
         }
-        rows.append(row)
-
+        for (string, pos, stringextra), index in string_items
+    )
     mysql.add_row(temp_table, rows)
 
     mysql.enable_keys(temp_table)
@@ -875,7 +835,6 @@ def _write_sql(
     sql_file: str,
     db_table: str,
     rel_names: list[str],
-    split: bool = False,
     first: bool = False,
     last: bool = False,
     no_sentences: bool = False,
@@ -887,7 +846,6 @@ def _write_sql(
     tables = ["", "_rel", "_head_rel", "_dep_rel"]
     if not no_sentences:
         tables.append("_sentences")
-    update_freq = "ON DUPLICATE KEY UPDATE freq = freq + VALUES(freq)" if split else ""
 
     mysql = MySQL(output=sql_file, append=True)
 
@@ -896,11 +854,6 @@ def _write_sql(
         mysql_rel = get_mysql_rel(rel_names, include_year=include_years)
         mysql_head_rel = get_mysql_head_rel(rel_names, include_year=include_years)
         mysql_dep_rel = get_mysql_dep_rel(rel_names, include_year=include_years)
-        if not split:
-            del mysql_relations["constraints"]
-            del mysql_rel["constraints"]
-            del mysql_head_rel["constraints"]
-            del mysql_dep_rel["constraints"]
         mysql.create_table(temp_db_table, drop=True, **mysql_relations)
         mysql.create_table(temp_db_table + "_rel", drop=True, **mysql_rel)
         mysql.create_table(temp_db_table + "_head_rel", drop=True, **mysql_head_rel)
@@ -912,7 +865,6 @@ def _write_sql(
         mysql.disable_checks()
         mysql.set_names()
 
-    rows = []
     freq_items = freq.items()
     if sort:
 
@@ -922,10 +874,8 @@ def _write_sql(
 
         freq_items = sorted(freq.items(), key=_freq_sort_key)
 
-    for (head, rel, dep, yearfrom, yearto), dep2 in freq_items:
-        index, count, bfwf = dep2
-
-        row = {
+    rows = (
+        {
             "id": index,
             "head": head,
             "rel": rel,
@@ -937,11 +887,10 @@ def _write_sql(
             "wfdep": bfwf[3],
             **({"yearfrom": yearfrom, "yearto": yearto} if include_years else {}),
         }
-        rows.append(row)
+        for (head, rel, dep, yearfrom, yearto), (index, count, bfwf) in freq_items
+    )
+    mysql.add_row(temp_db_table, rows)
 
-    mysql.add_row(temp_db_table, rows, update_freq)
-
-    rows = []
     rel_items = rel_count.items()
     if sort:
 
@@ -951,13 +900,12 @@ def _write_sql(
 
         rel_items = sorted(rel_count.items(), key=_rel_sort_key)
 
-    for (rel, yearfrom, yearto), f in rel_items:
-        row = {"rel": rel, "freq": f, **({"yearfrom": yearfrom, "yearto": yearto} if include_years else {})}
-        rows.append(row)
+    rel_rows = (
+        {"rel": rel, "freq": count, **({"yearfrom": yearfrom, "yearto": yearto} if include_years else {})}
+        for (rel, yearfrom, yearto), count in rel_items
+    )
+    mysql.add_row(temp_db_table + "_rel", rel_rows)
 
-    mysql.add_row(temp_db_table + "_rel", rows, update_freq)
-
-    rows = []
     head_items = head_rel_count.items()
     if sort:
 
@@ -967,18 +915,17 @@ def _write_sql(
 
         head_items = sorted(head_rel_count.items(), key=_head_rel_sort_key)
 
-    for (head, rel, yearfrom, yearto), f in head_items:
-        row = {
+    head_rows = (
+        {
             "head": head,
             "rel": rel,
-            "freq": f,
+            "freq": count,
             **({"yearfrom": yearfrom, "yearto": yearto} if include_years else {}),
         }
-        rows.append(row)
+        for (head, rel, yearfrom, yearto), count in head_items
+    )
+    mysql.add_row(temp_db_table + "_head_rel", head_rows)
 
-    mysql.add_row(temp_db_table + "_head_rel", rows, update_freq)
-
-    rows = []
     dep_items = dep_rel_count.items()
     if sort:
 
@@ -988,32 +935,26 @@ def _write_sql(
 
         dep_items = sorted(dep_rel_count.items(), key=_dep_rel_sort_key)
 
-    for (dep, rel, yearfrom, yearto), f in dep_items:
-        row = {
+    dep_rows = (
+        {
             "dep": dep,
             "rel": rel,
-            "freq": f,
+            "freq": count,
             **({"yearfrom": yearfrom, "yearto": yearto} if include_years else {}),
         }
-        rows.append(row)
-
-    mysql.add_row(temp_db_table + "_dep_rel", rows, update_freq)
+        for (dep, rel, yearfrom, yearto), count in dep_items
+    )
+    mysql.add_row(temp_db_table + "_dep_rel", dep_rows)
 
     if not no_sentences:
-        sentence_rows = []
-        sentences_items = sentences.items()
-        if sort:
-            sentences_items = sorted(sentences.items())
 
-        for index, sentenceset in sentences_items:
-            if sort:
-                sentenceset = sorted(sentenceset)  # noqa: PLW2901
+        def sentence_rows() -> Iterator[dict[str, int | str]]:
+            items = sorted(sentences.items()) if sort else sentences.items()
+            for index, examples in items:
+                for sentence, start, end in sorted(examples) if sort else examples:
+                    yield {"id": index, "sentence": sentence, "start": int(start), "end": int(end)}
 
-            for sentence in sentenceset:
-                srow = {"id": index, "sentence": sentence[0], "start": int(sentence[1]), "end": int(sentence[2])}
-                sentence_rows.append(srow)
-
-        mysql.add_row(temp_db_table + "_sentences", sentence_rows)
+        mysql.add_row(temp_db_table + "_sentences", sentence_rows())
 
     if last:
         mysql.enable_keys(*[f"{temp_db_table}{t}" for t in tables])
@@ -1249,7 +1190,6 @@ def get_mysql_main(rel_names: list[str], include_year: bool = True) -> dict:
             "head wfhead" + (" yearfrom yearto" if include_year else "") + " rel freq",
             "dep wfdep" + (" yearfrom yearto" if include_year else "") + " rel freq",
         ],
-        "constraints": [("UNIQUE INDEX", "relation", ("head", "rel", "dep"))],
         "default charset": "utf8mb4",
         "row_format": "compressed",
         # "collate": "utf8mb4_bin"
@@ -1272,7 +1212,6 @@ def get_mysql_rel(rel_names: list[str], include_year: bool = True) -> dict:
         "columns": columns,
         "primary": None,
         "indexes": ["rel" + (" yearfrom yearto" if include_year else "")],
-        "constraints": [("UNIQUE INDEX", "relation", ("rel",) + (("yearfrom", "yearto") if include_year else ()))],
         "default charset": "utf8mb4",
         "collate": "utf8mb4_bin",
         "row_format": "compressed",
@@ -1296,9 +1235,6 @@ def get_mysql_head_rel(rel_names: list[str], include_year: bool = True) -> dict:
         "columns": columns,
         "primary": None,
         "indexes": ["head rel" + (" yearfrom yearto" if include_year else "")],
-        "constraints": [
-            ("UNIQUE INDEX", "relation", ("head", "rel") + (("yearfrom", "yearto") if include_year else ()))
-        ],
         "default charset": "utf8mb4",
         "collate": "utf8mb4_bin",
         "row_format": "compressed",
@@ -1322,9 +1258,6 @@ def get_mysql_dep_rel(rel_names: list[str], include_year: bool = True) -> dict:
         "columns": columns,
         "primary": None,
         "indexes": ["dep rel" + (" yearfrom yearto" if include_year else "")],
-        "constraints": [
-            ("UNIQUE INDEX", "relation", ("dep", "rel") + (("yearfrom", "yearto") if include_year else ()))
-        ],
         "default charset": "utf8mb4",
         "collate": "utf8mb4_bin",
         "row_format": "compressed",
