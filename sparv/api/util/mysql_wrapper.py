@@ -135,10 +135,7 @@ class MySQL:
                 primary = primary.split()
             sqlcolumns += [f"PRIMARY KEY ({_atomseq(primary)})"]
         if indexes:
-            for index in indexes:
-                if isinstance(index, str):
-                    index = index.split()  # noqa: PLW2901
-                sqlcolumns += [f"INDEX {_atom('-'.join(index))} ({_atomseq(index)})"]
+            sqlcolumns.extend(_index(index) for index in indexes)
         if constraints:
             for constraint in constraints:
                 sqlcolumns += [f"CONSTRAINT {constraint[0]} {_atom(constraint[1])} ({_atomseq(constraint[2])})"]
@@ -153,6 +150,17 @@ class MySQL:
             sql += f" {key} = {value} "
         sql += ";"
         self.execute(sql)
+
+    def add_indexes(self, table: str, indexes: Iterable[str | list[str]]) -> None:
+        """Add non-unique indexes to a table in a single ALTER TABLE statement.
+
+        Args:
+            table: The table to index.
+            indexes: The column names for each index.
+        """
+        clauses = ", ".join(f"ADD {_index(index)}" for index in indexes)
+        if clauses:
+            self.execute(f"ALTER TABLE {_atom(table)} {clauses};")
 
     def disable_keys(self, *tables: str) -> None:
         """Disable keys for the specified tables.
@@ -346,6 +354,16 @@ def _atomseq(atoms: Iterable[str]) -> str:
     """
     assert isinstance(atoms, (list, tuple))
     return ", ".join(map(_atom, atoms))
+
+
+def _index(index: str | list[str]) -> str:
+    """Format a non-unique index definition.
+
+    Returns:
+        The SQL index definition.
+    """
+    columns = index.split() if isinstance(index, str) else index
+    return f"INDEX {_atom('-'.join(columns))} ({_atomseq(columns)})"
 
 
 def _value(val: str | int | float | None) -> str:

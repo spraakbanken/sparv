@@ -679,9 +679,16 @@ def _wordpicture_sql(
     sort: bool = False,
 ) -> None:
     """Shared implementation for Word Picture SQL exporters."""
-    db_table = (
-        table_name + "_" + corpus.upper() + (YEARLY_SUFFIX if datefrom is not None and dateto is not None else "")
-    )
+    include_years = datefrom is not None and dateto is not None
+    db_table = table_name + "_" + corpus.upper() + (YEARLY_SUFFIX if include_years else "")
+    table_definitions = {
+        "": get_mysql_main(rel_names, include_year=include_years),
+        "_rel": get_mysql_rel(rel_names, include_year=include_years),
+        "_head_rel": get_mysql_head_rel(rel_names, include_year=include_years),
+        "_dep_rel": get_mysql_dep_rel(rel_names, include_year=include_years),
+    }
+    if not no_sentences:
+        table_definitions["_sentences"] = MYSQL_SENTENCES
 
     strings = pickle.loads(wordpicture_strings.read())
     sentence_count = defaultdict(int)
@@ -756,9 +763,9 @@ def _wordpicture_sql(
                 {},
                 out,
                 db_table,
-                rel_names,
+                table_definitions,
+                include_years=include_years,
                 first=(file_count == 1),
-                no_sentences=no_sentences,
                 sort=sort,
             )
 
@@ -773,11 +780,10 @@ def _wordpicture_sql(
         dep_rel_count,
         out,
         db_table,
-        rel_names,
+        table_definitions,
+        include_years=include_years,
         first=(file_count == 1),
         last=True,
-        no_sentences=no_sentences,
-        include_years=datefrom is not None and dateto is not None,
         sort=sort,
     )
 
@@ -798,8 +804,9 @@ def _write_strings_sql(
 
     mysql = MySQL(output=sql_file)
 
-    mysql.create_table(temp_table, drop=True, **get_mysql_strings(max_pos_length))
-    mysql.disable_keys(temp_table)
+    definition = get_mysql_strings(max_pos_length)
+    indexes = definition.pop("indexes")
+    mysql.create_table(temp_table, drop=True, **definition)
     mysql.disable_checks()
     mysql.set_names()
 
@@ -818,7 +825,8 @@ def _write_strings_sql(
     )
     mysql.add_row(temp_table, rows)
 
-    mysql.enable_keys(temp_table)
+    # Wait until all rows are written before adding indexes.
+    mysql.add_indexes(temp_table, indexes)
     mysql.drop_table(final_table)
     mysql.rename_table({temp_table: final_table})
     mysql.enable_checks()
@@ -834,34 +842,20 @@ def _write_sql(
     dep_rel_count: dict,
     sql_file: str,
     db_table: str,
-    rel_names: list[str],
+    table_definitions: dict[str, dict],
+    *,
+    include_years: bool,
     first: bool = False,
     last: bool = False,
-    no_sentences: bool = False,
-    include_years: bool = True,
     sort: bool = False,
 ) -> None:
     """Write the Word Picture data (excluding strings) to an SQL file."""
     temp_db_table = "temp_" + db_table
-    tables = ["", "_rel", "_head_rel", "_dep_rel"]
-    if not no_sentences:
-        tables.append("_sentences")
-
     mysql = MySQL(output=sql_file, append=True)
 
     if first:
-        mysql_relations = get_mysql_main(rel_names, include_year=include_years)
-        mysql_rel = get_mysql_rel(rel_names, include_year=include_years)
-        mysql_head_rel = get_mysql_head_rel(rel_names, include_year=include_years)
-        mysql_dep_rel = get_mysql_dep_rel(rel_names, include_year=include_years)
-        mysql.create_table(temp_db_table, drop=True, **mysql_relations)
-        mysql.create_table(temp_db_table + "_rel", drop=True, **mysql_rel)
-        mysql.create_table(temp_db_table + "_head_rel", drop=True, **mysql_head_rel)
-        mysql.create_table(temp_db_table + "_dep_rel", drop=True, **mysql_dep_rel)
-        if not no_sentences:
-            mysql.create_table(temp_db_table + "_sentences", drop=True, **MYSQL_SENTENCES)
-
-        mysql.disable_keys(*[f"{temp_db_table}{t}" for t in tables])
+        for suffix, definition in table_definitions.items():
+            mysql.create_table(temp_db_table + suffix, drop=True, **{**definition, "indexes": None})
         mysql.disable_checks()
         mysql.set_names()
 
@@ -946,7 +940,7 @@ def _write_sql(
     )
     mysql.add_row(temp_db_table + "_dep_rel", dep_rows)
 
-    if not no_sentences:
+    if "_sentences" in table_definitions:
 
         def sentence_rows() -> Iterator[dict[str, int | str]]:
             items = sorted(sentences.items()) if sort else sentences.items()
@@ -957,9 +951,10 @@ def _write_sql(
         mysql.add_row(temp_db_table + "_sentences", sentence_rows())
 
     if last:
-        mysql.enable_keys(*[f"{temp_db_table}{t}" for t in tables])
-        mysql.drop_table(*[f"{db_table}{t}" for t in tables])
-        mysql.rename_table({f"{temp_db_table}{t}": f"{db_table}{t}" for t in tables})
+        for suffix, definition in table_definitions.items():
+            mysql.add_indexes(temp_db_table + suffix, definition["indexes"])
+        mysql.drop_table(*[db_table + suffix for suffix in table_definitions])
+        mysql.rename_table({temp_db_table + suffix: db_table + suffix for suffix in table_definitions})
         mysql.enable_checks()
 
     logger.info("%s written", sql_file)
