@@ -1,0 +1,25 @@
+[project]
+name = "sparv-modules-stanza"
+version = "5.4.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11.9"
+authors = [{ name = "Språkbanken", email = "sb-info@svenska.gu.se" }]
+dependencies = [
+  "protobuf>=3.19.0,<4.0.0",  # Used by Stanza; see https://github.com/spraakbanken/sparv/issues/161
+  "sparv-api",
+  "stanza==1.10.1",
+  "torch>=1.9.1",  # Used by Stanza; see https://github.com/spraakbanken/sparv/issues/82
+]
+
+[build-system]
+requires = ["uv_build>=0.12.4,<0.14.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = [
+  "sparv.modules.stanza",
+]
+
+[tool.uv.sources]
+sparv-api = { workspace = true }
