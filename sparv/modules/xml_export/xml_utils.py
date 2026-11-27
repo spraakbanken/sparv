@@ -12,10 +12,12 @@ from shutil import copyfileobj
 
 from sparv.api import SparvErrorMessage, get_logger, util
 from sparv.api.classes import Corpus, ExportInput, OutputMarker
+from sparv.api.util.export import span_order_config
 
 logger = get_logger(__name__)
 
 INDENTATION = "  "
+SPAN_ORDER_CONFIG = span_order_config("xml_export.span_order")
 
 
 def make_pretty_xml(

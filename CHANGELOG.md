@@ -10,6 +10,8 @@
   installed.
 - Added `sparv dev inspect` command for inspecting files in the sparv-workdir.
 - Added plain text export, including a scrambled variant (`text_export:scrambled`).
+- Added `export.span_order` for ordering annotations with identical spans in exports. Annotators can declare the order
+  with `contains` and `within` on span `Output` definitions. Corpus settings take precedence.
 - Added support for limiting the number of processes used by specific preloaders through the `threads` config section.
 - Added support for specifying tagsets for Sparv classes that represent input or output annotations and models. This
   allows for validation of tagset compatibility between annotators and models.

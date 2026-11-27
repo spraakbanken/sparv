@@ -11,7 +11,7 @@ import re
 import types
 import typing
 from collections import UserDict, defaultdict
-from collections.abc import Callable, Container, Iterable
+from collections.abc import Callable, Container, Iterable, Iterator
 from enum import Enum
 from types import ModuleType
 from typing import Any, Literal, TypeVar, Union, overload
@@ -23,6 +23,7 @@ from sparv.api.classes import (
     ExportAnnotations,
     ExportAnnotationsAllSourceFiles,
     ModelOutput,
+    Output,
     OutputMarker,
     SourceAnnotations,
     SourceStructureParser,
@@ -798,6 +799,7 @@ def _add_to_registry(annotator: dict, skip_language_check: bool = False) -> None
         sparv_config.handle_text_annotation()
 
     has_marker = False  # Needed by installers and uninstallers
+    span_order: list[tuple[str, str]] = []
 
     # Convert type hints from strings to actual types (needed because of __future__.annotations)
     signature = inspect.signature(annotator["function"], eval_str=True)
@@ -833,6 +835,12 @@ def _add_to_registry(annotator: dict, skip_language_check: bool = False) -> None
                     f"Output annotation '{ann}' in module '{module_name}' doesn't include "
                     "module name as prefix in attribute."
                 )
+
+            if isinstance(ann, Output) and (ann.contains or ann.within):
+                if ann.has_attribute():
+                    raise SparvErrorMessage(f"Only span outputs can declare 'contains' or 'within' in {rule_name}.")
+                span_order.extend((ann.name, target) for target in ann.contains)
+                span_order.extend((target, ann.name) for target in ann.within)
 
             # Add to class registry
             if cls:
@@ -903,7 +911,19 @@ def _add_to_registry(annotator: dict, skip_language_check: bool = False) -> None
     else:
         del annotator["module_name"]
         del annotator["name"]
+        annotator["span_order"] = span_order
         modules[module_name].functions[f_name] = annotator
+
+
+def iter_output_span_order() -> Iterator[tuple[str, str]]:
+    """Yield raw outer/inner pairs declared by registered outputs.
+
+    Yields:
+        Pairs of span annotation names or references.
+    """
+    for module in modules.values():
+        for function in module.functions.values():
+            yield from function["span_order"]
 
 
 def find_implicit_classes() -> None:

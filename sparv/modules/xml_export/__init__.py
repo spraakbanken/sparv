@@ -2,7 +2,7 @@
 
 from sparv.api import Config
 
-from . import preserved_format, pretty, scrambled
+from . import preserved_format, pretty, scrambled, xml_utils
 
 __config__ = [
     Config(
@@ -13,6 +13,7 @@ __config__ = [
         pattern=r".*\{file\}.*",
     ),
     Config("xml_export.annotations", description="Sparv annotations to include.", datatype=list[str]),
+    xml_utils.SPAN_ORDER_CONFIG,
     Config(
         "xml_export.source_annotations",
         description="List of annotations and attributes from the source data to include or exclude.\n\n"

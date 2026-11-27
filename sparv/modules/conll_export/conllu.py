@@ -98,6 +98,7 @@ def conllu(
     deprel: Annotation | None = Annotation("[conll_export.conll_fields.deprel]"),
     deps: Annotation | None = Annotation("[conll_export.conll_fields.deps]"),
     misc: Annotation | None = Annotation("[conll_export.conll_fields.misc]"),
+    span_order: util.export.SpanOrder | None = util.export.SPAN_ORDER_CONFIG,
 ) -> None:
     """Export annotations to CoNLL-U format."""
     # CoNLLU specification: https://universaldependencies.org/format.html
@@ -134,7 +135,7 @@ def conllu(
         annotations, source_annotations, remove_namespaces=True, source_file=source_file, token_name=token_name
     )
     span_positions, annotation_dict = util.export.gather_annotations(
-        annotation_list, export_names, source_file=source_file
+        annotation_list, export_names, source_file=source_file, span_order=span_order
     )
 
     csv_data = ["# global.columns = ID FORM LEMMA UPOS XPOS FEATS HEAD DEPREL DEPS MISC"]

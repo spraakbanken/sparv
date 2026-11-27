@@ -3,8 +3,10 @@
 from typing import Optional
 
 from sparv.api import Config, SourceStructureParser, wizard
+from sparv.api.util.export import SPAN_ORDER_CONFIG
 
 __config__ = [
+    SPAN_ORDER_CONFIG,
     Config(
         "export.default",
         default=["xml_export:pretty"],

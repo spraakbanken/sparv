@@ -208,6 +208,22 @@ The `export.default` option specifies the list of export formats produced when r
 arguments. By default, this list includes only `xml_export:pretty`, which is the formatted XML export with one token per
 line. Use `sparv run --list` to see all available export formats.
 
+### Ordering Annotations with Identical Spans
+
+Use `export.span_order` to specify which annotation comes first when two spans cover the same text and their positions
+do not determine the order. Each pair lists the outer annotation first. Use annotation names before export renaming, or
+refer to [annotation classes](#annotation-classes).
+
+```yaml
+export:
+  span_order:
+    - [section, <paragraph>]
+    - [<paragraph>, <sentence>]
+```
+
+Usually, this is not necessary: The hierarchy of source annotations is always preserved, and in most cases Sparv knows
+or can infer the correct order of automatic annotations.
+
 ### Naming Options
 
 Several export options relate to the naming of annotations and attributes. You can prefix all annotations produced by

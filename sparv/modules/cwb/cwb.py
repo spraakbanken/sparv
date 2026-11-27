@@ -143,6 +143,7 @@ def vrt(
     remove_namespaces: bool = Config("export.remove_module_namespaces", False),
     sparv_namespace: str = Config("export.sparv_namespace"),
     source_namespace: str = Config("export.source_namespace"),
+    span_order: util.export.SpanOrder | None = util.export.SPAN_ORDER_CONFIG,
 ) -> None:
     """Export annotations to vrt.
 
@@ -157,6 +158,7 @@ def vrt(
         remove_namespaces: Whether to remove namespaces from annotation names.
         sparv_namespace: The namespace for Sparv annotations.
         source_namespace: The namespace for source annotations.
+        span_order: Resolved rules for ordering annotations with identical boundaries.
     """
     # Create export dir
     out_path = Path(out)
@@ -185,7 +187,7 @@ def vrt(
         )
     xml_utils.replace_invalid_chars_in_names(export_names)
     span_positions, annotation_dict = util.export.gather_annotations(
-        annotation_list, export_names, source_file=source_file
+        annotation_list, export_names, source_file=source_file, span_order=span_order
     )
     vrt_data = create_vrt(
         span_positions, token.name, word_annotation, all_token_attributes, annotation_dict, export_names, source_file
@@ -213,6 +215,7 @@ def vrt_scrambled(
     remove_namespaces: bool = Config("export.remove_module_namespaces", False),
     sparv_namespace: str = Config("export.sparv_namespace"),
     source_namespace: str = Config("export.source_namespace"),
+    span_order: util.export.SpanOrder | None = util.export.SPAN_ORDER_CONFIG,
 ) -> None:
     """Export annotations to vrt in scrambled order.
 
@@ -229,6 +232,7 @@ def vrt_scrambled(
         remove_namespaces: Whether to remove namespaces from annotation names.
         sparv_namespace: The namespace for Sparv annotations.
         source_namespace: The namespace for source annotations.
+        span_order: Resolved rules for ordering annotations with identical boundaries.
 
     Raises:
         SparvErrorMessage: If the chunk annotation used for scrambling is not included in the export.
@@ -254,7 +258,7 @@ def vrt_scrambled(
         raise SparvErrorMessage(f"The annotation used for scrambling ({chunk}) needs to be included in the output.")
     xml_utils.replace_invalid_chars_in_names(export_names)
     span_positions, annotation_dict = util.export.gather_annotations(
-        annotation_list, export_names, source_file=source_file, split_overlaps=True
+        annotation_list, export_names, source_file=source_file, split_overlaps=True, span_order=span_order
     )
     logger.progress()
 

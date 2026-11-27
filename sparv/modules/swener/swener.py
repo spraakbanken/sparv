@@ -24,7 +24,13 @@ MAX_TOKEN_LENGTH = 100  # SweNER sometimes hangs on very long tokens
     ],
 )
 def annotate(
-    out_ne: Output = Output("swener.ne", cls="named_entity", description="Named entity segments from SweNER"),
+    out_ne: Output = Output(
+        "swener.ne",
+        cls="named_entity",
+        description="Named entity segments from SweNER",
+        within="<sentence>",
+        contains="<token>",
+    ),
     out_ne_ex: Output = Output("swener.ne:swener.ex", description="Named entity expressions from SweNER"),
     out_ne_type: Output = Output(
         "swener.ne:swener.type", cls="named_entity:type", description="Named entity types from SweNER"

@@ -47,6 +47,7 @@ def scrambled(
     sparv_namespace: str = Config("export.sparv_namespace"),
     source_namespace: str = Config("export.source_namespace"),
     include_empty_attributes: bool = Config("xml_export.include_empty_attributes"),
+    span_order: util.export.SpanOrder | None = xml_utils.SPAN_ORDER_CONFIG,
 ) -> None:
     """Export annotations to scrambled XML.
 
@@ -64,6 +65,7 @@ def scrambled(
         sparv_namespace: The namespace for Sparv annotations.
         source_namespace: The namespace for source annotations.
         include_empty_attributes: Whether to include empty attributes in the output XML.
+        span_order: Resolved rules for ordering annotations with identical boundaries.
 
     Raises:
         SparvErrorMessage: If the chunk annotation is not included in the output.
@@ -94,7 +96,11 @@ def scrambled(
         raise SparvErrorMessage(f"The annotation used for scrambling ({chunk}) needs to be included in the output.")
     xml_utils.replace_invalid_chars_in_names(export_names)
     span_positions, annotation_dict = util.export.gather_annotations(
-        annotation_list, export_names, source_file=source_file, split_overlaps=True
+        annotation_list,
+        export_names,
+        source_file=source_file,
+        split_overlaps=True,
+        span_order=span_order,
     )
 
     # Reorder chunks

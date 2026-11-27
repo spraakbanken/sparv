@@ -8,12 +8,18 @@ from array import array
 from collections import OrderedDict, defaultdict
 from collections.abc import Iterable, Sequence
 from copy import deepcopy
-from itertools import combinations
+from functools import partial
+from graphlib import CycleError, TopologicalSorter
+from heapq import heapify, heappop, heappush
+from itertools import chain, combinations, groupby
+from operator import attrgetter
 from typing import Any, ClassVar, Literal, TypeVar, cast, overload
 
 from sparv.api import (
     Annotation,
     AnnotationAllSourceFiles,
+    AnnotationName,
+    Config,
     ExportAnnotations,
     ExportAnnotationsAllSourceFiles,
     HeaderAnnotations,
@@ -24,13 +30,20 @@ from sparv.api import (
     get_logger,
     util,
 )
-from sparv.core import io
+from sparv.core import io, registry
 
 from .constants import SPARV_DEFAULT_NAMESPACE, XML_NAMESPACE_SEP
 
 logger = get_logger(__name__)
 
 AnnotationType = TypeVar("AnnotationType", bound=Annotation | AnnotationAllSourceFiles)
+_OrderNode = TypeVar("_OrderNode", str, int)
+_PAIR_SIZE = 2
+_DEFAULT_SPAN_ORDER = (
+    ("<text>", "<paragraph>"),
+    ("<paragraph>", "<sentence>"),
+    ("<sentence>", "<token>"),
+)
 
 
 class Span:
@@ -143,6 +156,200 @@ class Span:
         return sort_key1 < sort_key2
 
 
+def _add_precedence(successors: dict[_OrderNode, set[_OrderNode]], outer: _OrderNode, inner: _OrderNode) -> None:
+    """Update the transitive order with the relation if it would keep the order acyclic."""
+    if outer == inner or outer in successors.get(inner, ()):
+        return
+    descendants = {inner, *successors.get(inner, ())}
+    successors.setdefault(outer, set()).update(descendants)
+    for earlier in successors.values():
+        if outer in earlier:
+            earlier.update(descendants)
+
+
+class SpanOrder:
+    """Relative order of annotation types for spans with identical character boundaries."""
+
+    def __init__(
+        self,
+        rules: Iterable[tuple[str, str]],
+        defaults: Iterable[tuple[str, str]] = (),
+        *,
+        output_rules: Iterable[tuple[str, str]] = (),
+    ) -> None:
+        """Combine explicit outer/inner rules and compatible defaults.
+
+        Args:
+            rules: Declared pairs of annotation names, ordered outermost first.
+            defaults: Pairs to apply where compatible with the declarations.
+            output_rules: Annotator-declared pairs, between corpus rules and built-in defaults in priority.
+
+        Raises:
+            SparvErrorMessage: If the declared rules contain a cycle.
+        """
+        declared: dict[str, set[str]] = {}
+        sorter: TopologicalSorter[str] = TopologicalSorter()
+        for outer, inner in rules:
+            sorter.add(inner, outer)
+            _add_precedence(declared, outer, inner)
+        try:
+            sorter.prepare()
+        except CycleError as error:
+            cycle = " → ".join(error.args[1])
+            raise SparvErrorMessage(f"Conflicting span order rules form a cycle: {cycle}") from None
+
+        # Keep the priority at which each pair becomes reachable, including through intermediate annotations.
+        self._priority: dict[tuple[str, str], int] = {}
+        for priority, additional_rules in enumerate(((), output_rules, defaults), start=1):
+            for outer, inner in additional_rules:
+                _add_precedence(declared, outer, inner)
+            for outer, children in declared.items():
+                for inner in children:
+                    self._priority.setdefault((outer, inner), priority)
+
+    def __repr__(self) -> str:
+        """Return a string representation of the span order."""
+        return f"{type(self).__name__}({sorted(self._priority.items())!r})"
+
+    def _order_group(self, spans: list[Span], hierarchy: dict[str, dict[str, int]]) -> list[Span]:
+        """Order a group using source subpositions, declarations, defaults and inference.
+
+        Returns:
+            The spans in opening order.
+        """
+        spans.sort(key=attrgetter("name", "index"))
+        preferences: list[tuple[int, int, int]] = []
+        for i, j in combinations(range(len(spans)), 2):
+            a, b = spans[i], spans[j]
+            # If both spans have sub positions, use them to determine the order.
+            if a.start_sub is not False and b.start_sub is not False:
+                a_sub = (a.start_sub, -a.end_sub)
+                b_sub = (b.start_sub, -b.end_sub)
+                if a_sub != b_sub:
+                    preferences.append((0, i, j) if a_sub < b_sub else (0, j, i))
+                    continue
+
+            if (priority := self._priority.get((a.name, b.name))) is not None:
+                preferences.append((priority, i, j))
+            elif (priority := self._priority.get((b.name, a.name))) is not None:
+                preferences.append((priority, j, i))
+            elif (inferred := hierarchy.get(a.name, {}).get(b.name)) is not None:
+                preferences.append((4, i, j) if inferred == 0 else (4, j, i))
+
+        if len(spans) == _PAIR_SIZE:
+            return spans[::-1] if preferences and preferences[0][1] == 1 else spans
+        if not preferences:
+            return spans
+
+        successors: dict[int, set[int]] = {}
+        for _, outer, inner in sorted(preferences):
+            _add_precedence(successors, outer, inner)
+
+        # The TopologicalSorter determines a valid order of the spans based on the precedence relations.
+        sorter: TopologicalSorter[int] = TopologicalSorter()
+        for outer in range(len(spans)):
+            sorter.add(outer)
+            for inner in successors.get(outer, ()):
+                sorter.add(inner, outer)
+        sorter.prepare()
+        ready = list(sorter.get_ready())
+        # Use a heap to always pop the smallest index from the ready set (for efficiency).
+        heapify(ready)
+        ordered: list[Span] = []
+        while ready:
+            # Pop the smallest index from the ready set and add it to the ordered list.
+            index = heappop(ready)
+            ordered.append(spans[index])
+            # Mark the index as done and add any new ready indices to the heap.
+            sorter.done(index)
+            for next_index in sorter.get_ready():
+                heappush(ready, next_index)
+        return ordered
+
+    def apply(self, spans: list[Span], hierarchy: dict[str, dict[str, int]]) -> None:
+        """Reorder non-empty spans with identical start and end positions in a list of spans sorted by position.
+
+        Args:
+            spans: Spans sorted by position, updated in place.
+            hierarchy: Inferred preferences between annotation types.
+        """
+        for _, group in groupby(enumerate(spans), key=lambda entry: entry[1].start):
+            first = next(group)
+            second = next(group, None)  # ruff: ignore[reuse-of-groupby-generator]
+            if second is None:
+                continue
+            by_end: dict[int, list[int]] = defaultdict(list)
+            for i, span in chain((first, second), group):
+                if span.start != span.end:
+                    by_end[span.end].append(i)
+            for indices in by_end.values():
+                if len(indices) > 1:
+                    ordered = self._order_group([spans[i] for i in indices], hierarchy)
+                    for i, span in zip(indices, ordered, strict=True):
+                        spans[i] = span
+
+
+def _resolve_span_order(value: list[list[str]], config_name: str) -> SpanOrder:
+    """Validate span rules and resolve annotation classes during rule construction.
+
+    Returns:
+        Ordering rules using the resolved annotation names.
+
+    Raises:
+        SparvErrorMessage: If the config contains an invalid or unresolved rule.
+    """
+
+    def resolve(pair: Sequence[str], source: str) -> tuple[str, str] | None:
+        outer, inner = (AnnotationName(name) for name in pair)
+        missing = outer.expand_variables() + inner.expand_variables()
+        if missing:
+            return None
+        if outer.has_attribute() or inner.has_attribute():
+            raise SparvErrorMessage(f"{source} requires span annotations without attributes.")
+        return outer.name, inner.name
+
+    if not isinstance(value, list):
+        raise SparvErrorMessage(f"{config_name} must be a list of annotation pairs.")
+    rules = []
+    for pair in value:
+        match pair:
+            case [str(outer), str(inner)] if outer.strip() and inner.strip():
+                if (order := resolve((outer.strip(), inner.strip()), config_name)) is None:
+                    raise SparvErrorMessage(f"Unresolved annotation reference in {config_name}: {pair!r}")
+                rules.append(order)
+            case _:
+                raise SparvErrorMessage(f"Each entry in {config_name} must be a list of two annotation names.")
+    output_rules = [
+        order
+        for pair in sorted(set(registry.iter_output_span_order()))
+        if (order := resolve(pair, f"Output span order {pair!r}")) is not None
+    ]
+    defaults = [order for pair in _DEFAULT_SPAN_ORDER if (order := resolve(pair, config_name)) is not None]
+    return SpanOrder(rules, defaults, output_rules=output_rules)
+
+
+def span_order_config(name: str, default: list[list[str]] | None = None) -> Config:
+    """Define span order settings with the same validation and built-in rules across exporters.
+
+    Args:
+        name: Full config key.
+        default: Default list of pairs, or `None` to let the exporter inherit the shared setting.
+
+    Returns:
+        Config declaration that resolves to a `SpanOrder` when used as an exporter parameter.
+    """
+    return Config(
+        name,
+        default=default,
+        description="Pairs of annotation names in outer, inner order for spans with identical boundaries.",
+        datatype=list[list],
+        transform=partial(_resolve_span_order, config_name=name),
+    )
+
+
+SPAN_ORDER_CONFIG = span_order_config("export.span_order", default=[])
+
+
 @overload
 def gather_annotations(
     annotations: list[Annotation | AnnotationAllSourceFiles],
@@ -151,6 +358,8 @@ def gather_annotations(
     source_file: str | None = None,
     flatten: Literal[True] = True,
     split_overlaps: bool = False,
+    *,
+    span_order: SpanOrder | None = None,
 ) -> tuple[list[tuple[int, str, Span]], dict[str, dict[str, list[str]]]]: ...
 
 
@@ -163,6 +372,7 @@ def gather_annotations(
     *,
     flatten: Literal[False],
     split_overlaps: bool = False,
+    span_order: SpanOrder | None = None,
 ) -> tuple[dict[int, list[tuple[str, Span]]], dict[str, dict[str, list[str]]]]: ...
 
 
@@ -173,6 +383,8 @@ def gather_annotations(
     source_file: str | None = None,
     flatten: bool = True,
     split_overlaps: bool = False,
+    *,
+    span_order: SpanOrder | None = None,
 ) -> (
     tuple[list[tuple[int, str, Span]], dict[str, dict[str, list[str]]]]
     | tuple[dict[int, list[tuple[str, Span]]], dict[str, dict[str, list[str]]]]
@@ -187,6 +399,7 @@ def gather_annotations(
             version.
         flatten: Whether to return the spans as a flat list.
         split_overlaps: Whether to split up overlapping spans.
+        span_order: Optional ordering rules for non-empty spans with identical start and end positions.
 
     Returns:
         If `flatten` is `True`, a list of tuples with span positions and the `annotation_dict`. If `flatten` is
@@ -257,6 +470,8 @@ def gather_annotations(
     # Calculate hierarchy (if needed) and sort the span objects
     Span.elem_hierarchy = calculate_element_hierarchy(source_file, spans_list)
     sorted_spans = sorted(spans_list)
+    if span_order is not None:
+        span_order.apply(sorted_spans, Span.elem_hierarchy)
 
     # Add position information to sorted_spans
     spans_dict: defaultdict[int, list[tuple[str, Span]]] = defaultdict(list)

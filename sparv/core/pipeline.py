@@ -511,14 +511,14 @@ class RuleBuilder:
             return copy.deepcopy(param.default)
 
     def _resolve_config_value(self, param_value: Config, param_optional: bool) -> Any:
-        """Resolve a `Config` parameter to its actual config value.
+        """Resolve a `Config` parameter and apply its optional transform.
 
         Args:
             param_value: The `Config` object to resolve.
             param_optional: Whether this parameter is optional, which affects how missing config values are handled.
 
         Returns:
-            The resolved config value, or `None` if the parameter is optional and the config value is missing.
+            The resolved processor parameter, or `None` if the parameter is optional and the config value is missing.
         """
         self.rule.configs.add(param_value.name)
         config_value = sparv_config.get(param_value.name, sparv_config.Unset)
@@ -529,6 +529,8 @@ class RuleBuilder:
                 config_value = None
             else:
                 self.rule.missing_config.add(param_value.name)
+        if param_value.transform is not None and config_value is not sparv_config.Unset:
+            config_value = param_value.transform(config_value)
         return config_value
 
     def _handle_param_by_type(

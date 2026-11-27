@@ -1015,6 +1015,9 @@ class Output(CommonMixin, BaseOutput):
         description: str | None = None,
         source_file: str | None = None,
         tagset: str | None = None,
+        *,
+        contains: str | Sequence[str] = (),
+        within: str | Sequence[str] = (),
     ) -> None:
         """Initialize class.
 
@@ -1024,8 +1027,12 @@ class Output(CommonMixin, BaseOutput):
             description: Description of the annotation.
             source_file: The name of the source file.
             tagset: Optional tagset identifier (see `BaseOutput`).
+            contains: Span annotation names or classes to order inside this output when export boundaries tie.
+            within: Span annotation names or classes to order outside this output when export boundaries tie.
         """
         super().__init__(name, cls, description=description, source_file=source_file, tagset=tagset)
+        self.contains = (contains,) if isinstance(contains, str) else tuple(contains)
+        self.within = (within,) if isinstance(within, str) else tuple(within)
 
     def write(self, values: Iterable) -> None:
         """Write the annotation to a file, overwriting any existing annotation.
@@ -1503,6 +1510,8 @@ class Config(Any):
         max_value: int | float | None = None,
         const: Any | None = None,
         conditions: list[Config] | None = None,
+        *,
+        transform: Callable[[Any], Any] | None = None,
     ) -> None:
         """Initialize class.
 
@@ -1523,6 +1532,7 @@ class Config(Any):
             max_value: An `int` or `float` representing the maximum numeric value.
             const: Restrict the value to a constant.
             conditions: A list of `Config` objects with conditions that must also be met.
+            transform: Optional conversion of the config value to the processor parameter during rule construction.
         """
         self.name = name
         self.default = default
@@ -1536,6 +1546,7 @@ class Config(Any):
         self.max_value = max_value
         self.const = const
         self.conditions = conditions or []
+        self.transform = transform
 
 
 class Wildcard(str):

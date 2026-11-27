@@ -43,6 +43,7 @@ def pretty(
     sparv_namespace: str = Config("export.sparv_namespace"),
     source_namespace: str = Config("export.source_namespace"),
     include_empty_attributes: bool = Config("xml_export.include_empty_attributes"),
+    span_order: util.export.SpanOrder | None = xml_utils.SPAN_ORDER_CONFIG,
 ) -> None:
     """Export annotations to pretty XML in export_dir.
 
@@ -62,6 +63,7 @@ def pretty(
         sparv_namespace: The namespace to be added to all Sparv annotations.
         source_namespace: The namespace to be added to all annotations present in the source.
         include_empty_attributes: Whether to include attributes even when they are empty. Disabled by default.
+        span_order: Resolved rules for ordering annotations with identical boundaries.
     """
     # Create export dir
     out_path = Path(out)
@@ -94,7 +96,12 @@ def pretty(
     export_names.update(h_export_names)
     xml_utils.replace_invalid_chars_in_names(export_names)
     span_positions, annotation_dict = util.export.gather_annotations(
-        annotation_list, export_names, h_annotations, source_file=source_file, split_overlaps=True
+        annotation_list,
+        export_names,
+        h_annotations,
+        source_file=source_file,
+        split_overlaps=True,
+        span_order=span_order,
     )
 
     # Open XML file for writing

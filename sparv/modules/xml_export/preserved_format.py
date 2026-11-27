@@ -48,6 +48,7 @@ def preserved_format(
     sparv_namespace: str = Config("export.sparv_namespace"),
     source_namespace: str = Config("export.source_namespace"),
     include_empty_attributes: bool = Config("xml_export.include_empty_attributes"),
+    span_order: util.export.SpanOrder | None = xml_utils.SPAN_ORDER_CONFIG,
 ) -> None:
     """Export annotations to XML in export_dir and keep whitespaces and indentation from original file.
 
@@ -66,6 +67,7 @@ def preserved_format(
         sparv_namespace: The namespace to be added to all Sparv annotations.
         source_namespace: The namespace to be added to all annotations present in the source.
         include_empty_attributes: Whether to include attributes even when they are empty. Disabled by default.
+        span_order: Resolved rules for ordering annotations with identical boundaries.
 
     Raises:
         SparvErrorMessage: If the root tag is missing.
@@ -93,7 +95,13 @@ def preserved_format(
     export_names.update(h_export_names)
     xml_utils.replace_invalid_chars_in_names(export_names)
     span_positions, annotation_dict = util.export.gather_annotations(
-        annotation_list, export_names, h_annotations, source_file=source_file, flatten=False, split_overlaps=True
+        annotation_list,
+        export_names,
+        h_annotations,
+        source_file=source_file,
+        flatten=False,
+        split_overlaps=True,
+        span_order=span_order,
     )
     sorted_positions = [(pos, span[0], span[1]) for pos, spans in sorted(span_positions.items()) for span in spans]
 

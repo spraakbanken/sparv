@@ -42,6 +42,7 @@ def csv(
     sparv_namespace: str = Config("export.sparv_namespace"),
     source_namespace: str = Config("export.source_namespace"),
     delimiter: str = Config("csv_export.delimiter"),
+    span_order: util.export.SpanOrder | None = util.export.SPAN_ORDER_CONFIG,
 ) -> None:
     """Export annotations to CSV format."""
     # Create export dir
@@ -69,7 +70,7 @@ def csv(
             "the source text. Make sure to add <token> to the list of export annotations."
         )
     span_positions, annotation_dict = util.export.gather_annotations(
-        annotation_list, export_names, source_file=source_file
+        annotation_list, export_names, source_file=source_file, span_order=span_order
     )
 
     # Make csv header

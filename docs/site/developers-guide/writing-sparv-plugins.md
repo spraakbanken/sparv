@@ -260,6 +260,24 @@ def uppercase(word: Annotation = Annotation("<token:word>"),
     ...
 ```
 
+## Declaring Span Order
+
+Use `contains` and `within` on a span `Output` to tell exporters how to order it when boundaries tie. For example, named
+entities built from tokens can declare that an entity comes outside a token even when both cover exactly the same text.
+
+```python
+out = Output(
+    "my_ner.entity",
+    description="Named entity spans",
+    contains="<token>",
+    within="<sentence>",
+)
+```
+
+Each keyword accepts an annotation name, an annotation class, or a sequence of those references. Exporters use these
+declarations as preferences for tied spans. Users can override these preferences in the corpus configuration file by
+using the `export.span_order` key.
+
 ## Config Parameters
 
 By declaring configuration parameters, you can make your Sparv module customizable by users. This allows users to

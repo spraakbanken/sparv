@@ -122,7 +122,7 @@ def tokenize(
 )
 def sentence(
     text: Text = Text(),
-    out: Output = Output("segment.sentence", cls="sentence", description="Sentence segments"),
+    out: Output = Output("segment.sentence", cls="sentence", description="Sentence segments", within="<text>"),
     chunk: Annotation | None = Annotation("[segment.sentence_chunk]"),
     segmenter: str = Config("segment.sentence_segmenter"),
     existing_segments: Annotation | None = Annotation("[segment.existing_sentences]"),
